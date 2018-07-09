@@ -87,7 +87,7 @@ namespace Circuit.Component {
          }
 
          insertInto(group: Svg.Elements.Group) {
-            Component.Defaults.insertFirst(this.group, group);
+            Svg.Utility.Insert.first(this.group.element, group.element);
          }
 
 

@@ -63,7 +63,7 @@ var Circuit;
             onPlace() {
             }
             insertInto(group) {
-                Component.Defaults.insertLast(this.group, group);
+                Svg.Utility.Insert.last(this.group.element, group.element);
             }
             getConnections() {
                 if (Circuit.manifest.layout.includes(this)) {
@@ -78,42 +78,6 @@ var Circuit;
             }
         }
         Component.Instance = Instance;
-        let Defaults;
-        (function (Defaults) {
-            Defaults.insertLast = (group, target) => {
-                if (target === group) {
-                    $(group.element).insertAfter($(group.element).siblings().last());
-                }
-                else if ($(target.element).children().length) {
-                    $(group.element).insertAfter($(target.element).children().last());
-                }
-                else {
-                    $(group.element).appendTo($(target.element));
-                }
-            };
-            Defaults.insertFirst = (group, target) => {
-                if (target === group) {
-                    $(group.element).insertBefore($(group.element).siblings().first());
-                }
-                else if ($(target.element).children().length) {
-                    $(group.element).insertBefore($(target.element).children().first());
-                }
-                else {
-                    $(group.element).prependTo($(target.element));
-                }
-            };
-            Defaults.insertBefore = (group, target, referenceSelector = "*") => {
-                if (target === group) {
-                    $(group.element).insertBefore($(group.element).siblings(referenceSelector).first());
-                }
-                else if ($(target.element).children(referenceSelector).length) {
-                    $(group.element).insertBefore($(target.element).children(referenceSelector).first());
-                }
-                else {
-                    $(group.element).prependTo($(target.element));
-                }
-            };
-        })(Defaults = Component.Defaults || (Component.Defaults = {}));
         let Generics;
         (function (Generics) {
             function getConnectorDirectConnections(connector, allConnectors) {
@@ -1564,7 +1528,7 @@ var Circuit;
                     });
                 }
                 insertInto(group) {
-                    Component.Defaults.insertFirst(this.group, group);
+                    Svg.Utility.Insert.first(this.group.element, group.element);
                 }
             }
             Local.Instance = Instance;
@@ -1713,7 +1677,7 @@ var Circuit;
                     });
                 }
                 insertInto(group) {
-                    Component.Defaults.insertFirst(this.group, group);
+                    Svg.Utility.Insert.first(this.group.element, group.element);
                 }
             }
             Local.Instance = Instance;
@@ -2656,7 +2620,7 @@ var Circuit;
                     };
                 }
                 insertInto(group) {
-                    Component.Defaults.insertBefore(this.group, group, ".component");
+                    Svg.Utility.Insert.before(this.group.element, group.element, ".component");
                 }
                 draw() {
                     this.group.addClasses(this.name);
@@ -3057,7 +3021,7 @@ var Circuit;
                     });
                 }
                 insertInto(group) {
-                    Component.Defaults.insertFirst(this.group, group);
+                    Svg.Utility.Insert.first(this.group.element, group.element);
                 }
             }
             Local.Instance = Instance;
@@ -3306,7 +3270,7 @@ var Circuit;
                     }));
                 }
                 insertInto(group) {
-                    Component.Defaults.insertFirst(this.group, group);
+                    Svg.Utility.Insert.first(this.group.element, group.element);
                 }
                 transferFunction(from) {
                     return Utility.flatten2d(this.connectorSets.map(connectorSet => connectorSet.filter(connector => (connector !== from))));
@@ -3354,7 +3318,6 @@ var Circuit;
     (function (Parts) {
         class Diagram {
             constructor(node) {
-                this.gridSpacing = 20;
                 this.root = new Svg.Root();
                 this.group = this.root.group;
                 this.root.draw(node);
@@ -20418,6 +20381,51 @@ var Svg;
         }
         Elements.Group = Group;
     })(Elements = Svg.Elements || (Svg.Elements = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Utility;
+    (function (Utility) {
+        var Insert;
+        (function (Insert) {
+            function last(element, target) {
+                if (element === target) {
+                    $(element).insertAfter($(element).siblings().last());
+                }
+                else if ($(target).children().length) {
+                    $(element).insertAfter($(target).children().last());
+                }
+                else {
+                    $(element).appendTo($(target));
+                }
+            }
+            Insert.last = last;
+            function first(element, target) {
+                if (element === target) {
+                    $(element).insertBefore($(element).siblings().first());
+                }
+                else if ($(target).children().length) {
+                    $(element).insertBefore($(target).children().first());
+                }
+                else {
+                    $(element).prependTo($(target));
+                }
+            }
+            Insert.first = first;
+            function before(element, target, referenceSelector = "*") {
+                if (element === target) {
+                    $(element).insertBefore($(element).siblings(referenceSelector).first());
+                }
+                else if ($(target).children(referenceSelector).length) {
+                    $(element).insertBefore($(target).children(referenceSelector).first());
+                }
+                else {
+                    $(element).prependTo($(target));
+                }
+            }
+            Insert.before = before;
+        })(Insert = Utility.Insert || (Utility.Insert = {}));
+    })(Utility = Svg.Utility || (Svg.Utility = {}));
 })(Svg || (Svg = {}));
 var Circuit;
 (function (Circuit) {
