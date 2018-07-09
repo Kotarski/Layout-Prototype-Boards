@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+
+<head>
+   <title>Veroboard Layout</title>
+   <link rel="stylesheet" type="text/css" href="../css/main.css">
+   <link rel="stylesheet" type="text/css" href="../css/schematic.css">
+   <link rel="stylesheet" type="text/css" href="../css/layout-board.css">
+   <link rel="stylesheet" type="text/css" href="../css/layout.css">
+   <link rel="stylesheet" href="../css/plugins/layout-edited.css">
+   <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+   <link rel="stylesheet" media="screen" href="https://fontlibrary.org/face/segment7" type="text/css" />
+
+
+   <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.2.1.min.js"></script>
+
+   <script src="../compiledJS/compiled.js"></script>
+
+</head>
+
+<body>
+
+   <div class="ui-layout-west">
+      <div id="welcomeAccordion">
+         <h3>Introduction</h3>
+         <div>
+            <p>Mauris mauris ante, blandit et, ultrices a, suscipit eget, quam. Integer ut neque. Vivamus nisi metus, molestie
+               vel, gravida in, condimentum sit amet, nunc. Nam a nibh. Donec suscipit eros. Nam mi. Proin viverra leo ut
+               odio. Curabitur malesuada. Vestibulum a velit eu ante scelerisque vulputate.</p>
+         </div>
+         <h3>Load or Save</h3>
+         <div style="text-align: center">
+            <p>
+               <input type="file" id="fileInput" accept=".dasim,.layout" style="display: none;">
+               <input type="button" value="Load File" onclick="document.getElementById('fileInput').click();" />
+            </p>
+            <p>
+               <input type="button" value="Save File" id="fileSave">
+            </p>
+            <p id="fileStatusText"></p>
+         </div>
+         <h3>Select Board</h3>
+         <div style="text-align: center">
+            <p>
+               <form class="stripboardform" onsubmit="return false;">
+                  <button onclick="Ui.Events.makeStripBoardButtonPress();">Stripboard </button>
+                  <label for="stripboardRows">Size: </label>
+                  <input type="number" id="stripboardRows" value="10" min="1" max="30" required>
+                  <label for="stripboardColumns">x</label>
+                  <input type="number" id="stripboardColumns" value="10" min="1" max="30" required>
+               </form>
+            </p>
+            <p>
+               <input type="button" value="Half-size Breadboard " onclick="Ui.Events.makeBreadBoardSmallButtonPress()" />
+            </p>
+            <p>
+               <input type="button" value="Full-size Breadboard" onclick="Ui.Events.makeBreadBoardLargeButtonPress()" />
+            </p>
+            <p>
+               <input type="button" value="Rotate" onclick="Ui.Events.rotateBoard()" />
+            </p>
+            <p>
+               <input type="button" value="Make Wire" onclick="Ui.Events.makeWire()" />
+            </p>
+         </div>
+         <h3>Check Design</h3>
+         <div style="text-align: center">
+            <p>
+               <input id="checkCircuitButton" type="button" value="Check Design" />
+               </br>
+               <label for="checkShowCorrect">Show Correct </label>
+               <input id="checkShowCorrect" type="checkbox" checked="checked" />
+               </br>
+               <label for="checkShowIncorrect">Show Incorrect</label>
+               <input id="checkShowIncorrect" type="checkbox" checked="checked" />
+            </p>
+            <p id="checkStatusText"></p>
+         </div>
+      </div>
+
+   </div>
+   <div class="ui-layout-center">
+      <div id="layoutContainer" class="svgContainer layout"></div>
+   </div>
+   <div class="ui-layout-east">
+      <div id="schematicContainer" class="svgContainer"></div>
+   </div>
+
+</body>
+
+</html>

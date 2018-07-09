@@ -1,0 +1,22 @@
+Structure:
+  Below the JS directory, namespaces follow the folder structure (Except for plugins).
+
+
+Folders/namespaces starting with '_':
+  The contents should not be directly accessed and should go via the parent class of the same name
+
+Filenames starting with '-':
+  Files exporting a single function in the namespace of the folder that contains it
+
+Filenames starting with '+':
+  Files exporting a single class in the namespace of the folder that contains it.
+  If extending a class, the directory of the parent folder will include the parent class.
+  The parent class name will be the singular form of the folder name (parts/part)
+
+Filenames starting with '~':
+  Files with their own namespace which may export multiple functions or variables
+  These are only used in special cases (such as event handling)
+
+Filenames starting with '++':
+  Typescript interface files which define types to be used elsewhere
+  These can mostly be ignored and they have no JS equivalent

@@ -1,0 +1,303 @@
+.layout {
+   --leadColour: darkgrey;
+}
+
+.layout .wire {
+   --defaultWireColour: red;
+}
+
+.layout .wire>.cover {
+   stroke-width: 7;
+   stroke: var(--defaultWireColour);
+   stroke-linejoin: round;
+   stroke-linecap: square;
+   fill: none;
+}
+
+.layout .lead {
+   stroke-width: 3;
+   stroke: var(--leadColour);
+   stroke-linejoin: round;
+   stroke-linecap: round;
+   fill: none;
+}
+
+.layout .leadhighlight {
+   stroke-width: 11;
+   stroke-linejoin: round;
+   stroke-linecap: square;
+   fill: none;
+}
+
+.layout .resistor>.body>.body {
+   fill: #E1B37B;
+}
+
+.layout .resistor>.body>.highlight {
+   stroke-width: 2;
+   fill: none;
+}
+
+.layout .resistor>.body>.band1 {
+   fill: black;
+   clip-path: ellipse(6px 7.5px at 52.5% 50%);
+}
+
+.layout .resistor>.body>.band2 {
+   fill: red;
+}
+
+.layout .resistor>.body>.band3 {
+   fill: green;
+}
+
+.layout .resistor>.body>.band4 {
+   fill: gold;
+}
+
+.layout .capacitor>.bodyelectrolytic {
+   stroke-width: 6;
+}
+
+.layout .capacitor>.bodyelectrolytic>.body {
+   stroke: #626262;
+   fill: rgb(216, 216, 216);
+}
+
+.layout .capacitor>.bodyelectrolytic>.minus {
+   stroke: #a7b4b8;
+   fill: none;
+}
+
+.layout .capacitor>.bodyelectrolytic>.text {
+   font-family: monospace;
+   font-size: 6px;
+   font-weight: 700;
+   fill: #f6f6f6;
+}
+
+.layout .capacitor>.bodyceramic>.body {
+   stroke-width: 2;
+   fill: #edb256;
+}
+
+.layout .capacitor>.bodyceramic>.text {
+   font-family: monospace;
+   font-size: 8px;
+   font-weight: 700;
+   alignment-baseline: middle;
+   text-anchor: middle;
+   fill: #f6f6f6;
+}
+
+.layout .movepin {
+   --bodyColor: grey;
+}
+
+.layout .selected>.movepin .body {
+   stroke: var(--bodyColor);
+   stroke-width: 8;
+   stroke-linecap: round;
+   opacity: 0.8;
+}
+
+.layout .dip {
+   --bodyFill: #545454;
+   --notchFill: #191919;
+   --pinColor: #EEEEEB;
+}
+
+.layout .dip .body {
+   stroke: none;
+   stroke-width: 2;
+   fill: var(--bodyFill);
+}
+
+.layout .dip .body.highlight {
+   fill: none;
+   stroke-width: 3;
+}
+
+.layout .dip .notch {
+   stroke-width: 1;
+   stroke: none;
+   stroke-linejoin: round;
+   fill: var(--notchFill);
+}
+
+.layout .dip .pin {
+   fill: var(--leadColour);
+   stroke: var(--leadColour);
+   stroke-width: 1;
+   stroke-linejoin: round;
+}
+
+.layout .dip .text {
+   font-family: monospace;
+   font-size: 16px;
+   font-weight: 700;
+   fill: #dadada;
+}
+
+.layout .power {
+   --trackColour: #F1F3EA;
+   --trackEdgeColour: #E2E3DA;
+   --holeColour: #312C27;
+   --holeEdgeColour: #DFE2E5;
+}
+
+.layout .power>.body {
+   fill: #E0E0E0;
+   stroke-width: 2;
+}
+
+.layout .power>.screen {
+   fill: #C3D2E6;
+}
+
+@font-face {
+   font-family: 'Segment7Standard';
+   src: url('fonts/Segment7Standard.otf') format('opentype');
+}
+
+.layout .power>.screentext {
+   font-family: 'Segment7Standard';
+   font-size: 60px;
+   text-anchor: middle;
+}
+
+.layout .power>.screentext.on {
+   fill: #545454;
+}
+
+.layout .power>.screentext.off {
+   fill: #B0BFD3;
+}
+
+.layout .power .hole {
+   fill: var(--holeColour);
+   stroke-width: 3;
+   stroke: #F1F3EA;
+   stroke-linejoin: round;
+}
+
+.layout .selected>.pin>.highlight {
+   visibility: visible;
+   stroke: none;
+   /* opacity: 0.6; */
+}
+
+.layout .connector {
+   fill: RGBA(255, 0, 0, 0.4);
+}
+
+.layout .highlight {
+   stroke: transparent;
+}
+
+.layout .selected .highlight {
+   stroke: rgb(18, 44, 192);
+}
+
+.layout .highlightwithfill {
+   fill: transparent;
+}
+
+.layout .selected .highlightwithfill {
+   fill: rgb(18, 44, 192);
+}
+
+.layout .nofill {
+   fill: transparent;
+}
+
+.layout .connectivityhighlight {
+   pointer-events: none;
+}
+
+.layout .diode {
+   --bodyFill: #545454;
+   --cathodeFill: #EEEEEB;
+}
+
+.layout .diode>.body>.body {
+   stroke: none;
+   fill: var(--bodyFill);
+}
+
+.layout .diode>.body>.cathode {
+   stroke: none;
+   fill: var(--cathodeFill);
+}
+
+.layout .diode>.body>.highlight {
+   stroke-width: 2;
+}
+
+/* .layout .inductor {
+   --bodyFill: #545454;
+   --cathodeFill: #EEEEEB;
+} */
+
+.layout .inductor>.body>.body {
+   fill: none;
+   stroke: orange;
+   stroke-width: 8;
+   stroke-linejoin: round;
+   stroke-linecap: round;
+}
+
+.layout .inductor>.body>.bodyEdge {
+   fill: none;
+   stroke: rgb(182, 118, 0);
+   stroke-width: 1;
+   stroke-linejoin: round;
+   stroke-linecap: round;
+}
+
+.layout .inductor>.body>.highlight {
+   stroke-width: 11;
+   stroke-linejoin: round;
+   stroke-linecap: round;
+}
+
+.layout .bipolar {
+   --bodyFill: #545454;
+}
+
+.layout .bipolar>.body>.body {
+   fill: var(--bodyFill);
+   stroke-width: 2;
+   stroke-linejoin: round;
+}
+
+.layout .bipolar>.body>.text {
+   font-family: monospace;
+   font-size: 6px;
+   font-weight: 700;
+   fill: #f6f6f6;
+   text-anchor: middle;
+}
+
+.layout .recolorHandle {
+   visibility: hidden;
+   opacity: 0.6;
+   stroke: rgb(18, 44, 192);
+   fill: rgb(18, 44, 192);
+}
+
+.layout .selected .recolorHandle {
+   visibility: visible;
+}
+
+.layout .recolorSegmentGroup {
+   visibility: hidden;
+   opacity: 0.8;
+   pointer-events: none;
+   stroke-width: 0.4;
+   clip-path: ellipse(6px 6px at 50% 50%);
+}
+
+.layout .selected .recolorSegmentGroup {
+   visibility: visible;
+}

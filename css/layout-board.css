@@ -1,0 +1,127 @@
+.breadboard {
+   --bodyColour: #EAEBE3;
+   --bodyEdgeColour: black;
+   --centreChannelColour: #C2C5BA;
+   --trackColour: #F1F3EA;
+   --trackEdgeColour: #E2E3DA;
+   --holeColour: #312C27;
+   --holeEdgeColour: #DFE2E5;
+   --railPositiveColour: #EE4136;
+   --railNegativeColour: #8BE3F4;
+}
+
+.breadboard>.body {
+   fill: var(--bodyColour);
+   stroke-width: 2;
+}
+
+.breadboard>.body.highlight {
+   fill: none;
+   stroke-width: 2;
+}
+
+.breadboard .rut {
+   fill: var(--centreChannelColour);
+   /*Half the size of the body stroke width*/
+   clip-path: inset(0 0.5px 0 0.5px)
+}
+
+.breadboard .rail {
+   stroke-width: 2;
+   stroke-linecap: round;
+}
+
+.breadboard .rail.positive {
+   stroke: var(--railPositiveColour);
+}
+
+.breadboard .rail.negative {
+   stroke: var(--railNegativeColour);
+}
+
+.breadboard .text {
+   text-anchor: middle;
+   font-size: 10px;
+   font-family: arial;
+   font-weight: lighter;
+   fill: black;
+}
+
+.breadboard .track>.body {
+   stroke-width: 1;
+   stroke: var(--trackEdgeColour);
+   fill: var(--trackColour);
+}
+
+.breadboard .track .hole {
+   fill: var(--holeColour);
+   stroke-width: 3;
+   stroke: var(--holeEdgeColour);
+   stroke-linejoin: round;
+}
+
+.stripboard {
+   --bodyFrontColour: #cf9b7b;
+   --bodyBackColour: #534237;
+   --trackBackColour: #c16427;
+   --trackFrontColour: #be9173;
+   --holeColour: #312C27;
+}
+
+.stripboard>.body {
+   stroke-width: 2;
+   stroke: var(--bodyFrontColour);
+   fill: var(--bodyFrontColour);
+}
+
+.stripboard .track>.body {
+   fill: var(--trackFrontColour);
+}
+
+.stripboard .track .hole {
+   fill: var(--holeColour);
+   stroke-width: 3;
+   stroke: var(--trackFrontColour);
+}
+
+.stripboard.reverseghost {
+   opacity: 0.8;
+}
+
+.stripboard.reverseghost>.body {
+   fill: var(--bodyBackColour);
+}
+
+.stripboard.reverseghost .track>.body {
+   fill: var(--trackBackColour);
+   stroke: none;
+}
+
+.stripboard.reverseghost .hole {
+   pointer-events: none;
+   fill: var(--holeColour);
+   stroke: var(--trackBackColour);
+}
+
+.stripboard.reverseghost .breaker {
+   fill: transparent;
+   stroke: transparent;
+}
+
+.stripboard.reverseghost .breaker.withPin {
+   fill: darkgray;
+   stroke-width: 4;
+   stroke: silver;
+}
+
+.stripboard.reverseghost .breaker.broken {
+   fill: var(--holeColour);
+   stroke: var(--bodyBackColour);
+   stroke-width: 6;
+}
+
+.stripboard.reverseghost .breaker.broken.withPin {
+   stroke: var(--bodyBackColour);
+   stroke-width: 6;
+   fill: darkgray;
+}

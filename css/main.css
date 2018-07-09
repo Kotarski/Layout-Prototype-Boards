@@ -1,0 +1,116 @@
+html,
+body {
+   height: 100%;
+   margin: 0;
+   padding: 0;
+   width: 100%;
+}
+
+:root {
+   --highlightprimary: rgb(170, 170, 255);
+   --highlightsecondary: rgb(204, 204, 204);
+}
+
+.uilayoutcontainer {
+   padding: 0;
+   overflow: hidden;
+}
+
+svg {
+   height: 100%;
+   position: absolute;
+   top: 0;
+   left: 0;
+   user-select: none;
+   width: 100%;
+}
+
+.svgContainer {
+   height: 100%;
+   /*left: 5%;*/
+   position: absolute;
+   /*top: 5%;*/
+   width: 100%;
+   overflow: hidden;
+   background-color: transparent;
+}
+
+.helperFront {
+   position: absolute;
+   border-radius: 0.5em;
+   background-color: transparent;
+}
+
+.helperBack {
+   position: absolute;
+   width: 100%;
+   height: 100%;
+   z-index: -1000;
+   pointer-events: none;
+   border-radius: 0.5em;
+}
+
+.hoverHelper {
+   pointer-events: none;
+}
+
+.dragHelper {
+   pointer-events: auto;
+}
+
+.edge {
+   box-shadow: 0 0 0 0.4em var(--colourRgb);
+   /* Required to solve junk pixel issue:
+      https://stackoverflow.com/questions/9983520/webkit-animation-is-leaving-junk-pixels-behind-on-the-screen*/
+   outline: 0.5em solid transparent;
+}
+
+.dragging {
+   opacity: 0.6;
+}
+
+.panHelper {
+   visibility: hidden;
+}
+
+.select {
+   visibility: visible;
+   fill: transparent;
+   stroke: transparent;
+   pointer-events: auto;
+}
+
+.handle {
+   visibility: hidden;
+   pointer-events: none;
+}
+
+.selected>.handle {
+   visibility: visible;
+   pointer-events: auto;
+}
+
+.hidden {
+   visibility: hidden;
+}
+
+.visible {
+   visibility: visible;
+}
+
+.completionpane {
+   position: absolute;
+   right: 0;
+   bottom: 0;
+}
+
+.checkbutton {
+   height: 40px;
+   width: 80px;
+   border-radius: 15px;
+   font-size: 20px;
+}
+
+.stripboardform input[type="number"] {
+   width: 40px;
+}

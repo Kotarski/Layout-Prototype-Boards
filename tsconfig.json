@@ -1,0 +1,17 @@
+{
+   "include": [
+      "./TS"
+   ],
+   "compileOnSave": true,
+   "compilerOptions": {
+      "alwaysStrict": true,
+      "removeComments": true,
+      "allowJs": true,
+      "target": "es2016",
+      "outFile": "./compiledJS/compiled.js",
+      "watch": false,
+      "noUnusedLocals": true,
+      "noImplicitReturns": true,
+      "strict": true
+   }
+}

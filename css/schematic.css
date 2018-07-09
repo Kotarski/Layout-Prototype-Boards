@@ -1,0 +1,106 @@
+.schematic .body {
+   stroke-width: 2;
+   stroke: black;
+   stroke-linejoin: round;
+   stroke-linecap: round;
+}
+
+.schematic {
+   fill: transparent;
+}
+
+.schematic .white {
+   fill: white;
+}
+
+.schematic .black {
+   fill: black;
+}
+
+.schematic .line {
+   stroke: black;
+   stroke-linejoin: round;
+   stroke-linecap: round;
+   fill: none;
+}
+
+.schematic .nocap {
+   stroke-linecap: butt;
+}
+
+.schematic .thin {
+   stroke-width: 1;
+}
+
+.schematic .medium {
+   stroke-width: 2;
+}
+
+.schematic .medium-thick {
+   stroke-width: 3;
+}
+
+.schematic .thick {
+   stroke-width: 4;
+}
+
+.schematic .extrathick {
+   stroke-width: 8;
+}
+
+.schematic .text {
+   fill: black;
+   font-size: 14px;
+   font-family: Arial;
+   font-weight: normal;
+   text-anchor: middle;
+}
+
+.schematic .text.anchormid {
+   text-anchor: middle;
+}
+
+.schematic .text.anchorend {
+   text-anchor: end;
+}
+
+.schematic .text.anchorstart {
+   text-anchor: start;
+}
+
+.schematic .text.small {
+   font-size: 10px;
+}
+
+.schematic .text.bold {
+   font-weight: bold;
+}
+
+.schematic .highlight {
+   stroke: transparent;
+   stroke-linejoin: round;
+}
+
+.schematic .selected .highlight {
+   stroke: rgb(170, 170, 255);
+}
+
+.schematic .highlightwithfill {
+   fill: transparent;
+}
+
+.schematic .selected .highlightwithfill {
+   fill: rgb(170, 170, 255);
+}
+
+.schematic .nofill {
+   fill: transparent;
+}
+
+.schematic .nostroke {
+   stroke: transparent;
+}
+
+.schematic .connectivityhighlight {
+   pointer-events: none;
+}

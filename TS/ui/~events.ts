@@ -1,0 +1,147 @@
+namespace Ui.Events {
+
+   function fitDiagramContents(diagram: Circuit.Parts.Diagram) {
+      // console.log(Active.layout.root, Active.layout.root.group)
+      let rootEl = diagram.root.element;
+      let group = diagram.group;
+
+      let groupBBox = group.element.getBBox();
+
+      let scaleX: number = (groupBBox.width) ? (rootEl.width.baseVal.value / groupBBox.width) : 0;
+      let scaleY: number = (groupBBox.height) ? (rootEl.height.baseVal.value / groupBBox.height) : 0;
+      let scaleMin: number = Math.min(scaleX, scaleY);
+
+      let offsetX = -groupBBox.x * scaleMin + (rootEl.width.baseVal.value - groupBBox.width * scaleMin) / 2;
+      let offsetY = (-groupBBox.y * scaleMin) + (rootEl.height.baseVal.value - groupBBox.height * scaleMin) / 2;
+
+      let transformString = "translate(" + offsetX + " " + offsetY + ")" + "scale(" + scaleMin + ")";
+      group.element.setAttribute('transform', transformString);
+   }
+
+   export function schematicPaneResize() {
+      window.setTimeout(() => {
+         fitDiagramContents(Active.schematic);
+      }, 5);
+   }
+
+   export function layoutPaneResize() {
+      window.setTimeout(() => {
+         fitDiagramContents(Active.layout);
+      }, 5);
+   }
+
+   export function fileInput(event: Event) {
+      FileIO.Load.handleFileInputEvent(event);
+   }
+
+   export function fileSave(event: Event) {
+      FileIO.Save.handleFileSaveEvent(event);
+   }
+
+   //TODO REMOVE
+   export function makeStripBoardButtonPress() {
+
+      let rowElement = NodeElements.stripboardRows;
+      let columnElement = NodeElements.stripboardColumns;
+      let rows = parseInt(rowElement.value);
+      let columns = parseInt(columnElement.value);
+      if (rows && columns &&
+         rows >= parseInt(rowElement.min) && columns >= parseInt(columnElement.min) &&
+         rows <= parseInt(rowElement.max) && columns <= parseInt(columnElement.max)
+      ) {
+         if (Circuit.manifest.activeBoard) Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
+         let stripboard = Circuit.Component.Stripboard.makeInstance({
+            rows: rows,
+            columns: columns,
+         }, {})
+         Circuit.manifest.addComponent(stripboard, Circuit.manifest.layout);
+         Circuit.manifest.activeBoard = stripboard;
+      }
+   }
+
+
+   export function makeBreadBoardSmallButtonPress() {
+      if (Circuit.manifest.activeBoard) Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
+      let breadboard = Circuit.Component.BreadboardSmall.makeInstance({}, {});
+      Circuit.manifest.addComponent(breadboard, Circuit.manifest.layout);
+      Circuit.manifest.activeBoard = breadboard;
+   }
+
+   export function makeBreadBoardLargeButtonPress() {
+      if (Circuit.manifest.activeBoard) Circuit.manifest.removeComponent(Circuit.manifest.activeBoard)
+      let breadboard = Circuit.Component.BreadboardLarge.makeInstance({}, {});
+      Circuit.manifest.addComponent(breadboard, Circuit.manifest.layout);
+      Circuit.manifest.activeBoard = breadboard;
+   }
+
+   export function rotateBoard() {
+      if (Circuit.manifest.activeBoard) {
+         const bbox = Circuit.manifest.activeBoard.group.element.getBBox();
+         Circuit.manifest.activeBoard.group.rotate(90, { X: bbox.x + bbox.width / 2, Y: bbox.y + bbox.height / 2 }, false);
+      }
+   }
+
+   export function makeWire() {
+      let wire = Circuit.Component.WireLayout.makeInstance({}, {});
+      Circuit.manifest.addComponent(wire, Circuit.manifest.layout);
+   }
+
+   export function checkCircuit() {
+      let circuitStatus = Circuit.manifest.checkAll();
+
+
+      let doHighlightCorrect = NodeElements.checkShowCorrect.checked;
+      let doHighlightIncorrect = NodeElements.checkShowIncorrect.checked;
+
+      const highlightCheck = () => {
+         if (doHighlightIncorrect) {
+            circuitStatus.incorrects.forEach(incorrect => {
+               $(incorrect.group.element).find(".highlight").css("stroke", "red");
+               $(incorrect.group.element).find(".highlightwithfill").css("fill", "red");;
+            });
+         }
+         if (doHighlightCorrect) {
+            circuitStatus.corrects.forEach(correct => {
+               $(correct.group.element).find(".highlight").css("stroke", "green");
+               $(correct.group.element).find(".highlightwithfill").css("fill", "green");;
+            });
+         }
+      }
+
+      const clearHighlightCheck = () => {
+         if (doHighlightIncorrect) {
+            circuitStatus.incorrects.forEach(incorrect => {
+               $(incorrect.group.element).find(".highlight").css("stroke", "");
+               $(incorrect.group.element).find(".highlightwithfill").css("fill", "");
+            });
+         }
+         if (doHighlightCorrect) {
+            circuitStatus.corrects.forEach(correct => {
+               $(correct.group.element).find(".highlight").css("stroke", "");
+               $(correct.group.element).find(".highlightwithfill").css("fill", "");;
+            });
+         }
+      }
+
+      highlightCheck();
+      window.setTimeout(() => {
+         clearHighlightCheck();
+         window.setTimeout(() => {
+            highlightCheck();
+            window.setTimeout(() => {
+               clearHighlightCheck();
+               window.setTimeout(() => {
+                  highlightCheck();
+                  window.setTimeout(() => {
+                     clearHighlightCheck();
+                  }, 400);
+               }, 200);
+            }, 400);
+         }, 200);
+      }, 400);
+
+      let completion = (circuitStatus.corrects.length / (circuitStatus.corrects.length + circuitStatus.incorrects.length) * 100).toFixed(1);
+      NodeElements.checkStatusText.innerText = "Correct: " + completion + "%";
+   }
+
+}
