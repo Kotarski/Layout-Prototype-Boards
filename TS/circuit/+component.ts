@@ -67,7 +67,7 @@ namespace Circuit.Component {
       }
 
       insertInto(group: Svg.Elements.Group) {
-         Component.Defaults.insertLast(this.group, group);
+         Svg.Utility.Insert.last(this.group.element, group.element);
       }
 
       /** Gets other components that this component is connected to, or that
@@ -87,44 +87,6 @@ namespace Circuit.Component {
          return [];
       }
 
-   }
-
-   export namespace Defaults {
-      export const insertLast: Component.Types.insertionFunction = (
-         group: Svg.Elements.Group, target: Svg.Elements.Group
-      ) => {
-         if (target === group) {
-            $(group.element).insertAfter($(group.element).siblings().last());
-         } else if ($(target.element).children().length) {
-            $(group.element).insertAfter($(target.element).children().last());
-         } else {
-            $(group.element).appendTo($(target.element));
-         }
-      }
-
-      export const insertFirst: Component.Types.insertionFunction = (
-         group: Svg.Elements.Group, target: Svg.Elements.Group
-      ) => {
-         if (target === group) {
-            $(group.element).insertBefore($(group.element).siblings().first());
-         } else if ($(target.element).children().length) {
-            $(group.element).insertBefore($(target.element).children().first());
-         } else {
-            $(group.element).prependTo($(target.element));
-         }
-      }
-
-      export const insertBefore: Component.Types.insertionFunction = (
-         group: Svg.Elements.Group, target: Svg.Elements.Group, referenceSelector: string = "*"
-      ) => {
-         if (target === group) {
-            $(group.element).insertBefore($(group.element).siblings(referenceSelector).first());
-         } else if ($(target.element).children(referenceSelector).length) {
-            $(group.element).insertBefore($(target.element).children(referenceSelector).first());
-         } else {
-            $(group.element).prependTo($(target.element));
-         }
-      }
    }
 
    export namespace Generics {
