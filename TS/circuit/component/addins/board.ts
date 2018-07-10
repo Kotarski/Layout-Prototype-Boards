@@ -169,7 +169,7 @@ namespace Circuit.Component.Addins.Board {
          }, 'body'));
       }
 
-      export const makeInstance = Component.Generics.getMaker(Instance, defaultProperties, defaultState,
+      export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
             component.group.addClasses(component.name);
          }

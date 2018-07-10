@@ -186,7 +186,7 @@ namespace Circuit.Component {
       }
 
 
-      export const makeInstance = Generics.getMaker(Instance, defaultProperties, defaultState,
+      export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
             component.group.addClasses("breadboard " + component.name);
             Addins.Board.init(component, makeTracks);

@@ -145,7 +145,7 @@ namespace Circuit.Component {
          component.group.append(new Svg.Elements.Graphics.Simples.Line({ X: 0, Y: 0 }, { X: 0, Y: -10 }, "line thin"));
       }
 
-      export const makeInstance = Generics.getMaker(Instance, defaultProperties, defaultState,
+      export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
             component.group.addClasses("component " + component.name);
             Addins.Selectable.init(component);

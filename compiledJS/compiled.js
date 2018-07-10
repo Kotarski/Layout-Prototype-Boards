@@ -77,6 +77,45 @@ var Circuit;
             }
         }
         Component.Instance = Instance;
+        function getMaker(instanceClass, defaultProperties, defaultState, initialiser) {
+            return (partialProperties, partialState, printFallbacks = false) => {
+                const defaultPropertyCopy = JSON.parse(JSON.stringify(defaultProperties));
+                const defaultStateCopy = JSON.parse(JSON.stringify(defaultState));
+                const properties = loadObjectWithDefaults(defaultPropertyCopy, partialProperties, [defaultProperties.name, "properties"], printFallbacks);
+                const state = loadObjectWithDefaults(defaultStateCopy, partialState, [defaultProperties.name, "state"], printFallbacks);
+                const component = new instanceClass(properties, state);
+                if (initialiser)
+                    initialiser(component);
+                component.draw();
+                component.makeConnectors();
+                return component;
+            };
+        }
+        Component.getMaker = getMaker;
+        function loadObjectWithDefaults(fallback, given, runningLocation = [], printFallbacks = false) {
+            if (typeof fallback !== typeof given || given === undefined) {
+                if (printFallbacks) {
+                    console.log("Given type for \"%s\" does not match fallback, fallback value %o used.", runningLocation.join("."), fallback);
+                }
+            }
+            else if (typeof fallback === "object" && !Array.isArray(fallback)) {
+                for (let key in fallback) {
+                    let newRunningLocation = runningLocation.concat(key);
+                    if (!given.hasOwnProperty(key)) {
+                        if (printFallbacks) {
+                            console.log("Given does not contain key \"%s\", fallback value %o used.", newRunningLocation.join("."), fallback[key]);
+                        }
+                    }
+                    else {
+                        fallback[key] = loadObjectWithDefaults(fallback[key], given[key], newRunningLocation, printFallbacks);
+                    }
+                }
+            }
+            else {
+                fallback = given;
+            }
+            return fallback;
+        }
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
 var Events;
@@ -1242,7 +1281,7 @@ var Circuit;
                     } : {};
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
@@ -1364,7 +1403,7 @@ var Circuit;
                 };
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
@@ -1516,7 +1555,7 @@ var Circuit;
                 }
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("breadboard " + component.name);
                 Component.Addins.Board.init(component, makeTracks);
                 Component.Addins.Selectable.init(component);
@@ -1662,7 +1701,7 @@ var Circuit;
                 }
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("breadboard " + component.name);
                 Component.Addins.Board.init(component, makeTracks);
                 Component.Addins.Selectable.init(component);
@@ -1756,7 +1795,7 @@ var Circuit;
                     } : {};
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
@@ -1886,7 +1925,7 @@ var Circuit;
                 };
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
@@ -1971,7 +2010,7 @@ var Circuit;
                     } : {};
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
@@ -2095,7 +2134,7 @@ var Circuit;
                 };
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
@@ -2185,7 +2224,7 @@ var Circuit;
                     } : {};
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
@@ -2296,7 +2335,7 @@ var Circuit;
                 };
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
@@ -2401,7 +2440,7 @@ var Circuit;
                     } : {};
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Rotatable.init(component, { X: Constants.gridSpacing * 1.5, Y: Constants.gridSpacing * 1.5 });
@@ -2521,7 +2560,7 @@ var Circuit;
                     return Local.makeInstance(properties, state, true);
                 }
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
@@ -2602,7 +2641,7 @@ var Circuit;
                 }
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses(component.name);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
@@ -2722,7 +2761,7 @@ var Circuit;
                 component.group.append(new Svg.Elements.Graphics.Simples.Line({ X: -6, Y: 10 }, { X: 6, Y: 10 }, "line medium"));
                 component.group.append(new Svg.Elements.Graphics.Simples.Line({ X: 0, Y: 0 }, { X: 0, Y: -10 }, "line thin"));
             }
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
@@ -2803,7 +2842,7 @@ var Circuit;
                     } : {};
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
@@ -2903,7 +2942,7 @@ var Circuit;
                 };
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
@@ -3006,7 +3045,7 @@ var Circuit;
                 }
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses(component.name);
                 Component.Addins.Board.init(component, makeTracks, true);
                 Component.Addins.Selectable.init(component);
@@ -3141,7 +3180,7 @@ var Circuit;
                     Y: component.joints[0].Y + offset.Y
                 };
             }
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
@@ -3235,7 +3274,7 @@ var Circuit;
                     } : {};
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Junctions.init(component);
             });
@@ -3302,54 +3341,6 @@ var Circuit;
                     return (acceptedTypes.includes(other.type)
                         && Utility.pointsAreClose(point, other.point));
                 });
-            }
-        })(Generics = Component.Generics || (Component.Generics = {}));
-    })(Component = Circuit.Component || (Circuit.Component = {}));
-})(Circuit || (Circuit = {}));
-var Circuit;
-(function (Circuit) {
-    var Component;
-    (function (Component) {
-        var Generics;
-        (function (Generics) {
-            function getMaker(instanceClass, defaultProperties, defaultState, initialiser) {
-                return (partialProperties, partialState, printFallbacks = false) => {
-                    const defaultPropertyCopy = JSON.parse(JSON.stringify(defaultProperties));
-                    const defaultStateCopy = JSON.parse(JSON.stringify(defaultState));
-                    const properties = loadObjectWithDefaults(defaultPropertyCopy, partialProperties, [defaultProperties.name, "properties"], printFallbacks);
-                    const state = loadObjectWithDefaults(defaultStateCopy, partialState, [defaultProperties.name, "state"], printFallbacks);
-                    const component = new instanceClass(properties, state);
-                    if (initialiser)
-                        initialiser(component);
-                    component.draw();
-                    component.makeConnectors();
-                    return component;
-                };
-            }
-            Generics.getMaker = getMaker;
-            function loadObjectWithDefaults(fallback, given, runningLocation = [], printFallbacks = false) {
-                if (typeof fallback !== typeof given || given === undefined) {
-                    if (printFallbacks) {
-                        console.log("Given type for \"%s\" does not match fallback, fallback value %o used.", runningLocation.join("."), fallback);
-                    }
-                }
-                else if (typeof fallback === "object" && !Array.isArray(fallback)) {
-                    for (let key in fallback) {
-                        let newRunningLocation = runningLocation.concat(key);
-                        if (!given.hasOwnProperty(key)) {
-                            if (printFallbacks) {
-                                console.log("Given does not contain key \"%s\", fallback value %o used.", newRunningLocation.join("."), fallback[key]);
-                            }
-                        }
-                        else {
-                            fallback[key] = loadObjectWithDefaults(fallback[key], given[key], newRunningLocation, printFallbacks);
-                        }
-                    }
-                }
-                else {
-                    fallback = given;
-                }
-                return fallback;
             }
         })(Generics = Component.Generics || (Component.Generics = {}));
     })(Component = Circuit.Component || (Circuit.Component = {}));
@@ -20566,7 +20557,7 @@ var Circuit;
                             Y: 0
                         }, 'body'));
                     };
-                    Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+                    Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                         component.group.addClasses(component.name);
                     });
                 })(Local || (Local = {}));
