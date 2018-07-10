@@ -1154,7 +1154,7 @@ var Utility;
     var Insert;
     (function (Insert) {
         function last(element, target) {
-            if (element === target) {
+            if (element === target || target === undefined) {
                 $(element).insertAfter($(element).siblings().last());
             }
             else if ($(target).children().length) {
@@ -1166,7 +1166,7 @@ var Utility;
         }
         Insert.last = last;
         function first(element, target) {
-            if (element === target) {
+            if (element === target || target === undefined) {
                 $(element).insertBefore($(element).siblings().first());
             }
             else if ($(target).children().length) {
@@ -1177,8 +1177,10 @@ var Utility;
             }
         }
         Insert.first = first;
-        function before(element, target, referenceSelector = "*") {
-            if (element === target) {
+        function before(element, targetOrRef, referenceSelector = "*") {
+            let target = (typeof targetOrRef === "string") ? undefined : targetOrRef;
+            referenceSelector = (typeof targetOrRef === "string") ? targetOrRef : referenceSelector;
+            if (element === target || target === undefined) {
                 $(element).insertBefore($(element).siblings(referenceSelector).first());
             }
             else if ($(target).children(referenceSelector).length) {
