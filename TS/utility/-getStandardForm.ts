@@ -1,5 +1,5 @@
 namespace Utility {
-   export function convertToSI(value: number): string {
+   export function getStandardForm(value: number, unit: string = ""): string {
       let exponent = value.toExponential();
 
       let decimal: number = parseFloat(exponent.substr(0, exponent.indexOf('e')));
@@ -32,6 +32,7 @@ namespace Utility {
          decimal *= 10;
          power--;
       }
-      return value.toString();
+
+      return value.toString() + unit;
    }
 }

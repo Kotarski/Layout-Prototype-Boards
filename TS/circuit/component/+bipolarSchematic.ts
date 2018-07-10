@@ -108,7 +108,7 @@ namespace Circuit.Component {
 
             //Text
             let textPosition = (this.orientation === "LR") ? { X: 32, Y: 4 } : { X: -32, Y: 4 }
-            let text = Component.Generics.formatValueText(this.currentGain, '')
+            let text = Utility.getStandardForm(this.currentGain, '')
             let anchorClass = (this.orientation === "LR") ? "anchorstart" : "anchorend";
             this.group.append(
                new Svg.Elements.Graphics.Simples.Text(text, textPosition, undefined, "text").addClasses(anchorClass)

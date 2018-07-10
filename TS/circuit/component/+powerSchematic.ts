@@ -102,7 +102,7 @@ namespace Circuit.Component {
       }
 
       function drawPowerPositive(component: Instance) {
-         let text = Component.Generics.formatValueText(component.voltage, "V")
+         let text = Utility.getStandardForm(component.voltage, "V")
          component.group.append(new Svg.Elements.Graphics.Simples.Rect(
             { X: 0, Y: -8 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick")
          );
@@ -116,7 +116,7 @@ namespace Circuit.Component {
       }
 
       function drawPowerNegative(component: Instance) {
-         let text = Component.Generics.formatValueText(component.voltage, "V")
+         let text = Utility.getStandardForm(component.voltage, "V")
          component.group.append(new Svg.Elements.Graphics.Simples.Rect(
             { X: 0, Y: 8 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick")
          );

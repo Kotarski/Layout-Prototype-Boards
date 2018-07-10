@@ -92,7 +92,7 @@ namespace Circuit.Component {
 
             // Text
             let textPosition = (isHorizontal) ? { X: 0, Y: -13 } : { X: -13, Y: 4 };
-            let text = Component.Generics.formatValueText(this.inductance, 'H');
+            let text = Utility.getStandardForm(this.inductance, 'H');
 
             let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
             this.group.append(

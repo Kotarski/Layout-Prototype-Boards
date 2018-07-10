@@ -50,7 +50,7 @@ namespace Circuit.Component {
 
 
          insertInto(group: Svg.Elements.Group) {
-            Svg.Utility.Insert.before(this.group.element, group.element, ".component");
+            Utility.Insert.before(this.group.element, group.element, ".component");
          }
 
 

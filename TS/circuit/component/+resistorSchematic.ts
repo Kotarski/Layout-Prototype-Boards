@@ -81,7 +81,7 @@ namespace Circuit.Component {
 
             //Text
             let textPosition = (isHorizontal) ? { X: 0, Y: -15 } : { X: -15, Y: 4 }
-            let text = Component.Generics.formatValueText(this.resistance, '\u03A9' /*Ω*/)
+            let text = Utility.getStandardForm(this.resistance, '\u03A9' /*Ω*/)
             let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
             this.group.append(
                new Svg.Elements.Graphics.Simples.Text(text, textPosition, undefined, "text").addClasses(anchorClass)

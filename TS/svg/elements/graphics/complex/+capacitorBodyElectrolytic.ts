@@ -56,7 +56,7 @@ namespace Svg.Elements.Graphics.Complexes {
       }
 
       setValue(num: number) {
-         $(this.textPath.element).text(Circuit.Component.Generics.formatValueText(num, 'F'));
+         $(this.textPath.element).text(Utility.getStandardForm(num, 'F'));
          return this;
       }
    }

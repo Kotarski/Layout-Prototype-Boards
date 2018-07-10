@@ -67,11 +67,11 @@ namespace Circuit.Component {
          }
 
          insertInto(group: Svg.Elements.Group) {
-            Svg.Utility.Insert.first(this.group.element, group.element);
+            Utility.Insert.first(this.group.element, group.element);
          }
 
 
-         transferFunction(from?: Component.Types.connector): Component.Types.connector[] {
+         transferFunction(from: Component.Types.connector): Component.Types.connector[] {
             return Utility.flatten2d(this.connectorSets.map(connectorSet =>
                connectorSet.filter(connector =>
                   (connector !== from)
