@@ -3,9 +3,6 @@ namespace Circuit.Component.Addins.Draggable {
       component.group.setDraggable({
          onStart: () => {
             component.insertInto(component.group);
-         },
-         onStop: () => {
-            component.onPlace()
          }
       })
    }

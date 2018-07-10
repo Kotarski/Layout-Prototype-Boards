@@ -22,7 +22,7 @@ namespace Circuit.Component.Addins.Selectable {
       $(document).one("mousedown", e => {
          // Checks target isn't child of component, ignore if so
          if (elementSelectsComponent(e.target, component)) {
-            $(component.group.element).trigger("select");
+            $(component.group.element).trigger(Events.select);
             setDeselectTrigger(component);
          } else {
             setSelectTrigger(component);
@@ -37,19 +37,19 @@ namespace Circuit.Component.Addins.Selectable {
          if (elementSelectsComponent(e.target, component)) {
             setDeselectTrigger(component);
          } else {
-            $(component.group.element).trigger("deselect");
+            $(component.group.element).trigger(Events.deselect);
             setSelectTrigger(component);
          }
       })
    }
 
    const setDisplayHandlers = (component: Component.Instance) => {
-      $(component.group.element).on("select", () => {
+      $(component.group.element).on(Events.select, () => {
          console.log(component)
          component.group.addClasses("selected");
          component.insertInto(component.group);
       });
-      $(component.group.element).on("deselect", () => {
+      $(component.group.element).on(Events.deselect, () => {
          component.group.removeClasses("selected");
       })
    }

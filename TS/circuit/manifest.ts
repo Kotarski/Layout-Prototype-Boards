@@ -45,9 +45,7 @@ namespace Circuit {
 
       const placeComponent = (component: Component.Instance, diagram: Parts.Diagram) => {
          component.insertInto(diagram.group);
-         component.draw();
-         component.makeConnectors();
-         component.onPlace();
+         $(component.group.element).trigger(Events.place);
       }
 
       const draw = () => {

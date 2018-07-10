@@ -32,6 +32,11 @@ namespace Circuit.Component {
       export interface hole extends connector {
          type: "hole" | "brokenhole"
       };
+
+      export interface node extends connector {
+         type: "node"
+      };
+
    }
 
    export abstract class Instance implements Types.properties, Types.state {
@@ -59,12 +64,6 @@ namespace Circuit.Component {
 
       /** Builds and draws the components connectors */
       abstract makeConnectors(): void;
-
-      /** Should trigger when the circuit is first initialised or the component 
-       * is moved */
-      onPlace() {
-         //
-      }
 
       insertInto(group: Svg.Elements.Group) {
          Svg.Utility.Insert.last(this.group.element, group.element);
@@ -190,6 +189,8 @@ namespace Circuit.Component {
             const state = loadObjectWithDefaults(defaultStateCopy, partialState, [defaultProperties.name, "state"], printFallbacks);
             const component = new instanceClass(properties, state) as C;
             if (initialiser) initialiser(component);
+            component.draw();
+            component.makeConnectors();
             return component;
          }
       }
