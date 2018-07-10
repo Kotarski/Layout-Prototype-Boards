@@ -3251,6 +3251,133 @@ var Circuit;
 })(Circuit || (Circuit = {}));
 var Circuit;
 (function (Circuit) {
+    var Component;
+    (function (Component) {
+        var Generics;
+        (function (Generics) {
+            function getComponentConnections(component, otherComponents) {
+                const allConnectors = Utility.flatten3d(otherComponents.map(el => el.connectorSets));
+                return component.connectorSets.map(connectorSet => {
+                    const uniqueNetConnectors = getUniqueNetConnectors(connectorSet);
+                    return uniqueNetConnectors.map(connector => {
+                        return getConnectorConnections(connector, allConnectors);
+                    });
+                });
+            }
+            Generics.getComponentConnections = getComponentConnections;
+            function getUniqueNetConnectors(connectors) {
+                let nonCheckedConnectors = connectors;
+                let uniqueNetConnectors = [];
+                while (nonCheckedConnectors.length) {
+                    uniqueNetConnectors.push(nonCheckedConnectors[0]);
+                    let nettedConnectors = nonCheckedConnectors[0]
+                        .component.transferFunction(nonCheckedConnectors[0])
+                        .concat(nonCheckedConnectors[0]);
+                    nonCheckedConnectors = nonCheckedConnectors.filter(connector => !nettedConnectors.includes(connector));
+                }
+                return uniqueNetConnectors;
+            }
+            function getConnectorConnections(connector, allConnectors) {
+                let connectedConnectors = [];
+                let nonCheckedConnections = connector.component.transferFunction(connector).concat(connector);
+                while (nonCheckedConnections.length) {
+                    connectedConnectors.push(...nonCheckedConnections);
+                    let newConnections = [];
+                    nonCheckedConnections.forEach(connection => {
+                        getConnectorDirectConnections(connection, allConnectors).forEach(connected => {
+                            if (!(connectedConnectors.includes(connected))) {
+                                connectedConnectors.push(connected);
+                                newConnections.push(...connected.component.transferFunction(connected));
+                            }
+                        });
+                    });
+                    nonCheckedConnections = newConnections;
+                }
+                return connectedConnectors;
+            }
+            function getConnectorDirectConnections(connector, allConnectors) {
+                const acceptedTypes = Circuit.mappings.connectorAcceptedTypes[connector.type];
+                const point = connector.point;
+                return allConnectors.filter(other => {
+                    return (acceptedTypes.includes(other.type)
+                        && Utility.pointsAreClose(point, other.point));
+                });
+            }
+        })(Generics = Component.Generics || (Component.Generics = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var Generics;
+        (function (Generics) {
+            function getMaker(instanceClass, defaultProperties, defaultState, initialiser) {
+                return (partialProperties, partialState, printFallbacks = false) => {
+                    const defaultPropertyCopy = JSON.parse(JSON.stringify(defaultProperties));
+                    const defaultStateCopy = JSON.parse(JSON.stringify(defaultState));
+                    const properties = loadObjectWithDefaults(defaultPropertyCopy, partialProperties, [defaultProperties.name, "properties"], printFallbacks);
+                    const state = loadObjectWithDefaults(defaultStateCopy, partialState, [defaultProperties.name, "state"], printFallbacks);
+                    const component = new instanceClass(properties, state);
+                    if (initialiser)
+                        initialiser(component);
+                    component.draw();
+                    component.makeConnectors();
+                    return component;
+                };
+            }
+            Generics.getMaker = getMaker;
+            function loadObjectWithDefaults(fallback, given, runningLocation = [], printFallbacks = false) {
+                if (typeof fallback !== typeof given || given === undefined) {
+                    if (printFallbacks) {
+                        console.log("Given type for \"%s\" does not match fallback, fallback value %o used.", runningLocation.join("."), fallback);
+                    }
+                }
+                else if (typeof fallback === "object" && !Array.isArray(fallback)) {
+                    for (let key in fallback) {
+                        let newRunningLocation = runningLocation.concat(key);
+                        if (!given.hasOwnProperty(key)) {
+                            if (printFallbacks) {
+                                console.log("Given does not contain key \"%s\", fallback value %o used.", newRunningLocation.join("."), fallback[key]);
+                            }
+                        }
+                        else {
+                            fallback[key] = loadObjectWithDefaults(fallback[key], given[key], newRunningLocation, printFallbacks);
+                        }
+                    }
+                }
+                else {
+                    fallback = given;
+                }
+                return fallback;
+            }
+        })(Generics = Component.Generics || (Component.Generics = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var Generics;
+        (function (Generics) {
+            function makeConnector(component, name, type, position) {
+                let connector = {
+                    name: name,
+                    type: type,
+                    component: component,
+                    get point() {
+                        let ctm = connector.component.group.element.getCTM();
+                        return (ctm) ? Svg.makePoint(position).matrixTransform(ctm) : Svg.makePoint(position);
+                    }
+                };
+                return connector;
+            }
+            Generics.makeConnector = makeConnector;
+        })(Generics = Component.Generics || (Component.Generics = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
     var Parts;
     (function (Parts) {
         class Diagram {
@@ -20940,133 +21067,6 @@ var Circuit;
                 };
             })(WireCreation = Addins.WireCreation || (Addins.WireCreation = {}));
         })(Addins = Component.Addins || (Component.Addins = {}));
-    })(Component = Circuit.Component || (Circuit.Component = {}));
-})(Circuit || (Circuit = {}));
-var Circuit;
-(function (Circuit) {
-    var Component;
-    (function (Component) {
-        var Generics;
-        (function (Generics) {
-            function getComponentConnections(component, otherComponents) {
-                const allConnectors = Utility.flatten3d(otherComponents.map(el => el.connectorSets));
-                return component.connectorSets.map(connectorSet => {
-                    const uniqueNetConnectors = getUniqueNetConnectors(connectorSet);
-                    return uniqueNetConnectors.map(connector => {
-                        return getConnectorConnections(connector, allConnectors);
-                    });
-                });
-            }
-            Generics.getComponentConnections = getComponentConnections;
-            function getUniqueNetConnectors(connectors) {
-                let nonCheckedConnectors = connectors;
-                let uniqueNetConnectors = [];
-                while (nonCheckedConnectors.length) {
-                    uniqueNetConnectors.push(nonCheckedConnectors[0]);
-                    let nettedConnectors = nonCheckedConnectors[0]
-                        .component.transferFunction(nonCheckedConnectors[0])
-                        .concat(nonCheckedConnectors[0]);
-                    nonCheckedConnectors = nonCheckedConnectors.filter(connector => !nettedConnectors.includes(connector));
-                }
-                return uniqueNetConnectors;
-            }
-            function getConnectorConnections(connector, allConnectors) {
-                let connectedConnectors = [];
-                let nonCheckedConnections = connector.component.transferFunction(connector).concat(connector);
-                while (nonCheckedConnections.length) {
-                    connectedConnectors.push(...nonCheckedConnections);
-                    let newConnections = [];
-                    nonCheckedConnections.forEach(connection => {
-                        getConnectorDirectConnections(connection, allConnectors).forEach(connected => {
-                            if (!(connectedConnectors.includes(connected))) {
-                                connectedConnectors.push(connected);
-                                newConnections.push(...connected.component.transferFunction(connected));
-                            }
-                        });
-                    });
-                    nonCheckedConnections = newConnections;
-                }
-                return connectedConnectors;
-            }
-            function getConnectorDirectConnections(connector, allConnectors) {
-                const acceptedTypes = Circuit.mappings.connectorAcceptedTypes[connector.type];
-                const point = connector.point;
-                return allConnectors.filter(other => {
-                    return (acceptedTypes.includes(other.type)
-                        && Utility.pointsAreClose(point, other.point));
-                });
-            }
-        })(Generics = Component.Generics || (Component.Generics = {}));
-    })(Component = Circuit.Component || (Circuit.Component = {}));
-})(Circuit || (Circuit = {}));
-var Circuit;
-(function (Circuit) {
-    var Component;
-    (function (Component) {
-        var Generics;
-        (function (Generics) {
-            function getMaker(instanceClass, defaultProperties, defaultState, initialiser) {
-                return (partialProperties, partialState, printFallbacks = false) => {
-                    const defaultPropertyCopy = JSON.parse(JSON.stringify(defaultProperties));
-                    const defaultStateCopy = JSON.parse(JSON.stringify(defaultState));
-                    const properties = loadObjectWithDefaults(defaultPropertyCopy, partialProperties, [defaultProperties.name, "properties"], printFallbacks);
-                    const state = loadObjectWithDefaults(defaultStateCopy, partialState, [defaultProperties.name, "state"], printFallbacks);
-                    const component = new instanceClass(properties, state);
-                    if (initialiser)
-                        initialiser(component);
-                    component.draw();
-                    component.makeConnectors();
-                    return component;
-                };
-            }
-            Generics.getMaker = getMaker;
-            function loadObjectWithDefaults(fallback, given, runningLocation = [], printFallbacks = false) {
-                if (typeof fallback !== typeof given || given === undefined) {
-                    if (printFallbacks) {
-                        console.log("Given type for \"%s\" does not match fallback, fallback value %o used.", runningLocation.join("."), fallback);
-                    }
-                }
-                else if (typeof fallback === "object" && !Array.isArray(fallback)) {
-                    for (let key in fallback) {
-                        let newRunningLocation = runningLocation.concat(key);
-                        if (!given.hasOwnProperty(key)) {
-                            if (printFallbacks) {
-                                console.log("Given does not contain key \"%s\", fallback value %o used.", newRunningLocation.join("."), fallback[key]);
-                            }
-                        }
-                        else {
-                            fallback[key] = loadObjectWithDefaults(fallback[key], given[key], newRunningLocation, printFallbacks);
-                        }
-                    }
-                }
-                else {
-                    fallback = given;
-                }
-                return fallback;
-            }
-        })(Generics = Component.Generics || (Component.Generics = {}));
-    })(Component = Circuit.Component || (Circuit.Component = {}));
-})(Circuit || (Circuit = {}));
-var Circuit;
-(function (Circuit) {
-    var Component;
-    (function (Component) {
-        var Generics;
-        (function (Generics) {
-            function makeConnector(component, name, type, position) {
-                let connector = {
-                    name: name,
-                    type: type,
-                    component: component,
-                    get point() {
-                        let ctm = connector.component.group.element.getCTM();
-                        return (ctm) ? Svg.makePoint(position).matrixTransform(ctm) : Svg.makePoint(position);
-                    }
-                };
-                return connector;
-            }
-            Generics.makeConnector = makeConnector;
-        })(Generics = Component.Generics || (Component.Generics = {}));
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
 var FileIO;
