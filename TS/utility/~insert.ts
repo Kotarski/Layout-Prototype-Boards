@@ -1,6 +1,6 @@
 namespace Utility.Insert {
-   export function last(element: Node, target: Node) {
-      if (element === target) {
+   export function last(element: Node, target?: Node) {
+      if (element === target || target === undefined) {
          $(element).insertAfter($(element).siblings().last());
       } else if ($(target).children().length) {
          $(element).insertAfter($(target).children().last());
@@ -9,8 +9,8 @@ namespace Utility.Insert {
       }
    }
 
-   export function first(element: Node, target: Node) {
-      if (element === target) {
+   export function first(element: Node, target?: Node) {
+      if (element === target || target === undefined) {
          $(element).insertBefore($(element).siblings().first());
       } else if ($(target).children().length) {
          $(element).insertBefore($(target).children().first());
@@ -19,8 +19,13 @@ namespace Utility.Insert {
       }
    }
 
-   export function before(element: Node, target: Node, referenceSelector: string = "*") {
-      if (element === target) {
+   export function before(element: Node, target: Node): void
+   export function before(element: Node, referenceSelector: string): void
+   export function before(element: Node, target: Node, referenceSelector: string): void
+   export function before(element: Node, targetOrRef: Node | string, referenceSelector: string = "*"): void {
+      let target = (typeof targetOrRef === "string") ? undefined : targetOrRef;
+      referenceSelector = (typeof targetOrRef === "string") ? targetOrRef : referenceSelector;
+      if (element === target || target === undefined) {
          $(element).insertBefore($(element).siblings(referenceSelector).first());
       } else if ($(target).children(referenceSelector).length) {
          $(element).insertBefore($(target).children(referenceSelector).first());
