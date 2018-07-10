@@ -108,7 +108,7 @@ namespace Circuit.Component {
             ]
          }
 
-         transferFunction(from?: Component.Types.connector): Component.Types.connector[] {
+         transferFunction(from: Component.Types.connector): Component.Types.connector[] {
             return Utility.flatten2d(this.connectorSets.map(connectorSet => connectorSet.filter(connector => connector !== from)));
          }
       }
@@ -175,7 +175,7 @@ namespace Circuit.Component {
          };
       }
 
-      export const makeInstance = Generics.getMaker(Instance, defaultProperties, defaultState,
+      export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
             component.group.addClasses("component " + component.name);
             Addins.Draggable.init(component);

@@ -96,8 +96,8 @@ namespace Circuit.Component {
             // Text
             let textPosition = (isHorizontal) ? { X: 0, Y: -15 } : { X: -15, Y: 4 };
             let text = (this.breakdownVoltage < 51)
-               ? Component.Generics.formatValueText(this.breakdownVoltage, 'V')
-               : Component.Generics.formatValueText(this.saturationCurrent, 'A');
+               ? Utility.getStandardForm(this.breakdownVoltage, 'V')
+               : Utility.getStandardForm(this.saturationCurrent, 'A');
 
             let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
             this.group.append(
@@ -156,7 +156,7 @@ namespace Circuit.Component {
          return makeInstance(properties, state, true);
       }
 
-      export const makeInstance = Generics.getMaker(Instance, defaultProperties, defaultState,
+      export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
             component.group.addClasses("component " + component.name);
             Addins.Selectable.init(component);

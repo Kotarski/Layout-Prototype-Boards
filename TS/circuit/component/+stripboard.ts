@@ -79,7 +79,7 @@ namespace Circuit.Component {
          }
 
          insertInto(group: Svg.Elements.Group) {
-            Svg.Utility.Insert.first(this.group.element, group.element);
+            Utility.Insert.first(this.group.element, group.element);
          }
       }
 
@@ -126,7 +126,7 @@ namespace Circuit.Component {
          return makeInstance(properties, state, true);
       }
 
-      export const makeInstance = Generics.getMaker(Instance, defaultProperties, defaultState,
+      export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
             component.group.addClasses(component.name);
             Addins.Board.init(component, makeTracks, true);

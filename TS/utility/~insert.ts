@@ -1,4 +1,4 @@
-namespace Svg.Utility.Insert {
+namespace Utility.Insert {
    export function last(element: Node, target: Node) {
       if (element === target) {
          $(element).insertAfter($(element).siblings().last());

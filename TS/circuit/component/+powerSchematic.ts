@@ -102,7 +102,7 @@ namespace Circuit.Component {
       }
 
       function drawPowerPositive(component: Instance) {
-         let text = Component.Generics.formatValueText(component.voltage, "V")
+         let text = Utility.getStandardForm(component.voltage, "V")
          component.group.append(new Svg.Elements.Graphics.Simples.Rect(
             { X: 0, Y: -8 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick")
          );
@@ -116,7 +116,7 @@ namespace Circuit.Component {
       }
 
       function drawPowerNegative(component: Instance) {
-         let text = Component.Generics.formatValueText(component.voltage, "V")
+         let text = Utility.getStandardForm(component.voltage, "V")
          component.group.append(new Svg.Elements.Graphics.Simples.Rect(
             { X: 0, Y: 8 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick")
          );
@@ -145,7 +145,7 @@ namespace Circuit.Component {
          component.group.append(new Svg.Elements.Graphics.Simples.Line({ X: 0, Y: 0 }, { X: 0, Y: -10 }, "line thin"));
       }
 
-      export const makeInstance = Generics.getMaker(Instance, defaultProperties, defaultState,
+      export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
             component.group.addClasses("component " + component.name);
             Addins.Selectable.init(component);

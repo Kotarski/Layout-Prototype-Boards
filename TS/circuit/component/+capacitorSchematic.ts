@@ -88,7 +88,7 @@ namespace Circuit.Component {
 
             //Text
             let textPosition = (isHorizontal) ? { X: 0, Y: -20 } : { X: -20, Y: 4 }
-            let text = Component.Generics.formatValueText(this.capacitance, 'F');
+            let text = Utility.getStandardForm(this.capacitance, 'F');
             let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
             this.group.append(
                new Svg.Elements.Graphics.Simples.Text(text, textPosition, undefined, "text").addClasses(anchorClass)
@@ -162,7 +162,7 @@ namespace Circuit.Component {
          return makeInstance(properties, state, true);
       }
 
-      export const makeInstance = Generics.getMaker(Instance, defaultProperties, defaultState,
+      export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
             component.group.addClasses("component " + component.name);
             Addins.Selectable.init(component);

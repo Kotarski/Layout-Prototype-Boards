@@ -50,7 +50,7 @@ namespace Circuit.Component {
 
 
          insertInto(group: Svg.Elements.Group) {
-            Svg.Utility.Insert.before(this.group.element, group.element, ".component");
+            Utility.Insert.before(this.group.element, group.element, ".component");
          }
 
 
@@ -106,7 +106,7 @@ namespace Circuit.Component {
          return makeInstance(properties, state, true);
       }
 
-      export const makeInstance = Generics.getMaker(Instance, defaultProperties, defaultState,
+      export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
             component.group.addClasses(component.name);
             Addins.Draggable.init(component);

@@ -171,7 +171,7 @@ namespace Circuit.Component {
          }
       }
 
-      export const makeInstance = Generics.getMaker(Instance, defaultProperties, defaultState,
+      export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
             component.group.addClasses("component " + component.name);
             Addins.Selectable.init(component);

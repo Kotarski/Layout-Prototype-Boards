@@ -62,14 +62,14 @@ var Circuit;
                 this.group.transforms = location;
             }
             insertInto(group) {
-                Svg.Utility.Insert.last(this.group.element, group.element);
+                Utility.Insert.last(this.group.element, group.element);
             }
             getConnections() {
                 if (Circuit.manifest.layout.includes(this)) {
-                    return Generics.getComponentConnections(this, Circuit.manifest.layout);
+                    return Component.Generics.getComponentConnections(this, Circuit.manifest.layout);
                 }
                 else {
-                    return Generics.getComponentConnections(this, Circuit.manifest.schematic);
+                    return Component.Generics.getComponentConnections(this, Circuit.manifest.schematic);
                 }
             }
             transferFunction(from) {
@@ -77,111 +77,45 @@ var Circuit;
             }
         }
         Component.Instance = Instance;
-        let Generics;
-        (function (Generics) {
-            function getConnectorDirectConnections(connector, allConnectors) {
-                let acceptedTypes = Circuit.mappings.connectorAcceptedTypes[connector.type];
-                let point = connector.point;
-                let attachedConnectors = allConnectors.filter(other => {
-                    return (acceptedTypes.includes(other.type)
-                        && Utility.pointsAreClose(point, other.point));
-                });
-                return attachedConnectors;
-            }
-            Generics.getConnectorDirectConnections = getConnectorDirectConnections;
-            function getConnectorConnections(connector, allConnectors) {
-                let connectedConnectors = [];
-                let connections = connector.component.transferFunction(connector).concat(connector);
-                while (connections.length) {
-                    connectedConnectors = connectedConnectors.concat(connections);
-                    let newConnections = [];
-                    connections.forEach(connection => {
-                        getConnectorDirectConnections(connection, allConnectors).forEach(connected => {
-                            if (!(connectedConnectors.includes(connected))) {
-                                connectedConnectors.push(connected);
-                                newConnections = newConnections.concat(connected.component.transferFunction(connected));
-                            }
-                        });
-                    });
-                    connections = newConnections;
+        function getMaker(instanceClass, defaultProperties, defaultState, initialiser) {
+            return (partialProperties, partialState, printFallbacks = false) => {
+                const defaultPropertyCopy = JSON.parse(JSON.stringify(defaultProperties));
+                const defaultStateCopy = JSON.parse(JSON.stringify(defaultState));
+                const properties = loadObjectWithDefaults(defaultPropertyCopy, partialProperties, [defaultProperties.name, "properties"], printFallbacks);
+                const state = loadObjectWithDefaults(defaultStateCopy, partialState, [defaultProperties.name, "state"], printFallbacks);
+                const component = new instanceClass(properties, state);
+                if (initialiser)
+                    initialiser(component);
+                component.draw();
+                component.makeConnectors();
+                return component;
+            };
+        }
+        Component.getMaker = getMaker;
+        function loadObjectWithDefaults(fallback, given, runningLocation = [], printFallbacks = false) {
+            if (typeof fallback !== typeof given || given === undefined) {
+                if (printFallbacks) {
+                    console.log("Given type for \"%s\" does not match fallback, fallback value %o used.", runningLocation.join("."), fallback);
                 }
-                return connectedConnectors;
             }
-            Generics.getConnectorConnections = getConnectorConnections;
-            function getComponentConnections(component, manifestSection) {
-                let allConnectors = Utility.flatten3d(manifestSection.map(el => el.connectorSets));
-                return component.connectorSets.map(connectorSet => {
-                    let uniqueConnectors = [];
-                    while (connectorSet.length) {
-                        uniqueConnectors.push(connectorSet[0]);
-                        let nettedConnectors = component.transferFunction(connectorSet[0]).concat(connectorSet[0]);
-                        connectorSet = connectorSet.filter(connector => !nettedConnectors.includes(connector));
-                    }
-                    return uniqueConnectors.map(connector => getConnectorConnections(connector, allConnectors));
-                });
-            }
-            Generics.getComponentConnections = getComponentConnections;
-            function formatValueText(value, unit) {
-                return (Utility.convertToSI(value) + unit);
-            }
-            Generics.formatValueText = formatValueText;
-            function makeConnector(component, name, type, position) {
-                let connector = {
-                    name: name,
-                    type: type,
-                    component: component,
-                    get point() {
-                        let ctm = connector.component.group.element.getCTM();
-                        return (ctm) ? Svg.makePoint(position).matrixTransform(ctm) : Svg.makePoint(position);
-                    }
-                };
-                return connector;
-            }
-            Generics.makeConnector = makeConnector;
-            function getPropertiesAndState(component) {
-                return [component.getProperties(), component.getState()];
-            }
-            Generics.getPropertiesAndState = getPropertiesAndState;
-            function getMaker(instanceClass, defaultProperties, defaultState, initialiser) {
-                return (partialProperties, partialState, printFallbacks = false) => {
-                    const defaultPropertyCopy = JSON.parse(JSON.stringify(defaultProperties));
-                    const defaultStateCopy = JSON.parse(JSON.stringify(defaultState));
-                    const properties = loadObjectWithDefaults(defaultPropertyCopy, partialProperties, [defaultProperties.name, "properties"], printFallbacks);
-                    const state = loadObjectWithDefaults(defaultStateCopy, partialState, [defaultProperties.name, "state"], printFallbacks);
-                    const component = new instanceClass(properties, state);
-                    if (initialiser)
-                        initialiser(component);
-                    component.draw();
-                    component.makeConnectors();
-                    return component;
-                };
-            }
-            Generics.getMaker = getMaker;
-            function loadObjectWithDefaults(fallback, given, runningLocation = [], printFallbacks = false) {
-                if (typeof fallback !== typeof given || given === undefined) {
-                    if (printFallbacks) {
-                        console.log("Given type for \"%s\" does not match fallback, fallback value %o used.", runningLocation.join("."), fallback);
-                    }
-                }
-                else if (typeof fallback === "object" && !Array.isArray(fallback)) {
-                    for (let key in fallback) {
-                        let newRunningLocation = runningLocation.concat(key);
-                        if (!given.hasOwnProperty(key)) {
-                            if (printFallbacks) {
-                                console.log("Given does not contain key \"%s\", fallback value %o used.", newRunningLocation.join("."), fallback[key]);
-                            }
-                        }
-                        else {
-                            fallback[key] = loadObjectWithDefaults(fallback[key], given[key], newRunningLocation, printFallbacks);
+            else if (typeof fallback === "object" && !Array.isArray(fallback)) {
+                for (let key in fallback) {
+                    let newRunningLocation = runningLocation.concat(key);
+                    if (!given.hasOwnProperty(key)) {
+                        if (printFallbacks) {
+                            console.log("Given does not contain key \"%s\", fallback value %o used.", newRunningLocation.join("."), fallback[key]);
                         }
                     }
+                    else {
+                        fallback[key] = loadObjectWithDefaults(fallback[key], given[key], newRunningLocation, printFallbacks);
+                    }
                 }
-                else {
-                    fallback = given;
-                }
-                return fallback;
             }
-        })(Generics = Component.Generics || (Component.Generics = {}));
+            else {
+                fallback = given;
+            }
+            return fallback;
+        }
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
 var Events;
@@ -1102,7 +1036,25 @@ var Utility;
 })(Utility || (Utility = {}));
 var Utility;
 (function (Utility) {
-    function convertToSI(value) {
+    function degreesToRadians(angle) {
+        return angle * Math.PI / 180;
+    }
+    Utility.degreesToRadians = degreesToRadians;
+})(Utility || (Utility = {}));
+var Utility;
+(function (Utility) {
+    function flatten2d(array) {
+        return [].concat.apply([], array);
+    }
+    Utility.flatten2d = flatten2d;
+    function flatten3d(array) {
+        return [].concat.apply([], [].concat.apply([], array));
+    }
+    Utility.flatten3d = flatten3d;
+})(Utility || (Utility = {}));
+var Utility;
+(function (Utility) {
+    function getStandardForm(value, unit = "") {
         let exponent = value.toExponential();
         let decimal = parseFloat(exponent.substr(0, exponent.indexOf('e')));
         let power = parseInt(exponent.substr(exponent.indexOf('e') + 1));
@@ -1132,27 +1084,9 @@ var Utility;
             decimal *= 10;
             power--;
         }
-        return value.toString();
+        return value.toString() + unit;
     }
-    Utility.convertToSI = convertToSI;
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    function degreesToRadians(angle) {
-        return angle * Math.PI / 180;
-    }
-    Utility.degreesToRadians = degreesToRadians;
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    function flatten2d(array) {
-        return [].concat.apply([], array);
-    }
-    Utility.flatten2d = flatten2d;
-    function flatten3d(array) {
-        return [].concat.apply([], [].concat.apply([], array));
-    }
-    Utility.flatten3d = flatten3d;
+    Utility.getStandardForm = getStandardForm;
 })(Utility || (Utility = {}));
 var Utility;
 (function (Utility) {
@@ -1214,6 +1148,48 @@ var Utility;
     }
     Utility.vectorsAreClose = vectorsAreClose;
     ;
+})(Utility || (Utility = {}));
+var Utility;
+(function (Utility) {
+    var Insert;
+    (function (Insert) {
+        function last(element, target) {
+            if (element === target) {
+                $(element).insertAfter($(element).siblings().last());
+            }
+            else if ($(target).children().length) {
+                $(element).insertAfter($(target).children().last());
+            }
+            else {
+                $(element).appendTo($(target));
+            }
+        }
+        Insert.last = last;
+        function first(element, target) {
+            if (element === target) {
+                $(element).insertBefore($(element).siblings().first());
+            }
+            else if ($(target).children().length) {
+                $(element).insertBefore($(target).children().first());
+            }
+            else {
+                $(element).prependTo($(target));
+            }
+        }
+        Insert.first = first;
+        function before(element, target, referenceSelector = "*") {
+            if (element === target) {
+                $(element).insertBefore($(element).siblings(referenceSelector).first());
+            }
+            else if ($(target).children(referenceSelector).length) {
+                $(element).insertBefore($(target).children(referenceSelector).first());
+            }
+            else {
+                $(element).prependTo($(target));
+            }
+        }
+        Insert.before = before;
+    })(Insert = Utility.Insert || (Utility.Insert = {}));
 })(Utility || (Utility = {}));
 var Circuit;
 (function (Circuit) {
@@ -1305,7 +1281,7 @@ var Circuit;
                     } : {};
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
@@ -1378,7 +1354,7 @@ var Circuit;
                     }
                     this.group.append(new Svg.Elements.Graphics.Simples.Circle({ X: 0, Y: 0 }, 30, "line medium nofill").scale(scale, true));
                     let textPosition = (this.orientation === "LR") ? { X: 32, Y: 4 } : { X: -32, Y: 4 };
-                    let text = Component.Generics.formatValueText(this.currentGain, '');
+                    let text = Utility.getStandardForm(this.currentGain, '');
                     let anchorClass = (this.orientation === "LR") ? "anchorstart" : "anchorend";
                     this.group.append(new Svg.Elements.Graphics.Simples.Text(text, textPosition, undefined, "text").addClasses(anchorClass));
                 }
@@ -1427,7 +1403,7 @@ var Circuit;
                 };
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
@@ -1538,7 +1514,7 @@ var Circuit;
                     });
                 }
                 insertInto(group) {
-                    Svg.Utility.Insert.first(this.group.element, group.element);
+                    Utility.Insert.first(this.group.element, group.element);
                 }
             }
             Local.Instance = Instance;
@@ -1579,7 +1555,7 @@ var Circuit;
                 }
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("breadboard " + component.name);
                 Component.Addins.Board.init(component, makeTracks);
                 Component.Addins.Selectable.init(component);
@@ -1687,7 +1663,7 @@ var Circuit;
                     });
                 }
                 insertInto(group) {
-                    Svg.Utility.Insert.first(this.group.element, group.element);
+                    Utility.Insert.first(this.group.element, group.element);
                 }
             }
             Local.Instance = Instance;
@@ -1725,7 +1701,7 @@ var Circuit;
                 }
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("breadboard " + component.name);
                 Component.Addins.Board.init(component, makeTracks);
                 Component.Addins.Selectable.init(component);
@@ -1819,7 +1795,7 @@ var Circuit;
                     } : {};
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
@@ -1889,7 +1865,7 @@ var Circuit;
                     this.group.append(new Svg.Elements.Graphics.Simples.Line(lead1Start, lead1End, "line thin"));
                     this.group.append(new Svg.Elements.Graphics.Simples.Line(lead2Start, lead2End, "line thin"));
                     let textPosition = (isHorizontal) ? { X: 0, Y: -20 } : { X: -20, Y: 4 };
-                    let text = Component.Generics.formatValueText(this.capacitance, 'F');
+                    let text = Utility.getStandardForm(this.capacitance, 'F');
                     let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
                     this.group.append(new Svg.Elements.Graphics.Simples.Text(text, textPosition, undefined, "text").addClasses(anchorClass));
                     if (this.isPolarised) {
@@ -1949,7 +1925,7 @@ var Circuit;
                 };
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
@@ -2034,7 +2010,7 @@ var Circuit;
                     } : {};
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
@@ -2110,8 +2086,8 @@ var Circuit;
                     this.group.append(new Svg.Elements.Graphics.Simples.Line(lead2Start, lead2End, "line thin"));
                     let textPosition = (isHorizontal) ? { X: 0, Y: -15 } : { X: -15, Y: 4 };
                     let text = (this.breakdownVoltage < 51)
-                        ? Component.Generics.formatValueText(this.breakdownVoltage, 'V')
-                        : Component.Generics.formatValueText(this.saturationCurrent, 'A');
+                        ? Utility.getStandardForm(this.breakdownVoltage, 'V')
+                        : Utility.getStandardForm(this.saturationCurrent, 'A');
                     let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
                     this.group.append(new Svg.Elements.Graphics.Simples.Text(text, textPosition, undefined, "text").addClasses(anchorClass));
                 }
@@ -2158,7 +2134,7 @@ var Circuit;
                 };
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
@@ -2248,7 +2224,7 @@ var Circuit;
                     } : {};
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
@@ -2321,7 +2297,7 @@ var Circuit;
                     this.group.append(new Svg.Elements.Graphics.Simples.Line(lead1Start, lead1End, "line thin"));
                     this.group.append(new Svg.Elements.Graphics.Simples.Line(lead2Start, lead2End, "line thin"));
                     let textPosition = (isHorizontal) ? { X: 0, Y: -13 } : { X: -13, Y: 4 };
-                    let text = Component.Generics.formatValueText(this.inductance, 'H');
+                    let text = Utility.getStandardForm(this.inductance, 'H');
                     let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
                     this.group.append(new Svg.Elements.Graphics.Simples.Text(text, textPosition, undefined, "text").addClasses(anchorClass));
                 }
@@ -2359,7 +2335,7 @@ var Circuit;
                 };
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
@@ -2464,7 +2440,7 @@ var Circuit;
                     } : {};
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Rotatable.init(component, { X: Constants.gridSpacing * 1.5, Y: Constants.gridSpacing * 1.5 });
@@ -2584,7 +2560,7 @@ var Circuit;
                     return Local.makeInstance(properties, state, true);
                 }
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
@@ -2630,7 +2606,7 @@ var Circuit;
                     };
                 }
                 insertInto(group) {
-                    Svg.Utility.Insert.before(this.group.element, group.element, ".component");
+                    Utility.Insert.before(this.group.element, group.element, ".component");
                 }
                 draw() {
                     this.group.addClasses(this.name);
@@ -2665,7 +2641,7 @@ var Circuit;
                 }
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses(component.name);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
@@ -2765,14 +2741,14 @@ var Circuit;
                 return Local.makeInstance(properties, state, true);
             };
             function drawPowerPositive(component) {
-                let text = Component.Generics.formatValueText(component.voltage, "V");
+                let text = Utility.getStandardForm(component.voltage, "V");
                 component.group.append(new Svg.Elements.Graphics.Simples.Rect({ X: 0, Y: -8 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"));
                 component.group.append(new Svg.Elements.Graphics.Simples.Line({ X: -12, Y: -5 }, { X: 12, Y: -5 }, "line medium"));
                 component.group.append(new Svg.Elements.Graphics.Simples.Text(text, { X: 0, Y: -9 }, true, "text bold"));
                 component.group.append(new Svg.Elements.Graphics.Simples.Line({ X: 0, Y: -5 }, { X: 0, Y: 10 }, "line thin"));
             }
             function drawPowerNegative(component) {
-                let text = Component.Generics.formatValueText(component.voltage, "V");
+                let text = Utility.getStandardForm(component.voltage, "V");
                 component.group.append(new Svg.Elements.Graphics.Simples.Rect({ X: 0, Y: 8 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"));
                 component.group.append(new Svg.Elements.Graphics.Simples.Line({ X: -12, Y: 5 }, { X: 12, Y: 5 }, "line medium"));
                 component.group.append(new Svg.Elements.Graphics.Simples.Text(text, { X: 0, Y: 19 }, true, "text bold"));
@@ -2785,7 +2761,7 @@ var Circuit;
                 component.group.append(new Svg.Elements.Graphics.Simples.Line({ X: -6, Y: 10 }, { X: 6, Y: 10 }, "line medium"));
                 component.group.append(new Svg.Elements.Graphics.Simples.Line({ X: 0, Y: 0 }, { X: 0, Y: -10 }, "line thin"));
             }
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
@@ -2866,7 +2842,7 @@ var Circuit;
                     } : {};
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
@@ -2928,7 +2904,7 @@ var Circuit;
                     this.group.append(new Svg.Elements.Graphics.Simples.Line(lead1Start, lead1End, "line thin"));
                     this.group.append(new Svg.Elements.Graphics.Simples.Line(lead2Start, lead2End, "line thin"));
                     let textPosition = (isHorizontal) ? { X: 0, Y: -15 } : { X: -15, Y: 4 };
-                    let text = Component.Generics.formatValueText(this.resistance, '\u03A9');
+                    let text = Utility.getStandardForm(this.resistance, '\u03A9');
                     let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
                     this.group.append(new Svg.Elements.Graphics.Simples.Text(text, textPosition, undefined, "text").addClasses(anchorClass));
                 }
@@ -2966,7 +2942,7 @@ var Circuit;
                 };
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
@@ -3031,7 +3007,7 @@ var Circuit;
                     });
                 }
                 insertInto(group) {
-                    Svg.Utility.Insert.first(this.group.element, group.element);
+                    Utility.Insert.first(this.group.element, group.element);
                 }
             }
             Local.Instance = Instance;
@@ -3069,7 +3045,7 @@ var Circuit;
                 }
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses(component.name);
                 Component.Addins.Board.init(component, makeTracks, true);
                 Component.Addins.Selectable.init(component);
@@ -3204,7 +3180,7 @@ var Circuit;
                     Y: component.joints[0].Y + offset.Y
                 };
             }
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
@@ -3269,7 +3245,7 @@ var Circuit;
                     ];
                 }
                 insertInto(group) {
-                    Svg.Utility.Insert.first(this.group.element, group.element);
+                    Utility.Insert.first(this.group.element, group.element);
                 }
                 transferFunction(from) {
                     return Utility.flatten2d(this.connectorSets.map(connectorSet => connectorSet.filter(connector => (connector !== from))));
@@ -3298,7 +3274,7 @@ var Circuit;
                     } : {};
                 return Local.makeInstance(properties, state, true);
             };
-            Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
                 Component.Addins.Junctions.init(component);
             });
@@ -3310,6 +3286,85 @@ var Circuit;
             loadInstance: Local.loadInstance,
             Instance: Local.Instance
         };
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var Generics;
+        (function (Generics) {
+            function getComponentConnections(component, otherComponents) {
+                const allConnectors = Utility.flatten3d(otherComponents.map(el => el.connectorSets));
+                return component.connectorSets.map(connectorSet => {
+                    const uniqueNetConnectors = getUniqueNetConnectors(connectorSet);
+                    return uniqueNetConnectors.map(connector => {
+                        return getConnectorConnections(connector, allConnectors);
+                    });
+                });
+            }
+            Generics.getComponentConnections = getComponentConnections;
+            function getUniqueNetConnectors(connectors) {
+                let nonCheckedConnectors = connectors;
+                let uniqueNetConnectors = [];
+                while (nonCheckedConnectors.length) {
+                    uniqueNetConnectors.push(nonCheckedConnectors[0]);
+                    let nettedConnectors = nonCheckedConnectors[0]
+                        .component.transferFunction(nonCheckedConnectors[0])
+                        .concat(nonCheckedConnectors[0]);
+                    nonCheckedConnectors = nonCheckedConnectors.filter(connector => !nettedConnectors.includes(connector));
+                }
+                return uniqueNetConnectors;
+            }
+            function getConnectorConnections(connector, allConnectors) {
+                let connectedConnectors = [];
+                let nonCheckedConnections = connector.component.transferFunction(connector).concat(connector);
+                while (nonCheckedConnections.length) {
+                    connectedConnectors.push(...nonCheckedConnections);
+                    let newConnections = [];
+                    nonCheckedConnections.forEach(connection => {
+                        getConnectorDirectConnections(connection, allConnectors).forEach(connected => {
+                            if (!(connectedConnectors.includes(connected))) {
+                                connectedConnectors.push(connected);
+                                newConnections.push(...connected.component.transferFunction(connected));
+                            }
+                        });
+                    });
+                    nonCheckedConnections = newConnections;
+                }
+                return connectedConnectors;
+            }
+            function getConnectorDirectConnections(connector, allConnectors) {
+                const acceptedTypes = Circuit.mappings.connectorAcceptedTypes[connector.type];
+                const point = connector.point;
+                return allConnectors.filter(other => {
+                    return (acceptedTypes.includes(other.type)
+                        && Utility.pointsAreClose(point, other.point));
+                });
+            }
+        })(Generics = Component.Generics || (Component.Generics = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var Generics;
+        (function (Generics) {
+            function makeConnector(component, name, type, position) {
+                let connector = {
+                    name: name,
+                    type: type,
+                    component: component,
+                    get point() {
+                        let ctm = connector.component.group.element.getCTM();
+                        return (ctm) ? Svg.makePoint(position).matrixTransform(ctm) : Svg.makePoint(position);
+                    }
+                };
+                return connector;
+            }
+            Generics.makeConnector = makeConnector;
+        })(Generics = Component.Generics || (Component.Generics = {}));
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
 var Circuit;
@@ -20382,51 +20437,6 @@ var Svg;
         Elements.Group = Group;
     })(Elements = Svg.Elements || (Svg.Elements = {}));
 })(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Utility;
-    (function (Utility) {
-        var Insert;
-        (function (Insert) {
-            function last(element, target) {
-                if (element === target) {
-                    $(element).insertAfter($(element).siblings().last());
-                }
-                else if ($(target).children().length) {
-                    $(element).insertAfter($(target).children().last());
-                }
-                else {
-                    $(element).appendTo($(target));
-                }
-            }
-            Insert.last = last;
-            function first(element, target) {
-                if (element === target) {
-                    $(element).insertBefore($(element).siblings().first());
-                }
-                else if ($(target).children().length) {
-                    $(element).insertBefore($(target).children().first());
-                }
-                else {
-                    $(element).prependTo($(target));
-                }
-            }
-            Insert.first = first;
-            function before(element, target, referenceSelector = "*") {
-                if (element === target) {
-                    $(element).insertBefore($(element).siblings(referenceSelector).first());
-                }
-                else if ($(target).children(referenceSelector).length) {
-                    $(element).insertBefore($(target).children(referenceSelector).first());
-                }
-                else {
-                    $(element).prependTo($(target));
-                }
-            }
-            Insert.before = before;
-        })(Insert = Utility.Insert || (Utility.Insert = {}));
-    })(Utility = Svg.Utility || (Svg.Utility = {}));
-})(Svg || (Svg = {}));
 var Circuit;
 (function (Circuit) {
     var Component;
@@ -20547,7 +20557,7 @@ var Circuit;
                             Y: 0
                         }, 'body'));
                     };
-                    Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+                    Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                         component.group.addClasses(component.name);
                     });
                 })(Local || (Local = {}));
@@ -21322,7 +21332,7 @@ var Svg;
                         }).rotate(rotation);
                     }
                     setValue(num) {
-                        $(this.text.element).text(Circuit.Component.Generics.formatValueText(num, 'F'));
+                        $(this.text.element).text(Utility.getStandardForm(num, 'F'));
                         return this;
                     }
                 }
@@ -21370,7 +21380,7 @@ var Svg;
                         }).rotate(rotation);
                     }
                     setValue(num) {
-                        $(this.textPath.element).text(Circuit.Component.Generics.formatValueText(num, 'F'));
+                        $(this.textPath.element).text(Utility.getStandardForm(num, 'F'));
                         return this;
                     }
                 }

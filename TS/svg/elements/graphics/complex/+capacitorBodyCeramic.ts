@@ -35,7 +35,7 @@ namespace Svg.Elements.Graphics.Complexes {
       }
 
       setValue(num: number) {
-         $(this.text.element).text(Circuit.Component.Generics.formatValueText(num, 'F'));
+         $(this.text.element).text(Utility.getStandardForm(num, 'F'));
          return this;
       }
    }
