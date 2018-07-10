@@ -16,7 +16,7 @@ namespace Circuit.Component.Addins.Extendable {
       component.makeConnectors();
       component.draw();
       // $(component.group.element).trigger("deselect");
-      $(component.group.element).trigger("select");
+      $(component.group.element).trigger(Events.select);
    };
 
    const initHandles = (component: extendableComponent) => {
@@ -41,7 +41,7 @@ namespace Circuit.Component.Addins.Extendable {
    };
 
    const initJointRemoval = (component: extendableComponent) => {
-      $(component.group.element).on("dragSVG", ".dragHandle", (e) => {
+      $(component.group.element).on(Events.drag, ".dragHandle", (e) => {
          removeExcessJoints(component, $(e.target).data("point"));
          refreshComponent(component);
       });
@@ -58,7 +58,7 @@ namespace Circuit.Component.Addins.Extendable {
    }
 
    const initComponentRemoval = (component: extendableComponent) => {
-      $(component.group.element).on("dragstop", ".dragHandle", (e) => {
+      $(component.group.element).on(Events.dragStop, ".dragHandle", (e) => {
          if (component.joints.length === 2 && Utility.vectorsAreClose(component.joints[0], component.joints[1])) {
             manifest.removeComponent(component);
          }
@@ -71,7 +71,7 @@ namespace Circuit.Component.Addins.Extendable {
       component.group.append(dragHandle);
       dragHandle.setDraggable();
 
-      $(dragHandle.element).on("dragSVG", (e, ui, drag: Global.Types.vector) => {
+      $(dragHandle.element).on(Events.drag, (e, ui, drag: Global.Types.vector) => {
          point.X += drag.X;
          point.Y += drag.Y;
          refreshComponent(component);

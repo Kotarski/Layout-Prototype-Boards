@@ -5,21 +5,17 @@ namespace Circuit.Component.Addins.ConnectionHighlights {
    export const init = (component: Component.Instance, propogate: boolean = true, colorPalette: colorPalette = defaultColorPalette) => {
       let element = component.group.element;
 
-      $(element).on("select", () => {
+      $(element).on(Events.select, () => {
+         createConnectionsHighlights(component, propogate, colorPalette);
+      });
+      $(element).on(Events.moved, () => {
          clearConnectionsHighlights(component);
          createConnectionsHighlights(component, propogate, colorPalette);
       });
-      $(element).on("dragSVG", () => {
-         clearConnectionsHighlights(component);
-         createConnectionsHighlights(component, propogate, colorPalette);
-      });
-      $(element).on("rotate", () => {
-         clearConnectionsHighlights(component);
-         createConnectionsHighlights(component, propogate, colorPalette);
-      });
-      $(element).on("deselect", () => {
+      $(element).on(Events.deselect, () => {
          clearConnectionsHighlights(component);
       });
+
    }
 
    const createConnectorHighlights = (component: Component.Instance, connection: Component.Types.connector, color: string) => {

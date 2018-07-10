@@ -46,6 +46,7 @@ var Circuit;
         (function (Types) {
             ;
             ;
+            ;
         })(Types = Component.Types || (Component.Types = {}));
         class Instance {
             constructor(properties, state) {
@@ -59,8 +60,6 @@ var Circuit;
             }
             set location(location) {
                 this.group.transforms = location;
-            }
-            onPlace() {
             }
             insertInto(group) {
                 Svg.Utility.Insert.last(this.group.element, group.element);
@@ -152,6 +151,8 @@ var Circuit;
                     const component = new instanceClass(properties, state);
                     if (initialiser)
                         initialiser(component);
+                    component.draw();
+                    component.makeConnectors();
                     return component;
                 };
             }
@@ -183,6 +184,17 @@ var Circuit;
         })(Generics = Component.Generics || (Component.Generics = {}));
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
+var Events;
+(function (Events) {
+    Events.rotate = "rotate";
+    Events.drag = "dragSVG";
+    Events.dragStart = "dragstart";
+    Events.dragStop = "dragstop";
+    Events.moved = [Events.rotate, Events.drag, Events.dragStart, Events.dragStop].join(" ");
+    Events.place = "place";
+    Events.select = "select";
+    Events.deselect = "deselect";
+})(Events || (Events = {}));
 var Circuit;
 (function (Circuit) {
     Circuit.manifest = (() => {
@@ -226,9 +238,7 @@ var Circuit;
         };
         const placeComponent = (component, diagram) => {
             component.insertInto(diagram.group);
-            component.draw();
-            component.makeConnectors();
-            component.onPlace();
+            $(component.group.element).trigger(Events.place);
         };
         const draw = () => {
             Circuit.manifest.schematic.forEach(component => placeComponent(component, Active.schematic));
@@ -3228,6 +3238,7 @@ var Circuit;
             class Instance extends Component.Instance {
                 constructor(properties, state) {
                     super(properties, state);
+                    this.connectorSets = [];
                     this.group.addClasses("component " + this.name);
                     this.joints = state.joints;
                 }
@@ -3256,18 +3267,6 @@ var Circuit;
                         [Component.Generics.makeConnector(this, "", "node", end1),
                             Component.Generics.makeConnector(this, "", "node", end2)]
                     ];
-                }
-                onPlace() {
-                    let otherConnectors = Utility.flatten2d(Circuit.manifest.schematic.map(component => Utility.flatten2d(component.connectorSets).filter(connector => (connector.type === "node"))));
-                    this.connectorSets.forEach(connectorSet => connectorSet.forEach(connector => {
-                        let point = connector.point;
-                        let attachedConnectors = otherConnectors.filter(other => Utility.pointsAreClose(point, other.point));
-                        if (attachedConnectors.length === 3) {
-                            let ctm = Active.schematic.group.element.getCTM();
-                            point = (ctm) ? point.matrixTransform(ctm.inverse()) : point;
-                            Active.schematic.group.prepend(new Svg.Elements.Graphics.Simples.Circle({ X: point.x, Y: point.y }, 5, "black"));
-                        }
-                    }));
                 }
                 insertInto(group) {
                     Svg.Utility.Insert.first(this.group.element, group.element);
@@ -3301,6 +3300,7 @@ var Circuit;
             };
             Local.makeInstance = Component.Generics.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
+                Component.Addins.Junctions.init(component);
             });
         })(Local || (Local = {}));
         Component.WireSchematic = {
@@ -20651,19 +20651,14 @@ var Circuit;
             (function (ConnectionHighlights) {
                 ConnectionHighlights.init = (component, propogate = true, colorPalette = defaultColorPalette) => {
                     let element = component.group.element;
-                    $(element).on("select", () => {
+                    $(element).on(Events.select, () => {
+                        createConnectionsHighlights(component, propogate, colorPalette);
+                    });
+                    $(element).on(Events.moved, () => {
                         clearConnectionsHighlights(component);
                         createConnectionsHighlights(component, propogate, colorPalette);
                     });
-                    $(element).on("dragSVG", () => {
-                        clearConnectionsHighlights(component);
-                        createConnectionsHighlights(component, propogate, colorPalette);
-                    });
-                    $(element).on("rotate", () => {
-                        clearConnectionsHighlights(component);
-                        createConnectionsHighlights(component, propogate, colorPalette);
-                    });
-                    $(element).on("deselect", () => {
+                    $(element).on(Events.deselect, () => {
                         clearConnectionsHighlights(component);
                     });
                 };
@@ -20719,9 +20714,6 @@ var Circuit;
                     component.group.setDraggable({
                         onStart: () => {
                             component.insertInto(component.group);
-                        },
-                        onStop: () => {
-                            component.onPlace();
                         }
                     });
                 };
@@ -20750,7 +20742,7 @@ var Circuit;
                     component.group.clear(":not(.handle)");
                     component.makeConnectors();
                     component.draw();
-                    $(component.group.element).trigger("select");
+                    $(component.group.element).trigger(Events.select);
                 };
                 const initHandles = (component) => {
                     component.joints.forEach(joint => {
@@ -20769,7 +20761,7 @@ var Circuit;
                     });
                 };
                 const initJointRemoval = (component) => {
-                    $(component.group.element).on("dragSVG", ".dragHandle", (e) => {
+                    $(component.group.element).on(Events.drag, ".dragHandle", (e) => {
                         removeExcessJoints(component, $(e.target).data("point"));
                         refreshComponent(component);
                     });
@@ -20784,7 +20776,7 @@ var Circuit;
                     });
                 };
                 const initComponentRemoval = (component) => {
-                    $(component.group.element).on("dragstop", ".dragHandle", (e) => {
+                    $(component.group.element).on(Events.dragStop, ".dragHandle", (e) => {
                         if (component.joints.length === 2 && Utility.vectorsAreClose(component.joints[0], component.joints[1])) {
                             Circuit.manifest.removeComponent(component);
                         }
@@ -20795,7 +20787,7 @@ var Circuit;
                     $(dragHandle.element).data('point', point);
                     component.group.append(dragHandle);
                     dragHandle.setDraggable();
-                    $(dragHandle.element).on("dragSVG", (e, ui, drag) => {
+                    $(dragHandle.element).on(Events.drag, (e, ui, drag) => {
                         point.X += drag.X;
                         point.Y += drag.Y;
                         refreshComponent(component);
@@ -20837,23 +20829,52 @@ var Circuit;
     (function (Component) {
         var Addins;
         (function (Addins) {
+            var Junctions;
+            (function (Junctions) {
+                Junctions.init = (component) => {
+                    let element = component.group.element;
+                    $(element).on(Events.moved + " " + Events.place, () => {
+                        clearJunctions(component);
+                        createJunctions(component);
+                    });
+                };
+                const createJunctions = (component) => {
+                    let otherConnectors = Utility.flatten2d(Circuit.manifest.schematic.map(component => Utility.flatten2d(component.connectorSets).filter(connector => (connector.type === "node"))));
+                    component.connectorSets.forEach(connectorSet => connectorSet.forEach(connector => {
+                        let point = connector.point;
+                        let attachedConnectors = otherConnectors.filter(other => Utility.pointsAreClose(point, other.point));
+                        if (attachedConnectors.length === 3) {
+                            let ctm = Active.schematic.group.element.getCTM();
+                            point = (ctm) ? point.matrixTransform(ctm.inverse()) : point;
+                            component.group.prepend(new Svg.Elements.Graphics.Simples.Circle({ X: point.x, Y: point.y }, 5, "junction black"));
+                        }
+                    }));
+                };
+                const clearJunctions = (component) => {
+                    $(component.group.element).find(".junction").remove();
+                };
+            })(Junctions = Addins.Junctions || (Addins.Junctions = {}));
+        })(Addins = Component.Addins || (Component.Addins = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var Addins;
+        (function (Addins) {
             var Recolorable;
             (function (Recolorable) {
                 Recolorable.init = (component, where, recolorSelector = "*", colorPalette = defaultColorPalette) => {
                     let element = component.group.element;
-                    $(element).on("select", () => {
+                    $(element).on(Events.select, () => {
+                        createRecolorHandle(component, where(), recolorSelector, colorPalette);
+                    });
+                    $(element).on(Events.moved, () => {
                         clearRecolorHandle(component);
                         createRecolorHandle(component, where(), recolorSelector, colorPalette);
                     });
-                    $(element).on("dragSVG", () => {
-                        clearRecolorHandle(component);
-                        createRecolorHandle(component, where(), recolorSelector, colorPalette);
-                    });
-                    $(element).on("rotate", () => {
-                        clearRecolorHandle(component);
-                        createRecolorHandle(component, where(), recolorSelector, colorPalette);
-                    });
-                    $(element).on("deselect", () => {
+                    $(element).on(Events.deselect, () => {
                         clearRecolorHandle(component);
                     });
                 };
@@ -20919,8 +20940,7 @@ var Circuit;
                     component.group.setDoubleClickable({
                         response: () => {
                             component.group.rotate(90, rotationCentre);
-                            $(component.group.element).trigger("rotate");
-                            component.onPlace();
+                            $(component.group.element).trigger(Events.rotate);
                         }
                     });
                 };
@@ -20952,7 +20972,7 @@ var Circuit;
                 const setSelectTrigger = (component) => {
                     $(document).one("mousedown", e => {
                         if (elementSelectsComponent(e.target, component)) {
-                            $(component.group.element).trigger("select");
+                            $(component.group.element).trigger(Events.select);
                             setDeselectTrigger(component);
                         }
                         else {
@@ -20966,18 +20986,18 @@ var Circuit;
                             setDeselectTrigger(component);
                         }
                         else {
-                            $(component.group.element).trigger("deselect");
+                            $(component.group.element).trigger(Events.deselect);
                             setSelectTrigger(component);
                         }
                     });
                 };
                 const setDisplayHandlers = (component) => {
-                    $(component.group.element).on("select", () => {
+                    $(component.group.element).on(Events.select, () => {
                         console.log(component);
                         component.group.addClasses("selected");
                         component.insertInto(component.group);
                     });
-                    $(component.group.element).on("deselect", () => {
+                    $(component.group.element).on(Events.deselect, () => {
                         component.group.removeClasses("selected");
                     });
                 };
@@ -21002,19 +21022,19 @@ var Circuit;
                                 styleClass: ""
                             });
                             let dragHandle;
-                            $(mOE.target).on("dragstart", (e, ui, drag) => {
+                            $(mOE.target).on(Events.dragStart, (e, ui, drag) => {
                                 const position = Active.layout.group.convertVector({ X: e.clientX, Y: e.clientY }, "DomToSvg", "relToGroup");
                                 const gridPosition = Utility.snapVectorToGrid(position);
                                 const wire = createWireAtPoint(gridPosition);
                                 dragHandle = $(wire.group.element).find(".dragHandle")[0];
                                 $(dragHandle).trigger("mousedown");
-                                $(dragHandle).trigger("dragstart");
+                                $(dragHandle).trigger(Events.dragStart);
                             });
-                            $(mOE.target).on("dragSVG", (e, ui, drag) => {
-                                $(dragHandle).trigger("dragSVG", [ui, drag]);
+                            $(mOE.target).on(Events.drag, (e, ui, drag) => {
+                                $(dragHandle).trigger(Events.drag, [ui, drag]);
                             });
-                            $(mOE.target).on("dragstop", (e, ui) => {
-                                $(dragHandle).trigger("dragstop", ui);
+                            $(mOE.target).on(Events.dragStop, (e, ui) => {
+                                $(dragHandle).trigger(Events.dragStop, ui);
                             });
                         }
                     });

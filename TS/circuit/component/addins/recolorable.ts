@@ -11,19 +11,14 @@ namespace Circuit.Component.Addins.Recolorable {
    ) => {
       let element = component.group.element;
 
-      $(element).on("select", () => {
+      $(element).on(Events.select, () => {
+         createRecolorHandle(component, where(), recolorSelector, colorPalette);
+      });
+      $(element).on(Events.moved, () => {
          clearRecolorHandle(component);
          createRecolorHandle(component, where(), recolorSelector, colorPalette);
       });
-      $(element).on("dragSVG", () => {
-         clearRecolorHandle(component);
-         createRecolorHandle(component, where(), recolorSelector, colorPalette);
-      });
-      $(element).on("rotate", () => {
-         clearRecolorHandle(component);
-         createRecolorHandle(component, where(), recolorSelector, colorPalette);
-      });
-      $(element).on("deselect", () => {
+      $(element).on(Events.deselect, () => {
          clearRecolorHandle(component);
       });
    }

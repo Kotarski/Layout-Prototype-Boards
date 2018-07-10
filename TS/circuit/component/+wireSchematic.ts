@@ -24,6 +24,8 @@ namespace Circuit.Component {
 
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          joints: Global.Types.vector[];
+         connectorSets: Component.Types.node[][] = [];
+
 
          constructor(properties: Types.properties, state: Types.state) {
             super(properties, state);
@@ -62,28 +64,6 @@ namespace Circuit.Component {
                [Component.Generics.makeConnector(this, "", "node", end1),
                Component.Generics.makeConnector(this, "", "node", end2)]
             ]
-         }
-
-         onPlace() {
-            let otherConnectors = Utility.flatten2d(manifest.schematic.map(component =>
-               Utility.flatten2d(component.connectorSets).filter(connector =>
-                  (connector.type === "node")
-               )
-            ));
-
-            this.connectorSets.forEach(connectorSet => connectorSet.forEach(connector => {
-               let point = connector.point;
-               let attachedConnectors = otherConnectors.filter(other =>
-                  Utility.pointsAreClose(point, other.point)
-               );
-               if (attachedConnectors.length === 3) {
-                  let ctm = Active.schematic.group.element.getCTM();
-                  point = (ctm) ? point.matrixTransform(ctm.inverse()) : point;
-                  Active.schematic.group.prepend(
-                     new Svg.Elements.Graphics.Simples.Circle({ X: point.x, Y: point.y }, 5, "black")
-                  );
-               }
-            }));
          }
 
          insertInto(group: Svg.Elements.Group) {
@@ -127,6 +107,7 @@ namespace Circuit.Component {
       export const makeInstance = Generics.getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
             component.group.addClasses("component " + component.name);
+            Addins.Junctions.init(component);
          }
       );
    }

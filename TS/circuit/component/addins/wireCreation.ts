@@ -17,23 +17,23 @@ namespace Circuit.Component.Addins.WireCreation {
             let dragHandle: SVGGraphicsElement;
 
             // Create the wire, select it, and grab a handle (any is fine)
-            $(mOE.target).on("dragstart", (e, ui, drag: Global.Types.vector) => {
+            $(mOE.target).on(Events.dragStart, (e, ui, drag: Global.Types.vector) => {
                const position = Active.layout.group.convertVector({ X: e.clientX, Y: e.clientY }, "DomToSvg", "relToGroup");
                const gridPosition = Utility.snapVectorToGrid(position);
                const wire = createWireAtPoint(gridPosition);
                dragHandle = $(wire.group.element).find(".dragHandle")[0] as any;
                $(dragHandle).trigger("mousedown");
-               $(dragHandle).trigger("dragstart");
+               $(dragHandle).trigger(Events.dragStart);
             })
 
             // Pass the handlers to the wire
-            $(mOE.target).on("dragSVG", (e, ui, drag: Global.Types.vector) => {
-               $(dragHandle).trigger("dragSVG", [ui, drag]);
+            $(mOE.target).on(Events.drag, (e, ui, drag: Global.Types.vector) => {
+               $(dragHandle).trigger(Events.drag, [ui, drag]);
             });
 
             // Pass the handlers to the wire
-            $(mOE.target).on("dragstop", (e, ui) => {
-               $(dragHandle).trigger("dragstop", ui);
+            $(mOE.target).on(Events.dragStop, (e, ui) => {
+               $(dragHandle).trigger(Events.dragStop, ui);
             });
          }
       })

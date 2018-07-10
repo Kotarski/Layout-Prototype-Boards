@@ -3,8 +3,7 @@ namespace Circuit.Component.Addins.Rotatable {
       component.group.setDoubleClickable({
          response: () => {
             component.group.rotate(90, rotationCentre);
-            $(component.group.element).trigger("rotate");
-            component.onPlace();
+            $(component.group.element).trigger(Events.rotate);
          }
       })
    }
