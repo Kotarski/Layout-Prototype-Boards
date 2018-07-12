@@ -1,5 +1,5 @@
-namespace Utility {
-   export function rotateVector(vector: Global.Types.vector, angle: number): Global.Types.vector {
+namespace Utility.Vector {
+   export function rotate(vector: Global.Types.vector, angle: number): Global.Types.vector {
       let radians = (Math.PI / 180) * angle;
       let cos = Math.cos(radians);
       let sin = Math.sin(radians);

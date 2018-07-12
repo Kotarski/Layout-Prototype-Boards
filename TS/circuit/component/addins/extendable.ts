@@ -30,7 +30,7 @@ namespace Circuit.Component.Addins.Extendable {
          if ($(e.target).closest(".handle").length < 1) {
             // Get position in svg coordinates, rounded to grid
             let position = component.group.convertVector({ X: e.clientX, Y: e.clientY }, "DomToSvg", "relToGroup");
-            position = Utility.snapVectorToGrid(position);
+            position = Utility.Vector.snapToGrid(position);
 
             //insert joint at position
             component.joints.splice(getJointInsertionIdx(component, position), 0, position);
@@ -59,7 +59,7 @@ namespace Circuit.Component.Addins.Extendable {
 
    const initComponentRemoval = (component: extendableComponent) => {
       $(component.group.element).on(Events.dragStop, ".dragHandle", (e) => {
-         if (component.joints.length === 2 && Utility.vectorsAreClose(component.joints[0], component.joints[1])) {
+         if (component.joints.length === 2 && Utility.Vector.areClose(component.joints[0], component.joints[1])) {
             manifest.removeComponent(component);
          }
       });
@@ -84,7 +84,7 @@ namespace Circuit.Component.Addins.Extendable {
    const removeExcessJoints = (component: extendableComponent, point: Global.Types.vector) => {
       if (component.joints.length > 2) {
          component.joints = component.joints.filter((joint, idx) => {
-            if ((joint !== point) && Utility.vectorsAreClose(point, joint)) {
+            if ((joint !== point) && Utility.Vector.areClose(point, joint)) {
                $(component.group.element).children(".dragHandle").filter((i, el) => $(el).data('point') === joint).remove();
                return false;
             }

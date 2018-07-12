@@ -64,9 +64,9 @@ namespace Circuit.Component {
 
             let rotation = -Math.atan2(this.joints[2].Y - this.joints[0].Y, this.joints[2].X - this.joints[0].X) * 180 / Math.PI;
 
-            let leadEmitterStart = Utility.rotateVector({ X: - 12, Y: 3 }, rotation);
-            let leadCollectorStart = Utility.rotateVector({ X: 0, Y: 3 }, rotation);
-            let leadBaseStart = Utility.rotateVector({ X: 12, Y: 3 }, rotation);
+            let leadEmitterStart = Utility.Vector.rotate({ X: - 12, Y: 3 }, rotation);
+            let leadCollectorStart = Utility.Vector.rotate({ X: 0, Y: 3 }, rotation);
+            let leadBaseStart = Utility.Vector.rotate({ X: 12, Y: 3 }, rotation);
 
             let leadPath = "M " + this.joints[0].X + " " + this.joints[0].Y
                + "L " + (centre.X + leadEmitterStart.X) + " " + (centre.Y + leadEmitterStart.Y)
