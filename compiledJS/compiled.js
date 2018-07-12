@@ -2834,7 +2834,7 @@ var Circuit;
                     this.group.append(new Svg.Elements.Graphics.Simples.Line(lead1Start, lead1End, "line thin"));
                     this.group.append(new Svg.Elements.Graphics.Simples.Line(lead2Start, lead2End, "line thin"));
                     let textPosition = (isHorizontal) ? { X: 0, Y: -15 } : { X: -15, Y: 4 };
-                    let text = Utility.getStandardForm(this.resistance, '\u03A9');
+                    let text = Utility.getStandardForm(this.resistance, 'Ω');
                     let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
                     this.group.append(new Svg.Elements.Graphics.Simples.Text(text, textPosition, undefined, "text").addClasses(anchorClass));
                 }
