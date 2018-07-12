@@ -167,8 +167,8 @@ namespace Circuit.Component {
       }
 
       function getRecolorPosition(component: Instance): Global.Types.vector {
-         const angle = Utility.angleBetween(component.joints[0], component.joints[1]) - Math.PI / 4;
-         const offset = Utility.polarToCartesian(12, angle);
+         const angle = Utility.Vector.getAngleBetween(component.joints[0], component.joints[1]) - Math.PI / 4;
+         const offset = Utility.Polar.toVector(12, angle);
          return {
             X: component.joints[0].X + offset.X,
             Y: component.joints[0].Y + offset.Y

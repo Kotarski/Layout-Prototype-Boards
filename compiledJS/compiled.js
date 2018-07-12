@@ -1008,34 +1008,6 @@ var Ui;
 })(Ui || (Ui = {}));
 var Utility;
 (function (Utility) {
-    function getTwoWayMap() {
-        return new TwoWayMap();
-    }
-    Utility.getTwoWayMap = getTwoWayMap;
-    class TwoWayMap extends Map {
-        getRev(value) {
-        }
-    }
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    function angleBetween(a, b) {
-        return Math.atan2(a.Y - b.Y, a.X - b.X);
-    }
-    Utility.angleBetween = angleBetween;
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    function cartesianToPolar(vector) {
-        return {
-            radius: Math.sqrt(Math.pow(vector.X, 2) + Math.pow(vector.Y, 2)),
-            angle: Math.atan(vector.Y / vector.X)
-        };
-    }
-    Utility.cartesianToPolar = cartesianToPolar;
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
     function degreesToRadians(angle) {
         return angle * Math.PI / 180;
     }
@@ -1055,38 +1027,39 @@ var Utility;
 var Utility;
 (function (Utility) {
     function getStandardForm(value, unit = "") {
-        let exponent = value.toExponential();
-        let decimal = parseFloat(exponent.substr(0, exponent.indexOf('e')));
-        let power = parseInt(exponent.substr(exponent.indexOf('e') + 1));
-        let prefixes = {
-            '-24': 'y',
-            '-21': 'z',
-            '-18': 'a',
-            '-15': 'f',
-            '-12': 'p',
-            '-9': 'n',
-            '-6': '\u03BC',
-            '-3': 'm',
-            '0': '',
-            '3': 'k',
-            '6': 'M',
-            '9': 'G',
-            '12': 'T',
-            '15': 'P',
-            '18': 'E',
-            '21': 'Z',
-            '24': 'Y'
-        };
+        let exponentialParts = value.toExponential().split("e");
+        let coefficient = parseFloat(exponentialParts[0]);
+        let exponent = parseInt(exponentialParts[1]);
         for (let i = 0; i < 3; i++) {
-            if (power in prefixes) {
-                return parseFloat(decimal.toPrecision(2)) + prefixes[power];
-            }
-            decimal *= 10;
-            power--;
+            if (exponent in prefixes)
+                break;
+            coefficient *= 10;
+            exponent--;
         }
-        return value.toString() + unit;
+        const numeric = parseFloat(coefficient.toPrecision(2));
+        const prefix = prefixes[exponent] || "";
+        return numeric + prefix + unit;
     }
     Utility.getStandardForm = getStandardForm;
+    const prefixes = {
+        '-24': 'y',
+        '-21': 'z',
+        '-18': 'a',
+        '-15': 'f',
+        '-12': 'p',
+        '-9': 'n',
+        '-6': 'µ',
+        '-3': 'm',
+        '0': '',
+        '3': 'k',
+        '6': 'M',
+        '9': 'G',
+        '12': 'T',
+        '15': 'P',
+        '18': 'E',
+        '21': 'Z',
+        '24': 'Y'
+    };
 })(Utility || (Utility = {}));
 var Utility;
 (function (Utility) {
@@ -1099,55 +1072,10 @@ var Utility;
 })(Utility || (Utility = {}));
 var Utility;
 (function (Utility) {
-    function polarToCartesian(radius, angle) {
-        return {
-            X: radius * Math.cos(angle),
-            Y: radius * Math.sin(angle)
-        };
-    }
-    Utility.polarToCartesian = polarToCartesian;
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
     function radiansToDegrees(angle) {
         return angle * 180 / Math.PI;
     }
     Utility.radiansToDegrees = radiansToDegrees;
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    function rotateVector(vector, angle) {
-        let radians = (Math.PI / 180) * angle;
-        let cos = Math.cos(radians);
-        let sin = Math.sin(radians);
-        let rotatedVector = {
-            X: (cos * vector.X) + (sin * vector.Y),
-            Y: (cos * vector.Y) - (sin * vector.X)
-        };
-        return rotatedVector;
-    }
-    Utility.rotateVector = rotateVector;
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    function snapVectorToGrid(vector) {
-        let gridSpacing = Constants.gridSpacing;
-        return {
-            X: Math.round(vector.X / (gridSpacing / 2)) * (gridSpacing / 2),
-            Y: Math.round(vector.Y / (gridSpacing / 2)) * (gridSpacing / 2)
-        };
-    }
-    Utility.snapVectorToGrid = snapVectorToGrid;
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    function vectorsAreClose(vectorA, vectorB, closeBoundary = 1) {
-        const vectorXisClose = (Math.abs(vectorA.X - vectorB.X) < closeBoundary);
-        const vectorYisClose = (Math.abs(vectorA.Y - vectorB.Y) < closeBoundary);
-        return (vectorXisClose && vectorYisClose);
-    }
-    Utility.vectorsAreClose = vectorsAreClose;
-    ;
 })(Utility || (Utility = {}));
 var Utility;
 (function (Utility) {
@@ -1235,9 +1163,9 @@ var Circuit;
                         Y: (this.joints[0].Y + this.joints[1].Y + this.joints[2].Y) / 3,
                     };
                     let rotation = -Math.atan2(this.joints[2].Y - this.joints[0].Y, this.joints[2].X - this.joints[0].X) * 180 / Math.PI;
-                    let leadEmitterStart = Utility.rotateVector({ X: -12, Y: 3 }, rotation);
-                    let leadCollectorStart = Utility.rotateVector({ X: 0, Y: 3 }, rotation);
-                    let leadBaseStart = Utility.rotateVector({ X: 12, Y: 3 }, rotation);
+                    let leadEmitterStart = Utility.Vector.rotate({ X: -12, Y: 3 }, rotation);
+                    let leadCollectorStart = Utility.Vector.rotate({ X: 0, Y: 3 }, rotation);
+                    let leadBaseStart = Utility.Vector.rotate({ X: 12, Y: 3 }, rotation);
                     let leadPath = "M " + this.joints[0].X + " " + this.joints[0].Y
                         + "L " + (centre.X + leadEmitterStart.X) + " " + (centre.Y + leadEmitterStart.Y)
                         + "M " + this.joints[1].X + " " + this.joints[1].Y
@@ -3175,8 +3103,8 @@ var Circuit;
                 }
             }
             function getRecolorPosition(component) {
-                const angle = Utility.angleBetween(component.joints[0], component.joints[1]) - Math.PI / 4;
-                const offset = Utility.polarToCartesian(12, angle);
+                const angle = Utility.Vector.getAngleBetween(component.joints[0], component.joints[1]) - Math.PI / 4;
+                const offset = Utility.Polar.toVector(12, angle);
                 return {
                     X: component.joints[0].X + offset.X,
                     Y: component.joints[0].Y + offset.Y
@@ -20439,6 +20367,86 @@ var Svg;
         Elements.Group = Group;
     })(Elements = Svg.Elements || (Svg.Elements = {}));
 })(Svg || (Svg = {}));
+var Utility;
+(function (Utility) {
+    var Polar;
+    (function (Polar) {
+        function toVector(radius, angle) {
+            return {
+                X: radius * Math.cos(angle),
+                Y: radius * Math.sin(angle)
+            };
+        }
+        Polar.toVector = toVector;
+    })(Polar = Utility.Polar || (Utility.Polar = {}));
+})(Utility || (Utility = {}));
+var Utility;
+(function (Utility) {
+    var Vector;
+    (function (Vector) {
+        function areClose(vectorA, vectorB, closeBoundary = 1) {
+            const vectorXisClose = (Math.abs(vectorA.X - vectorB.X) < closeBoundary);
+            const vectorYisClose = (Math.abs(vectorA.Y - vectorB.Y) < closeBoundary);
+            return (vectorXisClose && vectorYisClose);
+        }
+        Vector.areClose = areClose;
+        ;
+    })(Vector = Utility.Vector || (Utility.Vector = {}));
+})(Utility || (Utility = {}));
+var Utility;
+(function (Utility) {
+    var Vector;
+    (function (Vector) {
+        function getAngleBetween(from, to) {
+            return Math.atan2(from.Y - to.Y, from.X - to.X);
+        }
+        Vector.getAngleBetween = getAngleBetween;
+    })(Vector = Utility.Vector || (Utility.Vector = {}));
+})(Utility || (Utility = {}));
+var Utility;
+(function (Utility) {
+    var Vector;
+    (function (Vector) {
+        function rotate(vector, angle) {
+            let radians = (Math.PI / 180) * angle;
+            let cos = Math.cos(radians);
+            let sin = Math.sin(radians);
+            let rotatedVector = {
+                X: (cos * vector.X) + (sin * vector.Y),
+                Y: (cos * vector.Y) - (sin * vector.X)
+            };
+            return rotatedVector;
+        }
+        Vector.rotate = rotate;
+    })(Vector = Utility.Vector || (Utility.Vector = {}));
+})(Utility || (Utility = {}));
+var Utility;
+(function (Utility) {
+    var Vector;
+    (function (Vector) {
+        function snapToGrid(vector) {
+            let gridSpacing = Constants.gridSpacing;
+            return {
+                X: Math.round(vector.X / (gridSpacing / 2)) * (gridSpacing / 2),
+                Y: Math.round(vector.Y / (gridSpacing / 2)) * (gridSpacing / 2)
+            };
+        }
+        Vector.snapToGrid = snapToGrid;
+    })(Vector = Utility.Vector || (Utility.Vector = {}));
+})(Utility || (Utility = {}));
+var Utility;
+(function (Utility) {
+    var Vector;
+    (function (Vector) {
+        function toPolar(vector) {
+            return {
+                radius: Math.sqrt(Math.pow(vector.X, 2) + Math.pow(vector.Y, 2)),
+                angle: Math.atan(vector.Y / vector.X)
+            };
+        }
+        Vector.toPolar = toPolar;
+    })(Vector = Utility.Vector || (Utility.Vector = {}));
+})(Utility || (Utility = {}));
 var Circuit;
 (function (Circuit) {
     var Component;
@@ -20765,7 +20773,7 @@ var Circuit;
                     $(component.group.element).dblclick(e => {
                         if ($(e.target).closest(".handle").length < 1) {
                             let position = component.group.convertVector({ X: e.clientX, Y: e.clientY }, "DomToSvg", "relToGroup");
-                            position = Utility.snapVectorToGrid(position);
+                            position = Utility.Vector.snapToGrid(position);
                             component.joints.splice(getJointInsertionIdx(component, position), 0, position);
                             addHandle(component, position);
                             refreshComponent(component);
@@ -20789,7 +20797,7 @@ var Circuit;
                 };
                 const initComponentRemoval = (component) => {
                     $(component.group.element).on(Events.dragStop, ".dragHandle", (e) => {
-                        if (component.joints.length === 2 && Utility.vectorsAreClose(component.joints[0], component.joints[1])) {
+                        if (component.joints.length === 2 && Utility.Vector.areClose(component.joints[0], component.joints[1])) {
                             Circuit.manifest.removeComponent(component);
                         }
                     });
@@ -20809,7 +20817,7 @@ var Circuit;
                 const removeExcessJoints = (component, point) => {
                     if (component.joints.length > 2) {
                         component.joints = component.joints.filter((joint, idx) => {
-                            if ((joint !== point) && Utility.vectorsAreClose(point, joint)) {
+                            if ((joint !== point) && Utility.Vector.areClose(point, joint)) {
                                 $(component.group.element).children(".dragHandle").filter((i, el) => $(el).data('point') === joint).remove();
                                 return false;
                             }
@@ -21036,7 +21044,7 @@ var Circuit;
                             let dragHandle;
                             $(mOE.target).on(Events.dragStart, (e, ui, drag) => {
                                 const position = Active.layout.group.convertVector({ X: e.clientX, Y: e.clientY }, "DomToSvg", "relToGroup");
-                                const gridPosition = Utility.snapVectorToGrid(position);
+                                const gridPosition = Utility.Vector.snapToGrid(position);
                                 const wire = createWireAtPoint(gridPosition);
                                 dragHandle = $(wire.group.element).find(".dragHandle")[0];
                                 $(dragHandle).trigger("mousedown");

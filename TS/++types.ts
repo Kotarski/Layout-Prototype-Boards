@@ -7,6 +7,11 @@ namespace Global {
          Y: number;
       }
 
+      export interface polar {
+         radius: number;
+         angle: number;
+      }
+
       export interface size {
          width: number;
          height: number;
