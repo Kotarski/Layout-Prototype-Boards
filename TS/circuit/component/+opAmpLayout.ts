@@ -102,6 +102,8 @@ namespace Circuit.Component {
             this.makeConnectors();
          }
 
+         transferFunction() { return [] };
+
       }
 
       export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {

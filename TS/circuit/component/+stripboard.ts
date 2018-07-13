@@ -81,6 +81,8 @@ namespace Circuit.Component {
          insertInto(group: Svg.Elements.Group) {
             Utility.Insert.first(this.group.element, group.element);
          }
+
+         transferFunction() { return [] };
       }
 
       const makeTracks = (parent: Instance): Addins.Board.Track.Instance[] => {

@@ -92,6 +92,8 @@ namespace Circuit.Component {
             ]]
          }
 
+         transferFunction() { return [] };
+
       }
 
       export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {

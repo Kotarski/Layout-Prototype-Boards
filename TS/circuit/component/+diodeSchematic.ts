@@ -129,6 +129,8 @@ namespace Circuit.Component {
             if (!isLRorUD) this.connectorSets[0].reverse();
          }
 
+         transferFunction() { return [] };
+
       }
 
       export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {

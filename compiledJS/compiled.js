@@ -72,9 +72,6 @@ var Circuit;
                     return Component.Generics.getComponentConnections(this, Circuit.manifest.schematic);
                 }
             }
-            transferFunction(from) {
-                return [];
-            }
         }
         Component.Instance = Instance;
         function getMaker(instanceClass, defaultProperties, defaultState, initialiser) {
@@ -1193,6 +1190,8 @@ var Circuit;
                             ]];
                     }
                 }
+                transferFunction() { return []; }
+                ;
             }
             Local.Instance = Instance;
             Local.loadInstance = (raw) => {
@@ -1308,6 +1307,8 @@ var Circuit;
                             ]];
                     }
                 }
+                transferFunction() { return []; }
+                ;
             }
             Local.Instance = Instance;
             Local.loadInstance = (raw) => {
@@ -1446,6 +1447,8 @@ var Circuit;
                 insertInto(group) {
                     Utility.Insert.first(this.group.element, group.element);
                 }
+                transferFunction() { return []; }
+                ;
             }
             Local.Instance = Instance;
             const makeTracks = (parent) => {
@@ -1595,6 +1598,8 @@ var Circuit;
                 insertInto(group) {
                     Utility.Insert.first(this.group.element, group.element);
                 }
+                transferFunction() { return []; }
+                ;
             }
             Local.Instance = Instance;
             const makeTracks = (parent) => {
@@ -1707,6 +1712,8 @@ var Circuit;
                             Component.Generics.makeConnector(this, lead2Name, "pin", this.joints[this.joints.length - 1]),
                         ]];
                 }
+                transferFunction() { return []; }
+                ;
             }
             Local.Instance = Instance;
             Local.loadInstance = (raw) => {
@@ -1830,6 +1837,8 @@ var Circuit;
                     if (!isLRorUD)
                         this.connectorSets[0].reverse();
                 }
+                transferFunction() { return []; }
+                ;
             }
             Local.Instance = Instance;
             Local.loadInstance = (raw) => {
@@ -1922,6 +1931,8 @@ var Circuit;
                             Component.Generics.makeConnector(this, "cathode", "pin", this.joints[this.joints.length - 1]),
                         ]];
                 }
+                transferFunction() { return []; }
+                ;
             }
             Local.Instance = Instance;
             Local.loadInstance = (raw) => {
@@ -2039,6 +2050,8 @@ var Circuit;
                     if (!isLRorUD)
                         this.connectorSets[0].reverse();
                 }
+                transferFunction() { return []; }
+                ;
             }
             Local.Instance = Instance;
             Local.loadInstance = (raw) => {
@@ -2137,6 +2150,8 @@ var Circuit;
                             Component.Generics.makeConnector(this, "", "pin", this.joints[this.joints.length - 1]),
                         ]];
                 }
+                transferFunction() { return []; }
+                ;
             }
             Local.Instance = Instance;
             Local.loadInstance = (raw) => {
@@ -2242,6 +2257,8 @@ var Circuit;
                             Component.Generics.makeConnector(this, "", "node", lead2End),
                         ]];
                 }
+                transferFunction() { return []; }
+                ;
             }
             Local.Instance = Instance;
             Local.loadInstance = (raw) => {
@@ -2355,6 +2372,8 @@ var Circuit;
                     this.draw();
                     this.makeConnectors();
                 }
+                transferFunction() { return []; }
+                ;
             }
             Local.Instance = Instance;
             Local.loadInstance = (raw) => {
@@ -2450,6 +2469,8 @@ var Circuit;
                         ]
                     ];
                 }
+                transferFunction() { return []; }
+                ;
             }
             Local.Instance = Instance;
             Local.loadInstance = (raw) => {
@@ -2554,6 +2575,8 @@ var Circuit;
                             Component.Generics.makeConnector(this, "", "hole", { X: 0, Y: 40 })
                         ]];
                 }
+                transferFunction() { return []; }
+                ;
             }
             Local.Instance = Instance;
             Local.loadInstance = (raw) => {
@@ -2648,6 +2671,8 @@ var Circuit;
                         [Component.Generics.makeConnector(this, "", "node", lead1End)]
                     ];
                 }
+                transferFunction() { return []; }
+                ;
             }
             Local.Instance = Instance;
             Local.loadInstance = (raw) => {
@@ -2755,6 +2780,8 @@ var Circuit;
                             Component.Generics.makeConnector(this, "", "pin", this.joints[this.joints.length - 1]),]
                     ];
                 }
+                transferFunction() { return []; }
+                ;
             }
             Local.Instance = Instance;
             Local.loadInstance = (raw) => {
@@ -2849,6 +2876,8 @@ var Circuit;
                             Component.Generics.makeConnector(this, "", "node", lead2End),]
                     ];
                 }
+                transferFunction() { return []; }
+                ;
             }
             Local.Instance = Instance;
             Local.loadInstance = (raw) => {
@@ -2939,6 +2968,8 @@ var Circuit;
                 insertInto(group) {
                     Utility.Insert.first(this.group.element, group.element);
                 }
+                transferFunction() { return []; }
+                ;
             }
             Local.Instance = Instance;
             const makeTracks = (parent) => {
