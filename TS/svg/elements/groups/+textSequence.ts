@@ -1,5 +1,5 @@
-namespace Svg.Elements.Graphics.Complexes {
-   export class TextSequence extends Graphics.Complex {
+namespace Svg.Elements.Groups {
+   export class TextSequence extends Svg.Elements.Group {
       constructor(start: Global.Types.vector, gap: Global.Types.vector, sequence: (string | number)[] | string | { start: number, length: number }, classes: string = "") {
          super(classes);
 
@@ -15,8 +15,7 @@ namespace Svg.Elements.Graphics.Complexes {
          }
 
          for (let [i, txt] of textArray.entries()) {
-            this.element.appendChild(new Svg.Elements.Graphics.Simples.Text(
-               txt, { X: gap.X * i, Y: gap.Y * i }, false, "text").element);
+            this.append(new Svg.Elements.Text(txt, { X: gap.X * i, Y: gap.Y * i }, false, "text"));
          }
 
          this.translate({

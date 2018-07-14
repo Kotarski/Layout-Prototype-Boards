@@ -74,11 +74,11 @@ namespace Circuit.Component {
             let scale = (isLRorUD) ? { X: 1, Y: 1 } : { X: -1, Y: 1 };
 
             // Body & highlight
-            this.group.append(new Svg.Elements.Graphics.Simples.Rect(
+            this.group.append(new Svg.Elements.Rect(
                { X: 0, Y: -2 }, { width: 40, height: 12 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"
             ).rotate(rotation).scale(scale));
 
-            this.group.append(new Svg.Elements.Graphics.Simples.Path(
+            this.group.append(new Svg.Elements.Path(
                'M-20 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0', "line medium"
             ).rotate(rotation).scale(scale));
 
@@ -87,8 +87,8 @@ namespace Circuit.Component {
             [lead1Start, lead2Start, lead1End, lead2End] = (isHorizontal)
                ? [{ X: -20, Y: 0 }, { X: 20, Y: 0 }, { X: -30, Y: 0 }, { X: 30, Y: 0 }]
                : [{ X: 0, Y: -20 }, { X: 0, Y: 20 }, { X: 0, Y: -30 }, { X: 0, Y: 30 }];
-            this.group.append(new Svg.Elements.Graphics.Simples.Line(lead1Start, lead1End, "line thin"));
-            this.group.append(new Svg.Elements.Graphics.Simples.Line(lead2Start, lead2End, "line thin"));
+            this.group.append(new Svg.Elements.Line(lead1Start, lead1End, "line thin"));
+            this.group.append(new Svg.Elements.Line(lead2Start, lead2End, "line thin"));
 
             // Text
             let textPosition = (isHorizontal) ? { X: 0, Y: -13 } : { X: -13, Y: 4 };
@@ -96,7 +96,7 @@ namespace Circuit.Component {
 
             let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
             this.group.append(
-               new Svg.Elements.Graphics.Simples.Text(text, textPosition, undefined, "text").addClasses(anchorClass)
+               new Svg.Elements.Text(text, textPosition, undefined, "text").addClasses(anchorClass)
             );
          }
 

@@ -67,7 +67,7 @@ namespace Circuit.Component {
             // Body lines & highlight
             let highlightSize = (isHorizontal) ? { width: 15, height: 30 } : { width: 30, height: 15 };
 
-            this.group.append(new Svg.Elements.Graphics.Simples.Rect(
+            this.group.append(new Svg.Elements.Rect(
                { X: 0, Y: 0 }, highlightSize, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick")
             );
 
@@ -75,23 +75,23 @@ namespace Circuit.Component {
             [body1Start, body2Start, body1End, body2End] = (isHorizontal)
                ? [{ X: -4, Y: -15 }, { X: +4, Y: -15 }, { X: -4, Y: +15 }, { X: +4, Y: +15 }]
                : [{ X: -15, Y: -4 }, { X: -15, Y: +4 }, { X: +15, Y: -4 }, { X: +15, Y: +4 }];
-            this.group.append(new Svg.Elements.Graphics.Simples.Line(body1Start, body1End, "line thick nocap"));
-            this.group.append(new Svg.Elements.Graphics.Simples.Line(body2Start, body2End, "line thick nocap"));
+            this.group.append(new Svg.Elements.Line(body1Start, body1End, "line thick nocap"));
+            this.group.append(new Svg.Elements.Line(body2Start, body2End, "line thick nocap"));
 
             // Leads 
             let lead1Start, lead2Start, lead1End, lead2End;
             [lead1Start, lead2Start, lead1End, lead2End] = (isHorizontal)
                ? [{ X: -6, Y: 0 }, { X: 6, Y: 0 }, { X: -20, Y: 0 }, { X: 20, Y: 0 }]
                : [{ X: 0, Y: -6 }, { X: 0, Y: 6 }, { X: 0, Y: -20 }, { X: 0, Y: 20 }];
-            this.group.append(new Svg.Elements.Graphics.Simples.Line(lead1Start, lead1End, "line thin"));
-            this.group.append(new Svg.Elements.Graphics.Simples.Line(lead2Start, lead2End, "line thin"));
+            this.group.append(new Svg.Elements.Line(lead1Start, lead1End, "line thin"));
+            this.group.append(new Svg.Elements.Line(lead2Start, lead2End, "line thin"));
 
             //Text
             let textPosition = (isHorizontal) ? { X: 0, Y: -20 } : { X: -20, Y: 4 }
             let text = Utility.getStandardForm(this.capacitance, 'F');
             let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
             this.group.append(
-               new Svg.Elements.Graphics.Simples.Text(text, textPosition, undefined, "text").addClasses(anchorClass)
+               new Svg.Elements.Text(text, textPosition, undefined, "text").addClasses(anchorClass)
             );
 
             //Polarisation symbol (+)
@@ -105,8 +105,8 @@ namespace Circuit.Component {
                let rotation = isHorizontal ? 0 : 90;
 
                //let transforms = [{ translate: this.centre }, { rotate: this.rotation }, { scale: inversionScale }];
-               this.group.append(new Svg.Elements.Graphics.Simples.Line(plus1Start, plus1End, "line thin").rotate(rotation));
-               this.group.append(new Svg.Elements.Graphics.Simples.Line(plus2Start, plus2End, "line thin").rotate(rotation));
+               this.group.append(new Svg.Elements.Line(plus1Start, plus1End, "line thin").rotate(rotation));
+               this.group.append(new Svg.Elements.Line(plus2Start, plus2End, "line thin").rotate(rotation));
             }
          }
 

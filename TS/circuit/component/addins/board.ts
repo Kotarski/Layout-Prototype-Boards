@@ -121,7 +121,7 @@ namespace Circuit.Component.Addins.Board {
          let holeSpacingRunningSum = 0;
 
          component.holeSpacings.forEach(hS => {
-            component.group.append(new Svg.Elements.Graphics.Simples.Circle(
+            component.group.append(new Svg.Elements.Circle(
                { X: (holeSpacingRunningSum += hS), Y: 0 }, 4, "hole"
             ));
          })
@@ -135,7 +135,7 @@ namespace Circuit.Component.Addins.Board {
             Y: 0
          };
 
-         component.group.prepend(new Svg.Elements.Graphics.Simples.Rect(centre, size, {
+         component.group.prepend(new Svg.Elements.Rect(centre, size, {
             X: 0,
             Y: 0
          }, 'body'));
@@ -149,7 +149,7 @@ namespace Circuit.Component.Addins.Board {
          let holeSpacingRunningSum = 0;
 
          component.holeSpacings.forEach(hS => {
-            component.group.append(new Svg.Elements.Graphics.Simples.Path(
+            component.group.append(new Svg.Elements.Path(
                "M" + (holeSpacingRunningSum += hS) + " " + 0 + "m-4 -4h 8v 8h -8Z", "hole"
             ));
          })
@@ -163,7 +163,7 @@ namespace Circuit.Component.Addins.Board {
             Y: 0
          };
 
-         component.group.prepend(new Svg.Elements.Graphics.Simples.Rect(centre, size, {
+         component.group.prepend(new Svg.Elements.Rect(centre, size, {
             X: 0,
             Y: 0
          }, 'body'));
@@ -248,7 +248,7 @@ namespace Circuit.Component.Addins.Board {
 
                let point = (ctm) ? hole.point.matrixTransform(ctm) : hole.point;
 
-               let breaker = new Svg.Elements.Graphics.Simples.Circle(
+               let breaker = new Svg.Elements.Circle(
                   { X: point.x, Y: point.y }, 6, "breaker"
                );
                if (hole.type === "brokenhole") breaker.addClasses("broken");

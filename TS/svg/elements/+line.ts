@@ -1,5 +1,5 @@
-namespace Svg.Elements.Graphics.Simples {
-   export class Line extends Svg.Elements.Graphics.Simple {
+namespace Svg.Elements {
+   export class Line extends Svg.Element {
       constructor(startVector: Global.Types.vector, endVector: Global.Types.vector, classes: string = "") {
          super('line', classes);
          this.element.setAttribute("x1", startVector.X.toString());

@@ -138,8 +138,8 @@ var Circuit;
                 component.group.element.remove();
                 return false;
             });
-            Active.layout.group.clear();
-            Active.schematic.group.clear();
+            Active.layout.group.clearChildren();
+            Active.schematic.group.clearChildren();
         };
         let activeBoard;
         const constructFrom = (savedManifest) => {
@@ -503,8 +503,7 @@ var Svg;
 (function (Svg) {
     class Element {
         constructor(type, classes = "") {
-            this.element = document.createElementNS(Constants.svgURI, type);
-            $(this.element).addClass(classes);
+            this.element = Svg.makeSVGElement(type, classes);
         }
         addClasses(classes) {
             $(this.element).addClass(classes);
@@ -514,37 +513,9 @@ var Svg;
             $(this.element).removeClass(classes);
             return this;
         }
-        intersectsWith(item, tolerance) {
-            let a = this.element.getBoundingClientRect();
-            let b;
-            if (item instanceof SVGSVGElement) {
-                b = item.getBoundingClientRect();
-            }
-            else if (item instanceof Element) {
-                b = item.element.getBoundingClientRect();
-            }
-            else {
-                b = item;
-            }
-            if (tolerance === "touch") {
-                let isOutside = (b.left > a.right) ||
-                    (b.right < a.left) ||
-                    (b.top > a.bottom) ||
-                    (b.bottom < a.top);
-                return !isOutside;
-            }
-            else {
-                if (tolerance === "containedBy") {
-                    let c = b;
-                    b = a;
-                    a = c;
-                }
-                let isInside = (b.left >= a.left) &&
-                    (b.right <= a.right) &&
-                    (b.top >= a.top) &&
-                    (b.bottom <= a.bottom);
-                return isInside;
-            }
+        clearChildren(inclusionSelector = "*") {
+            let element = this.element;
+            $(element).children(inclusionSelector).remove();
         }
         convertVector(vector, direction, type) {
             let conversionMatrix = this.element.getScreenCTM() || Svg.makeMatrix();
@@ -564,94 +535,6 @@ var Svg;
                 convertedVector.Y += conversionMatrix.f;
             }
             return convertedVector;
-        }
-        setDraggable(options = {}) {
-            let eventTarget = options.eventTarget !== undefined ? options.eventTarget : this.element;
-            let grid = options.grid !== undefined ? options.grid : {
-                X: 10,
-                Y: 10
-            };
-            let styleClass = options.styleClass !== undefined ? options.styleClass : "dragging";
-            let lastPosition;
-            if ($(eventTarget).draggable("instance") === undefined) {
-                $(eventTarget).draggable({
-                    start: (event, ui) => {
-                        this.addClasses(styleClass);
-                        if (grid !== "off") {
-                            let gridSvg = this.convertVector(grid, "SvgToDom", "absToDoc");
-                            $(eventTarget).draggable("option", "grid", [gridSvg.X, gridSvg.Y]);
-                        }
-                        lastPosition = {
-                            X: ui.originalPosition.left,
-                            Y: ui.originalPosition.top
-                        };
-                    },
-                    drag: (event, ui) => {
-                        let dragChangeDom = {
-                            X: ui.position.left - lastPosition.X,
-                            Y: ui.position.top - lastPosition.Y
-                        };
-                        let dragChangeSvg = this.convertVector(dragChangeDom, "DomToSvg", "absToDoc");
-                        $(eventTarget).triggerHandler("dragSVGConstraintCheck", [
-                            ui,
-                            dragChangeSvg,
-                            dragChangeDom
-                        ]);
-                        lastPosition = {
-                            X: ui.position.left,
-                            Y: ui.position.top
-                        };
-                        $(eventTarget).trigger("dragSVG", [ui, dragChangeSvg]);
-                    },
-                    stop: (event, ui) => {
-                        $(this.element).removeClass(styleClass);
-                        this.element.transform.baseVal.consolidate();
-                    }
-                });
-            }
-            if (options.onDrag !== undefined) {
-                $(eventTarget).on("dragSVG", (e, ui, drag) => {
-                    if (options.onDrag)
-                        options.onDrag(drag, e);
-                });
-            }
-            ;
-            if (options.disableMovement !== true) {
-                $(eventTarget).on("dragSVG", (e, ui, drag) => {
-                    if ($(e.target).closest(".ui-draggable").is(eventTarget)) {
-                        this.translate(drag, true);
-                    }
-                });
-            }
-            if (options.constrainWith !== undefined) {
-                $(eventTarget).on("dragSVGConstraintCheck", (e, ui, dragSvg, dragDom) => {
-                    if (options.constrainWith)
-                        if (options.constrainWith(dragSvg)) {
-                            dragSvg.X = 0;
-                            dragSvg.Y = 0;
-                            ui.position.top = lastPosition.Y;
-                            ui.position.left = lastPosition.X;
-                        }
-                });
-            }
-            if (options.onStart !== undefined) {
-                $(eventTarget).on("dragstart", (e, ui) => {
-                    if (options.onStart)
-                        options.onStart(e);
-                });
-            }
-            if (options.onStop !== undefined) {
-                $(eventTarget).on("dragstop", (e, ui) => {
-                    if (options.onStop)
-                        options.onStop(e);
-                });
-            }
-            if (options.useHelper === true) {
-                $(eventTarget).draggable("option", "helper", () => document.createElement("div"));
-            }
-            $(eventTarget).data("group", this);
-            $(eventTarget).data("data", options.data);
-            return this;
         }
         rotate(rotation, centre, insertBefore = false) {
             let bounds = this.element.getBBox();
@@ -716,9 +599,6 @@ var Svg;
             let transform = this.element.transform.baseVal.createSVGTransformFromMatrix(matrix);
             this.element.transform.baseVal.appendItem(transform);
         }
-        remove() {
-            $(this.element).remove();
-        }
     }
     Svg.Element = Element;
     function addTextTransform(svg, type, values, insertBefore) {
@@ -757,13 +637,12 @@ var Svg;
         draw(node) {
             this.element.appendChild(this.group.element);
             node.appendChild(this.element);
-            this.group
-                .setDraggable({
+            Svg.Addins.Draggable.init(this.group, {
                 grid: "off",
                 eventTarget: this.element,
                 useHelper: true,
-            })
-                .setScalable({
+            });
+            Svg.Addins.Scaleable.init(this.group, {
                 eventTarget: this.element,
             });
         }
@@ -791,6 +670,15 @@ var Svg;
         return point;
     }
     Svg.makePoint = makePoint;
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    function makeSVGElement(type, classes = "") {
+        const element = document.createElementNS(Constants.svgURI, type);
+        $(element).addClass(classes);
+        return element;
+    }
+    Svg.makeSVGElement = makeSVGElement;
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
@@ -1170,8 +1058,8 @@ var Circuit;
                         + "M " + this.joints[2].X + " " + this.joints[2].Y
                         + "L " + (centre.X + leadBaseStart.X) + " " + (centre.Y + leadBaseStart.Y);
                     this.group.prepend([
-                        new Svg.Elements.Graphics.Simples.Path(leadPath, "lead"),
-                        new Svg.Elements.Graphics.Complexes.BipolarBody(this.joints[0], this.joints[1], this.joints[2], "body").setValue(this.type)
+                        new Svg.Elements.Path(leadPath, "lead"),
+                        new Svg.Elements.Groups.BipolarBody(this.joints[0], this.joints[1], this.joints[2], "body").setValue(this.type)
                     ]);
                 }
                 makeConnectors() {
@@ -1266,26 +1154,26 @@ var Circuit;
                 }
                 draw() {
                     const scale = (this.orientation === "LR") ? { X: 1, Y: 1 } : { X: -1, Y: 1 };
-                    this.group.append(new Svg.Elements.Graphics.Simples.Circle({ X: 0, Y: 0 }, 30, "extrathick highlight").scale(scale, true));
+                    this.group.append(new Svg.Elements.Circle({ X: 0, Y: 0 }, 30, "extrathick highlight").scale(scale, true));
                     this.group.append([
-                        new Svg.Elements.Graphics.Simples.Line({ X: -15, Y: 0 }, { X: -50, Y: 0 }, "line thin").scale(scale),
-                        new Svg.Elements.Graphics.Simples.Line({ X: +10, Y: -20 }, { X: +10, Y: -50 }, "line thin").scale(scale),
-                        new Svg.Elements.Graphics.Simples.Line({ X: +10, Y: +20 }, { X: +10, Y: +50 }, "line thin").scale(scale),
-                        new Svg.Elements.Graphics.Simples.Line({ X: -15, Y: -15 }, { X: -15, Y: +15 }, "line medium-thick nocap").scale(scale),
-                        new Svg.Elements.Graphics.Simples.Line({ X: -15, Y: -5 }, { X: +10, Y: -20 }, "line thin").scale(scale),
-                        new Svg.Elements.Graphics.Simples.Line({ X: -15, Y: 5 }, { X: 10, Y: 20 }, "line thin").scale(scale)
+                        new Svg.Elements.Line({ X: -15, Y: 0 }, { X: -50, Y: 0 }, "line thin").scale(scale),
+                        new Svg.Elements.Line({ X: +10, Y: -20 }, { X: +10, Y: -50 }, "line thin").scale(scale),
+                        new Svg.Elements.Line({ X: +10, Y: +20 }, { X: +10, Y: +50 }, "line thin").scale(scale),
+                        new Svg.Elements.Line({ X: -15, Y: -15 }, { X: -15, Y: +15 }, "line medium-thick nocap").scale(scale),
+                        new Svg.Elements.Line({ X: -15, Y: -5 }, { X: +10, Y: -20 }, "line thin").scale(scale),
+                        new Svg.Elements.Line({ X: -15, Y: 5 }, { X: 10, Y: 20 }, "line thin").scale(scale)
                     ]);
                     if (this.type === "PNP") {
-                        this.group.append(new Svg.Elements.Graphics.Simples.Path('M -7 0 L 7 6 L 7 -6 L -7 0 Z', "body black thin").translate({ X: -8, Y: -9.2 }).rotate(-31).scale(scale, true));
+                        this.group.append(new Svg.Elements.Path('M -7 0 L 7 6 L 7 -6 L -7 0 Z', "body black thin").translate({ X: -8, Y: -9.2 }).rotate(-31).scale(scale, true));
                     }
                     else {
-                        this.group.append(new Svg.Elements.Graphics.Simples.Path('M 7 0 L -7 6 L -7 -6 L 7 0 Z', "body black thin").translate({ X: 4, Y: 16.4 }).rotate(31).scale(scale, true));
+                        this.group.append(new Svg.Elements.Path('M 7 0 L -7 6 L -7 -6 L 7 0 Z', "body black thin").translate({ X: 4, Y: 16.4 }).rotate(31).scale(scale, true));
                     }
-                    this.group.append(new Svg.Elements.Graphics.Simples.Circle({ X: 0, Y: 0 }, 30, "line medium nofill").scale(scale, true));
+                    this.group.append(new Svg.Elements.Circle({ X: 0, Y: 0 }, 30, "line medium nofill").scale(scale, true));
                     let textPosition = (this.orientation === "LR") ? { X: 32, Y: 4 } : { X: -32, Y: 4 };
                     let text = Utility.getStandardForm(this.currentGain, '');
                     let anchorClass = (this.orientation === "LR") ? "anchorstart" : "anchorend";
-                    this.group.append(new Svg.Elements.Graphics.Simples.Text(text, textPosition, undefined, "text").addClasses(anchorClass));
+                    this.group.append(new Svg.Elements.Text(text, textPosition, undefined, "text").addClasses(anchorClass));
                 }
                 makeConnectors() {
                     let con1Pos, con2Pos, con3Pos;
@@ -1427,17 +1315,17 @@ var Circuit;
                         Y: 10.5 * gS
                     };
                     this.group.append([
-                        new Svg.Elements.Graphics.Simples.Rect(centre, size, { X: 4, Y: 4 }, "body"),
-                        new Svg.Elements.Graphics.Simples.Rect(centre, { width: size.width, height: gS * 0.75, }, { X: 0, Y: 0 }, "rut"),
-                        new Svg.Elements.Graphics.Simples.Rect(centre, size, { X: 4, Y: 4 }, "body highlight"),
-                        new Svg.Elements.Graphics.Simples.Path(railPairPathString + plussesPathString, "rail positive"),
-                        new Svg.Elements.Graphics.Simples.Path(railPairPathString + minusesPathString, "rail negative").translate({ X: 0, Y: gS * 3 }),
-                        new Svg.Elements.Graphics.Complexes.TextSequence({ X: 64 * gS - gS / 6, Y: 4 * gS }, { X: 0, Y: gS }, { start: 1, length: 64 }).rotate(90),
-                        new Svg.Elements.Graphics.Complexes.TextSequence({ X: 64 * gS - gS / 6, Y: 17 * gS }, { X: 0, Y: gS }, { start: 1, length: 64 }).rotate(90),
-                        new Svg.Elements.Graphics.Complexes.TextSequence({ X: 65 * gS - gS / 4, Y: 5 * gS }, { X: gS, Y: 0 }, "abcde").rotate(90),
-                        new Svg.Elements.Graphics.Complexes.TextSequence({ X: 0 * gS, Y: 5 * gS }, { X: gS, Y: 0 }, "abcde").rotate(90),
-                        new Svg.Elements.Graphics.Complexes.TextSequence({ X: 65 * gS - gS / 4, Y: 12 * gS }, { X: gS, Y: 0 }, "fghij").rotate(90),
-                        new Svg.Elements.Graphics.Complexes.TextSequence({ X: 0 * gS, Y: 12 * gS }, { X: gS, Y: 0 }, "fghij").rotate(90),
+                        new Svg.Elements.Rect(centre, size, { X: 4, Y: 4 }, "body"),
+                        new Svg.Elements.Rect(centre, { width: size.width, height: gS * 0.75, }, { X: 0, Y: 0 }, "rut"),
+                        new Svg.Elements.Rect(centre, size, { X: 4, Y: 4 }, "body highlight"),
+                        new Svg.Elements.Path(railPairPathString + plussesPathString, "rail positive"),
+                        new Svg.Elements.Path(railPairPathString + minusesPathString, "rail negative").translate({ X: 0, Y: gS * 3 }),
+                        new Svg.Elements.Groups.TextSequence({ X: 64 * gS - gS / 6, Y: 4 * gS }, { X: 0, Y: gS }, { start: 1, length: 64 }).rotate(90),
+                        new Svg.Elements.Groups.TextSequence({ X: 64 * gS - gS / 6, Y: 17 * gS }, { X: 0, Y: gS }, { start: 1, length: 64 }).rotate(90),
+                        new Svg.Elements.Groups.TextSequence({ X: 65 * gS - gS / 4, Y: 5 * gS }, { X: gS, Y: 0 }, "abcde").rotate(90),
+                        new Svg.Elements.Groups.TextSequence({ X: 0 * gS, Y: 5 * gS }, { X: gS, Y: 0 }, "abcde").rotate(90),
+                        new Svg.Elements.Groups.TextSequence({ X: 65 * gS - gS / 4, Y: 12 * gS }, { X: gS, Y: 0 }, "fghij").rotate(90),
+                        new Svg.Elements.Groups.TextSequence({ X: 0 * gS, Y: 12 * gS }, { X: gS, Y: 0 }, "fghij").rotate(90),
                     ]);
                     this.tracks.map(track => {
                         this.group.append(track.group);
@@ -1578,17 +1466,17 @@ var Circuit;
                         Y: 10.5 * gS
                     };
                     this.group.append([
-                        new Svg.Elements.Graphics.Simples.Rect(centre, size, { X: 4, Y: 4 }, "body"),
-                        new Svg.Elements.Graphics.Simples.Rect(centre, { width: size.width, height: gS * 0.75, }, { X: 0, Y: 0 }, "rut"),
-                        new Svg.Elements.Graphics.Simples.Rect(centre, size, { X: 4, Y: 4 }, "body highlight"),
-                        new Svg.Elements.Graphics.Simples.Path(railPairPathString + plussesPathString, "rail positive"),
-                        new Svg.Elements.Graphics.Simples.Path(railPairPathString + minusesPathString, "rail negative").translate({ X: 0, Y: gS * 3 }),
-                        new Svg.Elements.Graphics.Complexes.TextSequence({ X: 30 * gS - gS / 6, Y: 4 * gS }, { X: 0, Y: gS }, { start: 1, length: 30 }).rotate(90),
-                        new Svg.Elements.Graphics.Complexes.TextSequence({ X: 30 * gS - gS / 6, Y: 17 * gS }, { X: 0, Y: gS }, { start: 1, length: 30 }).rotate(90),
-                        new Svg.Elements.Graphics.Complexes.TextSequence({ X: 31 * gS - gS / 4, Y: 5 * gS }, { X: gS, Y: 0 }, "abcde").rotate(90),
-                        new Svg.Elements.Graphics.Complexes.TextSequence({ X: 0 * gS, Y: 5 * gS }, { X: gS, Y: 0 }, "abcde").rotate(90),
-                        new Svg.Elements.Graphics.Complexes.TextSequence({ X: 31 * gS - gS / 4, Y: 12 * gS }, { X: gS, Y: 0 }, "fghij").rotate(90),
-                        new Svg.Elements.Graphics.Complexes.TextSequence({ X: 0 * gS, Y: 12 * gS }, { X: gS, Y: 0 }, "fghij").rotate(90),
+                        new Svg.Elements.Rect(centre, size, { X: 4, Y: 4 }, "body"),
+                        new Svg.Elements.Rect(centre, { width: size.width, height: gS * 0.75, }, { X: 0, Y: 0 }, "rut"),
+                        new Svg.Elements.Rect(centre, size, { X: 4, Y: 4 }, "body highlight"),
+                        new Svg.Elements.Path(railPairPathString + plussesPathString, "rail positive"),
+                        new Svg.Elements.Path(railPairPathString + minusesPathString, "rail negative").translate({ X: 0, Y: gS * 3 }),
+                        new Svg.Elements.Groups.TextSequence({ X: 30 * gS - gS / 6, Y: 4 * gS }, { X: 0, Y: gS }, { start: 1, length: 30 }).rotate(90),
+                        new Svg.Elements.Groups.TextSequence({ X: 30 * gS - gS / 6, Y: 17 * gS }, { X: 0, Y: gS }, { start: 1, length: 30 }).rotate(90),
+                        new Svg.Elements.Groups.TextSequence({ X: 31 * gS - gS / 4, Y: 5 * gS }, { X: gS, Y: 0 }, "abcde").rotate(90),
+                        new Svg.Elements.Groups.TextSequence({ X: 0 * gS, Y: 5 * gS }, { X: gS, Y: 0 }, "abcde").rotate(90),
+                        new Svg.Elements.Groups.TextSequence({ X: 31 * gS - gS / 4, Y: 12 * gS }, { X: gS, Y: 0 }, "fghij").rotate(90),
+                        new Svg.Elements.Groups.TextSequence({ X: 0 * gS, Y: 12 * gS }, { X: gS, Y: 0 }, "fghij").rotate(90),
                     ]);
                     this.tracks.map(track => {
                         this.group.append(track.group);
@@ -1694,10 +1582,10 @@ var Circuit;
                     leadPath = "M " + joints[0].X + " " + joints[0].Y;
                     leadPath += "L " + joints[joints.length - 1].X + " " + joints[joints.length - 1].Y;
                     let capacitorBody = (this.isPolarised)
-                        ? new Svg.Elements.Graphics.Complexes.CapacitorBodyElectrolytic(joints[0], joints[joints.length - 1], "bodyelectrolytic").setValue(this.capacitance)
-                        : new Svg.Elements.Graphics.Complexes.CapacitorBodyCeramic(joints[0], joints[joints.length - 1], "bodyceramic").setValue(this.capacitance);
+                        ? new Svg.Elements.Groups.CapacitorBodyElectrolytic(joints[0], joints[joints.length - 1], "bodyelectrolytic").setValue(this.capacitance)
+                        : new Svg.Elements.Groups.CapacitorBodyCeramic(joints[0], joints[joints.length - 1], "bodyceramic").setValue(this.capacitance);
                     this.group.prepend([
-                        new Svg.Elements.Graphics.Simples.Path(leadPath, "lead"),
+                        new Svg.Elements.Path(leadPath, "lead"),
                         capacitorBody
                     ]);
                 }
@@ -1788,23 +1676,23 @@ var Circuit;
                 draw() {
                     let isHorizontal = ["LR", "RL"].includes(this.orientation);
                     let highlightSize = (isHorizontal) ? { width: 15, height: 30 } : { width: 30, height: 15 };
-                    this.group.append(new Svg.Elements.Graphics.Simples.Rect({ X: 0, Y: 0 }, highlightSize, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"));
+                    this.group.append(new Svg.Elements.Rect({ X: 0, Y: 0 }, highlightSize, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"));
                     let body1Start, body2Start, body1End, body2End;
                     [body1Start, body2Start, body1End, body2End] = (isHorizontal)
                         ? [{ X: -4, Y: -15 }, { X: +4, Y: -15 }, { X: -4, Y: +15 }, { X: +4, Y: +15 }]
                         : [{ X: -15, Y: -4 }, { X: -15, Y: +4 }, { X: +15, Y: -4 }, { X: +15, Y: +4 }];
-                    this.group.append(new Svg.Elements.Graphics.Simples.Line(body1Start, body1End, "line thick nocap"));
-                    this.group.append(new Svg.Elements.Graphics.Simples.Line(body2Start, body2End, "line thick nocap"));
+                    this.group.append(new Svg.Elements.Line(body1Start, body1End, "line thick nocap"));
+                    this.group.append(new Svg.Elements.Line(body2Start, body2End, "line thick nocap"));
                     let lead1Start, lead2Start, lead1End, lead2End;
                     [lead1Start, lead2Start, lead1End, lead2End] = (isHorizontal)
                         ? [{ X: -6, Y: 0 }, { X: 6, Y: 0 }, { X: -20, Y: 0 }, { X: 20, Y: 0 }]
                         : [{ X: 0, Y: -6 }, { X: 0, Y: 6 }, { X: 0, Y: -20 }, { X: 0, Y: 20 }];
-                    this.group.append(new Svg.Elements.Graphics.Simples.Line(lead1Start, lead1End, "line thin"));
-                    this.group.append(new Svg.Elements.Graphics.Simples.Line(lead2Start, lead2End, "line thin"));
+                    this.group.append(new Svg.Elements.Line(lead1Start, lead1End, "line thin"));
+                    this.group.append(new Svg.Elements.Line(lead2Start, lead2End, "line thin"));
                     let textPosition = (isHorizontal) ? { X: 0, Y: -20 } : { X: -20, Y: 4 };
                     let text = Utility.getStandardForm(this.capacitance, 'F');
                     let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
-                    this.group.append(new Svg.Elements.Graphics.Simples.Text(text, textPosition, undefined, "text").addClasses(anchorClass));
+                    this.group.append(new Svg.Elements.Text(text, textPosition, undefined, "text").addClasses(anchorClass));
                     if (this.isPolarised) {
                         let isLRorUD = ["LR", "UD"].includes(this.orientation);
                         let plus1Start, plus2Start, plus1End, plus2End;
@@ -1812,8 +1700,8 @@ var Circuit;
                             ? [{ X: +15, Y: -10 }, { X: +11, Y: -6 }, { X: +7, Y: -10 }, { X: +11, Y: -14 }]
                             : [{ X: -15, Y: -10 }, { X: -11, Y: -6 }, { X: -7, Y: -10 }, { X: -11, Y: -14 }];
                         let rotation = isHorizontal ? 0 : 90;
-                        this.group.append(new Svg.Elements.Graphics.Simples.Line(plus1Start, plus1End, "line thin").rotate(rotation));
-                        this.group.append(new Svg.Elements.Graphics.Simples.Line(plus2Start, plus2End, "line thin").rotate(rotation));
+                        this.group.append(new Svg.Elements.Line(plus1Start, plus1End, "line thin").rotate(rotation));
+                        this.group.append(new Svg.Elements.Line(plus2Start, plus2End, "line thin").rotate(rotation));
                     }
                 }
                 makeConnectors() {
@@ -1921,8 +1809,8 @@ var Circuit;
                     leadPath = "M " + joints[0].X + " " + joints[0].Y;
                     leadPath += "L " + joints[joints.length - 1].X + " " + joints[joints.length - 1].Y;
                     this.group.prepend([
-                        new Svg.Elements.Graphics.Simples.Path(leadPath, "lead"),
-                        new Svg.Elements.Graphics.Complexes.DiodeBody(joints[0], joints[joints.length - 1], "body")
+                        new Svg.Elements.Path(leadPath, "lead"),
+                        new Svg.Elements.Groups.DiodeBody(joints[0], joints[joints.length - 1], "body")
                     ]);
                 }
                 makeConnectors() {
@@ -2011,26 +1899,26 @@ var Circuit;
                     let isLRorUD = ["LR", "UD"].includes(this.orientation);
                     let rotation = (isHorizontal) ? 0 : 90;
                     let scale = (isLRorUD) ? { X: 1, Y: 1 } : { X: -1, Y: 1 };
-                    this.group.append(new Svg.Elements.Graphics.Simples.Path('M 12 0 L -12 12 L -12 -12 L 12 0 Z', "body highlight highlightwithfill extrathick").rotate(rotation).scale(scale, false));
-                    this.group.append(new Svg.Elements.Graphics.Simples.Path('M 12 0 L -12 12 L -12 -12 L 12 0 Z', "body black").rotate(rotation).scale(scale, false));
+                    this.group.append(new Svg.Elements.Path('M 12 0 L -12 12 L -12 -12 L 12 0 Z', "body highlight highlightwithfill extrathick").rotate(rotation).scale(scale, false));
+                    this.group.append(new Svg.Elements.Path('M 12 0 L -12 12 L -12 -12 L 12 0 Z', "body black").rotate(rotation).scale(scale, false));
                     if (this.breakdownVoltage < 51) {
-                        this.group.append(new Svg.Elements.Graphics.Simples.Path('M 18 -12 L 12 -12 L 12 12 L 6 12', "line medium").rotate(rotation).scale(scale, false));
+                        this.group.append(new Svg.Elements.Path('M 18 -12 L 12 -12 L 12 12 L 6 12', "line medium").rotate(rotation).scale(scale, false));
                     }
                     else {
-                        this.group.append(new Svg.Elements.Graphics.Simples.Path('M 12 -12 L 12 12', "line medium").rotate(rotation).scale(scale, false));
+                        this.group.append(new Svg.Elements.Path('M 12 -12 L 12 12', "line medium").rotate(rotation).scale(scale, false));
                     }
                     let lead1Start, lead2Start, lead1End, lead2End;
                     [lead1Start, lead2Start, lead1End, lead2End] = (isHorizontal)
                         ? [{ X: -12, Y: 0 }, { X: 12, Y: 0 }, { X: -20, Y: 0 }, { X: 20, Y: 0 }]
                         : [{ X: 0, Y: -12 }, { X: 0, Y: 12 }, { X: 0, Y: -20 }, { X: 0, Y: 20 }];
-                    this.group.append(new Svg.Elements.Graphics.Simples.Line(lead1Start, lead1End, "line thin"));
-                    this.group.append(new Svg.Elements.Graphics.Simples.Line(lead2Start, lead2End, "line thin"));
+                    this.group.append(new Svg.Elements.Line(lead1Start, lead1End, "line thin"));
+                    this.group.append(new Svg.Elements.Line(lead2Start, lead2End, "line thin"));
                     let textPosition = (isHorizontal) ? { X: 0, Y: -15 } : { X: -15, Y: 4 };
                     let text = (this.breakdownVoltage < 51)
                         ? Utility.getStandardForm(this.breakdownVoltage, 'V')
                         : Utility.getStandardForm(this.saturationCurrent, 'A');
                     let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
-                    this.group.append(new Svg.Elements.Graphics.Simples.Text(text, textPosition, undefined, "text").addClasses(anchorClass));
+                    this.group.append(new Svg.Elements.Text(text, textPosition, undefined, "text").addClasses(anchorClass));
                 }
                 makeConnectors() {
                     let isHorizontal = ["LR", "RL"].includes(this.orientation);
@@ -2140,8 +2028,8 @@ var Circuit;
                     leadPath = "M " + joints[0].X + " " + joints[0].Y;
                     leadPath += "L " + joints[joints.length - 1].X + " " + joints[joints.length - 1].Y;
                     this.group.prepend([
-                        new Svg.Elements.Graphics.Simples.Path(leadPath, "lead"),
-                        new Svg.Elements.Graphics.Complexes.InductorBody(joints[0], joints[joints.length - 1], "body")
+                        new Svg.Elements.Path(leadPath, "lead"),
+                        new Svg.Elements.Groups.InductorBody(joints[0], joints[joints.length - 1], "body")
                     ]);
                 }
                 makeConnectors() {
@@ -2233,18 +2121,18 @@ var Circuit;
                     let isLRorUD = ["LR", "UD"].includes(this.orientation);
                     let rotation = (isHorizontal) ? 0 : 90;
                     let scale = (isLRorUD) ? { X: 1, Y: 1 } : { X: -1, Y: 1 };
-                    this.group.append(new Svg.Elements.Graphics.Simples.Rect({ X: 0, Y: -2 }, { width: 40, height: 12 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick").rotate(rotation).scale(scale));
-                    this.group.append(new Svg.Elements.Graphics.Simples.Path('M-20 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0', "line medium").rotate(rotation).scale(scale));
+                    this.group.append(new Svg.Elements.Rect({ X: 0, Y: -2 }, { width: 40, height: 12 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick").rotate(rotation).scale(scale));
+                    this.group.append(new Svg.Elements.Path('M-20 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0', "line medium").rotate(rotation).scale(scale));
                     let lead1Start, lead2Start, lead1End, lead2End;
                     [lead1Start, lead2Start, lead1End, lead2End] = (isHorizontal)
                         ? [{ X: -20, Y: 0 }, { X: 20, Y: 0 }, { X: -30, Y: 0 }, { X: 30, Y: 0 }]
                         : [{ X: 0, Y: -20 }, { X: 0, Y: 20 }, { X: 0, Y: -30 }, { X: 0, Y: 30 }];
-                    this.group.append(new Svg.Elements.Graphics.Simples.Line(lead1Start, lead1End, "line thin"));
-                    this.group.append(new Svg.Elements.Graphics.Simples.Line(lead2Start, lead2End, "line thin"));
+                    this.group.append(new Svg.Elements.Line(lead1Start, lead1End, "line thin"));
+                    this.group.append(new Svg.Elements.Line(lead2Start, lead2End, "line thin"));
                     let textPosition = (isHorizontal) ? { X: 0, Y: -13 } : { X: -13, Y: 4 };
                     let text = Utility.getStandardForm(this.inductance, 'H');
                     let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
-                    this.group.append(new Svg.Elements.Graphics.Simples.Text(text, textPosition, undefined, "text").addClasses(anchorClass));
+                    this.group.append(new Svg.Elements.Text(text, textPosition, undefined, "text").addClasses(anchorClass));
                 }
                 makeConnectors() {
                     let isHorizontal = ["LR", "RL"].includes(this.orientation);
@@ -2332,10 +2220,10 @@ var Circuit;
                 }
                 draw() {
                     if (this.isDual) {
-                        this.group.append(new Svg.Elements.Graphics.Complexes.dip(4, "", "TL072", ""));
+                        this.group.append(new Svg.Elements.Groups.dip(4, "", "TL072", ""));
                     }
                     else {
-                        this.group.append(new Svg.Elements.Graphics.Complexes.dip(4, "", "TL071", ""));
+                        this.group.append(new Svg.Elements.Groups.dip(4, "", "TL071", ""));
                     }
                 }
                 makeConnectors() {
@@ -2368,7 +2256,7 @@ var Circuit;
                 }
                 replaceWithDual() {
                     this.isDual = true;
-                    this.group.clear();
+                    this.group.clearChildren();
                     this.draw();
                     this.makeConnectors();
                 }
@@ -2448,14 +2336,14 @@ var Circuit;
                         Y: (this.whichInputAtTop === "non-inverting") ? 1 : -1
                     };
                     let bodyPath = "M-25 -25 L 25 0 L -25 25 L -25 -25 Z";
-                    this.group.append(new Svg.Elements.Graphics.Simples.Path(bodyPath, "highlight highlightwithfill extrathick").scale(inversionScale));
-                    this.group.append(new Svg.Elements.Graphics.Simples.Path(bodyPath, "body white").scale(inversionScale));
-                    this.group.append(new Svg.Elements.Graphics.Simples.Line({ X: -22, Y: -10 }, { X: -14, Y: -10 }, "line thin").scale(inversionScale));
-                    this.group.append(new Svg.Elements.Graphics.Simples.Line({ X: -18, Y: -6 }, { X: -18, Y: -14 }, "line thin").scale(inversionScale));
-                    this.group.append(new Svg.Elements.Graphics.Simples.Line({ X: -22, Y: +10 }, { X: -14, Y: +10 }, "line thin").scale(inversionScale));
-                    this.group.append(new Svg.Elements.Graphics.Simples.Line({ X: -25, Y: -10 }, { X: -30, Y: -10 }, "line thin").scale(inversionScale));
-                    this.group.append(new Svg.Elements.Graphics.Simples.Line({ X: -25, Y: 10 }, { X: -30, Y: 10 }, "line thin").scale(inversionScale));
-                    this.group.append(new Svg.Elements.Graphics.Simples.Line({ X: 25, Y: 0 }, { X: 40, Y: 0 }, "line thin").scale(inversionScale));
+                    this.group.append(new Svg.Elements.Path(bodyPath, "highlight highlightwithfill extrathick").scale(inversionScale));
+                    this.group.append(new Svg.Elements.Path(bodyPath, "body white").scale(inversionScale));
+                    this.group.append(new Svg.Elements.Line({ X: -22, Y: -10 }, { X: -14, Y: -10 }, "line thin").scale(inversionScale));
+                    this.group.append(new Svg.Elements.Line({ X: -18, Y: -6 }, { X: -18, Y: -14 }, "line thin").scale(inversionScale));
+                    this.group.append(new Svg.Elements.Line({ X: -22, Y: +10 }, { X: -14, Y: +10 }, "line thin").scale(inversionScale));
+                    this.group.append(new Svg.Elements.Line({ X: -25, Y: -10 }, { X: -30, Y: -10 }, "line thin").scale(inversionScale));
+                    this.group.append(new Svg.Elements.Line({ X: -25, Y: 10 }, { X: -30, Y: 10 }, "line thin").scale(inversionScale));
+                    this.group.append(new Svg.Elements.Line({ X: 25, Y: 0 }, { X: 40, Y: 0 }, "line thin").scale(inversionScale));
                 }
                 makeConnectors() {
                     let nonInvertingY = (this.whichInputAtTop === "non-inverting") ? -10 : 10;
@@ -2563,11 +2451,11 @@ var Circuit;
                     this.group.addClasses(this.name);
                     let text = this.voltage.toFixed(1);
                     this.group.append([
-                        new Svg.Elements.Graphics.Simples.Rect({ X: 0, Y: 5 }, { width: 180, height: 95 }, { X: 10, Y: 10 }, "body highlight"),
-                        new Svg.Elements.Graphics.Simples.Rect({ X: 0, Y: -5 }, { width: 160, height: 65 }, { X: 10, Y: 10 }, "screen"),
-                        new Svg.Elements.Graphics.Simples.Text("8".repeat(text.length - 1), { X: 0, Y: 20 }, false, "screentext off"),
-                        new Svg.Elements.Graphics.Simples.Text(text, { X: 0, Y: 20 }, false, "screentext on"),
-                        new Svg.Elements.Graphics.Simples.Circle({ X: 0, Y: 40 }, 5, "hole")
+                        new Svg.Elements.Rect({ X: 0, Y: 5 }, { width: 180, height: 95 }, { X: 10, Y: 10 }, "body highlight"),
+                        new Svg.Elements.Rect({ X: 0, Y: -5 }, { width: 160, height: 65 }, { X: 10, Y: 10 }, "screen"),
+                        new Svg.Elements.Text("8".repeat(text.length - 1), { X: 0, Y: 20 }, false, "screentext off"),
+                        new Svg.Elements.Text(text, { X: 0, Y: 20 }, false, "screentext on"),
+                        new Svg.Elements.Circle({ X: 0, Y: 40 }, 5, "hole")
                     ]);
                 }
                 makeConnectors() {
@@ -2697,24 +2585,24 @@ var Circuit;
             };
             function drawPowerPositive(component) {
                 let text = Utility.getStandardForm(component.voltage, "V");
-                component.group.append(new Svg.Elements.Graphics.Simples.Rect({ X: 0, Y: -8 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"));
-                component.group.append(new Svg.Elements.Graphics.Simples.Line({ X: -12, Y: -5 }, { X: 12, Y: -5 }, "line medium"));
-                component.group.append(new Svg.Elements.Graphics.Simples.Text(text, { X: 0, Y: -9 }, true, "text bold"));
-                component.group.append(new Svg.Elements.Graphics.Simples.Line({ X: 0, Y: -5 }, { X: 0, Y: 10 }, "line thin"));
+                component.group.append(new Svg.Elements.Rect({ X: 0, Y: -8 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"));
+                component.group.append(new Svg.Elements.Line({ X: -12, Y: -5 }, { X: 12, Y: -5 }, "line medium"));
+                component.group.append(new Svg.Elements.Text(text, { X: 0, Y: -9 }, true, "text bold"));
+                component.group.append(new Svg.Elements.Line({ X: 0, Y: -5 }, { X: 0, Y: 10 }, "line thin"));
             }
             function drawPowerNegative(component) {
                 let text = Utility.getStandardForm(component.voltage, "V");
-                component.group.append(new Svg.Elements.Graphics.Simples.Rect({ X: 0, Y: 8 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"));
-                component.group.append(new Svg.Elements.Graphics.Simples.Line({ X: -12, Y: 5 }, { X: 12, Y: 5 }, "line medium"));
-                component.group.append(new Svg.Elements.Graphics.Simples.Text(text, { X: 0, Y: 19 }, true, "text bold"));
-                component.group.append(new Svg.Elements.Graphics.Simples.Line({ X: 0, Y: 5 }, { X: 0, Y: -10 }, "line thin"));
+                component.group.append(new Svg.Elements.Rect({ X: 0, Y: 8 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"));
+                component.group.append(new Svg.Elements.Line({ X: -12, Y: 5 }, { X: 12, Y: 5 }, "line medium"));
+                component.group.append(new Svg.Elements.Text(text, { X: 0, Y: 19 }, true, "text bold"));
+                component.group.append(new Svg.Elements.Line({ X: 0, Y: 5 }, { X: 0, Y: -10 }, "line thin"));
             }
             function drawPowerGround(component) {
-                component.group.append(new Svg.Elements.Graphics.Simples.Rect({ X: 0, Y: 5 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"));
-                component.group.append(new Svg.Elements.Graphics.Simples.Line({ X: -18, Y: 0 }, { X: 18, Y: 0 }, "line medium"));
-                component.group.append(new Svg.Elements.Graphics.Simples.Line({ X: -12, Y: 5 }, { X: 12, Y: 5 }, "line medium"));
-                component.group.append(new Svg.Elements.Graphics.Simples.Line({ X: -6, Y: 10 }, { X: 6, Y: 10 }, "line medium"));
-                component.group.append(new Svg.Elements.Graphics.Simples.Line({ X: 0, Y: 0 }, { X: 0, Y: -10 }, "line thin"));
+                component.group.append(new Svg.Elements.Rect({ X: 0, Y: 5 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"));
+                component.group.append(new Svg.Elements.Line({ X: -18, Y: 0 }, { X: 18, Y: 0 }, "line medium"));
+                component.group.append(new Svg.Elements.Line({ X: -12, Y: 5 }, { X: 12, Y: 5 }, "line medium"));
+                component.group.append(new Svg.Elements.Line({ X: -6, Y: 10 }, { X: 6, Y: 10 }, "line medium"));
+                component.group.append(new Svg.Elements.Line({ X: 0, Y: 0 }, { X: 0, Y: -10 }, "line thin"));
             }
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
@@ -2770,8 +2658,8 @@ var Circuit;
                     leadPath = "M " + joints[0].X + " " + joints[0].Y;
                     leadPath += "L " + joints[joints.length - 1].X + " " + joints[joints.length - 1].Y;
                     this.group.prepend([
-                        new Svg.Elements.Graphics.Simples.Path(leadPath, "lead"),
-                        new Svg.Elements.Graphics.Complexes.ResistorBody(joints[0], joints[joints.length - 1], "body").setValue(this.resistance)
+                        new Svg.Elements.Path(leadPath, "lead"),
+                        new Svg.Elements.Groups.ResistorBody(joints[0], joints[joints.length - 1], "body").setValue(this.resistance)
                     ]);
                 }
                 makeConnectors() {
@@ -2852,18 +2740,18 @@ var Circuit;
                 draw() {
                     let isHorizontal = ["LR", "RL"].includes(this.orientation);
                     let bodySize = (isHorizontal) ? { width: 46, height: 18 } : { width: 18, height: 46 };
-                    this.group.append(new Svg.Elements.Graphics.Simples.Rect({ X: 0, Y: 0 }, bodySize, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"));
-                    this.group.append(new Svg.Elements.Graphics.Simples.Rect({ X: 0, Y: 0 }, bodySize, { X: 2, Y: 2 }, "body white"));
+                    this.group.append(new Svg.Elements.Rect({ X: 0, Y: 0 }, bodySize, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"));
+                    this.group.append(new Svg.Elements.Rect({ X: 0, Y: 0 }, bodySize, { X: 2, Y: 2 }, "body white"));
                     let lead1Start, lead2Start, lead1End, lead2End;
                     [lead1Start, lead2Start, lead1End, lead2End] = (isHorizontal)
                         ? [{ X: -24, Y: 0 }, { X: 24, Y: 0 }, { X: -30, Y: 0 }, { X: 30, Y: 0 }]
                         : [{ X: 0, Y: -24 }, { X: 0, Y: 24 }, { X: 0, Y: -30 }, { X: 0, Y: 30 }];
-                    this.group.append(new Svg.Elements.Graphics.Simples.Line(lead1Start, lead1End, "line thin"));
-                    this.group.append(new Svg.Elements.Graphics.Simples.Line(lead2Start, lead2End, "line thin"));
+                    this.group.append(new Svg.Elements.Line(lead1Start, lead1End, "line thin"));
+                    this.group.append(new Svg.Elements.Line(lead2Start, lead2End, "line thin"));
                     let textPosition = (isHorizontal) ? { X: 0, Y: -15 } : { X: -15, Y: 4 };
                     let text = Utility.getStandardForm(this.resistance, 'Ω');
                     let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
-                    this.group.append(new Svg.Elements.Graphics.Simples.Text(text, textPosition, undefined, "text").addClasses(anchorClass));
+                    this.group.append(new Svg.Elements.Text(text, textPosition, undefined, "text").addClasses(anchorClass));
                 }
                 makeConnectors() {
                     let isHorizontal = ["LR", "RL"].includes(this.orientation);
@@ -2959,7 +2847,7 @@ var Circuit;
                     const centre = { X: (this.columns - 1) * gS / 2, Y: (this.rows - 1) * gS / 2 };
                     const size = { width: (this.columns + 0.5) * gS, height: (this.rows + 0.5) * gS };
                     const cornerRounding = { X: 3, Y: 3 };
-                    this.group.append(new Svg.Elements.Graphics.Simples.Rect(centre, size, cornerRounding, "body highlight"));
+                    this.group.append(new Svg.Elements.Rect(centre, size, cornerRounding, "body highlight"));
                     this.tracks.map(track => {
                         this.group.append(track.group);
                         track.draw("stripboard");
@@ -3042,11 +2930,6 @@ var Circuit;
                     this.group.addClasses("component " + this.name);
                     this.joints = state.joints;
                     this.color = state.color;
-                    Component.Addins.Draggable.init(this);
-                    Component.Addins.Selectable.init(this);
-                    Component.Addins.Extendable.init(this, true, true, true);
-                    Component.Addins.ConnectionHighlights.init(this);
-                    Component.Addins.Recolorable.init(this, () => getRecolorPosition(this), ".cover");
                 }
                 getProperties() {
                     return {
@@ -3072,10 +2955,10 @@ var Circuit;
                     leadPath += pathMid;
                     coverPath += getSegmentTowardsJointMid(joints[joints.length - 2], joints[joints.length - 1], coverRatio);
                     leadPath += getSegmentTowardsJointMid(joints[joints.length - 2], joints[joints.length - 1], 1);
-                    let cover = new Svg.Elements.Graphics.Simples.Path(coverPath, "cover");
+                    let cover = new Svg.Elements.Path(coverPath, "cover");
                     this.group.prepend([
-                        new Svg.Elements.Graphics.Simples.Path(leadPath, "lead"),
-                        new Svg.Elements.Graphics.Simples.Path(coverPath, "leadhighlight highlight"),
+                        new Svg.Elements.Path(leadPath, "lead"),
+                        new Svg.Elements.Path(coverPath, "leadhighlight highlight"),
                         cover,
                     ]);
                     $(cover.element).css("stroke", this.color);
@@ -3195,7 +3078,7 @@ var Circuit;
                     for (let j = 1; j < this.joints.length; j++) {
                         pathString += " L " + this.joints[j].X + " " + +this.joints[j].Y;
                     }
-                    this.group.append(new Svg.Elements.Graphics.Simples.Path(pathString, "line thin"));
+                    this.group.append(new Svg.Elements.Path(pathString, "line thin"));
                 }
                 makeConnectors() {
                     let end1 = this.joints[0];
@@ -20183,17 +20066,193 @@ var CircularJSON = (function (JSON, RegExp) {
 })(jQuery);
 var Svg;
 (function (Svg) {
+    var Addins;
+    (function (Addins) {
+        var Draggable;
+        (function (Draggable) {
+            Draggable.init = (element, options = {}) => {
+                let eventTarget = options.eventTarget !== undefined ? options.eventTarget : element.element;
+                let grid = options.grid !== undefined ? options.grid : {
+                    X: 10,
+                    Y: 10
+                };
+                let styleClass = options.styleClass !== undefined ? options.styleClass : "dragging";
+                let lastPosition;
+                if ($(eventTarget).draggable("instance") === undefined) {
+                    $(eventTarget).draggable({
+                        start: (event, ui) => {
+                            element.addClasses(styleClass);
+                            if (grid !== "off") {
+                                let gridSvg = element.convertVector(grid, "SvgToDom", "absToDoc");
+                                $(eventTarget).draggable("option", "grid", [gridSvg.X, gridSvg.Y]);
+                            }
+                            lastPosition = {
+                                X: ui.originalPosition.left,
+                                Y: ui.originalPosition.top
+                            };
+                        },
+                        drag: (event, ui) => {
+                            let dragChangeDom = {
+                                X: ui.position.left - lastPosition.X,
+                                Y: ui.position.top - lastPosition.Y
+                            };
+                            let dragChangeSvg = element.convertVector(dragChangeDom, "DomToSvg", "absToDoc");
+                            $(eventTarget).triggerHandler("dragSVGConstraintCheck", [
+                                ui,
+                                dragChangeSvg,
+                                dragChangeDom
+                            ]);
+                            lastPosition = {
+                                X: ui.position.left,
+                                Y: ui.position.top
+                            };
+                            $(eventTarget).trigger("dragSVG", [ui, dragChangeSvg]);
+                        },
+                        stop: (event, ui) => {
+                            $(element.element).removeClass(styleClass);
+                            element.element.transform.baseVal.consolidate();
+                        }
+                    });
+                }
+                if (options.onDrag !== undefined) {
+                    $(eventTarget).on("dragSVG", (e, ui, drag) => {
+                        if (options.onDrag)
+                            options.onDrag(drag, e);
+                    });
+                }
+                ;
+                if (options.disableMovement !== true) {
+                    $(eventTarget).on("dragSVG", (e, ui, drag) => {
+                        if ($(e.target).closest(".ui-draggable").is(eventTarget)) {
+                            element.translate(drag, true);
+                        }
+                    });
+                }
+                if (options.constrainWith !== undefined) {
+                    $(eventTarget).on("dragSVGConstraintCheck", (e, ui, dragSvg, dragDom) => {
+                        if (options.constrainWith)
+                            if (options.constrainWith(dragSvg)) {
+                                dragSvg.X = 0;
+                                dragSvg.Y = 0;
+                                ui.position.top = lastPosition.Y;
+                                ui.position.left = lastPosition.X;
+                            }
+                    });
+                }
+                if (options.onStart !== undefined) {
+                    $(eventTarget).on("dragstart", (e, ui) => {
+                        if (options.onStart)
+                            options.onStart(e);
+                    });
+                }
+                if (options.onStop !== undefined) {
+                    $(eventTarget).on("dragstop", (e, ui) => {
+                        if (options.onStop)
+                            options.onStop(e);
+                    });
+                }
+                if (options.useHelper === true) {
+                    $(eventTarget).draggable("option", "helper", () => document.createElement("div"));
+                }
+            };
+        })(Draggable = Addins.Draggable || (Addins.Draggable = {}));
+    })(Addins = Svg.Addins || (Svg.Addins = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Addins;
+    (function (Addins) {
+        var Scaleable;
+        (function (Scaleable) {
+            Scaleable.init = (element, options = {}) => {
+                let eventTarget = options.eventTarget !== undefined ? options.eventTarget : element.element;
+                let mouseWheelHandler = (e) => {
+                    if (e.buttons === 1 || e.buttons === 3) {
+                        return;
+                    }
+                    let scaleChange = Math.sign(e.wheelDelta) * 0.05;
+                    let clientBounds = element.element.getBoundingClientRect();
+                    let owner = element.element.ownerSVGElement;
+                    let rootClientBounds = (owner) ? owner.getBoundingClientRect() : {
+                        left: 0,
+                        top: 0
+                    };
+                    let clientStart = {
+                        X: clientBounds.left - rootClientBounds.left,
+                        Y: clientBounds.top - rootClientBounds.top
+                    };
+                    let svgStart = element.convertVector(clientStart, "DomToSvg", "absToDoc");
+                    let svgSize = element.convertVector({
+                        X: clientBounds.width,
+                        Y: clientBounds.height
+                    }, "DomToSvg", "absToDoc");
+                    let mousePosDomFromCentre = {
+                        X: e.clientX - (clientBounds.left + clientBounds.width / 2),
+                        Y: e.clientY - (clientBounds.top + clientBounds.height / 2)
+                    };
+                    let mousePosSvgFromCentre = element.convertVector(mousePosDomFromCentre, "DomToSvg", "absToDoc");
+                    let scale = {
+                        X: 1 + scaleChange,
+                        Y: 1 + scaleChange
+                    };
+                    element.scale(scale, true);
+                    let scaleTranslationAdjust = {
+                        X: (svgStart.X + svgSize.X / 2 + mousePosSvgFromCentre.X) * -scaleChange,
+                        Y: (svgStart.Y + svgSize.Y / 2 + mousePosSvgFromCentre.Y) * -scaleChange
+                    };
+                    element.translate(scaleTranslationAdjust, true);
+                    if (options.onScale !== undefined) {
+                        options.onScale(scale, scaleTranslationAdjust);
+                    }
+                };
+                eventTarget.addEventListener("DOMMouseScroll", (e) => mouseWheelHandler(e), {
+                    passive: true
+                });
+                eventTarget.addEventListener("mousewheel", (e) => mouseWheelHandler(e), {
+                    passive: true
+                });
+            };
+        })(Scaleable = Addins.Scaleable || (Addins.Scaleable = {}));
+    })(Addins = Svg.Addins || (Svg.Addins = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Elements;
+    (function (Elements) {
+        class Circle extends Svg.Element {
+            constructor(centreVector, radius, classes = "") {
+                super('circle', classes);
+                this.element.setAttribute("cx", centreVector.X.toString());
+                this.element.setAttribute("cy", centreVector.Y.toString());
+                this.element.setAttribute("r", radius.toString());
+            }
+        }
+        Elements.Circle = Circle;
+    })(Elements = Svg.Elements || (Svg.Elements = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Elements;
+    (function (Elements) {
+        class Ellipse extends Svg.Element {
+            constructor(centreVector, radiusVector, classes = "") {
+                super('ellipse', classes);
+                this.element.setAttribute("cx", centreVector.X.toString());
+                this.element.setAttribute("cy", centreVector.Y.toString());
+                this.element.setAttribute("rx", radiusVector.X.toString());
+                this.element.setAttribute("ry", radiusVector.Y.toString());
+            }
+        }
+        Elements.Ellipse = Ellipse;
+    })(Elements = Svg.Elements || (Svg.Elements = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
     var Elements;
     (function (Elements) {
         class Graphic extends Svg.Element {
             constructor(type, classes = "") {
                 super(type, classes);
-            }
-            remove() {
-                if (this.parent !== undefined) {
-                    this.parent.visualChildren = this.parent.visualChildren.filter(c => c !== this);
-                }
-                $(this.element).remove();
             }
         }
         Elements.Graphic = Graphic;
@@ -20206,15 +20265,6 @@ var Svg;
         class Group extends Svg.Element {
             constructor(classes = "") {
                 super("g", classes);
-                this.children = [];
-                this.followers = [];
-                this.visualChildren = [];
-            }
-            remove() {
-                if (this.parent !== undefined) {
-                    this.parent.children = this.parent.children.filter(c => c !== this);
-                }
-                $(this.element).remove();
             }
             append(elements) {
                 return this._addChildren(elements, (element) => {
@@ -20229,173 +20279,109 @@ var Svg;
             }
             _addChildren(elements, addCallback) {
                 elements = elements instanceof Array ? elements : [elements];
-                elements.map(element => {
-                    addCallback(element.element);
-                    if (element instanceof Group) {
-                        if (element.parent !== undefined) {
-                            element.parent.children = element.parent.children.filter(c => c !== element);
-                        }
-                        this.children.push(element);
-                    }
-                    else {
-                        this.visualChildren.push(element);
-                    }
-                    element.parent = this;
-                });
-                return this;
-            }
-            moveTo(destination, order = "append") {
-                if (this.parent !== undefined) {
-                    let oldParent = this.parent.element;
-                    let newParent = destination.element;
-                    let oldParentTransformMatrix = (oldParent.getScreenCTM() || Svg.makeMatrix());
-                    let newParentTransformMatrixInverse = (newParent.getScreenCTM() || Svg.makeMatrix()).inverse();
-                    let dragGroupTransforms = this.element.transform.baseVal;
-                    dragGroupTransforms.insertItemBefore(dragGroupTransforms.createSVGTransformFromMatrix(oldParentTransformMatrix), 0);
-                    dragGroupTransforms.insertItemBefore(dragGroupTransforms.createSVGTransformFromMatrix(newParentTransformMatrixInverse), 0);
-                }
-                if (order === "append") {
-                    destination.append(this);
-                }
-                else {
-                    destination.prepend(this);
-                }
-                return this;
-            }
-            bumpToGrid(gridSpacing) {
-                let transforms = this.element.transform.baseVal;
-                transforms.consolidate();
-                if (transforms.numberOfItems === 1) {
-                    let transform = transforms.getItem(0).matrix;
-                    let xGrid = Math.round(transform.e / gridSpacing) * gridSpacing;
-                    let yGrid = Math.round(transform.f / gridSpacing) * gridSpacing;
-                    let xRem = xGrid - transform.e;
-                    let yRem = yGrid - transform.f;
-                    this.translate({
-                        X: xRem,
-                        Y: yRem
-                    }, true);
-                }
-                return this;
-            }
-            clear(inclusionSelector = "*") {
-                let element = this.element;
-                $(element).children(inclusionSelector).remove();
-            }
-            clearVisuals(inclusionSelector = "*") {
-                this.visualChildren = this.visualChildren.filter(c => {
-                    if ($(c.element).is(inclusionSelector)) {
-                        c.element.remove();
-                        return false;
-                    }
-                    else {
-                        return true;
-                    }
-                });
-            }
-            setDoubleClickable(options) {
-                let eventTarget = options.eventTarget !== undefined ? options.eventTarget : this.element;
-                $(eventTarget).dblclick((event) => {
-                    event.stopPropagation();
-                    options.response(event);
-                });
-                return this;
-            }
-            setHoverable(options = {}) {
-                let eventTarget = options.eventTarget || this.element;
-                if (options.responseMouseEnter !== undefined) {
-                    $(eventTarget).mouseenter(event => {
-                        if (options.responseMouseEnter)
-                            options.responseMouseEnter(event);
-                    });
-                }
-                if (options.responseMouseLeave !== undefined) {
-                    $(eventTarget).mouseleave(event => {
-                        if (options.responseMouseLeave)
-                            options.responseMouseLeave(event);
-                    });
-                }
-                if (options.responseMouseMove !== undefined) {
-                    $(eventTarget).mousemove(event => {
-                        if (options.responseMouseMove)
-                            options.responseMouseMove(event);
-                    });
-                }
-                return this;
-            }
-            setSingleClickable(options = {}) {
-                let eventTarget = options.eventTarget !== undefined ? options.eventTarget : this.element;
-                if (options.onDown !== undefined) {
-                    $(eventTarget).mousedown(event => {
-                        if (options.onDown)
-                            options.onDown(event);
-                    });
-                }
-                if (options.onUp !== undefined) {
-                    $(eventTarget).mouseup(event => {
-                        if (options.onUp)
-                            options.onUp(event);
-                    });
-                }
-                if (options.onClick !== undefined) {
-                    $(eventTarget).click(event => {
-                        if (options.onClick)
-                            options.onClick(event);
-                    });
-                }
-                return this;
-            }
-            setScalable(options = {}) {
-                let eventTarget = options.eventTarget !== undefined ? options.eventTarget : this.element;
-                let mouseWheelHandler = (e) => {
-                    if (e.buttons === 1 || e.buttons === 3) {
-                        return;
-                    }
-                    let scaleChange = Math.sign(e.wheelDelta) * 0.05;
-                    let clientBounds = this.element.getBoundingClientRect();
-                    let owner = this.element.ownerSVGElement;
-                    let rootClientBounds = (owner) ? owner.getBoundingClientRect() : {
-                        left: 0,
-                        top: 0
-                    };
-                    let clientStart = {
-                        X: clientBounds.left - rootClientBounds.left,
-                        Y: clientBounds.top - rootClientBounds.top
-                    };
-                    let svgStart = this.convertVector(clientStart, "DomToSvg", "absToDoc");
-                    let svgSize = this.convertVector({
-                        X: clientBounds.width,
-                        Y: clientBounds.height
-                    }, "DomToSvg", "absToDoc");
-                    let mousePosDomFromCentre = {
-                        X: e.clientX - (clientBounds.left + clientBounds.width / 2),
-                        Y: e.clientY - (clientBounds.top + clientBounds.height / 2)
-                    };
-                    let mousePosSvgFromCentre = this.convertVector(mousePosDomFromCentre, "DomToSvg", "absToDoc");
-                    let scale = {
-                        X: 1 + scaleChange,
-                        Y: 1 + scaleChange
-                    };
-                    this.scale(scale, true);
-                    let scaleTranslationAdjust = {
-                        X: (svgStart.X + svgSize.X / 2 + mousePosSvgFromCentre.X) * -scaleChange,
-                        Y: (svgStart.Y + svgSize.Y / 2 + mousePosSvgFromCentre.Y) * -scaleChange
-                    };
-                    this.translate(scaleTranslationAdjust, true);
-                    if (options.onScale !== undefined) {
-                        options.onScale(scale, scaleTranslationAdjust);
-                    }
-                };
-                eventTarget.addEventListener("DOMMouseScroll", (e) => mouseWheelHandler(e), {
-                    passive: true
-                });
-                eventTarget.addEventListener("mousewheel", (e) => mouseWheelHandler(e), {
-                    passive: true
-                });
+                elements.forEach(element => addCallback(element.element));
                 return this;
             }
         }
         Elements.Group = Group;
+    })(Elements = Svg.Elements || (Svg.Elements = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Elements;
+    (function (Elements) {
+        class Line extends Svg.Element {
+            constructor(startVector, endVector, classes = "") {
+                super('line', classes);
+                this.element.setAttribute("x1", startVector.X.toString());
+                this.element.setAttribute("y1", startVector.Y.toString());
+                this.element.setAttribute("x2", endVector.X.toString());
+                this.element.setAttribute("y2", endVector.Y.toString());
+            }
+        }
+        Elements.Line = Line;
+    })(Elements = Svg.Elements || (Svg.Elements = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Elements;
+    (function (Elements) {
+        class Path extends Svg.Element {
+            constructor(path, classes = "") {
+                super('path', classes);
+                this.element.setAttribute('d', path);
+            }
+        }
+        Elements.Path = Path;
+    })(Elements = Svg.Elements || (Svg.Elements = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Elements;
+    (function (Elements) {
+        class Polygon extends Svg.Element {
+            constructor(points, classes = "") {
+                super('polygon', classes);
+                this.element.setAttribute("points", points);
+            }
+        }
+        Elements.Polygon = Polygon;
+    })(Elements = Svg.Elements || (Svg.Elements = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Elements;
+    (function (Elements) {
+        class Rect extends Svg.Element {
+            constructor(centre, size, cornerRounding = { X: 0, Y: 0 }, classes = "") {
+                super('rect', classes);
+                this.element.setAttribute("x", (centre.X - size.width / 2).toString());
+                this.element.setAttribute("y", (centre.Y - size.height / 2).toString());
+                this.element.setAttribute("width", size.width.toString());
+                this.element.setAttribute("height", size.height.toString());
+                this.element.setAttribute("rx", cornerRounding.X.toString());
+                this.element.setAttribute("ry", cornerRounding.Y.toString());
+            }
+        }
+        Elements.Rect = Rect;
+    })(Elements = Svg.Elements || (Svg.Elements = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Elements;
+    (function (Elements) {
+        class Text extends Svg.Element {
+            constructor(text, startVector, rotateAnchor = false, classes = "") {
+                super('text', classes);
+                this.element.setAttribute('x', startVector.X.toString());
+                this.element.setAttribute('y', startVector.Y.toString());
+                this.element.appendChild(document.createTextNode(text));
+            }
+        }
+        Elements.Text = Text;
+    })(Elements = Svg.Elements || (Svg.Elements = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Elements;
+    (function (Elements) {
+        let textPathCount = 0;
+        class TextPath extends Svg.Element {
+            constructor(text, path) {
+                super('textPath');
+                let pathID = path.element.getAttribute("id");
+                if (!pathID) {
+                    pathID = "pathForText" + textPathCount;
+                    path.element.setAttribute("id", pathID);
+                    textPathCount += 1;
+                }
+                this.element.setAttribute("href", "#" + pathID);
+                let textContent = text.element.textContent || "";
+                this.element.appendChild(document.createTextNode(textContent));
+                $(text.element).append(this.element);
+            }
+        }
+        Elements.TextPath = TextPath;
     })(Elements = Svg.Elements || (Svg.Elements = {}));
 })(Svg || (Svg = {}));
 var Utility;
@@ -20564,7 +20550,7 @@ var Circuit;
                         let height = Constants.gridSpacing * 14 / 16;
                         let holeSpacingRunningSum = 0;
                         component.holeSpacings.forEach(hS => {
-                            component.group.append(new Svg.Elements.Graphics.Simples.Circle({ X: (holeSpacingRunningSum += hS), Y: 0 }, 4, "hole"));
+                            component.group.append(new Svg.Elements.Circle({ X: (holeSpacingRunningSum += hS), Y: 0 }, 4, "hole"));
                         });
                         let size = {
                             width: holeSpacingRunningSum + Constants.gridSpacing * 0.8,
@@ -20574,7 +20560,7 @@ var Circuit;
                             X: holeSpacingRunningSum / 2,
                             Y: 0
                         };
-                        component.group.prepend(new Svg.Elements.Graphics.Simples.Rect(centre, size, {
+                        component.group.prepend(new Svg.Elements.Rect(centre, size, {
                             X: 0,
                             Y: 0
                         }, 'body'));
@@ -20583,7 +20569,7 @@ var Circuit;
                         let height = Constants.gridSpacing * 14 / 16;
                         let holeSpacingRunningSum = 0;
                         component.holeSpacings.forEach(hS => {
-                            component.group.append(new Svg.Elements.Graphics.Simples.Path("M" + (holeSpacingRunningSum += hS) + " " + 0 + "m-4 -4h 8v 8h -8Z", "hole"));
+                            component.group.append(new Svg.Elements.Path("M" + (holeSpacingRunningSum += hS) + " " + 0 + "m-4 -4h 8v 8h -8Z", "hole"));
                         });
                         let size = {
                             width: holeSpacingRunningSum + Constants.gridSpacing * 0.8,
@@ -20593,7 +20579,7 @@ var Circuit;
                             X: holeSpacingRunningSum / 2,
                             Y: 0
                         };
-                        component.group.prepend(new Svg.Elements.Graphics.Simples.Rect(centre, size, {
+                        component.group.prepend(new Svg.Elements.Rect(centre, size, {
                             X: 0,
                             Y: 0
                         }, 'body'));
@@ -20649,7 +20635,7 @@ var Circuit;
                             let ctm = (track.group.element.getCTM() || Svg.makeMatrix()).inverse();
                             track.connectorSets[0].forEach((hole, holeIdx) => {
                                 let point = (ctm) ? hole.point.matrixTransform(ctm) : hole.point;
-                                let breaker = new Svg.Elements.Graphics.Simples.Circle({ X: point.x, Y: point.y }, 6, "breaker");
+                                let breaker = new Svg.Elements.Circle({ X: point.x, Y: point.y }, 6, "breaker");
                                 if (hole.type === "brokenhole")
                                     breaker.addClasses("broken");
                                 if (getPinsAtHole(hole, allValidConnectors).length) {
@@ -20716,7 +20702,7 @@ var Circuit;
                 const createConnectorHighlights = (component, connection, color) => {
                     let ctm = component.group.element.getCTM();
                     let point = (ctm) ? connection.point.matrixTransform(ctm.inverse()) : connection.point;
-                    let highlight = new Svg.Elements.Graphics.Simples.Circle({ X: point.x, Y: point.y }, 4, "highlight highlightwithfill connectivityhighlight");
+                    let highlight = new Svg.Elements.Circle({ X: point.x, Y: point.y }, 4, "highlight highlightwithfill connectivityhighlight");
                     $(highlight.element).css({ "fill": color, "stroke": color });
                     component.group.append(highlight);
                 };
@@ -20762,7 +20748,7 @@ var Circuit;
             var Draggable;
             (function (Draggable) {
                 Draggable.init = (component) => {
-                    component.group.setDraggable({
+                    Svg.Addins.Draggable.init(component.group, {
                         onStart: () => {
                             component.insertInto(component.group);
                         }
@@ -20790,7 +20776,7 @@ var Circuit;
                     initHandles(component);
                 };
                 const refreshComponent = (component) => {
-                    component.group.clear(":not(.handle)");
+                    component.group.clearChildren(":not(.handle)");
                     component.makeConnectors();
                     component.draw();
                     $(component.group.element).trigger(Events.select);
@@ -20834,10 +20820,10 @@ var Circuit;
                     });
                 };
                 const addHandle = (component, point) => {
-                    let dragHandle = new Svg.Elements.Graphics.Simples.Circle(point, 5, "handle dragHandle highlight highlightwithfill");
+                    let dragHandle = new Svg.Elements.Circle(point, 5, "handle dragHandle highlight highlightwithfill");
                     $(dragHandle.element).data('point', point);
                     component.group.append(dragHandle);
-                    dragHandle.setDraggable();
+                    Svg.Addins.Draggable.init(dragHandle);
                     $(dragHandle.element).on(Events.drag, (e, ui, drag) => {
                         point.X += drag.X;
                         point.Y += drag.Y;
@@ -20897,7 +20883,7 @@ var Circuit;
                         if (attachedConnectors.length === 3) {
                             let ctm = Active.schematic.group.element.getCTM();
                             point = (ctm) ? point.matrixTransform(ctm.inverse()) : point;
-                            component.group.prepend(new Svg.Elements.Graphics.Simples.Circle({ X: point.x, Y: point.y }, 5, "junction black"));
+                            component.group.prepend(new Svg.Elements.Circle({ X: point.x, Y: point.y }, 5, "junction black"));
                         }
                     }));
                 };
@@ -20930,16 +20916,16 @@ var Circuit;
                     });
                 };
                 const refreshComponent = (component) => {
-                    component.group.clear(":not(.handle)");
+                    component.group.clearChildren(":not(.handle)");
                     component.makeConnectors();
                     component.draw();
                 };
                 const createRecolorHandle = (component, position, recolorSelector, colorPalette) => {
                     let recolorSegmentGroup = new Svg.Elements.Group("recolorSegmentGroup");
-                    let recolorHandle = new Svg.Elements.Graphics.Simples.Circle(position, 7, "handle recolorHandle");
-                    recolorHandle.setDraggable({ disableMovement: true });
-                    let segment1 = new Svg.Elements.Graphics.Simples.Rect(position, { width: 10, height: 20 }, undefined, "recolorHandleSegment").translate({ X: -4, Y: -4 }).rotate(45, position);
-                    let segment2 = new Svg.Elements.Graphics.Simples.Rect(position, { width: 10, height: 20 }, undefined, "recolorHandleSegment").translate({ X: 4, Y: 4 }).rotate(45, position);
+                    let recolorHandle = new Svg.Elements.Circle(position, 7, "handle recolorHandle");
+                    Svg.Addins.Draggable.init(recolorHandle, { disableMovement: true });
+                    let segment1 = new Svg.Elements.Rect(position, { width: 10, height: 20 }, undefined, "recolorHandleSegment").translate({ X: -4, Y: -4 }).rotate(45, position);
+                    let segment2 = new Svg.Elements.Rect(position, { width: 10, height: 20 }, undefined, "recolorHandleSegment").translate({ X: 4, Y: 4 }).rotate(45, position);
                     $(segment1.element).css("fill", "#4fd56b");
                     $(segment2.element).css("fill", "#d54f6b");
                     recolorSegmentGroup.append([
@@ -20988,11 +20974,9 @@ var Circuit;
             var Rotatable;
             (function (Rotatable) {
                 Rotatable.init = (component, rotationCentre = { X: 0, Y: 0 }) => {
-                    component.group.setDoubleClickable({
-                        response: () => {
-                            component.group.rotate(90, rotationCentre);
-                            $(component.group.element).trigger(Events.rotate);
-                        }
+                    $(component.group.element).dblclick(() => {
+                        component.group.rotate(90, rotationCentre);
+                        $(component.group.element).trigger(Events.rotate);
                     });
                 };
             })(Rotatable = Addins.Rotatable || (Addins.Rotatable = {}));
@@ -21067,7 +21051,7 @@ var Circuit;
                 WireCreation.init = (component) => {
                     $(component.group.element).on("mouseenter", ".hole", (mOE) => {
                         if (!$(mOE.target).draggable('instance')) {
-                            component.group.setDraggable({
+                            Svg.Addins.Draggable.init(component.group, {
                                 eventTarget: mOE.target,
                                 disableMovement: true,
                                 styleClass: ""
@@ -21280,629 +21264,376 @@ var Svg;
 (function (Svg) {
     var Elements;
     (function (Elements) {
-        var Graphics;
-        (function (Graphics) {
-            class Complex extends Svg.Elements.Graphic {
-                constructor(classes = "") {
-                    super('g', classes);
+        var Groups;
+        (function (Groups) {
+            class BipolarBody extends Svg.Elements.Group {
+                constructor(start, middle, end, classes = "") {
+                    super(classes);
+                    let centre = {
+                        X: (start.X + middle.X + end.X) / 3,
+                        Y: (start.Y + middle.Y + end.Y) / 3,
+                    };
+                    let rotation = Math.atan2(end.Y - start.Y, end.X - start.X) * 180 / Math.PI;
+                    let semiCircleString = "M " + (16) + " " + (4) +
+                        "a " + (1) + " " + (1) + " " + (0) + " " + (0) + " " + (0) + " " + (-32) + " " + (0) +
+                        "v " + (3) +
+                        "h " + (32) +
+                        "v " + (-3) +
+                        "Z";
+                    this.text = new Svg.Elements.Text("", { X: 0, Y: 4 }, false, "text");
+                    this.append([
+                        new Svg.Elements.Path(semiCircleString, "body highlight"),
+                        this.text
+                    ]);
+                    this.translate({
+                        X: centre.X,
+                        Y: centre.Y
+                    }).rotate(rotation);
+                }
+                setValue(text) {
+                    $(this.text.element).text(text);
+                    return this;
                 }
             }
-            Graphics.Complex = Complex;
-        })(Graphics = Elements.Graphics || (Elements.Graphics = {}));
+            Groups.BipolarBody = BipolarBody;
+        })(Groups = Elements.Groups || (Elements.Groups = {}));
     })(Elements = Svg.Elements || (Svg.Elements = {}));
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
     var Elements;
     (function (Elements) {
-        var Graphics;
-        (function (Graphics) {
-            class Simple extends Svg.Elements.Graphic {
-                constructor(type, classes = "") {
-                    super(type, classes);
+        var Groups;
+        (function (Groups) {
+            class CapacitorBodyCeramic extends Svg.Elements.Group {
+                constructor(betweenStart, betweenEnd, classes = "") {
+                    super(classes);
+                    let centre = {
+                        X: (betweenStart.X + betweenEnd.X) / 2,
+                        Y: (betweenStart.Y + betweenEnd.Y) / 2
+                    };
+                    let rotation = Math.atan2(centre.Y - betweenStart.Y, centre.X - betweenStart.X) *
+                        180 /
+                        Math.PI;
+                    this.text = new Svg.Elements.Text("", { X: 0, Y: 0 }, false, "text");
+                    this.append([
+                        new Svg.Elements.Ellipse({ X: 0, Y: 0 }, { X: 16, Y: 8 }, "body highlight nofill"),
+                        this.text
+                    ]);
+                    this.translate({
+                        X: centre.X,
+                        Y: centre.Y
+                    }).rotate(rotation);
+                }
+                setValue(num) {
+                    $(this.text.element).text(Utility.getStandardForm(num, 'F'));
+                    return this;
                 }
             }
-            Graphics.Simple = Simple;
-        })(Graphics = Elements.Graphics || (Elements.Graphics = {}));
+            Groups.CapacitorBodyCeramic = CapacitorBodyCeramic;
+        })(Groups = Elements.Groups || (Elements.Groups = {}));
     })(Elements = Svg.Elements || (Svg.Elements = {}));
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
     var Elements;
     (function (Elements) {
-        var Graphics;
-        (function (Graphics) {
-            var Complexes;
-            (function (Complexes) {
-                class BipolarBody extends Graphics.Complex {
-                    constructor(start, middle, end, classes = "") {
-                        super(classes);
-                        let centre = {
-                            X: (start.X + middle.X + end.X) / 3,
-                            Y: (start.Y + middle.Y + end.Y) / 3,
-                        };
-                        let rotation = Math.atan2(end.Y - start.Y, end.X - start.X) * 180 / Math.PI;
-                        let semiCircleString = "M " + (16) + " " + (4) +
-                            "a " + (1) + " " + (1) + " " + (0) + " " + (0) + " " + (0) + " " + (-32) + " " + (0) +
-                            "v " + (3) +
-                            "h " + (32) +
-                            "v " + (-3) +
-                            "Z";
-                        this.element.appendChild(new Svg.Elements.Graphics.Simples.Path(semiCircleString, "body highlight").element);
-                        this.text = new Svg.Elements.Graphics.Simples.Text("", { X: 0, Y: 4 }, false, "text");
-                        this.element.appendChild(this.text.element);
-                        this.translate({
-                            X: centre.X,
-                            Y: centre.Y
-                        }).rotate(rotation);
-                    }
-                    setValue(text) {
-                        $(this.text.element).text(text);
-                        return this;
-                    }
+        var Groups;
+        (function (Groups) {
+            class CapacitorBodyElectrolytic extends Svg.Elements.Group {
+                constructor(betweenStart, betweenEnd, classes = "") {
+                    super(classes);
+                    let centre = {
+                        X: (betweenStart.X + betweenEnd.X) / 2,
+                        Y: (betweenStart.Y + betweenEnd.Y) / 2
+                    };
+                    let rotation = Math.atan2(centre.Y - betweenStart.Y, centre.X - betweenStart.X) *
+                        180 /
+                        Math.PI;
+                    const bodyArcEndPoint = 14 / Math.SQRT2;
+                    const textArcEndPoint = 12.5 / Math.SQRT2;
+                    let bodyPathString = "m14 0 A14 14 0 1 0 " + (bodyArcEndPoint) + " " + (bodyArcEndPoint);
+                    let minusPathString = "m14 0 A14 14 0 0 1 " + (bodyArcEndPoint) + " " + (bodyArcEndPoint);
+                    let pathForTextString = "m" + (textArcEndPoint) + " " + (textArcEndPoint) + "A12.5 12.5 0 1 1 12.5 0";
+                    let pathForText = new Svg.Elements.Path(pathForTextString, "hidden").rotate(157.5);
+                    let text = new Svg.Elements.Text("", { X: 1, Y: 0 }, false, "text");
+                    this.textPath = new Svg.Elements.TextPath(text, pathForText);
+                    this.append([
+                        new Svg.Elements.Circle({ X: 0, Y: 0 }, 16, "highlight nofill"),
+                        new Svg.Elements.Path(bodyPathString, "body").rotate(157.5),
+                        new Svg.Elements.Path(minusPathString, "minus").rotate(157.5),
+                        text
+                    ]);
+                    this.translate({
+                        X: centre.X,
+                        Y: centre.Y
+                    }).rotate(rotation);
                 }
-                Complexes.BipolarBody = BipolarBody;
-            })(Complexes = Graphics.Complexes || (Graphics.Complexes = {}));
-        })(Graphics = Elements.Graphics || (Elements.Graphics = {}));
+                setValue(num) {
+                    $(this.textPath.element).text(Utility.getStandardForm(num, 'F'));
+                    return this;
+                }
+            }
+            Groups.CapacitorBodyElectrolytic = CapacitorBodyElectrolytic;
+        })(Groups = Elements.Groups || (Elements.Groups = {}));
     })(Elements = Svg.Elements || (Svg.Elements = {}));
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
     var Elements;
     (function (Elements) {
-        var Graphics;
-        (function (Graphics) {
-            var Complexes;
-            (function (Complexes) {
-                class CapacitorBodyCeramic extends Graphics.Complex {
-                    constructor(betweenStart, betweenEnd, classes = "") {
-                        super(classes);
-                        let centre = {
-                            X: (betweenStart.X + betweenEnd.X) / 2,
-                            Y: (betweenStart.Y + betweenEnd.Y) / 2
-                        };
-                        let rotation = Math.atan2(centre.Y - betweenStart.Y, centre.X - betweenStart.X) *
-                            180 /
-                            Math.PI;
-                        this.element.appendChild(new Svg.Elements.Graphics.Simples.Ellipse({ X: 0, Y: 0 }, { X: 16, Y: 8 }, "body highlight nofill").element);
-                        this.text = new Svg.Elements.Graphics.Simples.Text("", { X: 0, Y: 0 }, false, "text");
-                        this.element.appendChild(this.text.element);
-                        this.translate({
-                            X: centre.X,
-                            Y: centre.Y
-                        }).rotate(rotation);
-                    }
-                    setValue(num) {
-                        $(this.text.element).text(Utility.getStandardForm(num, 'F'));
-                        return this;
-                    }
+        var Groups;
+        (function (Groups) {
+            class DiodeBody extends Svg.Elements.Group {
+                constructor(betweenStart, betweenEnd, classes = "") {
+                    super(classes);
+                    let centre = { X: (betweenStart.X + betweenEnd.X) / 2, Y: (betweenStart.Y + betweenEnd.Y) / 2 };
+                    let rotation = Math.atan2(centre.Y - betweenStart.Y, centre.X - betweenStart.X) * 180 / Math.PI;
+                    this.append([
+                        new Svg.Elements.Rect({ X: -5.5, Y: 0 }, { width: 29, height: 15 }, { X: 0, Y: 0 }, "body"),
+                        new Svg.Elements.Rect({ X: 17.5, Y: 0 }, { width: 5, height: 15 }, { X: 0, Y: 0 }, "body"),
+                        new Svg.Elements.Rect({ X: 12, Y: 0 }, { width: 6, height: 15 }, { X: 0, Y: 0 }, "cathode"),
+                        new Svg.Elements.Rect({ X: 0, Y: 0 }, { width: 40, height: 15 }, { X: 1, Y: 1 }, "highlight nofill")
+                    ]);
+                    this.translate({ X: centre.X, Y: centre.Y }).rotate(rotation);
                 }
-                Complexes.CapacitorBodyCeramic = CapacitorBodyCeramic;
-            })(Complexes = Graphics.Complexes || (Graphics.Complexes = {}));
-        })(Graphics = Elements.Graphics || (Elements.Graphics = {}));
+                setValue(num) {
+                    return this;
+                }
+            }
+            Groups.DiodeBody = DiodeBody;
+        })(Groups = Elements.Groups || (Elements.Groups = {}));
     })(Elements = Svg.Elements || (Svg.Elements = {}));
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
     var Elements;
     (function (Elements) {
-        var Graphics;
-        (function (Graphics) {
-            var Complexes;
-            (function (Complexes) {
-                class CapacitorBodyElectrolytic extends Graphics.Complex {
-                    constructor(betweenStart, betweenEnd, classes = "") {
-                        super(classes);
-                        let centre = {
-                            X: (betweenStart.X + betweenEnd.X) / 2,
-                            Y: (betweenStart.Y + betweenEnd.Y) / 2
-                        };
-                        let rotation = Math.atan2(centre.Y - betweenStart.Y, centre.X - betweenStart.X) *
-                            180 /
-                            Math.PI;
-                        this.element.appendChild(new Svg.Elements.Graphics.Simples.Circle({ X: 0, Y: 0 }, 16, "highlight nofill").element);
-                        const bodyArcEndPoint = 14 / Math.SQRT2;
-                        let bodyPathString = "m14 0 A14 14 0 1 0 " + (bodyArcEndPoint) + " " + (bodyArcEndPoint);
-                        let bodyPath = new Svg.Elements.Graphics.Simples.Path(bodyPathString, "body").rotate(157.5);
-                        this.element.appendChild(bodyPath.element);
-                        let minusPathString = "m14 0 A14 14 0 0 1 " + (bodyArcEndPoint) + " " + (bodyArcEndPoint);
-                        let minusPath = new Svg.Elements.Graphics.Simples.Path(minusPathString, "minus").rotate(157.5);
-                        this.element.appendChild(minusPath.element);
-                        const textArcEndPoint = 12.5 / Math.SQRT2;
-                        let pathForTextString = "m" + (textArcEndPoint) + " " + (textArcEndPoint) + "A12.5 12.5 0 1 1 12.5 0";
-                        let pathForText = new Svg.Elements.Graphics.Simples.Path(pathForTextString, "hidden").rotate(157.5);
-                        this.element.appendChild(pathForText.element);
-                        let text = new Svg.Elements.Graphics.Simples.Text("", { X: 1, Y: 0 }, false, "text");
-                        this.element.appendChild(text.element);
-                        this.textPath = new Svg.Elements.Graphics.Simples.TextPath(text, pathForText);
-                        this.translate({
-                            X: centre.X,
-                            Y: centre.Y
-                        }).rotate(rotation);
+        var Groups;
+        (function (Groups) {
+            class dip extends Svg.Elements.Group {
+                constructor(pinsPerSide = 4, textLineOne = "", textLineTwo = "", textLineThree = "", classes = "") {
+                    super(classes);
+                    $(this.element).addClass("dip", classes);
+                    let gridSpacing = Constants.gridSpacing;
+                    let bodySize = {
+                        width: gridSpacing * pinsPerSide,
+                        height: gridSpacing * 2.8
+                    };
+                    let centre = {
+                        X: gridSpacing * (pinsPerSide - 1) / 2,
+                        Y: gridSpacing * 1.5
+                    };
+                    let pinString = "M " + (0) + " " + (-2.5)
+                        + "h " + (-4)
+                        + "v " + (3)
+                        + "l " + (1) + " " + (0.5)
+                        + "h " + (6)
+                        + "l " + (1) + " " + (-0.5)
+                        + "v " + (-3)
+                        + "Z";
+                    for (let i = 0; i < pinsPerSide; i++) {
+                        this.append([
+                            new Svg.Elements.Path(pinString, "pin").scale({ X: 1, Y: -1 }).translate({ X: gridSpacing * i, Y: 0 }),
+                            new Svg.Elements.Path(pinString, "pin").translate({ X: gridSpacing * i, Y: 3 * gridSpacing })
+                        ]);
                     }
-                    setValue(num) {
-                        $(this.textPath.element).text(Utility.getStandardForm(num, 'F'));
-                        return this;
-                    }
+                    ;
+                    let notchString = "M " + (-0.5 * gridSpacing) + " " + (centre.Y) +
+                        "v " + (8) +
+                        "a " + (1) + " " + (1) + " " + (0) + " " + (0) + " " + (0) + " " + (0) + " " + (-16) +
+                        "Z";
+                    this.append([
+                        new Svg.Elements.Rect(centre, bodySize, { X: 5, Y: 5 }, "body"),
+                        new Svg.Elements.Path(notchString, "notch"),
+                        new Svg.Elements.Rect(centre, bodySize, { X: 5, Y: 5 }, "body highlight"),
+                        new Svg.Elements.Text(textLineOne, { X: 0.25 * gridSpacing, Y: 1 * gridSpacing }, false, "text"),
+                        new Svg.Elements.Text(textLineTwo, { X: 0.25 * gridSpacing, Y: 1.75 * gridSpacing }, false, "text"),
+                        new Svg.Elements.Text(textLineThree, { X: 0.25 * gridSpacing, Y: 2.5 * gridSpacing }, false, "text")
+                    ]);
                 }
-                Complexes.CapacitorBodyElectrolytic = CapacitorBodyElectrolytic;
-            })(Complexes = Graphics.Complexes || (Graphics.Complexes = {}));
-        })(Graphics = Elements.Graphics || (Elements.Graphics = {}));
+                setValue(num) {
+                    let exp = num.toExponential(1);
+                    let sigFig1 = exp.slice(exp.indexOf(".") - 1)[0];
+                    let sigFig2 = exp.slice(exp.indexOf(".") + 1)[0];
+                    let multiplier = (parseInt(exp.slice(exp.indexOf("e") + 1), 10) - 1).toString();
+                    let colours = {
+                        "-3": "pink",
+                        "-2": "silver",
+                        "-1": "gold",
+                        "0": "black",
+                        "1": "brown",
+                        "2": "red",
+                        "3": "#FF7F26",
+                        "4": "yellow",
+                        "5": "green",
+                        "6": "blue",
+                        "7": "violet",
+                        "8": "grey",
+                        "9": "white"
+                    };
+                    $(this.element)
+                        .children(".band1")
+                        .css("fill", colours[sigFig1]);
+                    $(this.element)
+                        .children(".band2")
+                        .css("fill", colours[sigFig2]);
+                    $(this.element)
+                        .children(".band3")
+                        .css("fill", colours[multiplier]);
+                    $(this.element)
+                        .children(".band4")
+                        .css("fill", "transparent");
+                    return this;
+                }
+            }
+            Groups.dip = dip;
+        })(Groups = Elements.Groups || (Elements.Groups = {}));
     })(Elements = Svg.Elements || (Svg.Elements = {}));
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
     var Elements;
     (function (Elements) {
-        var Graphics;
-        (function (Graphics) {
-            var Complexes;
-            (function (Complexes) {
-                class DiodeBody extends Graphics.Complex {
-                    constructor(betweenStart, betweenEnd, classes = "") {
-                        super(classes);
-                        let centre = { X: (betweenStart.X + betweenEnd.X) / 2, Y: (betweenStart.Y + betweenEnd.Y) / 2 };
-                        let rotation = Math.atan2(centre.Y - betweenStart.Y, centre.X - betweenStart.X) * 180 / Math.PI;
-                        this.element.appendChild(new Svg.Elements.Graphics.Simples.Rect({ X: -5.5, Y: 0 }, { width: 29, height: 15 }, { X: 0, Y: 0 }, "body").element);
-                        this.element.appendChild(new Svg.Elements.Graphics.Simples.Rect({ X: 17.5, Y: 0 }, { width: 5, height: 15 }, { X: 0, Y: 0 }, "body").element);
-                        this.element.appendChild(new Svg.Elements.Graphics.Simples.Rect({ X: 12, Y: 0 }, { width: 6, height: 15 }, { X: 0, Y: 0 }, "cathode").element);
-                        this.element.appendChild(new Svg.Elements.Graphics.Simples.Rect({ X: 0, Y: 0 }, { width: 40, height: 15 }, { X: 1, Y: 1 }, "highlight nofill").element);
-                        this.translate({ X: centre.X, Y: centre.Y }).rotate(rotation);
+        var Groups;
+        (function (Groups) {
+            class InductorBody extends Svg.Elements.Group {
+                constructor(betweenStart, betweenEnd, classes = "") {
+                    super(classes);
+                    let centre = { X: (betweenStart.X + betweenEnd.X) / 2, Y: (betweenStart.Y + betweenEnd.Y) / 2 };
+                    let rotation = Math.atan2(centre.Y - betweenStart.Y, centre.X - betweenStart.X) * 180 / Math.PI;
+                    const nCoils = 4;
+                    const wireWidth = 8;
+                    const coilTop = -15;
+                    const coilBottom = 15;
+                    const coilStart = (-(nCoils * wireWidth) / 2 + wireWidth / 4);
+                    let bodyPath = "M" + (coilStart) + " " + (coilBottom);
+                    let bodyEdgePath = "";
+                    for (let i = 1; i < nCoils; i++) {
+                        let x0 = coilStart + wireWidth * (i - 0.5);
+                        let x1 = coilStart + wireWidth * (i);
+                        bodyPath += "L" + (x0) + " " + (coilTop) + "L" + (x1) + " " + (coilBottom);
+                        bodyEdgePath += "M" + (x0) + " " + (coilBottom) + "L" + (x1) + " " + (coilTop);
                     }
-                    setValue(num) {
-                        return this;
-                    }
+                    bodyPath += "L" + (-coilStart) + " " + (coilTop);
+                    this.append([
+                        new Svg.Elements.Path(bodyPath, "highlight highlightwithfill"),
+                        new Svg.Elements.Path(bodyPath, "body"),
+                        new Svg.Elements.Path(bodyEdgePath, "bodyEdge")
+                    ]);
+                    this.translate({ X: centre.X, Y: centre.Y }).rotate(rotation);
                 }
-                Complexes.DiodeBody = DiodeBody;
-            })(Complexes = Graphics.Complexes || (Graphics.Complexes = {}));
-        })(Graphics = Elements.Graphics || (Elements.Graphics = {}));
+                setValue(num) {
+                    return this;
+                }
+            }
+            Groups.InductorBody = InductorBody;
+        })(Groups = Elements.Groups || (Elements.Groups = {}));
     })(Elements = Svg.Elements || (Svg.Elements = {}));
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
     var Elements;
     (function (Elements) {
-        var Graphics;
-        (function (Graphics) {
-            var Complexes;
-            (function (Complexes) {
-                class dip extends Graphics.Complex {
-                    constructor(pinsPerSide = 4, textLineOne = "", textLineTwo = "", textLineThree = "", classes = "") {
-                        super(classes);
-                        $(this.element).addClass("dip", classes);
-                        let gridSpacing = Constants.gridSpacing;
-                        let bodySize = {
-                            width: gridSpacing * pinsPerSide,
-                            height: gridSpacing * 2.8
-                        };
-                        let centre = {
-                            X: gridSpacing * (pinsPerSide - 1) / 2,
-                            Y: gridSpacing * 1.5
-                        };
-                        let pinString = "M " + (0) + " " + (-2.5)
-                            + "h " + (-4)
-                            + "v " + (3)
-                            + "l " + (1) + " " + (0.5)
-                            + "h " + (6)
-                            + "l " + (1) + " " + (-0.5)
-                            + "v " + (-3)
-                            + "Z";
-                        for (let i = 0; i < pinsPerSide; i++) {
-                            this.element.appendChild(new Svg.Elements.Graphics.Simples.Path(pinString, "pin").
-                                scale({ X: 1, Y: -1 }).
-                                translate({ X: gridSpacing * i, Y: 0 })
-                                .element);
-                            this.element.appendChild(new Svg.Elements.Graphics.Simples.Path(pinString, "pin").
-                                translate({ X: gridSpacing * i, Y: 3 * gridSpacing })
-                                .element);
-                        }
-                        ;
-                        this.element.appendChild(new Svg.Elements.Graphics.Simples.Rect(centre, bodySize, {
-                            X: 5,
-                            Y: 5
-                        }, "body").element);
-                        let notchString = "M " + (-0.5 * gridSpacing) + " " + (centre.Y) +
-                            "v " + (8) +
-                            "a " + (1) + " " + (1) + " " + (0) + " " + (0) + " " + (0) + " " + (0) + " " + (-16) +
-                            "Z";
-                        this.element.appendChild(new Svg.Elements.Graphics.Simples.Path(notchString, "notch").element);
-                        this.element.appendChild(new Svg.Elements.Graphics.Simples.Rect(centre, bodySize, {
-                            X: 5,
-                            Y: 5
-                        }, "body highlight").element);
-                        this.element.appendChild(new Svg.Elements.Graphics.Simples.Text(textLineOne, { X: 0.25 * gridSpacing, Y: 1 * gridSpacing }, false, "text").element);
-                        this.element.appendChild(new Svg.Elements.Graphics.Simples.Text(textLineTwo, { X: 0.25 * gridSpacing, Y: 1.75 * gridSpacing }, false, "text").element);
-                        this.element.appendChild(new Svg.Elements.Graphics.Simples.Text(textLineThree, { X: 0.25 * gridSpacing, Y: 2.5 * gridSpacing }, false, "text").element);
-                    }
-                    setValue(num) {
-                        let exp = num.toExponential(1);
-                        let sigFig1 = exp.slice(exp.indexOf(".") - 1)[0];
-                        let sigFig2 = exp.slice(exp.indexOf(".") + 1)[0];
-                        let multiplier = (parseInt(exp.slice(exp.indexOf("e") + 1), 10) - 1).toString();
-                        let colours = {
-                            "-3": "pink",
-                            "-2": "silver",
-                            "-1": "gold",
-                            "0": "black",
-                            "1": "brown",
-                            "2": "red",
-                            "3": "#FF7F26",
-                            "4": "yellow",
-                            "5": "green",
-                            "6": "blue",
-                            "7": "violet",
-                            "8": "grey",
-                            "9": "white"
-                        };
-                        $(this.element)
-                            .children(".band1")
-                            .css("fill", colours[sigFig1]);
-                        $(this.element)
-                            .children(".band2")
-                            .css("fill", colours[sigFig2]);
-                        $(this.element)
-                            .children(".band3")
-                            .css("fill", colours[multiplier]);
-                        $(this.element)
-                            .children(".band4")
-                            .css("fill", "transparent");
-                        return this;
-                    }
+        var Groups;
+        (function (Groups) {
+            class ResistorBody extends Svg.Elements.Group {
+                constructor(betweenStart, betweenEnd, classes = "") {
+                    super(classes);
+                    let centre = {
+                        X: (betweenStart.X + betweenEnd.X) / 2,
+                        Y: (betweenStart.Y + betweenEnd.Y) / 2
+                    };
+                    let rotation = Math.atan2(centre.Y - betweenStart.Y, centre.X - betweenStart.X) *
+                        180 /
+                        Math.PI;
+                    let bodyPath = "m-12.5 -6" +
+                        "h25" +
+                        "c15 -8 15 20 0 12" +
+                        "h-25" +
+                        "c-15 +8 -15 -20 0 -12" +
+                        "Z";
+                    this.append([
+                        new Svg.Elements.Path(bodyPath, "body"),
+                        new Svg.Elements.Rect({ X: -17.5, Y: 0 }, { width: 3, height: 18 }, undefined, "band1"),
+                        new Svg.Elements.Rect({ X: -11, Y: 0 }, { width: 3, height: 12 }, undefined, "band2"),
+                        new Svg.Elements.Rect({ X: -4, Y: 0 }, { width: 3, height: 12 }, undefined, "band3"),
+                        new Svg.Elements.Rect({ X: 3.5, Y: 0 }, { width: 4, height: 12 }, undefined, "band4"),
+                        new Svg.Elements.Path(bodyPath, "highlight nofill")
+                    ]);
+                    this.translate({
+                        X: centre.X,
+                        Y: centre.Y
+                    }).rotate(rotation);
                 }
-                Complexes.dip = dip;
-            })(Complexes = Graphics.Complexes || (Graphics.Complexes = {}));
-        })(Graphics = Elements.Graphics || (Elements.Graphics = {}));
+                setValue(num) {
+                    let exp = num.toExponential(1);
+                    let sigFig1 = exp.slice(exp.indexOf(".") - 1)[0];
+                    let sigFig2 = exp.slice(exp.indexOf(".") + 1)[0];
+                    let multiplier = (parseInt(exp.slice(exp.indexOf("e") + 1), 10) - 1).toString();
+                    let colours = {
+                        "-3": "pink",
+                        "-2": "silver",
+                        "-1": "gold",
+                        "0": "black",
+                        "1": "brown",
+                        "2": "red",
+                        "3": "#FF7F26",
+                        "4": "yellow",
+                        "5": "green",
+                        "6": "blue",
+                        "7": "violet",
+                        "8": "grey",
+                        "9": "white"
+                    };
+                    $(this.element)
+                        .children(".band1")
+                        .css("fill", colours[sigFig1]);
+                    $(this.element)
+                        .children(".band2")
+                        .css("fill", colours[sigFig2]);
+                    $(this.element)
+                        .children(".band3")
+                        .css("fill", colours[multiplier]);
+                    $(this.element)
+                        .children(".band4")
+                        .css("fill", "transparent");
+                    return this;
+                }
+            }
+            Groups.ResistorBody = ResistorBody;
+        })(Groups = Elements.Groups || (Elements.Groups = {}));
     })(Elements = Svg.Elements || (Svg.Elements = {}));
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
     var Elements;
     (function (Elements) {
-        var Graphics;
-        (function (Graphics) {
-            var Complexes;
-            (function (Complexes) {
-                class InductorBody extends Graphics.Complex {
-                    constructor(betweenStart, betweenEnd, classes = "") {
-                        super(classes);
-                        let centre = { X: (betweenStart.X + betweenEnd.X) / 2, Y: (betweenStart.Y + betweenEnd.Y) / 2 };
-                        let rotation = Math.atan2(centre.Y - betweenStart.Y, centre.X - betweenStart.X) * 180 / Math.PI;
-                        const nCoils = 4;
-                        const wireWidth = 8;
-                        const coilTop = -15;
-                        const coilBottom = 15;
-                        const coilStart = (-(nCoils * wireWidth) / 2 + wireWidth / 4);
-                        let bodyPath = "M" + (coilStart) + " " + (coilBottom);
-                        let bodyEdgePath = "";
-                        for (let i = 1; i < nCoils; i++) {
-                            let x0 = coilStart + wireWidth * (i - 0.5);
-                            let x1 = coilStart + wireWidth * (i);
-                            bodyPath += "L" + (x0) + " " + (coilTop) + "L" + (x1) + " " + (coilBottom);
-                            bodyEdgePath += "M" + (x0) + " " + (coilBottom) + "L" + (x1) + " " + (coilTop);
-                        }
-                        bodyPath += "L" + (-coilStart) + " " + (coilTop);
-                        this.element.appendChild(new Svg.Elements.Graphics.Simples.Path(bodyPath, "highlight highlightwithfill").element);
-                        this.element.appendChild(new Svg.Elements.Graphics.Simples.Path(bodyPath, "body").element);
-                        this.element.appendChild(new Svg.Elements.Graphics.Simples.Path(bodyEdgePath, "bodyEdge").element);
-                        this.translate({ X: centre.X, Y: centre.Y }).rotate(rotation);
+        var Groups;
+        (function (Groups) {
+            class TextSequence extends Svg.Elements.Group {
+                constructor(start, gap, sequence, classes = "") {
+                    super(classes);
+                    let textArray = [];
+                    if (sequence instanceof Array) {
+                        textArray = sequence.map(String);
                     }
-                    setValue(num) {
-                        return this;
+                    else if (typeof sequence === "string") {
+                        textArray = sequence.split("");
                     }
+                    else {
+                        textArray = [...Array(sequence.length).keys()].map(v => (v + sequence.start).toString());
+                    }
+                    for (let [i, txt] of textArray.entries()) {
+                        this.append(new Svg.Elements.Text(txt, { X: gap.X * i, Y: gap.Y * i }, false, "text"));
+                    }
+                    this.translate({
+                        X: start.X,
+                        Y: start.Y
+                    });
                 }
-                Complexes.InductorBody = InductorBody;
-            })(Complexes = Graphics.Complexes || (Graphics.Complexes = {}));
-        })(Graphics = Elements.Graphics || (Elements.Graphics = {}));
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Elements;
-    (function (Elements) {
-        var Graphics;
-        (function (Graphics) {
-            var Complexes;
-            (function (Complexes) {
-                class ResistorBody extends Graphics.Complex {
-                    constructor(betweenStart, betweenEnd, classes = "") {
-                        super(classes);
-                        let centre = {
-                            X: (betweenStart.X + betweenEnd.X) / 2,
-                            Y: (betweenStart.Y + betweenEnd.Y) / 2
-                        };
-                        let rotation = Math.atan2(centre.Y - betweenStart.Y, centre.X - betweenStart.X) *
-                            180 /
-                            Math.PI;
-                        let bodyPath = "m-12.5 -6" +
-                            "h25" +
-                            "c15 -8 15 20 0 12" +
-                            "h-25" +
-                            "c-15 +8 -15 -20 0 -12" +
-                            "Z";
-                        this.element.appendChild(new Svg.Elements.Graphics.Simples.Path(bodyPath, "body").element);
-                        this.element.appendChild(new Svg.Elements.Graphics.Simples.Rect({
-                            X: -17.5,
-                            Y: 0
-                        }, {
-                            width: 3,
-                            height: 18
-                        }, undefined, "band1").element);
-                        this.element.appendChild(new Svg.Elements.Graphics.Simples.Rect({
-                            X: -11,
-                            Y: 0
-                        }, {
-                            width: 3,
-                            height: 12
-                        }, undefined, "band2").element);
-                        this.element.appendChild(new Svg.Elements.Graphics.Simples.Rect({
-                            X: -4,
-                            Y: 0
-                        }, {
-                            width: 3,
-                            height: 12
-                        }, undefined, "band3").element);
-                        this.element.appendChild(new Svg.Elements.Graphics.Simples.Rect({
-                            X: 3.5,
-                            Y: 0
-                        }, {
-                            width: 4,
-                            height: 12
-                        }, undefined, "band4").element);
-                        this.element.appendChild(new Svg.Elements.Graphics.Simples.Path(bodyPath, "highlight nofill").element);
-                        this.translate({
-                            X: centre.X,
-                            Y: centre.Y
-                        }).rotate(rotation);
-                    }
-                    setValue(num) {
-                        let exp = num.toExponential(1);
-                        let sigFig1 = exp.slice(exp.indexOf(".") - 1)[0];
-                        let sigFig2 = exp.slice(exp.indexOf(".") + 1)[0];
-                        let multiplier = (parseInt(exp.slice(exp.indexOf("e") + 1), 10) - 1).toString();
-                        let colours = {
-                            "-3": "pink",
-                            "-2": "silver",
-                            "-1": "gold",
-                            "0": "black",
-                            "1": "brown",
-                            "2": "red",
-                            "3": "#FF7F26",
-                            "4": "yellow",
-                            "5": "green",
-                            "6": "blue",
-                            "7": "violet",
-                            "8": "grey",
-                            "9": "white"
-                        };
-                        $(this.element)
-                            .children(".band1")
-                            .css("fill", colours[sigFig1]);
-                        $(this.element)
-                            .children(".band2")
-                            .css("fill", colours[sigFig2]);
-                        $(this.element)
-                            .children(".band3")
-                            .css("fill", colours[multiplier]);
-                        $(this.element)
-                            .children(".band4")
-                            .css("fill", "transparent");
-                        return this;
-                    }
-                }
-                Complexes.ResistorBody = ResistorBody;
-            })(Complexes = Graphics.Complexes || (Graphics.Complexes = {}));
-        })(Graphics = Elements.Graphics || (Elements.Graphics = {}));
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Elements;
-    (function (Elements) {
-        var Graphics;
-        (function (Graphics) {
-            var Complexes;
-            (function (Complexes) {
-                class TextSequence extends Graphics.Complex {
-                    constructor(start, gap, sequence, classes = "") {
-                        super(classes);
-                        let textArray = [];
-                        if (sequence instanceof Array) {
-                            textArray = sequence.map(String);
-                        }
-                        else if (typeof sequence === "string") {
-                            textArray = sequence.split("");
-                        }
-                        else {
-                            textArray = [...Array(sequence.length).keys()].map(v => (v + sequence.start).toString());
-                        }
-                        for (let [i, txt] of textArray.entries()) {
-                            this.element.appendChild(new Svg.Elements.Graphics.Simples.Text(txt, { X: gap.X * i, Y: gap.Y * i }, false, "text").element);
-                        }
-                        this.translate({
-                            X: start.X,
-                            Y: start.Y
-                        });
-                    }
-                }
-                Complexes.TextSequence = TextSequence;
-            })(Complexes = Graphics.Complexes || (Graphics.Complexes = {}));
-        })(Graphics = Elements.Graphics || (Elements.Graphics = {}));
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Elements;
-    (function (Elements) {
-        var Graphics;
-        (function (Graphics) {
-            var Simples;
-            (function (Simples) {
-                class Circle extends Svg.Elements.Graphics.Simple {
-                    constructor(centreVector, radius, classes = "") {
-                        super('circle', classes);
-                        this.element.setAttribute("cx", centreVector.X.toString());
-                        this.element.setAttribute("cy", centreVector.Y.toString());
-                        this.element.setAttribute("r", radius.toString());
-                    }
-                }
-                Simples.Circle = Circle;
-            })(Simples = Graphics.Simples || (Graphics.Simples = {}));
-        })(Graphics = Elements.Graphics || (Elements.Graphics = {}));
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Elements;
-    (function (Elements) {
-        var Graphics;
-        (function (Graphics) {
-            var Simples;
-            (function (Simples) {
-                class Ellipse extends Svg.Elements.Graphics.Simple {
-                    constructor(centreVector, radiusVector, classes = "") {
-                        super('ellipse', classes);
-                        this.element.setAttribute("cx", centreVector.X.toString());
-                        this.element.setAttribute("cy", centreVector.Y.toString());
-                        this.element.setAttribute("rx", radiusVector.X.toString());
-                        this.element.setAttribute("ry", radiusVector.Y.toString());
-                    }
-                }
-                Simples.Ellipse = Ellipse;
-            })(Simples = Graphics.Simples || (Graphics.Simples = {}));
-        })(Graphics = Elements.Graphics || (Elements.Graphics = {}));
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Elements;
-    (function (Elements) {
-        var Graphics;
-        (function (Graphics) {
-            var Simples;
-            (function (Simples) {
-                class Line extends Svg.Elements.Graphics.Simple {
-                    constructor(startVector, endVector, classes = "") {
-                        super('line', classes);
-                        this.element.setAttribute("x1", startVector.X.toString());
-                        this.element.setAttribute("y1", startVector.Y.toString());
-                        this.element.setAttribute("x2", endVector.X.toString());
-                        this.element.setAttribute("y2", endVector.Y.toString());
-                    }
-                }
-                Simples.Line = Line;
-            })(Simples = Graphics.Simples || (Graphics.Simples = {}));
-        })(Graphics = Elements.Graphics || (Elements.Graphics = {}));
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Elements;
-    (function (Elements) {
-        var Graphics;
-        (function (Graphics) {
-            var Simples;
-            (function (Simples) {
-                class Path extends Svg.Elements.Graphics.Simple {
-                    constructor(path, classes = "") {
-                        super('path', classes);
-                        this.element.setAttribute('d', path);
-                    }
-                }
-                Simples.Path = Path;
-            })(Simples = Graphics.Simples || (Graphics.Simples = {}));
-        })(Graphics = Elements.Graphics || (Elements.Graphics = {}));
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Elements;
-    (function (Elements) {
-        var Graphics;
-        (function (Graphics) {
-            var Simples;
-            (function (Simples) {
-                class Polygon extends Svg.Elements.Graphics.Simple {
-                    constructor(points, classes = "") {
-                        super('polygon', classes);
-                        this.element.setAttribute("points", points);
-                    }
-                }
-                Simples.Polygon = Polygon;
-            })(Simples = Graphics.Simples || (Graphics.Simples = {}));
-        })(Graphics = Elements.Graphics || (Elements.Graphics = {}));
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Elements;
-    (function (Elements) {
-        var Graphics;
-        (function (Graphics) {
-            var Simples;
-            (function (Simples) {
-                class Rect extends Svg.Elements.Graphics.Simple {
-                    constructor(centre, size, cornerRounding = { X: 0, Y: 0 }, classes = "") {
-                        super('rect', classes);
-                        this.element.setAttribute("x", (centre.X - size.width / 2).toString());
-                        this.element.setAttribute("y", (centre.Y - size.height / 2).toString());
-                        this.element.setAttribute("width", size.width.toString());
-                        this.element.setAttribute("height", size.height.toString());
-                        this.element.setAttribute("rx", cornerRounding.X.toString());
-                        this.element.setAttribute("ry", cornerRounding.Y.toString());
-                    }
-                }
-                Simples.Rect = Rect;
-            })(Simples = Graphics.Simples || (Graphics.Simples = {}));
-        })(Graphics = Elements.Graphics || (Elements.Graphics = {}));
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Elements;
-    (function (Elements) {
-        var Graphics;
-        (function (Graphics) {
-            var Simples;
-            (function (Simples) {
-                class Text extends Svg.Elements.Graphics.Simple {
-                    constructor(text, startVector, rotateAnchor = false, classes = "") {
-                        super('text', classes);
-                        this.element.setAttribute('x', startVector.X.toString());
-                        this.element.setAttribute('y', startVector.Y.toString());
-                        this.element.appendChild(document.createTextNode(text));
-                    }
-                }
-                Simples.Text = Text;
-            })(Simples = Graphics.Simples || (Graphics.Simples = {}));
-        })(Graphics = Elements.Graphics || (Elements.Graphics = {}));
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Elements;
-    (function (Elements) {
-        var Graphics;
-        (function (Graphics) {
-            var Simples;
-            (function (Simples) {
-                let textPathCount = 0;
-                class TextPath extends Svg.Elements.Graphics.Simple {
-                    constructor(text, path) {
-                        super('textPath');
-                        let pathID = path.element.getAttribute("id");
-                        if (!pathID) {
-                            pathID = "pathForText" + textPathCount;
-                            path.element.setAttribute("id", pathID);
-                            textPathCount += 1;
-                        }
-                        this.element.setAttribute("href", "#" + pathID);
-                        let textContent = text.element.textContent || "";
-                        this.element.appendChild(document.createTextNode(textContent));
-                        $(text.element).append(this.element);
-                    }
-                }
-                Simples.TextPath = TextPath;
-            })(Simples = Graphics.Simples || (Graphics.Simples = {}));
-        })(Graphics = Elements.Graphics || (Elements.Graphics = {}));
+            }
+            Groups.TextSequence = TextSequence;
+        })(Groups = Elements.Groups || (Elements.Groups = {}));
     })(Elements = Svg.Elements || (Svg.Elements = {}));
 })(Svg || (Svg = {}));

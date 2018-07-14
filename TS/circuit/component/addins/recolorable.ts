@@ -24,21 +24,21 @@ namespace Circuit.Component.Addins.Recolorable {
    }
 
    const refreshComponent = (component: recolorableComponent) => {
-      component.group.clear(":not(.handle)");
+      component.group.clearChildren(":not(.handle)");
       component.makeConnectors();
       component.draw();
    };
 
    const createRecolorHandle = (component: recolorableComponent, position: Global.Types.vector, recolorSelector: string, colorPalette: colorPalette) => {
       let recolorSegmentGroup = new Svg.Elements.Group("recolorSegmentGroup");
-      let recolorHandle = new Svg.Elements.Graphics.Simples.Circle(position, 7, "handle recolorHandle");
-      recolorHandle.setDraggable({ disableMovement: true });
+      let recolorHandle = new Svg.Elements.Circle(position, 7, "handle recolorHandle");
+      Svg.Addins.Draggable.init(recolorHandle, { disableMovement: true });
 
       //Segments
-      let segment1 = new Svg.Elements.Graphics.Simples.Rect(
+      let segment1 = new Svg.Elements.Rect(
          position, { width: 10, height: 20 }, undefined, "recolorHandleSegment"
       ).translate({ X: -4, Y: -4 }).rotate(45, position);
-      let segment2 = new Svg.Elements.Graphics.Simples.Rect(
+      let segment2 = new Svg.Elements.Rect(
          position, { width: 10, height: 20 }, undefined, "recolorHandleSegment"
       ).translate({ X: 4, Y: 4 }).rotate(45, position);
 

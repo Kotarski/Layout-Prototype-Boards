@@ -1,5 +1,5 @@
-namespace Svg.Elements.Graphics.Simples {
-   export class Ellipse extends Svg.Elements.Graphics.Simple {
+namespace Svg.Elements {
+   export class Ellipse extends Svg.Element {
       constructor(centreVector: Global.Types.vector, radiusVector: Global.Types.vector, classes: string = "") {
          super('ellipse', classes);
          this.element.setAttribute("cx", centreVector.X.toString());

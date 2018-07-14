@@ -103,27 +103,27 @@ namespace Circuit.Component {
 
             this.group.append([
                //body
-               new Svg.Elements.Graphics.Simples.Rect(centre, size, { X: 4, Y: 4 }, "body"),
+               new Svg.Elements.Rect(centre, size, { X: 4, Y: 4 }, "body"),
                //Centre rut
-               new Svg.Elements.Graphics.Simples.Rect(centre, { width: size.width, height: gS * 0.75, }, { X: 0, Y: 0 }, "rut"),
+               new Svg.Elements.Rect(centre, { width: size.width, height: gS * 0.75, }, { X: 0, Y: 0 }, "rut"),
                //Body Highlights
-               new Svg.Elements.Graphics.Simples.Rect(centre, size, { X: 4, Y: 4 }, "body highlight"),
+               new Svg.Elements.Rect(centre, size, { X: 4, Y: 4 }, "body highlight"),
                //Power rail positives
-               new Svg.Elements.Graphics.Simples.Path(railPairPathString + plussesPathString, "rail positive"),
+               new Svg.Elements.Path(railPairPathString + plussesPathString, "rail positive"),
                //Power rail negatives
-               new Svg.Elements.Graphics.Simples.Path(railPairPathString + minusesPathString, "rail negative").translate({ X: 0, Y: gS * 3 }),
+               new Svg.Elements.Path(railPairPathString + minusesPathString, "rail negative").translate({ X: 0, Y: gS * 3 }),
                //Text Left (portrait)
-               new Svg.Elements.Graphics.Complexes.TextSequence({ X: 64 * gS - gS / 6, Y: 4 * gS }, { X: 0, Y: gS }, { start: 1, length: 64 }).rotate(90),
+               new Svg.Elements.Groups.TextSequence({ X: 64 * gS - gS / 6, Y: 4 * gS }, { X: 0, Y: gS }, { start: 1, length: 64 }).rotate(90),
                //Text Right (portrait)
-               new Svg.Elements.Graphics.Complexes.TextSequence({ X: 64 * gS - gS / 6, Y: 17 * gS }, { X: 0, Y: gS }, { start: 1, length: 64 }).rotate(90),
+               new Svg.Elements.Groups.TextSequence({ X: 64 * gS - gS / 6, Y: 17 * gS }, { X: 0, Y: gS }, { start: 1, length: 64 }).rotate(90),
                //Text Top Left (portrait)
-               new Svg.Elements.Graphics.Complexes.TextSequence({ X: 65 * gS - gS / 4, Y: 5 * gS }, { X: gS, Y: 0 }, "abcde").rotate(90),
+               new Svg.Elements.Groups.TextSequence({ X: 65 * gS - gS / 4, Y: 5 * gS }, { X: gS, Y: 0 }, "abcde").rotate(90),
                //Text Bottom Left (portrait)
-               new Svg.Elements.Graphics.Complexes.TextSequence({ X: 0 * gS, Y: 5 * gS }, { X: gS, Y: 0 }, "abcde").rotate(90),
+               new Svg.Elements.Groups.TextSequence({ X: 0 * gS, Y: 5 * gS }, { X: gS, Y: 0 }, "abcde").rotate(90),
                //Text Top Right (portrait)
-               new Svg.Elements.Graphics.Complexes.TextSequence({ X: 65 * gS - gS / 4, Y: 12 * gS }, { X: gS, Y: 0 }, "fghij").rotate(90),
+               new Svg.Elements.Groups.TextSequence({ X: 65 * gS - gS / 4, Y: 12 * gS }, { X: gS, Y: 0 }, "fghij").rotate(90),
                //Text Bottom Right (portrait)
-               new Svg.Elements.Graphics.Complexes.TextSequence({ X: 0 * gS, Y: 12 * gS }, { X: gS, Y: 0 }, "fghij").rotate(90),
+               new Svg.Elements.Groups.TextSequence({ X: 0 * gS, Y: 12 * gS }, { X: gS, Y: 0 }, "fghij").rotate(90),
             ]);
 
             this.tracks.map(track => {

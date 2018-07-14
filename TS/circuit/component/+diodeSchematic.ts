@@ -69,18 +69,18 @@ namespace Circuit.Component {
             let scale = (isLRorUD) ? { X: 1, Y: 1 } : { X: -1, Y: 1 };
 
             // Body & highlight
-            this.group.append(new Svg.Elements.Graphics.Simples.Path(
+            this.group.append(new Svg.Elements.Path(
                'M 12 0 L -12 12 L -12 -12 L 12 0 Z', "body highlight highlightwithfill extrathick"
             ).rotate(rotation).scale(scale, false));
-            this.group.append(new Svg.Elements.Graphics.Simples.Path(
+            this.group.append(new Svg.Elements.Path(
                'M 12 0 L -12 12 L -12 -12 L 12 0 Z', "body black"
             ).rotate(rotation).scale(scale, false));
             if (this.breakdownVoltage < 51) {
-               this.group.append(new Svg.Elements.Graphics.Simples.Path(
+               this.group.append(new Svg.Elements.Path(
                   'M 18 -12 L 12 -12 L 12 12 L 6 12', "line medium"
                ).rotate(rotation).scale(scale, false));
             } else {
-               this.group.append(new Svg.Elements.Graphics.Simples.Path(
+               this.group.append(new Svg.Elements.Path(
                   'M 12 -12 L 12 12', "line medium"
                ).rotate(rotation).scale(scale, false));
             }
@@ -90,8 +90,8 @@ namespace Circuit.Component {
             [lead1Start, lead2Start, lead1End, lead2End] = (isHorizontal)
                ? [{ X: -12, Y: 0 }, { X: 12, Y: 0 }, { X: -20, Y: 0 }, { X: 20, Y: 0 }]
                : [{ X: 0, Y: -12 }, { X: 0, Y: 12 }, { X: 0, Y: -20 }, { X: 0, Y: 20 }];
-            this.group.append(new Svg.Elements.Graphics.Simples.Line(lead1Start, lead1End, "line thin"));
-            this.group.append(new Svg.Elements.Graphics.Simples.Line(lead2Start, lead2End, "line thin"));
+            this.group.append(new Svg.Elements.Line(lead1Start, lead1End, "line thin"));
+            this.group.append(new Svg.Elements.Line(lead2Start, lead2End, "line thin"));
 
             // Text
             let textPosition = (isHorizontal) ? { X: 0, Y: -15 } : { X: -15, Y: 4 };
@@ -101,7 +101,7 @@ namespace Circuit.Component {
 
             let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
             this.group.append(
-               new Svg.Elements.Graphics.Simples.Text(text, textPosition, undefined, "text").addClasses(anchorClass)
+               new Svg.Elements.Text(text, textPosition, undefined, "text").addClasses(anchorClass)
             );
          }
 

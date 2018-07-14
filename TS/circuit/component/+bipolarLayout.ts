@@ -78,8 +78,8 @@ namespace Circuit.Component {
             //Style and add lead and highlight
             //(Prepend so handles appear on top)
             this.group.prepend([
-               new Svg.Elements.Graphics.Simples.Path(leadPath, "lead"),
-               new Svg.Elements.Graphics.Complexes.BipolarBody(
+               new Svg.Elements.Path(leadPath, "lead"),
+               new Svg.Elements.Groups.BipolarBody(
                   this.joints[0], this.joints[1], this.joints[2], "body"
                ).setValue(this.type /*+ " (" + Circuit.Component.Generics.formatValueText(this.currentGain, '') + ")"*/)
             ]);

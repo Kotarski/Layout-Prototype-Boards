@@ -1,6 +1,6 @@
-namespace Svg.Elements.Graphics.Complexes {
-   export class BipolarBody extends Graphics.Complex {
-      text: Svg.Elements.Graphics.Simples.Text;
+namespace Svg.Elements.Groups {
+   export class BipolarBody extends Svg.Elements.Group {
+      text: Svg.Elements.Text;
       constructor(
          start: Global.Types.vector,
          middle: Global.Types.vector,
@@ -24,13 +24,11 @@ namespace Svg.Elements.Graphics.Complexes {
             "v " + (-3) +
             "Z";
 
-         this.element.appendChild(
-            new Svg.Elements.Graphics.Simples.Path(semiCircleString, "body highlight").element
-         );
-         this.text = new Svg.Elements.Graphics.Simples.Text("", { X: 0, Y: 4 }, false, "text");
-         this.element.appendChild(
-            this.text.element
-         );
+         this.text = new Svg.Elements.Text("", { X: 0, Y: 4 }, false, "text");
+         this.append([
+            new Svg.Elements.Path(semiCircleString, "body highlight"),
+            this.text
+         ]);
 
          this.translate({
             X: centre.X,

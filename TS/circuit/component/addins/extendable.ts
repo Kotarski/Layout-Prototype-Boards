@@ -12,7 +12,7 @@ namespace Circuit.Component.Addins.Extendable {
    }
 
    const refreshComponent = (component: extendableComponent) => {
-      component.group.clear(":not(.handle)");
+      component.group.clearChildren(":not(.handle)");
       component.makeConnectors();
       component.draw();
       // $(component.group.element).trigger("deselect");
@@ -66,10 +66,10 @@ namespace Circuit.Component.Addins.Extendable {
    };
 
    const addHandle = (component: extendableComponent, point: Global.Types.vector) => {
-      let dragHandle = new Svg.Elements.Graphics.Simples.Circle(point, 5, "handle dragHandle highlight highlightwithfill");
+      let dragHandle = new Svg.Elements.Circle(point, 5, "handle dragHandle highlight highlightwithfill");
       $(dragHandle.element).data('point', point);
       component.group.append(dragHandle);
-      dragHandle.setDraggable();
+      Svg.Addins.Draggable.init(dragHandle);
 
       $(dragHandle.element).on(Events.drag, (e, ui, drag: Global.Types.vector) => {
          point.X += drag.X;

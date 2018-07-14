@@ -63,11 +63,11 @@ namespace Circuit.Component {
             // Body & highlight
             let bodySize = (isHorizontal) ? { width: 46, height: 18 } : { width: 18, height: 46 };
 
-            this.group.append(new Svg.Elements.Graphics.Simples.Rect(
+            this.group.append(new Svg.Elements.Rect(
                { X: 0, Y: 0 }, bodySize, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"
             ));
 
-            this.group.append(new Svg.Elements.Graphics.Simples.Rect(
+            this.group.append(new Svg.Elements.Rect(
                { X: 0, Y: 0 }, bodySize, { X: 2, Y: 2 }, "body white"
             ));
 
@@ -76,15 +76,15 @@ namespace Circuit.Component {
             [lead1Start, lead2Start, lead1End, lead2End] = (isHorizontal)
                ? [{ X: -24, Y: 0 }, { X: 24, Y: 0 }, { X: -30, Y: 0 }, { X: 30, Y: 0 }]
                : [{ X: 0, Y: -24 }, { X: 0, Y: 24 }, { X: 0, Y: -30 }, { X: 0, Y: 30 }];
-            this.group.append(new Svg.Elements.Graphics.Simples.Line(lead1Start, lead1End, "line thin"));
-            this.group.append(new Svg.Elements.Graphics.Simples.Line(lead2Start, lead2End, "line thin"));
+            this.group.append(new Svg.Elements.Line(lead1Start, lead1End, "line thin"));
+            this.group.append(new Svg.Elements.Line(lead2Start, lead2End, "line thin"));
 
             //Text
             let textPosition = (isHorizontal) ? { X: 0, Y: -15 } : { X: -15, Y: 4 }
             let text = Utility.getStandardForm(this.resistance, 'Ω')
             let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
             this.group.append(
-               new Svg.Elements.Graphics.Simples.Text(text, textPosition, undefined, "text").addClasses(anchorClass)
+               new Svg.Elements.Text(text, textPosition, undefined, "text").addClasses(anchorClass)
             );
          }
 

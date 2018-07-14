@@ -56,9 +56,9 @@ namespace Circuit.Component {
 
          draw() {
             if (this.isDual) {
-               this.group.append(new Svg.Elements.Graphics.Complexes.dip(4, "", "TL072", ""));
+               this.group.append(new Svg.Elements.Groups.dip(4, "", "TL072", ""));
             } else {
-               this.group.append(new Svg.Elements.Graphics.Complexes.dip(4, "", "TL071", ""));
+               this.group.append(new Svg.Elements.Groups.dip(4, "", "TL071", ""));
             }
          }
 
@@ -97,7 +97,7 @@ namespace Circuit.Component {
 
          replaceWithDual() {
             this.isDual = true;
-            this.group.clear();
+            this.group.clearChildren();
             this.draw();
             this.makeConnectors();
          }

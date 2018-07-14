@@ -1,5 +1,5 @@
-namespace Svg.Elements.Graphics.Complexes {
-   export class dip extends Graphics.Complex {
+namespace Svg.Elements.Groups {
+   export class dip extends Svg.Elements.Group {
       //parent: Group;
       //digits: SimpleGraphic[][] = [];
       constructor(
@@ -35,19 +35,15 @@ namespace Svg.Elements.Graphics.Complexes {
 
          // let pinXBase = 0;
          for (let i = 0; i < pinsPerSide; i++) {
-            this.element.appendChild(new Svg.Elements.Graphics.Simples.Path(pinString, "pin").
-               scale({ X: 1, Y: -1 }).
-               translate({ X: gridSpacing * i, Y: 0 })
-               .element);
-            this.element.appendChild(new Svg.Elements.Graphics.Simples.Path(pinString, "pin").
-               translate({ X: gridSpacing * i, Y: 3 * gridSpacing })
-               .element);
+            this.append([
+               new Svg.Elements.Path(
+                  pinString, "pin"
+               ).scale({ X: 1, Y: -1 }).translate({ X: gridSpacing * i, Y: 0 }),
+               new Svg.Elements.Path(
+                  pinString, "pin"
+               ).translate({ X: gridSpacing * i, Y: 3 * gridSpacing })
+            ]);
          };
-
-         this.element.appendChild(new Svg.Elements.Graphics.Simples.Rect(centre, bodySize, {
-            X: 5,
-            Y: 5
-         }, "body").element);
 
          let notchString =
             "M " + (-0.5 * gridSpacing) + " " + (centre.Y) +
@@ -55,24 +51,14 @@ namespace Svg.Elements.Graphics.Complexes {
             "a " + (1) + " " + (1) + " " + (0) + " " + (0) + " " + (0) + " " + (0) + " " + (-16) +
             "Z";
 
-         this.element.appendChild(new Svg.Elements.Graphics.Simples.Path(notchString, "notch").element);
-
-         this.element.appendChild(new Svg.Elements.Graphics.Simples.Rect(centre, bodySize, {
-            X: 5,
-            Y: 5
-         }, "body highlight").element);
-
-
-         this.element.appendChild(new Svg.Elements.Graphics.Simples.Text(
-            textLineOne, { X: 0.25 * gridSpacing, Y: 1 * gridSpacing }, false, "text").element);
-         this.element.appendChild(new Svg.Elements.Graphics.Simples.Text(
-            textLineTwo, { X: 0.25 * gridSpacing, Y: 1.75 * gridSpacing }, false, "text").element);
-         this.element.appendChild(new Svg.Elements.Graphics.Simples.Text(
-            textLineThree, { X: 0.25 * gridSpacing, Y: 2.5 * gridSpacing }, false, "text").element);
-
-         // this.element.appendChild(
-         //    new Svg.Elements.Graphics.Simples.Path(bodyPath, "highlight nofill").element
-         // );
+         this.append([
+            new Svg.Elements.Rect(centre, bodySize, { X: 5, Y: 5 }, "body"),
+            new Svg.Elements.Path(notchString, "notch"),
+            new Svg.Elements.Rect(centre, bodySize, { X: 5, Y: 5 }, "body highlight"),
+            new Svg.Elements.Text(textLineOne, { X: 0.25 * gridSpacing, Y: 1 * gridSpacing }, false, "text"),
+            new Svg.Elements.Text(textLineTwo, { X: 0.25 * gridSpacing, Y: 1.75 * gridSpacing }, false, "text"),
+            new Svg.Elements.Text(textLineThree, { X: 0.25 * gridSpacing, Y: 2.5 * gridSpacing }, false, "text")
+         ]);
       }
 
       setValue(num: number) {

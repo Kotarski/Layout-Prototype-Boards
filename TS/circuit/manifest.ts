@@ -12,8 +12,8 @@ namespace Circuit {
             component.group.element.remove();
             return false;
          });
-         Active.layout.group.clear();
-         Active.schematic.group.clear();
+         Active.layout.group.clearChildren();
+         Active.schematic.group.clearChildren();
       }
 
       let activeBoard: (Component.Instance | undefined);

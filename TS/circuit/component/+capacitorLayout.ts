@@ -68,13 +68,13 @@ namespace Circuit.Component {
             //Style and add lead and highlight
             //(Prepend so handles appear on top)
             let capacitorBody = (this.isPolarised)
-               ? new Svg.Elements.Graphics.Complexes.CapacitorBodyElectrolytic(
+               ? new Svg.Elements.Groups.CapacitorBodyElectrolytic(
                   joints[0], joints[joints.length - 1], "bodyelectrolytic").setValue(this.capacitance)
-               : new Svg.Elements.Graphics.Complexes.CapacitorBodyCeramic(
+               : new Svg.Elements.Groups.CapacitorBodyCeramic(
                   joints[0], joints[joints.length - 1], "bodyceramic").setValue(this.capacitance)
 
             this.group.prepend([
-               new Svg.Elements.Graphics.Simples.Path(leadPath, "lead"),
+               new Svg.Elements.Path(leadPath, "lead"),
                capacitorBody
             ]);
 

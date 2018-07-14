@@ -105,46 +105,46 @@ namespace Circuit.Component {
 
       function drawPowerPositive(component: Instance) {
          let text = Utility.getStandardForm(component.voltage, "V")
-         component.group.append(new Svg.Elements.Graphics.Simples.Rect(
+         component.group.append(new Svg.Elements.Rect(
             { X: 0, Y: -8 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick")
          );
-         component.group.append(new Svg.Elements.Graphics.Simples.Line(
+         component.group.append(new Svg.Elements.Line(
             { X: -12, Y: -5 }, { X: 12, Y: -5 }, "line medium")
          );
-         component.group.append(new Svg.Elements.Graphics.Simples.Text(
+         component.group.append(new Svg.Elements.Text(
             text, { X: 0, Y: -9 }, true, "text bold")
          );
-         component.group.append(new Svg.Elements.Graphics.Simples.Line({ X: 0, Y: -5 }, { X: 0, Y: 10 }, "line thin"));
+         component.group.append(new Svg.Elements.Line({ X: 0, Y: -5 }, { X: 0, Y: 10 }, "line thin"));
       }
 
       function drawPowerNegative(component: Instance) {
          let text = Utility.getStandardForm(component.voltage, "V")
-         component.group.append(new Svg.Elements.Graphics.Simples.Rect(
+         component.group.append(new Svg.Elements.Rect(
             { X: 0, Y: 8 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick")
          );
-         component.group.append(new Svg.Elements.Graphics.Simples.Line(
+         component.group.append(new Svg.Elements.Line(
             { X: -12, Y: 5 }, { X: 12, Y: 5 }, "line medium")
          );
-         component.group.append(new Svg.Elements.Graphics.Simples.Text(
+         component.group.append(new Svg.Elements.Text(
             text, { X: 0, Y: 19 }, true, "text bold")
          );
-         component.group.append(new Svg.Elements.Graphics.Simples.Line({ X: 0, Y: 5 }, { X: 0, Y: -10 }, "line thin"));
+         component.group.append(new Svg.Elements.Line({ X: 0, Y: 5 }, { X: 0, Y: -10 }, "line thin"));
       }
 
       function drawPowerGround(component: Instance) {
-         component.group.append(new Svg.Elements.Graphics.Simples.Rect(
+         component.group.append(new Svg.Elements.Rect(
             { X: 0, Y: 5 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick")
          );
-         component.group.append(new Svg.Elements.Graphics.Simples.Line(
+         component.group.append(new Svg.Elements.Line(
             { X: -18, Y: 0 }, { X: 18, Y: 0 }, "line medium")
          );
-         component.group.append(new Svg.Elements.Graphics.Simples.Line(
+         component.group.append(new Svg.Elements.Line(
             { X: -12, Y: 5 }, { X: 12, Y: 5 }, "line medium")
          );
-         component.group.append(new Svg.Elements.Graphics.Simples.Line(
+         component.group.append(new Svg.Elements.Line(
             { X: -6, Y: 10 }, { X: 6, Y: 10 }, "line medium")
          );
-         component.group.append(new Svg.Elements.Graphics.Simples.Line({ X: 0, Y: 0 }, { X: 0, Y: -10 }, "line thin"));
+         component.group.append(new Svg.Elements.Line({ X: 0, Y: 0 }, { X: 0, Y: -10 }, "line thin"));
       }
 
       export const makeInstance = getMaker(Instance, defaultProperties, defaultState,

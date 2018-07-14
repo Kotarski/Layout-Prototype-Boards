@@ -8,12 +8,11 @@ namespace Circuit.Component.Addins.WireCreation {
       $(component.group.element).on("mouseenter", ".hole", (mOE) => {
          // Set the hole as draggable if it isn't already
          if (!$(mOE.target).draggable('instance')) {
-            component.group.setDraggable({
+            Svg.Addins.Draggable.init(component.group, {
                eventTarget: mOE.target as SVGGraphicsElement,
                disableMovement: true,
                styleClass: ""
             });
-
             let dragHandle: SVGGraphicsElement;
 
             // Create the wire, select it, and grab a handle (any is fine)
