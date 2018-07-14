@@ -64,45 +64,45 @@ namespace Circuit.Component {
             const scale = (this.orientation === "LR") ? { X: 1, Y: 1 } : { X: -1, Y: 1 };
 
             // Highlight
-            this.group.append(new Svg.Elements.Graphics.Simples.Circle(
+            this.group.append(new Svg.Elements.Circle(
                { X: 0, Y: 0 }, 30, "extrathick highlight"
             ).scale(scale, true));
 
             // Body lines
             this.group.append([
-               new Svg.Elements.Graphics.Simples.Line(
+               new Svg.Elements.Line(
                   { X: -15, Y: 0 }, { X: -50, Y: 0 }, "line thin"
                ).scale(scale), //stubBase
-               new Svg.Elements.Graphics.Simples.Line(
+               new Svg.Elements.Line(
                   { X: +10, Y: -20 }, { X: +10, Y: -50 }, "line thin"
                ).scale(scale), //stubCollector
-               new Svg.Elements.Graphics.Simples.Line(
+               new Svg.Elements.Line(
                   { X: +10, Y: +20 }, { X: +10, Y: +50 }, "line thin"
                ).scale(scale), //stubEmitter
-               new Svg.Elements.Graphics.Simples.Line(
+               new Svg.Elements.Line(
                   { X: -15, Y: -15 }, { X: -15, Y: +15 }, "line medium-thick nocap"
                ).scale(scale), //lineBase
-               new Svg.Elements.Graphics.Simples.Line(
+               new Svg.Elements.Line(
                   { X: -15, Y: -5 }, { X: +10, Y: -20 }, "line thin"
                ).scale(scale), //lineCollector
-               new Svg.Elements.Graphics.Simples.Line(
+               new Svg.Elements.Line(
                   { X: -15, Y: 5 }, { X: 10, Y: 20 }, "line thin"
                ).scale(scale)  //lineEmitter
             ]);
 
             // Body Triangle
             if (this.type === "PNP") {
-               this.group.append(new Svg.Elements.Graphics.Simples.Path(
+               this.group.append(new Svg.Elements.Path(
                   'M -7 0 L 7 6 L 7 -6 L -7 0 Z', "body black thin"
                ).translate({ X: -8, Y: -9.2 }).rotate(-31).scale(scale, true));
             } else {
-               this.group.append(new Svg.Elements.Graphics.Simples.Path(
+               this.group.append(new Svg.Elements.Path(
                   'M 7 0 L -7 6 L -7 -6 L 7 0 Z', "body black thin"
                ).translate({ X: 4, Y: 16.4 }).rotate(31).scale(scale, true));
             }
 
             // Body Circle
-            this.group.append(new Svg.Elements.Graphics.Simples.Circle(
+            this.group.append(new Svg.Elements.Circle(
                { X: 0, Y: 0 }, 30, "line medium nofill"
             ).scale(scale, true));
 
@@ -111,7 +111,7 @@ namespace Circuit.Component {
             let text = Utility.getStandardForm(this.currentGain, '')
             let anchorClass = (this.orientation === "LR") ? "anchorstart" : "anchorend";
             this.group.append(
-               new Svg.Elements.Graphics.Simples.Text(text, textPosition, undefined, "text").addClasses(anchorClass)
+               new Svg.Elements.Text(text, textPosition, undefined, "text").addClasses(anchorClass)
             );
          }
 
@@ -140,6 +140,7 @@ namespace Circuit.Component {
             }
          }
 
+         transferFunction() { return [] };
       }
 
       export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {

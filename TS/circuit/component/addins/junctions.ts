@@ -28,7 +28,7 @@ namespace Circuit.Component.Addins.Junctions {
             let ctm = Active.schematic.group.element.getCTM();
             point = (ctm) ? point.matrixTransform(ctm.inverse()) : point;
             component.group.prepend(
-               new Svg.Elements.Graphics.Simples.Circle({ X: point.x, Y: point.y }, 5, "junction black")
+               new Svg.Elements.Circle({ X: point.x, Y: point.y }, 5, "junction black")
             );
          }
       }));

@@ -1,5 +1,5 @@
-namespace Svg.Elements.Graphics.Simples {
-   export class Circle extends Svg.Elements.Graphics.Simple {
+namespace Svg.Elements {
+   export class Circle extends Svg.Element {
       constructor(centreVector: Global.Types.vector, radius: number, classes: string = "") {
          super('circle', classes);
          this.element.setAttribute("cx", centreVector.X.toString());

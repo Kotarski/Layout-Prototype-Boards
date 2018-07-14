@@ -70,35 +70,35 @@ namespace Circuit.Component {
 
             let bodyPath = "M-25 -25 L 25 0 L -25 25 L -25 -25 Z";
 
-            this.group.append(new Svg.Elements.Graphics.Simples.Path(
+            this.group.append(new Svg.Elements.Path(
                bodyPath, "highlight highlightwithfill extrathick").scale(inversionScale)
             );
 
-            this.group.append(new Svg.Elements.Graphics.Simples.Path(
+            this.group.append(new Svg.Elements.Path(
                bodyPath, "body white").scale(inversionScale)
             );
 
             //Plus
-            this.group.append(new Svg.Elements.Graphics.Simples.Line(
+            this.group.append(new Svg.Elements.Line(
                { X: -22, Y: -10 }, { X: -14, Y: -10 }, "line thin").scale(inversionScale)
             );
-            this.group.append(new Svg.Elements.Graphics.Simples.Line(
+            this.group.append(new Svg.Elements.Line(
                { X: -18, Y: -6 }, { X: -18, Y: -14 }, "line thin").scale(inversionScale)
             );
 
             //Minus
-            this.group.append(new Svg.Elements.Graphics.Simples.Line(
+            this.group.append(new Svg.Elements.Line(
                { X: -22, Y: +10 }, { X: -14, Y: +10 }, "line thin").scale(inversionScale)
             );
 
             //Leads
-            this.group.append(new Svg.Elements.Graphics.Simples.Line(
+            this.group.append(new Svg.Elements.Line(
                { X: -25, Y: -10 }, { X: -30, Y: -10 }, "line thin").scale(inversionScale)
             );
-            this.group.append(new Svg.Elements.Graphics.Simples.Line(
+            this.group.append(new Svg.Elements.Line(
                { X: -25, Y: 10 }, { X: -30, Y: 10 }, "line thin").scale(inversionScale)
             );
-            this.group.append(new Svg.Elements.Graphics.Simples.Line(
+            this.group.append(new Svg.Elements.Line(
                { X: 25, Y: 0 }, { X: 40, Y: 0 }, "line thin").scale(inversionScale)
             );
          }
@@ -119,6 +119,8 @@ namespace Circuit.Component {
                ]
             ];
          }
+
+         transferFunction() { return [] };
 
       }
 

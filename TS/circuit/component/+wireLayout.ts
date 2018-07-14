@@ -39,11 +39,6 @@ namespace Circuit.Component {
             this.group.addClasses("component " + this.name);
             this.joints = state.joints;
             this.color = state.color;
-            Addins.Draggable.init(this);
-            Addins.Selectable.init(this);
-            Addins.Extendable.init(this, true, true, true);
-            Addins.ConnectionHighlights.init(this);
-            Addins.Recolorable.init(this, () => getRecolorPosition(this), ".cover")
          }
 
          getProperties(): Types.properties {
@@ -87,13 +82,13 @@ namespace Circuit.Component {
             // Draw lead path to end
             leadPath += getSegmentTowardsJointMid(joints[joints.length - 2], joints[joints.length - 1], 1)
 
-            let cover = new Svg.Elements.Graphics.Simples.Path(coverPath, "cover");
+            let cover = new Svg.Elements.Path(coverPath, "cover");
 
             //Style and add lead, cover
             //(Prepend so handles appear on top)
             this.group.prepend([
-               new Svg.Elements.Graphics.Simples.Path(leadPath, "lead"),
-               new Svg.Elements.Graphics.Simples.Path(coverPath, "leadhighlight highlight"),
+               new Svg.Elements.Path(leadPath, "lead"),
+               new Svg.Elements.Path(coverPath, "leadhighlight highlight"),
                cover,
             ]);
 

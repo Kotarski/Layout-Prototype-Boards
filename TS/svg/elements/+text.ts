@@ -1,5 +1,5 @@
-namespace Svg.Elements.Graphics.Simples {
-   export class Text extends Svg.Elements.Graphics.Simple {
+namespace Svg.Elements {
+   export class Text extends Svg.Element {
       constructor(text: string, startVector: Global.Types.vector, rotateAnchor: boolean = false, classes: string = "") {
          super('text', classes);
          this.element.setAttribute('x', startVector.X.toString());

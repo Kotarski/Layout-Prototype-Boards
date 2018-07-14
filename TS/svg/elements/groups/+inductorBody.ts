@@ -1,5 +1,5 @@
-namespace Svg.Elements.Graphics.Complexes {
-   export class InductorBody extends Graphics.Complex {
+namespace Svg.Elements.Groups {
+   export class InductorBody extends Svg.Elements.Group {
       constructor(betweenStart: Global.Types.vector, betweenEnd: Global.Types.vector, classes: string = "") {
          super(classes);
          let centre = { X: (betweenStart.X + betweenEnd.X) / 2, Y: (betweenStart.Y + betweenEnd.Y) / 2 };
@@ -21,17 +21,11 @@ namespace Svg.Elements.Graphics.Complexes {
          }
          bodyPath += "L" + (-coilStart) + " " + (coilTop);
 
-         this.element.appendChild(new Svg.Elements.Graphics.Simples.Path(
-            bodyPath, "highlight highlightwithfill").element
-         );
-
-         this.element.appendChild(new Svg.Elements.Graphics.Simples.Path(
-            bodyPath, "body").element
-         );
-
-         this.element.appendChild(new Svg.Elements.Graphics.Simples.Path(
-            bodyEdgePath, "bodyEdge").element
-         );
+         this.append([
+            new Svg.Elements.Path(bodyPath, "highlight highlightwithfill"),
+            new Svg.Elements.Path(bodyPath, "body"),
+            new Svg.Elements.Path(bodyEdgePath, "bodyEdge")
+         ]);
 
          this.translate({ X: centre.X, Y: centre.Y }).rotate(rotation);
       }

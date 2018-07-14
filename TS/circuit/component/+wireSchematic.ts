@@ -52,7 +52,7 @@ namespace Circuit.Component {
             for (let j = 1; j < this.joints.length; j++) {
                pathString += " L " + this.joints[j].X + " " + +this.joints[j].Y;
             }
-            this.group.append(new Svg.Elements.Graphics.Simples.Path(pathString, "line thin"));
+            this.group.append(new Svg.Elements.Path(pathString, "line thin"));
          }
 
          /** Builds and draws the components connectors */

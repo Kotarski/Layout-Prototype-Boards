@@ -1,7 +1,7 @@
-namespace Svg.Elements.Graphics.Simples {
+namespace Svg.Elements {
    let textPathCount = 0;
-   export class TextPath extends Svg.Elements.Graphics.Simple {
-      constructor(text: Simples.Text, path: Simples.Path) {
+   export class TextPath extends Svg.Element {
+      constructor(text: Text, path: Path) {
          super('textPath');
 
          let pathID = path.element.getAttribute("id");

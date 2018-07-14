@@ -21,7 +21,7 @@ namespace Circuit.Component.Addins.ConnectionHighlights {
    const createConnectorHighlights = (component: Component.Instance, connection: Component.Types.connector, color: string) => {
       let ctm = component.group.element.getCTM();
       let point = (ctm) ? connection.point.matrixTransform(ctm.inverse()) : connection.point;
-      let highlight = new Svg.Elements.Graphics.Simples.Circle(
+      let highlight = new Svg.Elements.Circle(
          { X: point.x, Y: point.y }, 4, "highlight highlightwithfill connectivityhighlight"
       );
       $(highlight.element).css({ "fill": color, "stroke": color })

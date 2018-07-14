@@ -82,9 +82,7 @@ namespace Circuit.Component {
 
       /** ...
       */
-      transferFunction(from: Types.connector): Types.connector[] {
-         return [];
-      }
+      abstract transferFunction(from: Types.connector): Types.connector[];
 
    }
 

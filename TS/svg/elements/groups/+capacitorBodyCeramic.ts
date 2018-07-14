@@ -1,6 +1,6 @@
-namespace Svg.Elements.Graphics.Complexes {
-   export class CapacitorBodyCeramic extends Graphics.Complex {
-      text: Svg.Elements.Graphics.Simples.Text;
+namespace Svg.Elements.Groups {
+   export class CapacitorBodyCeramic extends Svg.Elements.Group {
+      text: Svg.Elements.Text;
       constructor(
          betweenStart: Global.Types.vector,
          betweenEnd: Global.Types.vector,
@@ -18,15 +18,12 @@ namespace Svg.Elements.Graphics.Complexes {
             180 /
             Math.PI;
 
+         this.text = new Svg.Elements.Text("", { X: 0, Y: 0 }, false, "text");
 
-         this.element.appendChild(
-            new Svg.Elements.Graphics.Simples.Ellipse({ X: 0, Y: 0 }, { X: 16, Y: 8 }, "body highlight nofill").element
-         );
-
-         this.text = new Svg.Elements.Graphics.Simples.Text("", { X: 0, Y: 0 }, false, "text");
-         this.element.appendChild(
-            this.text.element
-         );
+         this.append([
+            new Svg.Elements.Ellipse({ X: 0, Y: 0 }, { X: 16, Y: 8 }, "body highlight nofill"),
+            this.text
+         ]);
 
          this.translate({
             X: centre.X,

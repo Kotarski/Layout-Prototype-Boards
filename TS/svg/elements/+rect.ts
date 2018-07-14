@@ -1,5 +1,5 @@
-namespace Svg.Elements.Graphics.Simples {
-   export class Rect extends Svg.Elements.Graphics.Simple {
+namespace Svg.Elements {
+   export class Rect extends Svg.Element {
       constructor(centre: Global.Types.vector, size: Global.Types.size, cornerRounding: Global.Types.vector = { X: 0, Y: 0 }, classes: string = "") {
          super('rect', classes);
 

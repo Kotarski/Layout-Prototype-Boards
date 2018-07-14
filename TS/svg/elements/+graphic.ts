@@ -3,12 +3,5 @@ namespace Svg.Elements {
       constructor(type: string, classes: string = "") {
          super(type, classes);
       }
-
-      remove() {
-         if (this.parent !== undefined) {
-            this.parent.visualChildren = this.parent.visualChildren.filter(c => c !== this);
-         }
-         $(this.element).remove();
-      }
    }
 }

@@ -59,19 +59,19 @@ namespace Circuit.Component {
             let text = this.voltage.toFixed(1);
 
             this.group.append([
-               new Svg.Elements.Graphics.Simples.Rect(
+               new Svg.Elements.Rect(
                   { X: 0, Y: 5 }, { width: 180, height: 95 }, { X: 10, Y: 10 }, "body highlight"
                ),
-               new Svg.Elements.Graphics.Simples.Rect(
+               new Svg.Elements.Rect(
                   { X: 0, Y: -5 }, { width: 160, height: 65 }, { X: 10, Y: 10 }, "screen"
                ),
-               new Svg.Elements.Graphics.Simples.Text(
+               new Svg.Elements.Text(
                   "8".repeat(text.length - 1), { X: 0, Y: 20 }, false, "screentext off"
                ),
-               new Svg.Elements.Graphics.Simples.Text(
+               new Svg.Elements.Text(
                   text, { X: 0, Y: 20 }, false, "screentext on"
                ),
-               new Svg.Elements.Graphics.Simples.Circle(
+               new Svg.Elements.Circle(
                   { X: 0, Y: 40 }, 5, "hole"
                )
             ]);
@@ -83,6 +83,8 @@ namespace Circuit.Component {
                Component.Generics.makeConnector(this, "", "hole", { X: 0, Y: 40 })
             ]]
          }
+
+         transferFunction() { return [] };
 
       }
 

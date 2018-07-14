@@ -17,15 +17,14 @@ namespace Svg {
          this.element.appendChild(this.group.element);
          node.appendChild(this.element);
 
-         this.group
-            .setDraggable({
-               grid: "off",
-               eventTarget: this.element,
-               useHelper: true,
-            })
-            .setScalable({
-               eventTarget: this.element,
-            });
+         Svg.Addins.Draggable.init(this.group, {
+            grid: "off",
+            eventTarget: this.element,
+            useHelper: true,
+         });
+         Svg.Addins.Scaleable.init(this.group, {
+            eventTarget: this.element,
+         });
       }
    }
 }

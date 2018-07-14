@@ -68,7 +68,7 @@ namespace Circuit.Component {
             const centre = { X: (this.columns - 1) * gS / 2, Y: (this.rows - 1) * gS / 2 };
             const size = { width: (this.columns + 0.5) * gS, height: (this.rows + 0.5) * gS };
             const cornerRounding = { X: 3, Y: 3 };
-            this.group.append(new Svg.Elements.Graphics.Simples.Rect(
+            this.group.append(new Svg.Elements.Rect(
                centre, size, cornerRounding, "body highlight"
             ));
 
@@ -81,6 +81,8 @@ namespace Circuit.Component {
          insertInto(group: Svg.Elements.Group) {
             Utility.Insert.first(this.group.element, group.element);
          }
+
+         transferFunction() { return [] };
       }
 
       const makeTracks = (parent: Instance): Addins.Board.Track.Instance[] => {

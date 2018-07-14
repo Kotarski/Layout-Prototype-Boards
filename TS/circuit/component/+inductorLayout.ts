@@ -77,8 +77,8 @@ namespace Circuit.Component {
             //Style and add lead and highlight
             //(Prepend so handles appear on top)
             this.group.prepend([
-               new Svg.Elements.Graphics.Simples.Path(leadPath, "lead"),
-               new Svg.Elements.Graphics.Complexes.InductorBody(
+               new Svg.Elements.Path(leadPath, "lead"),
+               new Svg.Elements.Groups.InductorBody(
                   joints[0], joints[joints.length - 1], "body")//.setValue(this.breakdownVoltage)
             ]);
 
@@ -91,6 +91,8 @@ namespace Circuit.Component {
                Component.Generics.makeConnector(this, "", "pin", this.joints[this.joints.length - 1]),
             ]]
          }
+
+         transferFunction() { return [] };
 
       }
 
