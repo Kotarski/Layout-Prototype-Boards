@@ -213,13 +213,13 @@ var Circuit;
                         return getMinConnections(match);
                     });
                     if (Circuit.mappings.isUnique(layComponent)) {
-                        potentialMatchesConnectorSets = mergeConnectorsSets(potentialMatchesConnectorSets);
+                        potentialMatchesConnectorSets = [mergeConnectorsSets(potentialMatchesConnectorSets)];
                     }
                     potentialMatchesConnectorSets.forEach(matchConnectorSet => {
                         connectorSetMatches += matchConnectorSet.filter(potentialMatchConnections => {
                             if (layComponent.name === "power")
                                 console.log("potentialMatchConnections", potentialMatchConnections);
-                            return areConnectorsSame(connectorSet, potentialMatchConnections);
+                            return areConnectorSetsSame(connectorSet, potentialMatchConnections);
                         }).length;
                         if (connectorSetMatches) {
                             if (layComponent.name === "power")
@@ -256,10 +256,6 @@ var Circuit;
             activeBoard: activeBoard
         };
     })();
-    const areComponentsSimilar = (componentA, componentB) => {
-        return (componentA.name === componentB.name &&
-            arePropertiesEqual(componentA.getProperties(), componentB.getProperties()));
-    };
     const arePropertiesEqual = (A, B) => {
         let Akeys = Object.keys(A);
         let Bkeys = Object.keys(B);
@@ -267,6 +263,10 @@ var Circuit;
             Akeys.every(key => {
                 return (B.hasOwnProperty(key) && A[key] === B[key]);
             }));
+    };
+    const areComponentsSimilar = (componentA, componentB) => {
+        return (componentA.name === componentB.name &&
+            arePropertiesEqual(componentA.getProperties(), componentB.getProperties()));
     };
     const createMissingLayoutElements = () => {
         let layoutCopy = Circuit.manifest.layout.slice();
@@ -314,31 +314,26 @@ var Circuit;
         mergeSingleOpAmps();
     };
     const mergeConnectorSets = (connectorSets) => {
-        let flatConnectors = Utility.flatten2d(connectorSets);
-        let mergedConnectors = [];
-        while (flatConnectors.length) {
-            flatConnectors = flatConnectors.filter((connector, idx) => {
-                if (idx === 0 || (connector.name !== flatConnectors[0].name)) {
-                    return true;
+        return connectorSets.reduce((mergedConnectorSet, connectorSet) => {
+            connectorSet.forEach(connector => {
+                let found = mergedConnectorSet.find((mConnector) => mConnector.name === connector.name);
+                if (found) {
+                    found.connections.push(...connector.connections);
                 }
                 else {
-                    flatConnectors[0].connections.push(...connector.connections);
-                    return false;
+                    mergedConnectorSet.push(connector);
                 }
             });
-            mergedConnectors.push(flatConnectors[0]);
-            flatConnectors.shift();
-        }
-        return [mergedConnectors];
-    };
-    const mergeConnectorsSets = (connectorsSets) => {
-        let mergedSets = [];
-        connectorsSets.forEach(connectorSets => {
-            connectorSets.forEach((connectorSet, i) => {
-                mergedSets[i] = mergeConnectorSets((mergedSets[i] || []).concat(connectorSet));
-            });
+            return mergedConnectorSet;
         });
-        return mergedSets;
+    };
+    const mergeConnectorsSets = (connectorSetGroups) => {
+        return connectorSetGroups.reduce((mergedConnectorSetGroup, connectorSetGroup) => {
+            connectorSetGroup.forEach((connectorSet, i) => {
+                mergedConnectorSetGroup[i] = mergeConnectorSets([(mergedConnectorSetGroup[i] || []), connectorSet]);
+            });
+            return mergedConnectorSetGroup;
+        });
     };
     const getMinConnections = (component) => {
         return (component.getConnections().map(connectorSet => {
@@ -355,40 +350,17 @@ var Circuit;
             });
         }));
     };
-    const areConnectionsSame = (connectionA, connectionB) => {
-        return (connectionA.name === connectionB.name
-            && connectionA.component.name === connectionB.component.name
-            && arePropertiesEqual(connectionA.component.getProperties(), connectionB.component.getProperties()));
-    };
-    const areConnectorConnectionsSame = (connectorA, connectorB) => {
-        let connectionsA = connectorA.connections;
-        let connectionsB = connectorB.connections;
-        if (connectorA.name !== connectorB.name)
-            return false;
-        let allAConnectionsAreSimilar = connectionsA.every(connectionA => {
-            let match = connectionsB.find(connectionB => {
-                return areConnectionsSame(connectionA, connectionB);
+    const areConnectorSetsSame = (connectorSetA, connectorSetB) => {
+        return Utility.haveOneToOne(connectorSetA, connectorSetB, (connectorA, connectorB) => {
+            if (connectorA.name !== connectorB.name)
+                return false;
+            const connectionsA = connectorA.connections;
+            const connectionsB = connectorB.connections;
+            return Utility.haveOneToOne(connectionsA, connectionsB, (connectionA, connectionB) => {
+                return (connectionA.name === connectionB.name
+                    && areComponentsSimilar(connectionA.component, connectionB.component));
             });
-            connectionsB = connectionsB.filter(connectorB => {
-                return (connectorB !== match);
-            });
-            return (match !== undefined);
         });
-        let allBConnectionsAreMapped = (connectionsB.length === 0);
-        return (allAConnectionsAreSimilar && allBConnectionsAreMapped);
-    };
-    const areConnectorsSame = (connectorsA, connectorsB) => {
-        let allAConnectorsAreSimilar = connectorsA.every(connectorA => {
-            let match = connectorsB.find(connectorB => {
-                return areConnectorConnectionsSame(connectorA, connectorB);
-            });
-            connectorsB = connectorsB.filter(connectorB => {
-                return (connectorB !== match);
-            });
-            return (match !== undefined);
-        });
-        let allBConnectorsAreMapped = (connectorsB.length === 0);
-        return (allAConnectorsAreSimilar && allBConnectorsAreMapped);
     };
 })(Circuit || (Circuit = {}));
 var Circuit;
@@ -948,6 +920,19 @@ var Utility;
 })(Utility || (Utility = {}));
 var Utility;
 (function (Utility) {
+    function haveOneToOne(A, B, predicate) {
+        const isPredicateMatchForAllA = A.every(elA => {
+            let match = B.find(elB => predicate(elA, elB));
+            B = B.filter(elB => elB !== match);
+            return (match !== undefined);
+        });
+        const allBMatched = (B.length === 0);
+        return (isPredicateMatchForAllA && allBMatched);
+    }
+    Utility.haveOneToOne = haveOneToOne;
+})(Utility || (Utility = {}));
+var Utility;
+(function (Utility) {
     function pointsAreClose(vectorA, vectorB, closeBoundary = 1) {
         return (Math.abs(vectorA.x - vectorB.x) < closeBoundary &&
             Math.abs(vectorA.y - vectorB.y) < closeBoundary);
@@ -1173,7 +1158,7 @@ var Circuit;
                     let textPosition = (this.orientation === "LR") ? { X: 32, Y: 4 } : { X: -32, Y: 4 };
                     let text = Utility.getStandardForm(this.currentGain, '');
                     let anchorClass = (this.orientation === "LR") ? "anchorstart" : "anchorend";
-                    this.group.append(new Svg.Elements.Text(text, textPosition, undefined, "text").addClasses(anchorClass));
+                    this.group.append(new Svg.Elements.Text(text, textPosition, "text").addClasses(anchorClass));
                 }
                 makeConnectors() {
                     let con1Pos, con2Pos, con3Pos;
@@ -1582,7 +1567,7 @@ var Circuit;
                     leadPath = "M " + joints[0].X + " " + joints[0].Y;
                     leadPath += "L " + joints[joints.length - 1].X + " " + joints[joints.length - 1].Y;
                     let capacitorBody = (this.isPolarised)
-                        ? new Svg.Elements.Groups.CapacitorBodyElectrolytic(joints[0], joints[joints.length - 1], "bodyelectrolytic").setValue(this.capacitance)
+                        ? new Svg.Elements.Groups.CapacitorBodyElectrolytic(this.capacitance, joints[0], joints[joints.length - 1], "bodyelectrolytic")
                         : new Svg.Elements.Groups.CapacitorBodyCeramic(joints[0], joints[joints.length - 1], "bodyceramic").setValue(this.capacitance);
                     this.group.prepend([
                         new Svg.Elements.Path(leadPath, "lead"),
@@ -1692,7 +1677,7 @@ var Circuit;
                     let textPosition = (isHorizontal) ? { X: 0, Y: -20 } : { X: -20, Y: 4 };
                     let text = Utility.getStandardForm(this.capacitance, 'F');
                     let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
-                    this.group.append(new Svg.Elements.Text(text, textPosition, undefined, "text").addClasses(anchorClass));
+                    this.group.append(new Svg.Elements.Text(text, textPosition, "text").addClasses(anchorClass));
                     if (this.isPolarised) {
                         let isLRorUD = ["LR", "UD"].includes(this.orientation);
                         let plus1Start, plus2Start, plus1End, plus2End;
@@ -1918,7 +1903,7 @@ var Circuit;
                         ? Utility.getStandardForm(this.breakdownVoltage, 'V')
                         : Utility.getStandardForm(this.saturationCurrent, 'A');
                     let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
-                    this.group.append(new Svg.Elements.Text(text, textPosition, undefined, "text").addClasses(anchorClass));
+                    this.group.append(new Svg.Elements.Text(text, textPosition, "text").addClasses(anchorClass));
                 }
                 makeConnectors() {
                     let isHorizontal = ["LR", "RL"].includes(this.orientation);
@@ -2132,7 +2117,7 @@ var Circuit;
                     let textPosition = (isHorizontal) ? { X: 0, Y: -13 } : { X: -13, Y: 4 };
                     let text = Utility.getStandardForm(this.inductance, 'H');
                     let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
-                    this.group.append(new Svg.Elements.Text(text, textPosition, undefined, "text").addClasses(anchorClass));
+                    this.group.append(new Svg.Elements.Text(text, textPosition, "text").addClasses(anchorClass));
                 }
                 makeConnectors() {
                     let isHorizontal = ["LR", "RL"].includes(this.orientation);
@@ -2453,8 +2438,8 @@ var Circuit;
                     this.group.append([
                         new Svg.Elements.Rect({ X: 0, Y: 5 }, { width: 180, height: 95 }, { X: 10, Y: 10 }, "body highlight"),
                         new Svg.Elements.Rect({ X: 0, Y: -5 }, { width: 160, height: 65 }, { X: 10, Y: 10 }, "screen"),
-                        new Svg.Elements.Text("8".repeat(text.length - 1), { X: 0, Y: 20 }, false, "screentext off"),
-                        new Svg.Elements.Text(text, { X: 0, Y: 20 }, false, "screentext on"),
+                        new Svg.Elements.Text("8".repeat(text.length - 1), { X: 0, Y: 20 }, "screentext off"),
+                        new Svg.Elements.Text(text, { X: 0, Y: 20 }, "screentext on"),
                         new Svg.Elements.Circle({ X: 0, Y: 40 }, 5, "hole")
                     ]);
                 }
@@ -2585,24 +2570,30 @@ var Circuit;
             };
             function drawPowerPositive(component) {
                 let text = Utility.getStandardForm(component.voltage, "V");
-                component.group.append(new Svg.Elements.Rect({ X: 0, Y: -8 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"));
-                component.group.append(new Svg.Elements.Line({ X: -12, Y: -5 }, { X: 12, Y: -5 }, "line medium"));
-                component.group.append(new Svg.Elements.Text(text, { X: 0, Y: -9 }, true, "text bold"));
-                component.group.append(new Svg.Elements.Line({ X: 0, Y: -5 }, { X: 0, Y: 10 }, "line thin"));
+                component.group.append([
+                    new Svg.Elements.Rect({ X: 0, Y: -8 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"),
+                    new Svg.Elements.Line({ X: -12, Y: -5 }, { X: 12, Y: -5 }, "line medium"),
+                    new Svg.Elements.Text(text, { X: 0, Y: -9 }, "text bold"),
+                    new Svg.Elements.Line({ X: 0, Y: -5 }, { X: 0, Y: 10 }, "line thin")
+                ]);
             }
             function drawPowerNegative(component) {
                 let text = Utility.getStandardForm(component.voltage, "V");
-                component.group.append(new Svg.Elements.Rect({ X: 0, Y: 8 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"));
-                component.group.append(new Svg.Elements.Line({ X: -12, Y: 5 }, { X: 12, Y: 5 }, "line medium"));
-                component.group.append(new Svg.Elements.Text(text, { X: 0, Y: 19 }, true, "text bold"));
-                component.group.append(new Svg.Elements.Line({ X: 0, Y: 5 }, { X: 0, Y: -10 }, "line thin"));
+                component.group.append([
+                    new Svg.Elements.Rect({ X: 0, Y: 8 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"),
+                    new Svg.Elements.Line({ X: -12, Y: 5 }, { X: 12, Y: 5 }, "line medium"),
+                    new Svg.Elements.Text(text, { X: 0, Y: 19 }, "text bold"),
+                    new Svg.Elements.Line({ X: 0, Y: 5 }, { X: 0, Y: -10 }, "line thin")
+                ]);
             }
             function drawPowerGround(component) {
-                component.group.append(new Svg.Elements.Rect({ X: 0, Y: 5 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"));
-                component.group.append(new Svg.Elements.Line({ X: -18, Y: 0 }, { X: 18, Y: 0 }, "line medium"));
-                component.group.append(new Svg.Elements.Line({ X: -12, Y: 5 }, { X: 12, Y: 5 }, "line medium"));
-                component.group.append(new Svg.Elements.Line({ X: -6, Y: 10 }, { X: 6, Y: 10 }, "line medium"));
-                component.group.append(new Svg.Elements.Line({ X: 0, Y: 0 }, { X: 0, Y: -10 }, "line thin"));
+                component.group.append([
+                    new Svg.Elements.Rect({ X: 0, Y: 5 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"),
+                    new Svg.Elements.Line({ X: -18, Y: 0 }, { X: 18, Y: 0 }, "line medium"),
+                    new Svg.Elements.Line({ X: -12, Y: 5 }, { X: 12, Y: 5 }, "line medium"),
+                    new Svg.Elements.Line({ X: -6, Y: 10 }, { X: 6, Y: 10 }, "line medium"),
+                    new Svg.Elements.Line({ X: 0, Y: 0 }, { X: 0, Y: -10 }, "line thin")
+                ]);
             }
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 component.group.addClasses("component " + component.name);
@@ -2751,7 +2742,7 @@ var Circuit;
                     let textPosition = (isHorizontal) ? { X: 0, Y: -15 } : { X: -15, Y: 4 };
                     let text = Utility.getStandardForm(this.resistance, 'Ω');
                     let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
-                    this.group.append(new Svg.Elements.Text(text, textPosition, undefined, "text").addClasses(anchorClass));
+                    this.group.append(new Svg.Elements.Text(text, textPosition, "text").addClasses(anchorClass));
                 }
                 makeConnectors() {
                     let isHorizontal = ["LR", "RL"].includes(this.orientation);
@@ -20350,38 +20341,31 @@ var Svg;
 (function (Svg) {
     var Elements;
     (function (Elements) {
+        let textPathCount = 0;
         class Text extends Svg.Element {
-            constructor(text, startVector, rotateAnchor = false, classes = "") {
+            constructor(text, startVector, classes = "") {
                 super('text', classes);
                 this.element.setAttribute('x', startVector.X.toString());
                 this.element.setAttribute('y', startVector.Y.toString());
                 this.element.appendChild(document.createTextNode(text));
             }
-        }
-        Elements.Text = Text;
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Elements;
-    (function (Elements) {
-        let textPathCount = 0;
-        class TextPath extends Svg.Element {
-            constructor(text, path) {
-                super('textPath');
-                let pathID = path.element.getAttribute("id");
-                if (!pathID) {
-                    pathID = "pathForText" + textPathCount;
-                    path.element.setAttribute("id", pathID);
-                    textPathCount += 1;
-                }
-                this.element.setAttribute("href", "#" + pathID);
-                let textContent = text.element.textContent || "";
-                this.element.appendChild(document.createTextNode(textContent));
-                $(text.element).append(this.element);
+            followPath(pathString) {
+                let path = new Elements.Path(pathString);
+                $(path.element).hide();
+                let pathID = "pathForText" + textPathCount;
+                path.element.setAttribute("id", pathID);
+                textPathCount += 1;
+                let textPathEl = Svg.makeSVGElement("textPath");
+                textPathEl.setAttribute("href", "#" + pathID);
+                let text = $(this.element).text();
+                $(this.element).text("");
+                textPathEl.appendChild(document.createTextNode(text));
+                this.element.appendChild(path.element);
+                this.element.appendChild(textPathEl);
+                return this;
             }
         }
-        Elements.TextPath = TextPath;
+        Elements.Text = Text;
     })(Elements = Svg.Elements || (Svg.Elements = {}));
 })(Svg || (Svg = {}));
 var Utility;
@@ -21280,7 +21264,7 @@ var Svg;
                         "h " + (32) +
                         "v " + (-3) +
                         "Z";
-                    this.text = new Svg.Elements.Text("", { X: 0, Y: 4 }, false, "text");
+                    this.text = new Svg.Elements.Text("", { X: 0, Y: 4 }, "text");
                     this.append([
                         new Svg.Elements.Path(semiCircleString, "body highlight"),
                         this.text
@@ -21315,7 +21299,7 @@ var Svg;
                     let rotation = Math.atan2(centre.Y - betweenStart.Y, centre.X - betweenStart.X) *
                         180 /
                         Math.PI;
-                    this.text = new Svg.Elements.Text("", { X: 0, Y: 0 }, false, "text");
+                    this.text = new Svg.Elements.Text("", { X: 0, Y: 0 }, "text");
                     this.append([
                         new Svg.Elements.Ellipse({ X: 0, Y: 0 }, { X: 16, Y: 8 }, "body highlight nofill"),
                         this.text
@@ -21341,37 +21325,28 @@ var Svg;
         var Groups;
         (function (Groups) {
             class CapacitorBodyElectrolytic extends Svg.Elements.Group {
-                constructor(betweenStart, betweenEnd, classes = "") {
+                constructor(value, betweenStart, betweenEnd, classes = "") {
                     super(classes);
-                    let centre = {
+                    const centre = {
                         X: (betweenStart.X + betweenEnd.X) / 2,
                         Y: (betweenStart.Y + betweenEnd.Y) / 2
                     };
-                    let rotation = Math.atan2(centre.Y - betweenStart.Y, centre.X - betweenStart.X) *
+                    const rotation = Math.atan2(centre.Y - betweenStart.Y, centre.X - betweenStart.X) *
                         180 /
                         Math.PI;
+                    const text = Utility.getStandardForm(value, 'F');
                     const bodyArcEndPoint = 14 / Math.SQRT2;
                     const textArcEndPoint = 12.5 / Math.SQRT2;
-                    let bodyPathString = "m14 0 A14 14 0 1 0 " + (bodyArcEndPoint) + " " + (bodyArcEndPoint);
-                    let minusPathString = "m14 0 A14 14 0 0 1 " + (bodyArcEndPoint) + " " + (bodyArcEndPoint);
-                    let pathForTextString = "m" + (textArcEndPoint) + " " + (textArcEndPoint) + "A12.5 12.5 0 1 1 12.5 0";
-                    let pathForText = new Svg.Elements.Path(pathForTextString, "hidden").rotate(157.5);
-                    let text = new Svg.Elements.Text("", { X: 1, Y: 0 }, false, "text");
-                    this.textPath = new Svg.Elements.TextPath(text, pathForText);
+                    const bodyPathString = "m14 0 A14 14 0 1 0 " + (bodyArcEndPoint) + " " + (bodyArcEndPoint);
+                    const minusPathString = "m14 0 A14 14 0 0 1 " + (bodyArcEndPoint) + " " + (bodyArcEndPoint);
+                    const pathForTextString = "m" + (textArcEndPoint) + " " + (textArcEndPoint) + "A12.5 12.5 0 1 1 12.5 0";
                     this.append([
                         new Svg.Elements.Circle({ X: 0, Y: 0 }, 16, "highlight nofill"),
                         new Svg.Elements.Path(bodyPathString, "body").rotate(157.5),
                         new Svg.Elements.Path(minusPathString, "minus").rotate(157.5),
-                        text
+                        new Svg.Elements.Text(text, { X: 1, Y: 0 }, "text").followPath(pathForTextString).rotate(157.5)
                     ]);
-                    this.translate({
-                        X: centre.X,
-                        Y: centre.Y
-                    }).rotate(rotation);
-                }
-                setValue(num) {
-                    $(this.textPath.element).text(Utility.getStandardForm(num, 'F'));
-                    return this;
+                    this.translate({ X: centre.X, Y: centre.Y }).rotate(rotation);
                 }
             }
             Groups.CapacitorBodyElectrolytic = CapacitorBodyElectrolytic;
@@ -21447,9 +21422,9 @@ var Svg;
                         new Svg.Elements.Rect(centre, bodySize, { X: 5, Y: 5 }, "body"),
                         new Svg.Elements.Path(notchString, "notch"),
                         new Svg.Elements.Rect(centre, bodySize, { X: 5, Y: 5 }, "body highlight"),
-                        new Svg.Elements.Text(textLineOne, { X: 0.25 * gridSpacing, Y: 1 * gridSpacing }, false, "text"),
-                        new Svg.Elements.Text(textLineTwo, { X: 0.25 * gridSpacing, Y: 1.75 * gridSpacing }, false, "text"),
-                        new Svg.Elements.Text(textLineThree, { X: 0.25 * gridSpacing, Y: 2.5 * gridSpacing }, false, "text")
+                        new Svg.Elements.Text(textLineOne, { X: 0.25 * gridSpacing, Y: 1 * gridSpacing }, "text"),
+                        new Svg.Elements.Text(textLineTwo, { X: 0.25 * gridSpacing, Y: 1.75 * gridSpacing }, "text"),
+                        new Svg.Elements.Text(textLineThree, { X: 0.25 * gridSpacing, Y: 2.5 * gridSpacing }, "text")
                     ]);
                 }
                 setValue(num) {
@@ -21625,7 +21600,7 @@ var Svg;
                         textArray = [...Array(sequence.length).keys()].map(v => (v + sequence.start).toString());
                     }
                     for (let [i, txt] of textArray.entries()) {
-                        this.append(new Svg.Elements.Text(txt, { X: gap.X * i, Y: gap.Y * i }, false, "text"));
+                        this.append(new Svg.Elements.Text(txt, { X: gap.X * i, Y: gap.Y * i }, "text"));
                     }
                     this.translate({
                         X: start.X,

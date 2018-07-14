@@ -98,13 +98,13 @@ namespace Circuit {
                });
 
                if (mappings.isUnique(layComponent)) {
-                  potentialMatchesConnectorSets = mergeConnectorsSets(potentialMatchesConnectorSets)
+                  potentialMatchesConnectorSets = [mergeConnectorsSets(potentialMatchesConnectorSets)];
                }
                potentialMatchesConnectorSets.forEach(matchConnectorSet => {
 
                   connectorSetMatches += matchConnectorSet.filter(potentialMatchConnections => {
                      if (layComponent.name === "power") console.log("potentialMatchConnections", potentialMatchConnections)
-                     return areConnectorsSame(connectorSet, potentialMatchConnections)
+                     return areConnectorSetsSame(connectorSet, potentialMatchConnections)
                   }).length;
 
                   if (connectorSetMatches) {
@@ -144,21 +144,20 @@ namespace Circuit {
       }
    })();
 
-   const areComponentsSimilar = (componentA: Component.Instance, componentB: Component.Instance): boolean => {
-      return (componentA.name === componentB.name &&
-         arePropertiesEqual(componentA.getProperties(), componentB.getProperties()));
-   };
 
    type connection = {
       name: string;
       component: Component.Instance;
    }
-
-
    type connector = {
       name: string;
       connections: connection[];
    }
+   type connectorSet = connector[];
+   type connectorSetGroup = connectorSet[];
+   type connectorSetGroups = connectorSetGroup[];
+
+
 
    const arePropertiesEqual = (A: Component.Types.properties, B: Component.Types.properties) => {
       let Akeys = Object.keys(A);
@@ -170,6 +169,12 @@ namespace Circuit {
          })
       )
    }
+
+   const areComponentsSimilar = (componentA: Component.Instance, componentB: Component.Instance): boolean => {
+      return (componentA.name === componentB.name &&
+         arePropertiesEqual(componentA.getProperties(), componentB.getProperties()));
+   };
+
 
    const createMissingLayoutElements = () => {
       let layoutCopy = manifest.layout.slice();
@@ -224,36 +229,35 @@ namespace Circuit {
       mergeSingleOpAmps();
    }
 
-
-   const mergeConnectorSets = (connectorSets: connector[][]): connector[][] => {
-      let flatConnectors = Utility.flatten2d(connectorSets);
-      let mergedConnectors: connector[] = [];
-      while (flatConnectors.length) {
-         flatConnectors = flatConnectors.filter((connector, idx) => {
-            if (idx === 0 || (connector.name !== flatConnectors[0].name)) {
-               return true;
+   const mergeConnectorSets = (connectorSets: connectorSetGroup): connectorSet => {
+      // Reduce group to set
+      return connectorSets.reduce((mergedConnectorSet, connectorSet) => {
+         // Check each connector in set
+         connectorSet.forEach(connector => {
+            // If merged includes connector, merge, otherwise add 
+            let found = mergedConnectorSet.find((mConnector) => mConnector.name === connector.name);
+            if (found) {
+               found.connections.push(...connector.connections)
             } else {
-               flatConnectors[0].connections.push(...connector.connections)
-               return false;
+               mergedConnectorSet.push(connector);
             }
          });
-         mergedConnectors.push(flatConnectors[0])
-         flatConnectors.shift();
-      }
-      return [mergedConnectors];
-   }
-
-   const mergeConnectorsSets = (connectorsSets: connector[][][]): connector[][][] => {
-      let mergedSets: connector[][][] = [];
-      connectorsSets.forEach(connectorSets => {
-         connectorSets.forEach((connectorSet, i) => {
-            mergedSets[i] = mergeConnectorSets((mergedSets[i] || []).concat(connectorSet))
-         });
+         return mergedConnectorSet;
       });
-      return mergedSets
    }
 
-   const getMinConnections = (component: Component.Instance): connector[][] => {
+   const mergeConnectorsSets = (connectorSetGroups: connectorSetGroups): connectorSetGroup => {
+      return connectorSetGroups.reduce((mergedConnectorSetGroup, connectorSetGroup) => {
+         connectorSetGroup.forEach((connectorSet, i) => {
+            mergedConnectorSetGroup[i] = mergeConnectorSets(
+               [(mergedConnectorSetGroup[i] || []), connectorSet]
+            );
+         });
+         return mergedConnectorSetGroup;
+      });
+   }
+
+   const getMinConnections = (component: Component.Instance): connectorSetGroup => {
       return (component.getConnections().map(connectorSet => {
          return connectorSet.map(connections => {
             let connectorName = connections[0].name;
@@ -271,47 +275,24 @@ namespace Circuit {
       }));
    }
 
-   const areConnectionsSame = (connectionA: connection, connectionB: connection): boolean => {
-      return (
-         connectionA.name === connectionB.name
-         && connectionA.component.name === connectionB.component.name
-         && arePropertiesEqual(connectionA.component.getProperties(), connectionB.component.getProperties())
-      );
-   };
+   const areConnectorSetsSame = (connectorSetA: connectorSet, connectorSetB: connectorSet): boolean => {
+      // Returns true if both connector sets have the same set of connectors 
+      // connected to the same set of connections...
 
-   const areConnectorConnectionsSame = (connectorA: connector, connectorB: connector): boolean => {
-      let connectionsA = connectorA.connections;
-      let connectionsB = connectorB.connections;
-      if (connectorA.name !== connectorB.name) return false;
-      let allAConnectionsAreSimilar = connectionsA.every(connectionA => {
-         let match = connectionsB.find(connectionB => {
-            return areConnectionsSame(connectionA, connectionB);
-         });
-         connectionsB = connectionsB.filter(connectorB => {
-            return (connectorB !== match);
-         });
-         return (match !== undefined);
+      // Every connector in each connector set has a match in the corresponding set.
+      return Utility.haveOneToOne(connectorSetA, connectorSetB, (connectorA, connectorB) => {
+         if (connectorA.name !== connectorB.name) return false;
+         const connectionsA = connectorA.connections;
+         const connectionsB = connectorB.connections;
+         // Every connection in each connector has a match in the corresponding connector
+         return Utility.haveOneToOne(connectionsA, connectionsB, (connectionA, connectionB) => {
+            // Connections are the same if:
+            return (
+               connectionA.name === connectionB.name
+               && areComponentsSimilar(connectionA.component, connectionB.component)
+            );
+         })
       });
-
-      let allBConnectionsAreMapped = (connectionsB.length === 0);
-      //console.log([connectorA], [connectorB], allAConnectionsAreSimilar, allBConnectionsAreMapped)
-      return (allAConnectionsAreSimilar && allBConnectionsAreMapped)
-   };
-
-   const areConnectorsSame = (connectorsA: connector[], connectorsB: connector[]): boolean => {
-      let allAConnectorsAreSimilar = connectorsA.every(connectorA => {
-         let match = connectorsB.find(connectorB => {
-            return areConnectorConnectionsSame(connectorA, connectorB);
-         });
-         connectorsB = connectorsB.filter(connectorB => {
-            return (connectorB !== match);
-         });
-         return (match !== undefined);
-      });
-
-      let allBConnectorsAreMapped = (connectorsB.length === 0);
-      //console.log([connectorsA], [connectorsB], allAConnectorsAreSimilar, allBConnectorsAreMapped)
-      return (allAConnectorsAreSimilar && allBConnectorsAreMapped)
    }
 
 

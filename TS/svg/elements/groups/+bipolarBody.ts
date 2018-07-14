@@ -24,7 +24,7 @@ namespace Svg.Elements.Groups {
             "v " + (-3) +
             "Z";
 
-         this.text = new Svg.Elements.Text("", { X: 0, Y: 4 }, false, "text");
+         this.text = new Svg.Elements.Text("", { X: 0, Y: 4 }, "text");
          this.append([
             new Svg.Elements.Path(semiCircleString, "body highlight"),
             this.text

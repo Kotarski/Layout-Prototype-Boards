@@ -111,7 +111,7 @@ namespace Circuit.Component {
             let text = Utility.getStandardForm(this.currentGain, '')
             let anchorClass = (this.orientation === "LR") ? "anchorstart" : "anchorend";
             this.group.append(
-               new Svg.Elements.Text(text, textPosition, undefined, "text").addClasses(anchorClass)
+               new Svg.Elements.Text(text, textPosition, "text").addClasses(anchorClass)
             );
          }
 

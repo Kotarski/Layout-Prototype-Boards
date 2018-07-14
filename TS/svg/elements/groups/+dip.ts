@@ -55,9 +55,9 @@ namespace Svg.Elements.Groups {
             new Svg.Elements.Rect(centre, bodySize, { X: 5, Y: 5 }, "body"),
             new Svg.Elements.Path(notchString, "notch"),
             new Svg.Elements.Rect(centre, bodySize, { X: 5, Y: 5 }, "body highlight"),
-            new Svg.Elements.Text(textLineOne, { X: 0.25 * gridSpacing, Y: 1 * gridSpacing }, false, "text"),
-            new Svg.Elements.Text(textLineTwo, { X: 0.25 * gridSpacing, Y: 1.75 * gridSpacing }, false, "text"),
-            new Svg.Elements.Text(textLineThree, { X: 0.25 * gridSpacing, Y: 2.5 * gridSpacing }, false, "text")
+            new Svg.Elements.Text(textLineOne, { X: 0.25 * gridSpacing, Y: 1 * gridSpacing }, "text"),
+            new Svg.Elements.Text(textLineTwo, { X: 0.25 * gridSpacing, Y: 1.75 * gridSpacing }, "text"),
+            new Svg.Elements.Text(textLineThree, { X: 0.25 * gridSpacing, Y: 2.5 * gridSpacing }, "text")
          ]);
       }
 

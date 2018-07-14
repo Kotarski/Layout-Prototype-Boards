@@ -66,10 +66,10 @@ namespace Circuit.Component {
                   { X: 0, Y: -5 }, { width: 160, height: 65 }, { X: 10, Y: 10 }, "screen"
                ),
                new Svg.Elements.Text(
-                  "8".repeat(text.length - 1), { X: 0, Y: 20 }, false, "screentext off"
+                  "8".repeat(text.length - 1), { X: 0, Y: 20 }, "screentext off"
                ),
                new Svg.Elements.Text(
-                  text, { X: 0, Y: 20 }, false, "screentext on"
+                  text, { X: 0, Y: 20 }, "screentext on"
                ),
                new Svg.Elements.Circle(
                   { X: 0, Y: 40 }, 5, "hole"
