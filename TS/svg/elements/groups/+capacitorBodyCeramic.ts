@@ -18,12 +18,12 @@ namespace Svg.Elements.Groups {
             180 /
             Math.PI;
 
-         this.text = new Svg.Elements.Text("", { X: 0, Y: 0 }, false, "text");
+         this.text = new Svg.Elements.Text("", { X: 0, Y: 0 }, "text");
 
-         this.append([
+         this.append(
             new Svg.Elements.Ellipse({ X: 0, Y: 0 }, { X: 16, Y: 8 }, "body highlight nofill"),
             this.text
-         ]);
+         );
 
          this.translate({
             X: centre.X,

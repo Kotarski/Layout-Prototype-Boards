@@ -25,14 +25,14 @@ namespace Svg.Elements.Groups {
             "c-15 +8 -15 -20 0 -12" +
             "Z";
 
-         this.append([
+         this.append(
             new Svg.Elements.Path(bodyPath, "body"),
             new Svg.Elements.Rect({ X: -17.5, Y: 0 }, { width: 3, height: 18 }, undefined, "band1"),
             new Svg.Elements.Rect({ X: -11, Y: 0 }, { width: 3, height: 12 }, undefined, "band2"),
             new Svg.Elements.Rect({ X: -4, Y: 0 }, { width: 3, height: 12 }, undefined, "band3"),
             new Svg.Elements.Rect({ X: 3.5, Y: 0 }, { width: 4, height: 12 }, undefined, "band4"),
             new Svg.Elements.Path(bodyPath, "highlight nofill")
-         ]);
+         );
 
          this.translate({
             X: centre.X,

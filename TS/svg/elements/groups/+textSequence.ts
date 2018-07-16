@@ -15,7 +15,7 @@ namespace Svg.Elements.Groups {
          }
 
          for (let [i, txt] of textArray.entries()) {
-            this.append(new Svg.Elements.Text(txt, { X: gap.X * i, Y: gap.Y * i }, false, "text"));
+            this.append(new Svg.Elements.Text(txt, { X: gap.X * i, Y: gap.Y * i }, "text"));
          }
 
          this.translate({

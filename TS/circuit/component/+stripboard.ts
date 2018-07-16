@@ -68,14 +68,10 @@ namespace Circuit.Component {
             const centre = { X: (this.columns - 1) * gS / 2, Y: (this.rows - 1) * gS / 2 };
             const size = { width: (this.columns + 0.5) * gS, height: (this.rows + 0.5) * gS };
             const cornerRounding = { X: 3, Y: 3 };
-            this.group.append(new Svg.Elements.Rect(
-               centre, size, cornerRounding, "body highlight"
-            ));
-
-            this.tracks.map(track => {
-               this.group.append(track.group);
-               track.draw("stripboard");
-            });
+            this.group.append(
+               new Svg.Elements.Rect(centre, size, cornerRounding, "body highlight"),
+               this.tracks.map(t => t.group)
+            );
          }
 
          insertInto(group: Svg.Elements.Group) {
@@ -92,7 +88,8 @@ namespace Circuit.Component {
          for (let row = 0; row < parent.rows; row++) {
             let holeSpacings: number[] = [0].concat(Array(parent.columns - 1).fill(gS));
             let track = Addins.Board.Track.makeInstance({
-               holeSpacings: holeSpacings
+               holeSpacings: holeSpacings,
+               style: "stripboard"
             }, {});
             track.group.translate({ X: 0, Y: row * gS }).rotate(0);
             tracks.push(track);

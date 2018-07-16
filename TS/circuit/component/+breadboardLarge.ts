@@ -101,7 +101,7 @@ namespace Circuit.Component {
                Y: 10.5 * gS
             };
 
-            this.group.append([
+            this.group.append(
                //body
                new Svg.Elements.Rect(centre, size, { X: 4, Y: 4 }, "body"),
                //Centre rut
@@ -124,12 +124,9 @@ namespace Circuit.Component {
                new Svg.Elements.Groups.TextSequence({ X: 65 * gS - gS / 4, Y: 12 * gS }, { X: gS, Y: 0 }, "fghij").rotate(90),
                //Text Bottom Right (portrait)
                new Svg.Elements.Groups.TextSequence({ X: 0 * gS, Y: 12 * gS }, { X: gS, Y: 0 }, "fghij").rotate(90),
-            ]);
-
-            this.tracks.map(track => {
-               this.group.append(track.group);
-               track.draw();
-            });
+               //Tracks
+               this.tracks.map(t => t.group)
+            );
          }
 
          insertInto(group: Svg.Elements.Group) {

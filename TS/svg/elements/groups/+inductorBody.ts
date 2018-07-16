@@ -21,11 +21,11 @@ namespace Svg.Elements.Groups {
          }
          bodyPath += "L" + (-coilStart) + " " + (coilTop);
 
-         this.append([
+         this.append(
             new Svg.Elements.Path(bodyPath, "highlight highlightwithfill"),
             new Svg.Elements.Path(bodyPath, "body"),
             new Svg.Elements.Path(bodyEdgePath, "bodyEdge")
-         ]);
+         );
 
          this.translate({ X: centre.X, Y: centre.Y }).rotate(rotation);
       }

@@ -96,7 +96,7 @@ namespace Circuit.Component {
 
             let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
             this.group.append(
-               new Svg.Elements.Text(text, textPosition, undefined, "text").addClasses(anchorClass)
+               new Svg.Elements.Text(text, textPosition, "text").addClasses(anchorClass)
             );
          }
 

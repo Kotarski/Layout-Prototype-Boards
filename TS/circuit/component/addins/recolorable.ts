@@ -46,12 +46,9 @@ namespace Circuit.Component.Addins.Recolorable {
       $(segment2.element).css("fill", "#d54f6b");
 
 
-      recolorSegmentGroup.append([
-         segment1, segment2
-      ])
+      recolorSegmentGroup.append(segment1, segment2)
 
-      component.group.append(recolorHandle);
-      component.group.append(recolorSegmentGroup);
+      component.group.append(recolorHandle, recolorSegmentGroup);
 
       $(recolorHandle.element).on("click", () => {
          let colorIndex = colorPalette.indexOf(component.color);

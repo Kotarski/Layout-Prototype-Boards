@@ -69,7 +69,7 @@ namespace Circuit.Component {
             //(Prepend so handles appear on top)
             let capacitorBody = (this.isPolarised)
                ? new Svg.Elements.Groups.CapacitorBodyElectrolytic(
-                  joints[0], joints[joints.length - 1], "bodyelectrolytic").setValue(this.capacitance)
+                  this.capacitance, joints[0], joints[joints.length - 1], "bodyelectrolytic")
                : new Svg.Elements.Groups.CapacitorBodyCeramic(
                   joints[0], joints[joints.length - 1], "bodyceramic").setValue(this.capacitance)
 

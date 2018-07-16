@@ -35,14 +35,14 @@ namespace Svg.Elements.Groups {
 
          // let pinXBase = 0;
          for (let i = 0; i < pinsPerSide; i++) {
-            this.append([
+            this.append(
                new Svg.Elements.Path(
                   pinString, "pin"
                ).scale({ X: 1, Y: -1 }).translate({ X: gridSpacing * i, Y: 0 }),
                new Svg.Elements.Path(
                   pinString, "pin"
                ).translate({ X: gridSpacing * i, Y: 3 * gridSpacing })
-            ]);
+            );
          };
 
          let notchString =
@@ -51,14 +51,14 @@ namespace Svg.Elements.Groups {
             "a " + (1) + " " + (1) + " " + (0) + " " + (0) + " " + (0) + " " + (0) + " " + (-16) +
             "Z";
 
-         this.append([
+         this.append(
             new Svg.Elements.Rect(centre, bodySize, { X: 5, Y: 5 }, "body"),
             new Svg.Elements.Path(notchString, "notch"),
             new Svg.Elements.Rect(centre, bodySize, { X: 5, Y: 5 }, "body highlight"),
-            new Svg.Elements.Text(textLineOne, { X: 0.25 * gridSpacing, Y: 1 * gridSpacing }, false, "text"),
-            new Svg.Elements.Text(textLineTwo, { X: 0.25 * gridSpacing, Y: 1.75 * gridSpacing }, false, "text"),
-            new Svg.Elements.Text(textLineThree, { X: 0.25 * gridSpacing, Y: 2.5 * gridSpacing }, false, "text")
-         ]);
+            new Svg.Elements.Text(textLineOne, { X: 0.25 * gridSpacing, Y: 1 * gridSpacing }, "text"),
+            new Svg.Elements.Text(textLineTwo, { X: 0.25 * gridSpacing, Y: 1.75 * gridSpacing }, "text"),
+            new Svg.Elements.Text(textLineThree, { X: 0.25 * gridSpacing, Y: 2.5 * gridSpacing }, "text")
+         );
       }
 
       setValue(num: number) {

@@ -4,30 +4,30 @@ namespace Svg.Elements {
          super("g", classes);
       }
 
-      append(elements: Svg.Element | Svg.Element[]): this {
-         // this.element.appendChild(element.element);
+      append(...elements: (Svg.Element | Svg.Element[])[]): this {
          // To allow method chaining;
-         return this._addChildren(elements, (element: SVGElement) => {
+         return this._addChildren((element: SVGElement) => {
             this.element.appendChild(element);
-         });
+         }, ...elements);
       }
 
       //Note when given an array, the z-order is not reversed.
-      prepend(elements: Svg.Element | Svg.Element[]): this {
-         // this.element.insertBefore(element.element, this.element.firstChild);
+      prepend(...elements: (Svg.Element | Svg.Element[])[]): this {
          // To allow method chaining;
          let firstChild = this.element.firstChild;
-         return this._addChildren(elements, (element: SVGElement) => {
+         return this._addChildren((element: SVGElement) => {
             this.element.insertBefore(element, firstChild);
-         });
+         }, ...elements);
       }
 
       private _addChildren(
-         elements: Svg.Element | Svg.Element[],
-         addCallback: (element: SVGElement) => void
+         addCallback: (element: SVGElement) => void,
+         ...elements: (Svg.Element | Svg.Element[])[]
       ): this {
-         elements = elements instanceof Array ? elements : [elements];
-         elements.forEach(element => addCallback(element.element));
+         elements.forEach(item => {
+            item = item instanceof Array ? item : [item];
+            item.forEach(element => addCallback(element.element));
+         })
 
          // To allow method chaining;
          return this;

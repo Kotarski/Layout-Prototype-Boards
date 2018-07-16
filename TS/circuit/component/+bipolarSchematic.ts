@@ -69,26 +69,20 @@ namespace Circuit.Component {
             ).scale(scale, true));
 
             // Body lines
-            this.group.append([
-               new Svg.Elements.Line(
-                  { X: -15, Y: 0 }, { X: -50, Y: 0 }, "line thin"
-               ).scale(scale), //stubBase
-               new Svg.Elements.Line(
-                  { X: +10, Y: -20 }, { X: +10, Y: -50 }, "line thin"
-               ).scale(scale), //stubCollector
-               new Svg.Elements.Line(
-                  { X: +10, Y: +20 }, { X: +10, Y: +50 }, "line thin"
-               ).scale(scale), //stubEmitter
-               new Svg.Elements.Line(
-                  { X: -15, Y: -15 }, { X: -15, Y: +15 }, "line medium-thick nocap"
-               ).scale(scale), //lineBase
-               new Svg.Elements.Line(
-                  { X: -15, Y: -5 }, { X: +10, Y: -20 }, "line thin"
-               ).scale(scale), //lineCollector
-               new Svg.Elements.Line(
-                  { X: -15, Y: 5 }, { X: 10, Y: 20 }, "line thin"
-               ).scale(scale)  //lineEmitter
-            ]);
+            this.group.append(
+               //stubBase
+               new Svg.Elements.Line({ X: -15, Y: 0 }, { X: -50, Y: 0 }, "line thin").scale(scale),
+               //stubCollector
+               new Svg.Elements.Line({ X: +10, Y: -20 }, { X: +10, Y: -50 }, "line thin").scale(scale),
+               //stubEmitter
+               new Svg.Elements.Line({ X: +10, Y: +20 }, { X: +10, Y: +50 }, "line thin").scale(scale),
+               //lineBase
+               new Svg.Elements.Line({ X: -15, Y: -15 }, { X: -15, Y: +15 }, "line medium-thick nocap").scale(scale),
+               //lineCollector
+               new Svg.Elements.Line({ X: -15, Y: -5 }, { X: +10, Y: -20 }, "line thin").scale(scale),
+               //lineEmitter
+               new Svg.Elements.Line({ X: -15, Y: 5 }, { X: 10, Y: 20 }, "line thin").scale(scale)
+            );
 
             // Body Triangle
             if (this.type === "PNP") {
@@ -111,7 +105,7 @@ namespace Circuit.Component {
             let text = Utility.getStandardForm(this.currentGain, '')
             let anchorClass = (this.orientation === "LR") ? "anchorstart" : "anchorend";
             this.group.append(
-               new Svg.Elements.Text(text, textPosition, undefined, "text").addClasses(anchorClass)
+               new Svg.Elements.Text(text, textPosition, "text").addClasses(anchorClass)
             );
          }
 

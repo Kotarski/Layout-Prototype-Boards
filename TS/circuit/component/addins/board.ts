@@ -29,6 +29,7 @@ namespace Circuit.Component.Addins.Board {
       export namespace Types {
          export interface properties extends Component.Types.properties {
             holeSpacings: number[];
+            style: "breadboard" | "stripboard";
          }
 
          export interface state {
@@ -45,6 +46,7 @@ namespace Circuit.Component.Addins.Board {
       }
       export const defaultProperties: Types.properties = {
          name: "track",
+         style: "breadboard",
          holeSpacings: [0]
       }
 
@@ -52,17 +54,20 @@ namespace Circuit.Component.Addins.Board {
          name: string;
          holeSpacings: number[];
          connectorSets: Component.Types.hole[][] = [];
+         style: "breadboard" | "stripboard";
 
          constructor(properties: Types.properties, state: Types.state) {
             super(properties, state);
             this.name = properties.name;
             this.holeSpacings = properties.holeSpacings;
+            this.style = properties.style;
          }
 
          getProperties(): Types.properties {
             return {
                name: this.name,
-               holeSpacings: this.holeSpacings
+               holeSpacings: this.holeSpacings,
+               style: this.style
             }
          }
 
@@ -74,13 +79,13 @@ namespace Circuit.Component.Addins.Board {
 
 
 
-         draw(style: "breadboard" | "stripboard" = "breadboard") {
-            if (style === "breadboard") {
+         draw() {
+            if (this.style === "breadboard") {
                drawBreadboard(this);
-            } else if (style === "stripboard") {
+            } else if (this.style === "stripboard") {
                drawStripboard(this);
             } else {
-               console.error("Style \"%s\" is invalid", style);
+               console.error("Style \"%s\" is invalid", this.style);
             }
          }
 
@@ -214,14 +219,11 @@ namespace Circuit.Component.Addins.Board {
 
          let bbox = component.group.element.getBBox();
 
-         //
-         let scale = Svg.makeTransform();
-         scale.setScale(-1, 1);
-         ghostGroup.transform.baseVal.appendItem(scale);
+         //Scale
+         Svg.addTransform(ghostGroup, t => t.setScale(-1, 1), false);
 
-         let translate = Svg.makeTransform();
-         translate.setTranslate(-(bbox.width + bbox.x) * 2 - 1, 0);
-         ghostGroup.transform.baseVal.appendItem(translate);
+         //Translate
+         Svg.addTransform(ghostGroup, t => t.setTranslate(-(bbox.width + bbox.x) * 2 - 1, 0), false);
 
          ghostGroup.appendChild($(component.group.element).children(".body").clone()[0]);
 

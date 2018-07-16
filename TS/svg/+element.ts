@@ -62,52 +62,27 @@ namespace Svg {
       }
 
       rotate(rotation: number, centre?: Global.Types.vector, insertBefore: boolean = false): this {
-
          // Default rotation point is the objects centre
-         let bounds = this.element.getBBox();
-         centre = (centre !== undefined) ? centre : {
-            X: bounds.width / 2 + bounds.x,
-            Y: bounds.height / 2 + bounds.y
-         };
-
-         let owner = this.element.ownerSVGElement;
-
-         if (owner) {
-            let transform = owner.createSVGTransform();
-            transform.setRotate(rotation, centre.X, centre.Y);
-            addTransform(this, transform, insertBefore)
+         let centreV: Global.Types.vector;
+         if (centre) {
+            centreV = centre;
          } else {
-            addTextTransform(this, 'rotate', [rotation, centre.X, centre.Y], insertBefore)
+            let bounds = this.element.getBBox();
+            centreV = { X: bounds.width / 2 + bounds.x, Y: bounds.height / 2 + bounds.y };
          }
 
+         addTransform(this.element, t => t.setRotate(rotation, centreV.X, centreV.Y), insertBefore)
          return this;
       }
 
       translate(translation: Global.Types.vector, insertBefore: boolean = true): this {
-         let owner = this.element.ownerSVGElement;
-
-         if (owner) {
-            let transform = owner.createSVGTransform();
-            transform.setTranslate(translation.X, translation.Y);
-            addTransform(this, transform, insertBefore)
-         } else {
-            addTextTransform(this, 'translate', [translation.X, translation.Y], insertBefore)
-         }
-
+         addTransform(this.element, t => t.setTranslate(translation.X, translation.Y), insertBefore)
          return this;
       }
 
       scale(scale: (Global.Types.vector | number), insertBefore: boolean = true): this {
-         let owner = this.element.ownerSVGElement;
-         if (typeof scale === "number") scale = { X: scale, Y: scale };
-         if (owner) {
-            let transform = owner.createSVGTransform();
-            transform.setScale(scale.X, scale.Y);
-            addTransform(this, transform, insertBefore)
-         } else {
-            addTextTransform(this, 'scale', [scale.X, scale.Y], insertBefore)
-         }
-
+         let scaleV = (typeof scale === "number") ? { X: scale, Y: scale } : scale;
+         addTransform(this.element, t => t.setScale(scaleV.X, scaleV.Y), insertBefore)
          return this;
       }
 
@@ -136,25 +111,7 @@ namespace Svg {
       }
    }
 
-   function addTextTransform(svg: Svg.Element, type: "rotate" | "translate" | "scale", values: number[], insertBefore: boolean) {
-      let transforms = svg.element.getAttribute('transform') || "";
-      let newTransform = type + "(" + values.join(" ") + ")";
-      if (insertBefore) {
-         svg.element.setAttribute('transform', newTransform + transforms);
-      } else {
-         svg.element.setAttribute('transform', transforms + newTransform);
-      }
-   }
 
-   function addTransform(svg: Svg.Element, transform: SVGTransform, insertBefore: boolean = true) {
-      let transforms = svg.element.transform.baseVal;
-      if (insertBefore) {
-         transforms.insertItemBefore(transform, 0);
-      } else {
-         transforms.appendItem(transform);
-      }
-      transforms.consolidate();
-   }
 }
 
 
