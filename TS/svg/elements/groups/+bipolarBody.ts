@@ -25,10 +25,10 @@ namespace Svg.Elements.Groups {
             "Z";
 
          this.text = new Svg.Elements.Text("", { X: 0, Y: 4 }, "text");
-         this.append([
+         this.append(
             new Svg.Elements.Path(semiCircleString, "body highlight"),
             this.text
-         ]);
+         );
 
          this.translate({
             X: centre.X,

@@ -105,7 +105,7 @@ namespace Circuit.Component {
 
       function drawPowerPositive(component: Instance) {
          let text = Utility.getStandardForm(component.voltage, "V")
-         component.group.append([
+         component.group.append(
             new Svg.Elements.Rect(
                { X: 0, Y: -8 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"),
             new Svg.Elements.Line(
@@ -114,12 +114,12 @@ namespace Circuit.Component {
                text, { X: 0, Y: -9 }, "text bold"),
             new Svg.Elements.Line(
                { X: 0, Y: -5 }, { X: 0, Y: 10 }, "line thin")
-         ]);
+         );
       }
 
       function drawPowerNegative(component: Instance) {
          let text = Utility.getStandardForm(component.voltage, "V")
-         component.group.append([
+         component.group.append(
             new Svg.Elements.Rect(
                { X: 0, Y: 8 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"),
             new Svg.Elements.Line(
@@ -128,11 +128,11 @@ namespace Circuit.Component {
                text, { X: 0, Y: 19 }, "text bold"),
             new Svg.Elements.Line(
                { X: 0, Y: 5 }, { X: 0, Y: -10 }, "line thin")
-         ]);
+         );
       }
 
       function drawPowerGround(component: Instance) {
-         component.group.append([
+         component.group.append(
             new Svg.Elements.Rect(
                { X: 0, Y: 5 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"),
             new Svg.Elements.Line(
@@ -143,7 +143,7 @@ namespace Circuit.Component {
                { X: -6, Y: 10 }, { X: 6, Y: 10 }, "line medium"),
             new Svg.Elements.Line(
                { X: 0, Y: 0 }, { X: 0, Y: -10 }, "line thin")
-         ]);
+         );
       }
 
       export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
