@@ -508,46 +508,24 @@ var Svg;
             return convertedVector;
         }
         rotate(rotation, centre, insertBefore = false) {
-            let bounds = this.element.getBBox();
-            centre = (centre !== undefined) ? centre : {
-                X: bounds.width / 2 + bounds.x,
-                Y: bounds.height / 2 + bounds.y
-            };
-            let owner = this.element.ownerSVGElement;
-            if (owner) {
-                let transform = owner.createSVGTransform();
-                transform.setRotate(rotation, centre.X, centre.Y);
-                addTransform(this, transform, insertBefore);
+            let centreV;
+            if (centre) {
+                centreV = centre;
             }
             else {
-                addTextTransform(this, 'rotate', [rotation, centre.X, centre.Y], insertBefore);
+                let bounds = this.element.getBBox();
+                centreV = { X: bounds.width / 2 + bounds.x, Y: bounds.height / 2 + bounds.y };
             }
+            Svg.addTransform(this.element, t => t.setRotate(rotation, centreV.X, centreV.Y), insertBefore);
             return this;
         }
         translate(translation, insertBefore = true) {
-            let owner = this.element.ownerSVGElement;
-            if (owner) {
-                let transform = owner.createSVGTransform();
-                transform.setTranslate(translation.X, translation.Y);
-                addTransform(this, transform, insertBefore);
-            }
-            else {
-                addTextTransform(this, 'translate', [translation.X, translation.Y], insertBefore);
-            }
+            Svg.addTransform(this.element, t => t.setTranslate(translation.X, translation.Y), insertBefore);
             return this;
         }
         scale(scale, insertBefore = true) {
-            let owner = this.element.ownerSVGElement;
-            if (typeof scale === "number")
-                scale = { X: scale, Y: scale };
-            if (owner) {
-                let transform = owner.createSVGTransform();
-                transform.setScale(scale.X, scale.Y);
-                addTransform(this, transform, insertBefore);
-            }
-            else {
-                addTextTransform(this, 'scale', [scale.X, scale.Y], insertBefore);
-            }
+            let scaleV = (typeof scale === "number") ? { X: scale, Y: scale } : scale;
+            Svg.addTransform(this.element, t => t.setScale(scaleV.X, scaleV.Y), insertBefore);
             return this;
         }
         get transforms() {
@@ -572,38 +550,14 @@ var Svg;
         }
     }
     Svg.Element = Element;
-    function addTextTransform(svg, type, values, insertBefore) {
-        let transforms = svg.element.getAttribute('transform') || "";
-        let newTransform = type + "(" + values.join(" ") + ")";
-        if (insertBefore) {
-            svg.element.setAttribute('transform', newTransform + transforms);
-        }
-        else {
-            svg.element.setAttribute('transform', transforms + newTransform);
-        }
-    }
-    function addTransform(svg, transform, insertBefore = true) {
-        let transforms = svg.element.transform.baseVal;
-        if (insertBefore) {
-            transforms.insertItemBefore(transform, 0);
-        }
-        else {
-            transforms.appendItem(transform);
-        }
-        transforms.consolidate();
-    }
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
     class Root {
-        constructor(classes) {
-            this.children = [];
-            let svgns = Constants.svgURI;
-            this.element = document.createElementNS(svgns, 'svg');
-            if (classes)
-                $(this.element).addClass(classes);
+        constructor(classes = "") {
+            this.element = Svg.makeSVGElement("svg", classes);
+            $(this.element).addClass(classes);
             this.group = new Svg.Elements.Group();
-            this.children = [this.group];
         }
         draw(node) {
             this.element.appendChild(this.group.element);
@@ -622,20 +576,34 @@ var Svg;
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
+    function addTransform(element, transformationFunction, insertBefore = true) {
+        let transform = makeTransform();
+        transformationFunction(transform);
+        let transforms = element.transform.baseVal;
+        if (insertBefore) {
+            transforms.insertItemBefore(transform, 0);
+        }
+        else {
+            transforms.appendItem(transform);
+        }
+        transforms.consolidate();
+    }
+    Svg.addTransform = addTransform;
+    function makeTransform() {
+        return Svg.makeSVGElement("svg").createSVGTransform();
+    }
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
     function makeMatrix() {
-        let svgns = Constants.svgURI;
-        const svgElement = document.createElementNS(svgns, "svg");
-        const matrix = svgElement.createSVGMatrix();
-        return matrix;
+        return Svg.makeSVGElement("svg").createSVGMatrix();
     }
     Svg.makeMatrix = makeMatrix;
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
     function makePoint(vector) {
-        let svgns = Constants.svgURI;
-        const svgElement = document.createElementNS(svgns, "svg");
-        const point = svgElement.createSVGPoint();
+        const point = Svg.makeSVGElement("svg").createSVGPoint();
         point.x = vector.X;
         point.y = vector.Y;
         return point;
@@ -650,16 +618,6 @@ var Svg;
         return element;
     }
     Svg.makeSVGElement = makeSVGElement;
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    function makeTransform() {
-        let svgns = Constants.svgURI;
-        const svgElement = document.createElementNS(svgns, "svg");
-        const transform = svgElement.createSVGTransform();
-        return transform;
-    }
-    Svg.makeTransform = makeTransform;
 })(Svg || (Svg = {}));
 var Ui;
 (function (Ui) {
@@ -20557,12 +20515,8 @@ var Circuit;
                     const createGhost = (component) => {
                         let ghostGroup = component.group.element.cloneNode();
                         let bbox = component.group.element.getBBox();
-                        let scale = Svg.makeTransform();
-                        scale.setScale(-1, 1);
-                        ghostGroup.transform.baseVal.appendItem(scale);
-                        let translate = Svg.makeTransform();
-                        translate.setTranslate(-(bbox.width + bbox.x) * 2 - 1, 0);
-                        ghostGroup.transform.baseVal.appendItem(translate);
+                        Svg.addTransform(ghostGroup, t => t.setScale(-1, 1), false);
+                        Svg.addTransform(ghostGroup, t => t.setTranslate(-(bbox.width + bbox.x) * 2 - 1, 0), false);
                         ghostGroup.appendChild($(component.group.element).children(".body").clone()[0]);
                         $(ghostGroup).addClass("reverseghost");
                         $(ghostGroup).data("selects", component);
