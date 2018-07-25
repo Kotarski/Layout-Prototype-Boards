@@ -39,7 +39,7 @@ namespace Circuit.Component {
 
          constructor(properties: Types.properties, state: Types.state) {
             super(properties, state);
-            this.group.addClasses("component " + this.name);
+            $(this.group.element).addClass("component " + this.name);
             this.orientation = state.orientation;
             this.type = properties.type;
             this.currentGain = properties.currentGain;
@@ -55,57 +55,57 @@ namespace Circuit.Component {
 
          getState(): Types.state {
             return {
-               location: this.group.transforms,
+               location: this.location,
                orientation: this.orientation
             }
          }
 
          draw() {
-            const scale = (this.orientation === "LR") ? { X: 1, Y: 1 } : { X: -1, Y: 1 };
+            const scale = (this.orientation === "LR") ? { x: 1, y: 1 } : { x: -1, y: 1 };
 
             // Highlight
-            this.group.append(new Svg.Elements.Circle(
-               { X: 0, Y: 0 }, 30, "extrathick highlight"
-            ).scale(scale, true));
+            this.group.append(
+               Svg.Element.Circle.make({ x: 0, y: 0 }, 30, "extrathick highlight").scale(scale, true)
+            );
 
             // Body lines
             this.group.append(
                //stubBase
-               new Svg.Elements.Line({ X: -15, Y: 0 }, { X: -50, Y: 0 }, "line thin").scale(scale),
+               Svg.Element.Line.make({ x: -15, y: 0 }, { x: -50, y: 0 }, "line thin").scale(scale),
                //stubCollector
-               new Svg.Elements.Line({ X: +10, Y: -20 }, { X: +10, Y: -50 }, "line thin").scale(scale),
+               Svg.Element.Line.make({ x: +10, y: -20 }, { x: +10, y: -50 }, "line thin").scale(scale),
                //stubEmitter
-               new Svg.Elements.Line({ X: +10, Y: +20 }, { X: +10, Y: +50 }, "line thin").scale(scale),
+               Svg.Element.Line.make({ x: +10, y: +20 }, { x: +10, y: +50 }, "line thin").scale(scale),
                //lineBase
-               new Svg.Elements.Line({ X: -15, Y: -15 }, { X: -15, Y: +15 }, "line medium-thick nocap").scale(scale),
+               Svg.Element.Line.make({ x: -15, y: -15 }, { x: -15, y: +15 }, "line medium-thick nocap").scale(scale),
                //lineCollector
-               new Svg.Elements.Line({ X: -15, Y: -5 }, { X: +10, Y: -20 }, "line thin").scale(scale),
+               Svg.Element.Line.make({ x: -15, y: -5 }, { x: +10, y: -20 }, "line thin").scale(scale),
                //lineEmitter
-               new Svg.Elements.Line({ X: -15, Y: 5 }, { X: 10, Y: 20 }, "line thin").scale(scale)
+               Svg.Element.Line.make({ x: -15, y: 5 }, { x: 10, y: 20 }, "line thin").scale(scale)
             );
 
             // Body Triangle
             if (this.type === "PNP") {
-               this.group.append(new Svg.Elements.Path(
+               this.group.append(Svg.Element.Path.make(
                   'M -7 0 L 7 6 L 7 -6 L -7 0 Z', "body black thin"
-               ).translate({ X: -8, Y: -9.2 }).rotate(-31).scale(scale, true));
+               ).translate({ x: -8, y: -9.2 }).rotate(-31).scale(scale, true));
             } else {
-               this.group.append(new Svg.Elements.Path(
+               this.group.append(Svg.Element.Path.make(
                   'M 7 0 L -7 6 L -7 -6 L 7 0 Z', "body black thin"
-               ).translate({ X: 4, Y: 16.4 }).rotate(31).scale(scale, true));
+               ).translate({ x: 4, y: 16.4 }).rotate(31).scale(scale, true));
             }
 
             // Body Circle
-            this.group.append(new Svg.Elements.Circle(
-               { X: 0, Y: 0 }, 30, "line medium nofill"
+            this.group.append(Svg.Element.Circle.make(
+               { x: 0, y: 0 }, 30, "line medium nofill"
             ).scale(scale, true));
 
             //Text
-            let textPosition = (this.orientation === "LR") ? { X: 32, Y: 4 } : { X: -32, Y: 4 }
+            let textPosition = (this.orientation === "LR") ? { x: 32, y: 4 } : { x: -32, y: 4 }
             let text = Utility.getStandardForm(this.currentGain, '')
             let anchorClass = (this.orientation === "LR") ? "anchorstart" : "anchorend";
             this.group.append(
-               new Svg.Elements.Text(text, textPosition, "text").addClasses(anchorClass)
+               Svg.Element.Text.make(text, textPosition, "text " + anchorClass)
             );
          }
 
@@ -115,8 +115,8 @@ namespace Circuit.Component {
 
             let con1Pos, con2Pos, con3Pos;
             [con1Pos, con2Pos, con3Pos] = (this.orientation === "LR")
-               ? [{ X: -50, Y: 0 }, { X: +10, Y: -50 }, { X: +10, Y: +50 }]
-               : [{ X: +50, Y: 0 }, { X: -10, Y: -50 }, { X: -10, Y: +50 }];
+               ? [{ x: -50, y: 0 }, { x: +10, y: -50 }, { x: +10, y: +50 }]
+               : [{ x: +50, y: 0 }, { x: -10, y: -50 }, { x: -10, y: +50 }];
 
 
             if (this.type === "PNP") {
@@ -165,7 +165,7 @@ namespace Circuit.Component {
 
       export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
-            component.group.addClasses("component " + component.name);
+            $(component.group.element).addClass("component " + component.name);
             Addins.Selectable.init(component);
             Addins.ConnectionHighlights.init(component, false);
          }

@@ -22,7 +22,7 @@ namespace Circuit.Component {
 
       export const defaultState: Types.state = {
          location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
-         joints: [{ X: 0, Y: 0 }, { X: 80, Y: 0 }],
+         joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
          color: "#545454"
       }
 
@@ -36,7 +36,7 @@ namespace Circuit.Component {
 
          constructor(properties: Types.properties, state: Types.state) {
             super(properties, state);
-            this.group.addClasses("component " + this.name);
+            $(this.group.element).addClass("component " + this.name);
             this.joints = state.joints;
             this.color = state.color;
          }
@@ -49,7 +49,7 @@ namespace Circuit.Component {
 
          getState(): Types.state {
             return {
-               location: this.group.transforms,
+               location: this.location,
                joints: this.joints,
                color: this.color
             }
@@ -65,7 +65,7 @@ namespace Circuit.Component {
             let joints = this.joints //this.handles.map(h => h.position);
 
             //Start at the beginning
-            coverPath = leadPath = "M " + joints[0].X + " " + this.joints[0].Y;
+            coverPath = leadPath = "M " + joints[0].x + " " + this.joints[0].y;
 
             // Draw cover towards the midpoint of first two joints (starting from coverRatio)
             coverPath += getSegmentTowardsJointMid(joints[0], joints[1], -coverRatio);
@@ -82,13 +82,13 @@ namespace Circuit.Component {
             // Draw lead path to end
             leadPath += getSegmentTowardsJointMid(joints[joints.length - 2], joints[joints.length - 1], 1)
 
-            let cover = new Svg.Elements.Path(coverPath, "cover");
+            let cover = Svg.Element.Path.make(coverPath, "cover");
 
             //Style and add lead, cover
             //(Prepend so handles appear on top)
             this.group.prepend([
-               new Svg.Elements.Path(leadPath, "lead"),
-               new Svg.Elements.Path(coverPath, "leadhighlight highlight"),
+               Svg.Element.Path.make(leadPath, "lead"),
+               Svg.Element.Path.make(coverPath, "leadhighlight highlight"),
                cover,
             ]);
 
@@ -113,7 +113,7 @@ namespace Circuit.Component {
             {
                location: raw.state.location,
                joints: (raw.state.joints && (raw.state.joints.length > 1) && (raw.state.joints.every((j: Global.Types.vector) => {
-                  return (('X' in j) && ('Y' in j) && (typeof j.X === 'number') && (typeof j.Y === 'number'));
+                  return (('x' in j) && ('y' in j) && (typeof j.x === 'number') && (typeof j.y === 'number'));
                }))) ? raw.state.joints : undefined,
                color: raw.state.color
             } : {};
@@ -133,12 +133,12 @@ namespace Circuit.Component {
 
             // End each curve at the mid point between the last two joints
             let p3 = {
-               X: (joints[j + 1].X + joints[j].X) / 2,
-               Y: (joints[j + 1].Y + joints[j].Y) / 2
+               x: (joints[j + 1].x + joints[j].x) / 2,
+               y: (joints[j + 1].y + joints[j].y) / 2
             }
 
-            path += "Q " + joints[j].X + " " + joints[j].Y +
-               " " + p3.X + " " + p3.Y;
+            path += "Q " + joints[j].x + " " + joints[j].y +
+               " " + p3.x + " " + p3.y;
          }
 
          return path;
@@ -147,17 +147,17 @@ namespace Circuit.Component {
       // Starting or ending at a midpoint
       function getSegmentTowardsJointMid(j0: Global.Types.vector, j1: Global.Types.vector, ratio: number): string {
          let changeMid = {
-            X: (j1.X - j0.X) / 2,
-            Y: (j1.Y - j0.Y) / 2
+            x: (j1.x - j0.x) / 2,
+            y: (j1.y - j0.y) / 2
          }
 
          if (Math.sign(ratio) >= 0) {
-            return 'l' + (changeMid.X * ratio) + " " + (changeMid.Y * ratio) +
-               'm' + (changeMid.X * (1 - ratio)) + " " + (changeMid.Y * (1 - ratio));
+            return 'l' + (changeMid.x * ratio) + " " + (changeMid.y * ratio) +
+               'm' + (changeMid.x * (1 - ratio)) + " " + (changeMid.y * (1 - ratio));
          } else {
             ratio = Math.abs(ratio);
-            return 'm' + (changeMid.X * (1 - ratio)) + " " + (changeMid.Y * (1 - ratio)) +
-               'l' + (changeMid.X * ratio) + " " + (changeMid.Y * ratio);
+            return 'm' + (changeMid.x * (1 - ratio)) + " " + (changeMid.y * (1 - ratio)) +
+               'l' + (changeMid.x * ratio) + " " + (changeMid.y * ratio);
          }
       }
 
@@ -165,14 +165,14 @@ namespace Circuit.Component {
          const angle = Utility.Vector.getAngleBetween(component.joints[0], component.joints[1]) - Math.PI / 4;
          const offset = Utility.Polar.toVector(12, angle);
          return {
-            X: component.joints[0].X + offset.X,
-            Y: component.joints[0].Y + offset.Y
+            x: component.joints[0].x + offset.x,
+            y: component.joints[0].y + offset.y
          };
       }
 
       export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
-            component.group.addClasses("component " + component.name);
+            $(component.group.element).addClass("component " + component.name);
             Addins.Draggable.init(component);
             Addins.Selectable.init(component);
             Addins.Extendable.init(component, true, true, true);

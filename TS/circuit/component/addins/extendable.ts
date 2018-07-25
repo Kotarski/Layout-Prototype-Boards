@@ -29,7 +29,7 @@ namespace Circuit.Component.Addins.Extendable {
       $(component.group.element).dblclick(e => {
          if ($(e.target).closest(".handle").length < 1) {
             // Get position in svg coordinates, rounded to grid
-            let position = component.group.convertVector({ X: e.clientX, Y: e.clientY }, "DomToSvg", "relToGroup");
+            let position = component.group.convertVector({ x: e.clientX, y: e.clientY }, "DomToSvg", "relToGroup");
             position = Utility.Vector.snapToGrid(position);
 
             //insert joint at position
@@ -66,14 +66,14 @@ namespace Circuit.Component.Addins.Extendable {
    };
 
    const addHandle = (component: extendableComponent, point: Global.Types.vector) => {
-      let dragHandle = new Svg.Elements.Circle(point, 5, "handle dragHandle highlight highlightwithfill");
+      let dragHandle = Svg.Element.Circle.make(point, 5, "handle dragHandle highlight highlightwithfill");
       $(dragHandle.element).data('point', point);
       component.group.append(dragHandle);
-      Svg.Addins.Draggable.init(dragHandle);
+      Svg.Addins.Draggable.init(dragHandle.element);
 
       $(dragHandle.element).on(Events.drag, (e, ui, drag: Global.Types.vector) => {
-         point.X += drag.X;
-         point.Y += drag.Y;
+         point.x += drag.x;
+         point.y += drag.y;
          refreshComponent(component);
       });
 
@@ -96,7 +96,7 @@ namespace Circuit.Component.Addins.Extendable {
    const getJointInsertionIdx = (component: extendableComponent, point: Global.Types.vector) => {
       //handles: (Parts.Pins.MovePin)[],
       let jointAngles = component.joints.map((j) =>
-         Math.atan2(point.Y - j.Y, point.X - j.X) * 180 / Math.PI
+         Math.atan2(point.y - j.y, point.x - j.x) * 180 / Math.PI
       );
 
       let bestAnglePair = 180;

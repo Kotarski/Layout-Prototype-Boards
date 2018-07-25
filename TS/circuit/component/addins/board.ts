@@ -10,7 +10,7 @@ namespace Circuit.Component.Addins.Board {
    export function init<B extends board>(component: B, trackMaker: (component: B) => Track.Instance[]): void
    export function init<B extends reversibleBoard>(component: B, trackMaker: (component: B) => Track.Instance[], isReversible: boolean): void
    export function init<B extends board | reversibleBoard>(component: B, trackMaker: (component: B) => Track.Instance[], isReversible?: boolean): void {
-      component.group.addClasses("board");
+      $(component.group.element).addClass("board");
 
       component.tracks = trackMaker(component);
       component.tracks.forEach(track => track.makeConnectors());
@@ -95,7 +95,7 @@ namespace Circuit.Component.Addins.Board {
             this.connectorSets = [[]];
             this.holeSpacings.forEach(hS => {
                this.connectorSets[0].push(Component.Generics.makeConnector(
-                  this, "", "hole", { X: (holeSpacingRunningSum += hS), Y: 0 }
+                  this, "", "hole", { x: (holeSpacingRunningSum += hS), y: 0 }
                ));
             });
          }
@@ -126,8 +126,8 @@ namespace Circuit.Component.Addins.Board {
          let holeSpacingRunningSum = 0;
 
          component.holeSpacings.forEach(hS => {
-            component.group.append(new Svg.Elements.Circle(
-               { X: (holeSpacingRunningSum += hS), Y: 0 }, 4, "hole"
+            component.group.append(Svg.Element.Circle.make(
+               { x: (holeSpacingRunningSum += hS), y: 0 }, 4, "hole"
             ));
          })
          let size = {
@@ -136,13 +136,13 @@ namespace Circuit.Component.Addins.Board {
          };
 
          let centre = {
-            X: holeSpacingRunningSum / 2,
-            Y: 0
+            x: holeSpacingRunningSum / 2,
+            y: 0
          };
 
-         component.group.prepend(new Svg.Elements.Rect(centre, size, {
-            X: 0,
-            Y: 0
+         component.group.prepend(Svg.Element.Rect.make(centre, size, {
+            x: 0,
+            y: 0
          }, 'body'));
 
       }
@@ -154,7 +154,7 @@ namespace Circuit.Component.Addins.Board {
          let holeSpacingRunningSum = 0;
 
          component.holeSpacings.forEach(hS => {
-            component.group.append(new Svg.Elements.Path(
+            component.group.append(Svg.Element.Path.make(
                "M" + (holeSpacingRunningSum += hS) + " " + 0 + "m-4 -4h 8v 8h -8Z", "hole"
             ));
          })
@@ -164,19 +164,19 @@ namespace Circuit.Component.Addins.Board {
          };
 
          let centre = {
-            X: holeSpacingRunningSum / 2,
-            Y: 0
+            x: holeSpacingRunningSum / 2,
+            y: 0
          };
 
-         component.group.prepend(new Svg.Elements.Rect(centre, size, {
-            X: 0,
-            Y: 0
+         component.group.prepend(Svg.Element.Rect.make(centre, size, {
+            x: 0,
+            y: 0
          }, 'body'));
       }
 
       export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
-            component.group.addClasses(component.name);
+            $(component.group.element).addClass(component.name);
          }
       );
    }
@@ -191,12 +191,12 @@ namespace Circuit.Component.Addins.Board {
    namespace Reversible {
 
       export const init = (component: reversibleBoard) => {
-         let element = component.group.element;
+         let element = component.group;
 
-         $(element).on("select", () => {
+         $(element.element).on("select", () => {
             createGhost(component)
          });
-         $(element).on("deselect", () => {
+         $(element.element).on("deselect", () => {
             clearGhost(component)
          });
 
@@ -250,14 +250,14 @@ namespace Circuit.Component.Addins.Board {
 
                let point = (ctm) ? hole.point.matrixTransform(ctm) : hole.point;
 
-               let breaker = new Svg.Elements.Circle(
-                  { X: point.x, Y: point.y }, 6, "breaker"
+               let breaker = Svg.Element.Circle.make(
+                  { x: point.x, y: point.y }, 6, "breaker"
                );
-               if (hole.type === "brokenhole") breaker.addClasses("broken");
+               if (hole.type === "brokenhole") $(breaker.element).addClass("broken");
 
 
                if (getPinsAtHole(hole, allValidConnectors).length) {
-                  breaker.addClasses("withPin");
+                  $(breaker.element).addClass("withPin");
                };
 
                trackGhostGroup.appendChild(breaker.element);
@@ -267,11 +267,11 @@ namespace Circuit.Component.Addins.Board {
                $(breaker.element).click(() => {
 
                   if (hole.type === "hole") {
-                     breaker.addClasses("broken");
+                     $(breaker.element).addClass("broken");
                      hole.type = "brokenhole";
                      component.trackBreaks.push(holePosition);
                   } else if (hole.type === "brokenhole") {
-                     breaker.removeClasses("broken");
+                     $(breaker.element).removeClass("broken");
                      hole.type = "hole";
                      component.trackBreaks = component.trackBreaks.filter(trackBreak =>
                         (trackBreak.hole !== holePosition.hole || trackBreak.track !== holePosition.track)

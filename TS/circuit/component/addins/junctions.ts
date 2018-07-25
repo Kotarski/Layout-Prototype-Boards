@@ -4,8 +4,8 @@ namespace Circuit.Component.Addins.Junctions {
    }
 
    export const init = (component: nodeComponent) => {
-      let element = component.group.element;
-      $(element).on(Events.moved + " " + Events.place, () => {
+      let element = component.group;
+      $(element.element).on(Events.moved + " " + Events.place, () => {
          clearJunctions(component);
          createJunctions(component);
       });
@@ -25,10 +25,10 @@ namespace Circuit.Component.Addins.Junctions {
             Utility.pointsAreClose(point, other.point)
          );
          if (attachedConnectors.length === 3) {
-            let ctm = Active.schematic.group.element.getCTM();
+            let ctm = Active.schematic.root.group.element.getCTM();
             point = (ctm) ? point.matrixTransform(ctm.inverse()) : point;
             component.group.prepend(
-               new Svg.Elements.Circle({ X: point.x, Y: point.y }, 5, "junction black")
+               Svg.Element.Circle.make({ x: point.x, y: point.y }, 5, "junction black")
             );
          }
       }));

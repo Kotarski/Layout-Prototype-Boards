@@ -16,6 +16,6 @@ namespace Svg {
    }
 
    function makeTransform(): SVGTransform {
-      return makeSVGElement<SVGSVGElement>("svg").createSVGTransform();
+      return Element.make<SVGSVGElement>("svg").createSVGTransform();
    }
 }

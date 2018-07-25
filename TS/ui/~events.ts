@@ -2,7 +2,7 @@ namespace Ui.Events {
 
    function fitDiagramContents(diagram: Circuit.Parts.Diagram) {
       // console.log(Active.layout.root, Active.layout.root.group)
-      let rootEl = diagram.root.element;
+      let rootEl = diagram.root.element.element;
       let group = diagram.group;
 
       let groupBBox = group.element.getBBox();
@@ -77,7 +77,7 @@ namespace Ui.Events {
    export function rotateBoard() {
       if (Circuit.manifest.activeBoard) {
          const bbox = Circuit.manifest.activeBoard.group.element.getBBox();
-         Circuit.manifest.activeBoard.group.rotate(90, { X: bbox.x + bbox.width / 2, Y: bbox.y + bbox.height / 2 }, false);
+         Circuit.manifest.activeBoard.group.rotate(90, { x: bbox.x + bbox.width / 2, y: bbox.y + bbox.height / 2 }, false);
       }
    }
 

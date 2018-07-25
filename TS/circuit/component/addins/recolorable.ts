@@ -9,16 +9,16 @@ namespace Circuit.Component.Addins.Recolorable {
       recolorSelector: string = "*",
       colorPalette: colorPalette = defaultColorPalette
    ) => {
-      let element = component.group.element;
+      let element = component.group;
 
-      $(element).on(Events.select, () => {
+      $(element.element).on(Events.select, () => {
          createRecolorHandle(component, where(), recolorSelector, colorPalette);
       });
-      $(element).on(Events.moved, () => {
+      $(element.element).on(Events.moved, () => {
          clearRecolorHandle(component);
          createRecolorHandle(component, where(), recolorSelector, colorPalette);
       });
-      $(element).on(Events.deselect, () => {
+      $(element.element).on(Events.deselect, () => {
          clearRecolorHandle(component);
       });
    }
@@ -30,17 +30,17 @@ namespace Circuit.Component.Addins.Recolorable {
    };
 
    const createRecolorHandle = (component: recolorableComponent, position: Global.Types.vector, recolorSelector: string, colorPalette: colorPalette) => {
-      let recolorSegmentGroup = new Svg.Elements.Group("recolorSegmentGroup");
-      let recolorHandle = new Svg.Elements.Circle(position, 7, "handle recolorHandle");
-      Svg.Addins.Draggable.init(recolorHandle, { disableMovement: true });
+      let recolorSegmentGroup = Svg.Element.Group.make("recolorSegmentGroup");
+      let recolorHandle = Svg.Element.Circle.make(position, 7, "handle recolorHandle");
+      Svg.Addins.Draggable.init(recolorHandle.element, { disableMovement: true });
 
       //Segments
-      let segment1 = new Svg.Elements.Rect(
+      let segment1 = Svg.Element.Rect.make(
          position, { width: 10, height: 20 }, undefined, "recolorHandleSegment"
-      ).translate({ X: -4, Y: -4 }).rotate(45, position);
-      let segment2 = new Svg.Elements.Rect(
+      ).translate({ x: -4, y: -4 }).rotate(45, position);
+      let segment2 = Svg.Element.Rect.make(
          position, { width: 10, height: 20 }, undefined, "recolorHandleSegment"
-      ).translate({ X: 4, Y: 4 }).rotate(45, position);
+      ).translate({ x: 4, y: 4 }).rotate(45, position);
 
       $(segment1.element).css("fill", "#4fd56b");
       $(segment2.element).css("fill", "#d54f6b");

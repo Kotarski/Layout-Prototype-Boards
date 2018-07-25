@@ -32,7 +32,7 @@ namespace Circuit.Component {
 
          constructor(properties: Types.properties, state: Types.state) {
             super(properties, state);
-            this.group.addClasses("component " + this.name);
+            $(this.group.element).addClass("component " + this.name);
             this.voltage = properties.voltage;
          }
 
@@ -45,7 +45,7 @@ namespace Circuit.Component {
 
          getState(): Types.state {
             return {
-               location: this.group.transforms
+               location: this.location
             }
          }
 
@@ -64,10 +64,10 @@ namespace Circuit.Component {
             // Leads 
             let lead1End;
             lead1End = (this.voltage < 0)
-               ? { X: 0, Y: -10 } // negative
+               ? { x: 0, y: -10 } // negative
                : (this.voltage > 0)
-                  ? { X: 0, Y: 10 } // positive
-                  : { X: 0, Y: -10 }; // zero (ground)
+                  ? { x: 0, y: 10 } // positive
+                  : { x: 0, y: -10 }; // zero (ground)
             this.connectorSets = [
                [Component.Generics.makeConnector(this, "", "node", lead1End)]
             ]
@@ -106,49 +106,49 @@ namespace Circuit.Component {
       function drawPowerPositive(component: Instance) {
          let text = Utility.getStandardForm(component.voltage, "V")
          component.group.append(
-            new Svg.Elements.Rect(
-               { X: 0, Y: -8 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"),
-            new Svg.Elements.Line(
-               { X: -12, Y: -5 }, { X: 12, Y: -5 }, "line medium"),
-            new Svg.Elements.Text(
-               text, { X: 0, Y: -9 }, "text bold"),
-            new Svg.Elements.Line(
-               { X: 0, Y: -5 }, { X: 0, Y: 10 }, "line thin")
+            Svg.Element.Rect.make(
+               { x: 0, y: -8 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
+            Svg.Element.Line.make(
+               { x: -12, y: -5 }, { x: 12, y: -5 }, "line medium"),
+            Svg.Element.Text.make(
+               text, { x: 0, y: -9 }, "text bold"),
+            Svg.Element.Line.make(
+               { x: 0, y: -5 }, { x: 0, y: 10 }, "line thin")
          );
       }
 
       function drawPowerNegative(component: Instance) {
          let text = Utility.getStandardForm(component.voltage, "V")
          component.group.append(
-            new Svg.Elements.Rect(
-               { X: 0, Y: 8 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"),
-            new Svg.Elements.Line(
-               { X: -12, Y: 5 }, { X: 12, Y: 5 }, "line medium"),
-            new Svg.Elements.Text(
-               text, { X: 0, Y: 19 }, "text bold"),
-            new Svg.Elements.Line(
-               { X: 0, Y: 5 }, { X: 0, Y: -10 }, "line thin")
+            Svg.Element.Rect.make(
+               { x: 0, y: 8 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
+            Svg.Element.Line.make(
+               { x: -12, y: 5 }, { x: 12, y: 5 }, "line medium"),
+            Svg.Element.Text.make(
+               text, { x: 0, y: 19 }, "text bold"),
+            Svg.Element.Line.make(
+               { x: 0, y: 5 }, { x: 0, y: -10 }, "line thin")
          );
       }
 
       function drawPowerGround(component: Instance) {
          component.group.append(
-            new Svg.Elements.Rect(
-               { X: 0, Y: 5 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"),
-            new Svg.Elements.Line(
-               { X: -18, Y: 0 }, { X: 18, Y: 0 }, "line medium"),
-            new Svg.Elements.Line(
-               { X: -12, Y: 5 }, { X: 12, Y: 5 }, "line medium"),
-            new Svg.Elements.Line(
-               { X: -6, Y: 10 }, { X: 6, Y: 10 }, "line medium"),
-            new Svg.Elements.Line(
-               { X: 0, Y: 0 }, { X: 0, Y: -10 }, "line thin")
+            Svg.Element.Rect.make(
+               { x: 0, y: 5 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
+            Svg.Element.Line.make(
+               { x: -18, y: 0 }, { x: 18, y: 0 }, "line medium"),
+            Svg.Element.Line.make(
+               { x: -12, y: 5 }, { x: 12, y: 5 }, "line medium"),
+            Svg.Element.Line.make(
+               { x: -6, y: 10 }, { x: 6, y: 10 }, "line medium"),
+            Svg.Element.Line.make(
+               { x: 0, y: 0 }, { x: 0, y: -10 }, "line thin")
          );
       }
 
       export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
-            component.group.addClasses("component " + component.name);
+            $(component.group.element).addClass("component " + component.name);
             Addins.Selectable.init(component);
             Addins.ConnectionHighlights.init(component, false);
          }

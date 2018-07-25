@@ -20,7 +20,7 @@ namespace Circuit.Component {
 
       export const defaultState: Types.state = {
          location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
-         joints: [{ X: 0, Y: 0 }, { X: 80, Y: 0 }]
+         joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }]
       }
       export const defaultProperties: Types.properties = {
          name: "diode",
@@ -35,7 +35,7 @@ namespace Circuit.Component {
 
          constructor(properties: Types.properties, state: Types.state) {
             super(properties, state);
-            this.group.addClasses("component " + this.name);
+            $(this.group.element).addClass("component " + this.name);
             this.joints = state.joints;
             this.saturationCurrent = properties.saturationCurrent;
             this.breakdownVoltage = properties.breakdownVoltage;
@@ -51,7 +51,7 @@ namespace Circuit.Component {
 
          getState(): Types.state {
             return {
-               location: this.group.transforms,
+               location: this.location,
                joints: this.joints
             }
          }
@@ -63,15 +63,15 @@ namespace Circuit.Component {
             let joints = this.joints //this.handles.map(h => h.position);
 
             //Start at the beginning, end at the end
-            leadPath = "M " + joints[0].X + " " + joints[0].Y;
-            leadPath += "L " + joints[joints.length - 1].X + " " + joints[joints.length - 1].Y;
+            leadPath = "M " + joints[0].x + " " + joints[0].y;
+            leadPath += "L " + joints[joints.length - 1].x + " " + joints[joints.length - 1].y;
 
             //Style and add lead and highlight
             //(Prepend so handles appear on top)
             this.group.prepend([
-               new Svg.Elements.Path(leadPath, "lead"),
-               new Svg.Elements.Groups.DiodeBody(
-                  joints[0], joints[joints.length - 1], "body")//.setValue(this.breakdownVoltage)
+               Svg.Element.Path.make(leadPath, "lead"),
+               Svg.Element.Group.DiodeBody.make(this.breakdownVoltage,
+                  joints[0], joints[joints.length - 1], "body")
             ]);
 
          }
@@ -93,7 +93,7 @@ namespace Circuit.Component {
             {
                location: raw.state.location,
                joints: (raw.state.joints && (raw.state.joints.length === 2) && (raw.state.joints.every((j: Global.Types.vector) => {
-                  return (('X' in j) && ('Y' in j) && (typeof j.X === 'number') && (typeof j.Y === 'number'));
+                  return (('x' in j) && ('y' in j) && (typeof j.x === 'number') && (typeof j.y === 'number'));
                }))) ? raw.state.joints : undefined
             } : {};
          let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
@@ -108,7 +108,7 @@ namespace Circuit.Component {
 
       export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
-            component.group.addClasses("component " + component.name);
+            $(component.group.element).addClass("component " + component.name);
             Addins.Draggable.init(component);
             Addins.Selectable.init(component);
             Addins.Extendable.init(component);

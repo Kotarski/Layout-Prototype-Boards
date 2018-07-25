@@ -39,7 +39,7 @@ namespace Circuit.Component {
 
          getState(): Types.state {
             return {
-               location: this.group.transforms
+               location: this.location
             }
          }
 
@@ -97,40 +97,40 @@ namespace Circuit.Component {
                height: 22 * gS
             };
             const centre = {
-               X: 32.5 * gS,
-               Y: 10.5 * gS
+               x: 32.5 * gS,
+               y: 10.5 * gS
             };
 
             this.group.append(
                //body
-               new Svg.Elements.Rect(centre, size, { X: 4, Y: 4 }, "body"),
+               Svg.Element.Rect.make(centre, size, { x: 4, y: 4 }, "body"),
                //Centre rut
-               new Svg.Elements.Rect(centre, { width: size.width, height: gS * 0.75, }, { X: 0, Y: 0 }, "rut"),
+               Svg.Element.Rect.make(centre, { width: size.width, height: gS * 0.75, }, { x: 0, y: 0 }, "rut"),
                //Body Highlights
-               new Svg.Elements.Rect(centre, size, { X: 4, Y: 4 }, "body highlight"),
+               Svg.Element.Rect.make(centre, size, { x: 4, y: 4 }, "body highlight"),
                //Power rail positives
-               new Svg.Elements.Path(railPairPathString + plussesPathString, "rail positive"),
+               Svg.Element.Path.make(railPairPathString + plussesPathString, "rail positive"),
                //Power rail negatives
-               new Svg.Elements.Path(railPairPathString + minusesPathString, "rail negative").translate({ X: 0, Y: gS * 3 }),
+               Svg.Element.Path.make(railPairPathString + minusesPathString, "rail negative").translate({ x: 0, y: gS * 3 }),
                //Text Left (portrait)
-               new Svg.Elements.Groups.TextSequence({ X: 64 * gS - gS / 6, Y: 4 * gS }, { X: 0, Y: gS }, { start: 1, length: 64 }).rotate(90),
+               Svg.Element.Group.TextSequence.make({ x: 64 * gS - gS / 6, y: 4 * gS }, { x: 0, y: gS }, { start: 1, length: 64 }).rotate(90),
                //Text Right (portrait)
-               new Svg.Elements.Groups.TextSequence({ X: 64 * gS - gS / 6, Y: 17 * gS }, { X: 0, Y: gS }, { start: 1, length: 64 }).rotate(90),
+               Svg.Element.Group.TextSequence.make({ x: 64 * gS - gS / 6, y: 17 * gS }, { x: 0, y: gS }, { start: 1, length: 64 }).rotate(90),
                //Text Top Left (portrait)
-               new Svg.Elements.Groups.TextSequence({ X: 65 * gS - gS / 4, Y: 5 * gS }, { X: gS, Y: 0 }, "abcde").rotate(90),
+               Svg.Element.Group.TextSequence.make({ x: 65 * gS - gS / 4, y: 5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90),
                //Text Bottom Left (portrait)
-               new Svg.Elements.Groups.TextSequence({ X: 0 * gS, Y: 5 * gS }, { X: gS, Y: 0 }, "abcde").rotate(90),
+               Svg.Element.Group.TextSequence.make({ x: 0 * gS, y: 5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90),
                //Text Top Right (portrait)
-               new Svg.Elements.Groups.TextSequence({ X: 65 * gS - gS / 4, Y: 12 * gS }, { X: gS, Y: 0 }, "fghij").rotate(90),
+               Svg.Element.Group.TextSequence.make({ x: 65 * gS - gS / 4, y: 12 * gS }, { x: gS, y: 0 }, "fghij").rotate(90),
                //Text Bottom Right (portrait)
-               new Svg.Elements.Groups.TextSequence({ X: 0 * gS, Y: 12 * gS }, { X: gS, Y: 0 }, "fghij").rotate(90),
+               Svg.Element.Group.TextSequence.make({ x: 0 * gS, y: 12 * gS }, { x: gS, y: 0 }, "fghij").rotate(90),
                //Tracks
                this.tracks.map(t => t.group)
             );
          }
 
-         insertInto(group: Svg.Elements.Group) {
-            Utility.Insert.first(this.group.element, group.element);
+         insertInto(element: SVGGraphicsElement) {
+            Utility.Insert.first(this.group.element, element);
          }
 
          transferFunction() { return [] };
@@ -148,7 +148,7 @@ namespace Circuit.Component {
                let track = Addins.Board.Track.makeInstance({
                   holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1].map(offset => offset * gS)
                }, {});
-               track.group.translate({ X: x, Y: y }).rotate(0);
+               track.group.translate({ x: x, y: y }).rotate(0);
                tracks.push(track);
             }
          }
@@ -161,7 +161,7 @@ namespace Circuit.Component {
                let track = Addins.Board.Track.makeInstance({
                   holeSpacings: [0, 1, 1, 1, 1].map(offset => offset * gS)
                }, {});
-               track.group.translate({ X: x, Y: y }).rotate(90);
+               track.group.translate({ x: x, y: y }).rotate(90);
                tracks.push(track);
             }
          }
@@ -187,7 +187,7 @@ namespace Circuit.Component {
 
       export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
-            component.group.addClasses("breadboard " + component.name);
+            $(component.group.element).addClass("breadboard " + component.name);
             Addins.Board.init(component, makeTracks);
             Addins.Selectable.init(component);
             Addins.WireCreation.init(component);

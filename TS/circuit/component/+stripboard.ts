@@ -57,7 +57,7 @@ namespace Circuit.Component {
 
          getState(): Types.state {
             return {
-               location: this.group.transforms
+               location: this.location
             }
          }
 
@@ -65,17 +65,17 @@ namespace Circuit.Component {
 
          draw() {
             const gS = Constants.gridSpacing;
-            const centre = { X: (this.columns - 1) * gS / 2, Y: (this.rows - 1) * gS / 2 };
+            const centre = { x: (this.columns - 1) * gS / 2, y: (this.rows - 1) * gS / 2 };
             const size = { width: (this.columns + 0.5) * gS, height: (this.rows + 0.5) * gS };
-            const cornerRounding = { X: 3, Y: 3 };
+            const cornerRounding = { x: 3, y: 3 };
             this.group.append(
-               new Svg.Elements.Rect(centre, size, cornerRounding, "body highlight"),
+               Svg.Element.Rect.make(centre, size, cornerRounding, "body highlight"),
                this.tracks.map(t => t.group)
             );
          }
 
-         insertInto(group: Svg.Elements.Group) {
-            Utility.Insert.first(this.group.element, group.element);
+         insertInto(element: SVGGraphicsElement) {
+            Utility.Insert.first(this.group.element, element);
          }
 
          transferFunction() { return [] };
@@ -91,7 +91,7 @@ namespace Circuit.Component {
                holeSpacings: holeSpacings,
                style: "stripboard"
             }, {});
-            track.group.translate({ X: 0, Y: row * gS }).rotate(0);
+            track.group.translate({ x: 0, y: row * gS }).rotate(0);
             tracks.push(track);
          }
 
@@ -127,7 +127,7 @@ namespace Circuit.Component {
 
       export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
-            component.group.addClasses(component.name);
+            $(component.group.element).addClass(component.name);
             Addins.Board.init(component, makeTracks, true);
             Addins.Selectable.init(component);
             Addins.WireCreation.init(component);

@@ -5,8 +5,8 @@ namespace Utility.Vector {
       let sin = Math.sin(radians);
 
       let rotatedVector: Global.Types.vector = {
-         X: (cos * vector.X) + (sin * vector.Y),
-         Y: (cos * vector.Y) - (sin * vector.X)
+         x: (cos * vector.x) + (sin * vector.y),
+         y: (cos * vector.y) - (sin * vector.x)
       };
 
       return rotatedVector;

@@ -15,7 +15,7 @@ namespace Circuit.Component {
 
       export const defaultState: Types.state = {
          location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
-         joints: [{ X: 0, Y: 0 }, { X: 10, Y: 10 }]
+         joints: [{ x: 0, y: 0 }, { x: 10, y: 10 }]
       }
 
       export const defaultProperties: Types.properties = {
@@ -29,7 +29,7 @@ namespace Circuit.Component {
 
          constructor(properties: Types.properties, state: Types.state) {
             super(properties, state);
-            this.group.addClasses("component " + this.name);
+            $(this.group.element).addClass("component " + this.name);
             this.joints = state.joints;
          }
 
@@ -42,17 +42,17 @@ namespace Circuit.Component {
 
          getState(): Types.state {
             return {
-               location: this.group.transforms,
+               location: this.location,
                joints: this.joints
             }
          }
 
          draw() {
-            let pathString = "M " + this.joints[0].X + " " + this.joints[0].Y;
+            let pathString = "M " + this.joints[0].x + " " + this.joints[0].y;
             for (let j = 1; j < this.joints.length; j++) {
-               pathString += " L " + this.joints[j].X + " " + +this.joints[j].Y;
+               pathString += " L " + this.joints[j].x + " " + +this.joints[j].y;
             }
-            this.group.append(new Svg.Elements.Path(pathString, "line thin"));
+            this.group.append(Svg.Element.Path.make(pathString, "line thin"));
          }
 
          /** Builds and draws the components connectors */
@@ -66,8 +66,8 @@ namespace Circuit.Component {
             ]
          }
 
-         insertInto(group: Svg.Elements.Group) {
-            Utility.Insert.first(this.group.element, group.element);
+         insertInto(element: SVGGraphicsElement) {
+            Utility.Insert.first(this.group.element, element);
          }
 
 
@@ -85,16 +85,16 @@ namespace Circuit.Component {
             {
                location: raw.state.location,
                joints: (raw.state.joints && (raw.state.joints.length > 1) && (raw.state.joints.every((j: Global.Types.vector) => {
-                  return (('X' in j) && ('Y' in j) && (typeof j.X === 'number') && (typeof j.Y === 'number'));
+                  return (('x' in j) && ('y' in j) && (typeof j.x === 'number') && (typeof j.y === 'number'));
                }))) ? raw.state.joints : undefined,
             } : {
                location: (raw.where) ? {
                   e: raw.where.X,
                   f: raw.where.Y
                } : undefined,
-               joints: (raw.joints && (raw.joints.length > 1) && (raw.joints.every((j: Global.Types.vector) => {
+               joints: (raw.joints && (raw.joints.length > 1) && (raw.joints.every((j: { X: number, Y: number }) => {
                   return (('X' in j) && ('Y' in j) && (typeof j.X === 'number') && (typeof j.Y === 'number'));
-               }))) ? raw.joints : undefined,
+               }))) ? Utility.Vector.standardise(raw.joints) : undefined,
             };
          let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
             {
@@ -106,7 +106,7 @@ namespace Circuit.Component {
 
       export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
-            component.group.addClasses("component " + component.name);
+            $(component.group.element).addClass("component " + component.name);
             Addins.Junctions.init(component);
          }
       );

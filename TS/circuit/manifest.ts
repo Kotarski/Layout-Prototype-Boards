@@ -13,8 +13,8 @@ namespace Circuit {
             component.group.element.remove();
             return false;
          });
-         Active.layout.group.clearChildren();
-         Active.schematic.group.clearChildren();
+         $(Active.layout.root.element).children().remove();
+         $(Active.schematic.root.element).children().remove();
       }
 
       let activeBoard: (Component.Instance | undefined);
@@ -45,7 +45,7 @@ namespace Circuit {
       }
 
       const placeComponent = (component: Component.Instance, diagram: Parts.Diagram) => {
-         component.insertInto(diagram.group);
+         component.insertInto(diagram.root.group.element);
          $(component.group.element).trigger(Events.place);
       }
 
