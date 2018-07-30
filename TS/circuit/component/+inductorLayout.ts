@@ -6,7 +6,7 @@ namespace Circuit.Component {
          export type properties = InductorSchematic.Types.properties;
 
          export interface state extends Component.Types.state {
-            joints: Global.Types.vector[];
+            joints: Vector[];
          }
 
          export interface loadFunction extends Component.Types.loadFunction {
@@ -20,7 +20,7 @@ namespace Circuit.Component {
 
       export const defaultState: Types.state = {
          location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
-         joints: [{ X: 0, Y: 0 }, { X: 80, Y: 0 }]
+         joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }]
       }
       export const defaultProperties: Types.properties = {
          name: "inductor",
@@ -29,11 +29,11 @@ namespace Circuit.Component {
 
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          inductance: number;
-         joints: Global.Types.vector[];
+         joints: Vector[];
 
          constructor(properties: Types.properties, state: Types.state) {
             super(properties, state);
-            this.group.addClasses("component " + this.name);
+            $(this.group.element).addClass("component " + this.name);
             this.joints = state.joints;
             this.inductance = properties.inductance;
          }
@@ -45,43 +45,22 @@ namespace Circuit.Component {
             }
          }
 
-         setProperties(properties: Types.properties) {
-            this.inductance = properties.inductance;
-            return this;
-         }
-
          getState(): Types.state {
             return {
-               location: this.group.transforms,
+               location: this.location,
                joints: this.joints
             }
          }
 
-         setState(state: Types.state) {
-            this.group.transforms = state.location;
-            this.joints = state.joints;
-            return this;
-         }
-
-
          draw() {
-            let leadPath: string = "";
-
-            // Just for ease
-            let joints = this.joints //this.handles.map(h => h.position);
-
-            //Start at the beginning, end at the end
-            leadPath = "M " + joints[0].X + " " + joints[0].Y;
-            leadPath += "L " + joints[joints.length - 1].X + " " + joints[joints.length - 1].Y;
-
+            const first = this.joints[0];
+            const last = this.joints[this.joints.length - 1];
             //Style and add lead and highlight
             //(Prepend so handles appear on top)
-            this.group.prepend([
-               new Svg.Elements.Path(leadPath, "lead"),
-               new Svg.Elements.Groups.InductorBody(
-                  joints[0], joints[joints.length - 1], "body")//.setValue(this.breakdownVoltage)
-            ]);
-
+            this.group.prepend(
+               Svg.Element.Path.make(this.joints, "lead"),
+               Svg.Element.Group.InductorBody.make(this.inductance, first, last, "body")
+            );
          }
 
          /** Builds the components connectors */
@@ -100,9 +79,9 @@ namespace Circuit.Component {
          let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
             {
                location: raw.state.location,
-               joints: (raw.state.joints && (raw.state.joints.length === 2) && (raw.state.joints.every((j: Global.Types.vector) => {
-                  return (('X' in j) && ('Y' in j) && (typeof j.X === 'number') && (typeof j.Y === 'number'));
-               }))) ? raw.state.joints : undefined
+               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
+                  ? vector.standardise(raw.state.joints as AnyVector[])
+                  : undefined
             } : {};
          let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
             {
@@ -115,7 +94,7 @@ namespace Circuit.Component {
 
       export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
-            component.group.addClasses("component " + component.name);
+            $(component.group.element).addClass("component " + component.name);
             Addins.Draggable.init(component);
             Addins.Selectable.init(component);
             Addins.Extendable.init(component);

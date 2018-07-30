@@ -5,7 +5,7 @@ namespace Circuit.Component {
          export type properties = BipolarSchematic.Types.properties;
 
          export interface state extends Component.Types.state {
-            joints: Global.Types.vector[];
+            joints: Vector[];
          }
 
          export interface loadFunction extends Component.Types.loadFunction {
@@ -19,7 +19,7 @@ namespace Circuit.Component {
 
       export const defaultState: Types.state = {
          location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
-         joints: [{ X: 0, Y: 0 }, { X: 20, Y: -20 }, { X: 40, Y: 0 }]
+         joints: [{ x: 0, y: 0 }, { x: 20, y: -20 }, { x: 40, y: 0 }]
       }
       export const defaultProperties: Types.properties = {
          name: "bipolar",
@@ -30,11 +30,11 @@ namespace Circuit.Component {
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          currentGain: number;
          type: "NPN" | "PNP"
-         joints: Global.Types.vector[];
+         joints: Vector[];
 
          constructor(properties: Types.properties, state: Types.state) {
             super(properties, state);
-            this.group.addClasses("component " + this.name);
+            $(this.group.element).addClass("component " + this.name);
             this.joints = state.joints;
             this.type = properties.type;
             this.currentGain = properties.currentGain;
@@ -50,39 +50,36 @@ namespace Circuit.Component {
 
          getState(): Types.state {
             return {
-               location: this.group.transforms,
+               location: this.location,
                joints: this.joints
             }
          }
 
          draw() {
+            let emitterEnd = this.joints[0];
+            let collectorEnd = this.joints[1];
+            let baseEnd = this.joints[2];
 
-            let centre = {
-               X: (this.joints[0].X + this.joints[1].X + this.joints[2].X) / 3,
-               Y: (this.joints[0].Y + this.joints[1].Y + this.joints[2].Y) / 3,
-            };
+            let centre = vector(emitterEnd, collectorEnd, baseEnd).centre().vector;
 
-            let rotation = -Math.atan2(this.joints[2].Y - this.joints[0].Y, this.joints[2].X - this.joints[0].X) * 180 / Math.PI;
+            let rotation = vector(emitterEnd).getAngleTo(baseEnd);
 
-            let leadEmitterStart = Utility.Vector.rotate({ X: - 12, Y: 3 }, rotation);
-            let leadCollectorStart = Utility.Vector.rotate({ X: 0, Y: 3 }, rotation);
-            let leadBaseStart = Utility.Vector.rotate({ X: 12, Y: 3 }, rotation);
+            let [emitterStart, collectorStart, baseStart]: Vector[] = vector(
+               { x: - 12, y: 3 }, { x: 0, y: 3 }, { x: 12, y: 3 }
+            ).rotate(-rotation).sumWith(centre).vectors;
 
-            let leadPath = "M " + this.joints[0].X + " " + this.joints[0].Y
-               + "L " + (centre.X + leadEmitterStart.X) + " " + (centre.Y + leadEmitterStart.Y)
-               + "M " + this.joints[1].X + " " + this.joints[1].Y
-               + "L " + (centre.X + leadCollectorStart.X) + " " + (centre.Y + leadCollectorStart.Y)
-               + "M " + this.joints[2].X + " " + this.joints[2].Y
-               + "L " + (centre.X + leadBaseStart.X) + " " + (centre.Y + leadBaseStart.Y)
+            let joints = [
+               [emitterStart, emitterEnd],
+               [collectorStart, collectorEnd],
+               [baseStart, baseEnd],
+            ]
 
             //Style and add lead and highlight
             //(Prepend so handles appear on top)
-            this.group.prepend([
-               new Svg.Elements.Path(leadPath, "lead"),
-               new Svg.Elements.Groups.BipolarBody(
-                  this.joints[0], this.joints[1], this.joints[2], "body"
-               ).setValue(this.type /*+ " (" + Circuit.Component.Generics.formatValueText(this.currentGain, '') + ")"*/)
-            ]);
+            this.group.prepend(
+               Svg.Element.Path.make(joints, "lead"),
+               Svg.Element.Group.BipolarBody.make(this.type, centre, rotation, "body")
+            );
 
          }
 
@@ -112,9 +109,9 @@ namespace Circuit.Component {
          let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
             {
                location: raw.state.location,
-               joints: (raw.state.joints && (raw.state.joints.length === 3) && (raw.state.joints.every((j: Global.Types.vector) => {
-                  return (('X' in j) && ('Y' in j) && (typeof j.X === 'number') && (typeof j.Y === 'number'));
-               }))) ? raw.state.joints : undefined
+               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 3)
+                  ? vector.standardise(raw.state.joints as AnyVector[])
+                  : undefined
             } : {};
 
          let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
@@ -129,7 +126,7 @@ namespace Circuit.Component {
 
       export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
-            component.group.addClasses("component " + component.name);
+            $(component.group.element).addClass("component " + component.name);
             Addins.Draggable.init(component);
             Addins.Selectable.init(component);
             Addins.Extendable.init(component);

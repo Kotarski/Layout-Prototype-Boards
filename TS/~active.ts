@@ -4,8 +4,8 @@ namespace Active {
 
    export function init() {
       layout = new Circuit.Parts.Diagram(NodeElements.layoutContainer);
-      layout.group.addClasses("layout");
+      $(layout.root.group.element).addClass("layout");
       schematic = new Circuit.Parts.Diagram(NodeElements.schematicContainer);
-      schematic.group.addClasses("schematic");
+      $(schematic.root.group.element).addClass("schematic");
    }
 }

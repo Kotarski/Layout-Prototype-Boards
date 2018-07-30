@@ -44,33 +44,33 @@ namespace Circuit.Component {
 
          getState(): Types.state {
             return {
-               location: this.group.transforms
+               location: this.location
             }
          }
 
 
-         insertInto(group: Svg.Elements.Group) {
-            Utility.Insert.before(this.group.element, group.element, ".component");
+         insertInto(element: SVGGraphicsElement) {
+            Utility.Insert.before(this.group.element, element, ".component");
          }
 
 
          draw() {
-            this.group.addClasses(this.name);
+            $(this.group.element).addClass(this.name);
             let text = this.voltage.toFixed(1);
 
             this.group.append(
-               new Svg.Elements.Rect({ X: 0, Y: 5 }, { width: 180, height: 95 }, { X: 10, Y: 10 }, "body highlight"),
-               new Svg.Elements.Rect({ X: 0, Y: -5 }, { width: 160, height: 65 }, { X: 10, Y: 10 }, "screen"),
-               new Svg.Elements.Text("8".repeat(text.length - 1), { X: 0, Y: 20 }, "screentext off"),
-               new Svg.Elements.Text(text, { X: 0, Y: 20 }, "screentext on"),
-               new Svg.Elements.Circle({ X: 0, Y: 40 }, 5, "hole")
+               Svg.Element.Rect.make({ x: 0, y: 5 }, { width: 180, height: 95 }, { x: 10, y: 10 }, "body highlight"),
+               Svg.Element.Rect.make({ x: 0, y: -5 }, { width: 160, height: 65 }, { x: 10, y: 10 }, "screen"),
+               Svg.Element.Text.make("8".repeat(text.length - 1), { x: 0, y: 20 }, "screentext off"),
+               Svg.Element.Text.make(text, { x: 0, y: 20 }, "screentext on"),
+               Svg.Element.Circle.make({ x: 0, y: 40 }, 5, "hole")
             );
          }
 
          /** Builds and draws the components connectors */
          makeConnectors() {
             this.connectorSets = [[
-               Component.Generics.makeConnector(this, "", "hole", { X: 0, Y: 40 })
+               Component.Generics.makeConnector(this, "", "hole", { x: 0, y: 40 })
             ]]
          }
 
@@ -100,7 +100,7 @@ namespace Circuit.Component {
 
       export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
-            component.group.addClasses(component.name);
+            $(component.group.element).addClass(component.name);
             Addins.Draggable.init(component);
             Addins.Selectable.init(component);
             Addins.ConnectionHighlights.init(component, true, getHighlightColor(component));

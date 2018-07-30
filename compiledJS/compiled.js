@@ -1,4 +1,256 @@
 "use strict";
+var _vector;
+(function (_vector) {
+    function standardise(inVectors, moreVectors) {
+        const vectorsAsArray = ((inVectors instanceof Array) ? inVectors : [inVectors]);
+        const moreVectorsAsArray = (moreVectors !== undefined) ? moreVectors : [];
+        const standardised = (vectorsAsArray.concat(moreVectorsAsArray)).map(inVector => {
+            if (_vector.isLVector(inVector)) {
+                return { x: inVector.x, y: inVector.y };
+            }
+            else if (_vector.isUVector(inVector)) {
+                return { x: inVector.X, y: inVector.Y };
+            }
+            else {
+                return { x: NaN, y: NaN };
+            }
+        });
+        return (standardised.length === 1 && !(inVectors instanceof Array)) ? standardised[0] : standardised;
+    }
+    _vector.standardise = standardise;
+})(_vector || (_vector = {}));
+var _vector;
+(function (_vector) {
+    function sumWithS(inVector) {
+        return (...sumVectors) => {
+            return _vector.vector(add(inVector, sum(sumVectors)));
+        };
+    }
+    _vector.sumWithS = sumWithS;
+    function sumWithM(inVectors) {
+        return (...sumVectors) => {
+            let b = sum(sumVectors);
+            return _vector.vector(inVectors.map(a => {
+                return add(a, b);
+            }));
+        };
+    }
+    _vector.sumWithM = sumWithM;
+    function add(a, b) {
+        return {
+            x: a.x + b.x,
+            y: a.y + b.y
+        };
+    }
+    function sum(inVectors) {
+        let sum = { x: 0, y: 0 };
+        inVectors.forEach(inVector => {
+            sum = add(sum, inVector);
+        });
+        return sum;
+    }
+})(_vector || (_vector = {}));
+var _vector;
+(function (_vector) {
+    function centreWith(inVector) {
+        return (...vectors) => {
+            let sum = { x: 0, y: 0 };
+            let count = 0;
+            vectors.forEach(vectorSet => {
+                let asArray = vectorSet instanceof Array ? vectorSet : [vectorSet];
+                asArray.forEach(vector => {
+                    count += 1;
+                    sum.x += vector.x;
+                    sum.y += vector.y;
+                });
+            });
+            const mean = {
+                x: sum.x / count,
+                y: sum.y / count
+            };
+            return _vector.vector(mean);
+        };
+    }
+    _vector.centreWith = centreWith;
+})(_vector || (_vector = {}));
+var _vector;
+(function (_vector) {
+    function rotateS(inVector) {
+        return (angle) => {
+            return _vector.vector(curriedRotate(angle)(inVector));
+        };
+    }
+    _vector.rotateS = rotateS;
+    function rotateM(inVectors) {
+        return (angle) => {
+            return _vector.vector(inVectors.map(curriedRotate(angle)));
+        };
+    }
+    _vector.rotateM = rotateM;
+    function curriedRotate(angle) {
+        const radians = (Math.PI / 180) * angle;
+        const cos = Math.cos(radians);
+        const sin = Math.sin(radians);
+        return (inVector) => {
+            return {
+                x: (cos * inVector.x) + (sin * inVector.y),
+                y: (cos * inVector.y) - (sin * inVector.x)
+            };
+        };
+    }
+})(_vector || (_vector = {}));
+var _vector;
+(function (_vector) {
+    function snapToGrid(inVector) {
+        return (grid = { x: 10, y: 10 }) => {
+            return _vector.vector({
+                x: Math.round(inVector.x / (grid.x)) * (grid.x),
+                y: Math.round(inVector.y / (grid.y)) * (grid.y)
+            });
+        };
+    }
+    _vector.snapToGrid = snapToGrid;
+})(_vector || (_vector = {}));
+var _vector;
+(function (_vector) {
+    function getAngleTo(inVector) {
+        return (compareVector) => {
+            return Math.atan2(compareVector.y - inVector.y, compareVector.x - inVector.x) * 180 / Math.PI;
+        };
+    }
+    _vector.getAngleTo = getAngleTo;
+})(_vector || (_vector = {}));
+var _vector;
+(function (_vector) {
+    function asPolar(inVector) {
+        return (compareVector, boundary = 5) => {
+            return {
+                radius: Math.sqrt(Math.pow(inVector.x, 2) + Math.pow(inVector.y, 2)),
+                angle: Math.atan(inVector.y / inVector.x)
+            };
+        };
+    }
+    _vector.asPolar = asPolar;
+})(_vector || (_vector = {}));
+var _vector;
+(function (_vector) {
+    function isCloseTo(inVector) {
+        return (compareVector, boundary = 5) => {
+            const vectorXisClose = (Math.abs(inVector.x - compareVector.x) < boundary);
+            const vectorYisClose = (Math.abs(inVector.y - compareVector.y) < boundary);
+            return (vectorXisClose && vectorYisClose);
+        };
+    }
+    _vector.isCloseTo = isCloseTo;
+})(_vector || (_vector = {}));
+var _vector;
+(function (_vector) {
+    function sum(inVectors) {
+        return () => {
+            let sum = { x: 0, y: 0 };
+            inVectors.forEach(inVector => {
+                sum.x += inVector.x;
+                sum.y += inVector.y;
+            });
+            return _vector.vector(sum);
+        };
+    }
+    _vector.sum = sum;
+})(_vector || (_vector = {}));
+var _vector;
+(function (_vector) {
+    function centre(inVectors) {
+        return () => {
+            let sum = { x: 0, y: 0 };
+            let count = 0;
+            inVectors.forEach(inVector => {
+                count += 1;
+                sum.x += inVector.x;
+                sum.y += inVector.y;
+            });
+            const mean = {
+                x: sum.x / count,
+                y: sum.y / count
+            };
+            return _vector.vector(mean);
+        };
+    }
+    _vector.centre = centre;
+})(_vector || (_vector = {}));
+var _vector;
+(function (_vector) {
+    function isVector(inVector) {
+        return (isLVector(inVector) || isUVector(inVector));
+    }
+    _vector.isVector = isVector;
+    function isVectorArray(inVectors) {
+        return (inVectors instanceof Array &&
+            inVectors.every(isVector));
+    }
+    _vector.isVectorArray = isVectorArray;
+    function isLVector(inVector) {
+        return (inVector.hasOwnProperty("x") &&
+            inVector.hasOwnProperty("y") &&
+            (typeof inVector.x === 'number') &&
+            (typeof inVector.y === 'number'));
+    }
+    _vector.isLVector = isLVector;
+    function isUVector(inVector) {
+        return (inVector.hasOwnProperty("X") &&
+            inVector.hasOwnProperty("Y") &&
+            (typeof inVector.X === 'number') &&
+            (typeof inVector.Y === 'number'));
+    }
+    _vector.isUVector = isUVector;
+})(_vector || (_vector = {}));
+var _vector;
+(function (_vector) {
+    const singleExtension = (inVector) => {
+        return {
+            vector: inVector,
+            getAngleTo: _vector.getAngleTo(inVector),
+            asPolar: _vector.asPolar(inVector),
+            isCloseTo: _vector.isCloseTo(inVector),
+            sumWith: _vector.sumWithS(inVector),
+            centreWith: _vector.centreWith(inVector),
+            rotate: _vector.rotateS(inVector),
+            snapToGrid: _vector.snapToGrid(inVector)
+        };
+    };
+    const multiExtension = (inVectors) => {
+        return {
+            vectors: inVectors,
+            sum: _vector.sum(inVectors),
+            sumWith: _vector.sumWithM(inVectors),
+            rotate: _vector.rotateM(inVectors),
+            centre: _vector.centre(inVectors),
+        };
+    };
+    function vectorFunction(inVectors, ...moreVectors) {
+        const vectorsAsArray = ((inVectors instanceof Array) ? inVectors : [inVectors]);
+        const moreVectorsAsArray = (moreVectors !== undefined) ? moreVectors : [];
+        const vCopy = _vector.standardise(vectorsAsArray.concat(moreVectorsAsArray));
+        const isSingle = (vCopy.length === 1 && !(inVectors instanceof Array));
+        const ismulti = vCopy.length > 1;
+        const single = (isSingle) ? singleExtension(vCopy[0]) : null;
+        const array = (ismulti) ? multiExtension(vCopy) : null;
+        return Object.assign({}, single, array);
+    }
+    const vectorObject = {
+        sumWith: _vector.sumWithS,
+        getAngleTo: _vector.getAngleTo,
+        isCloseTo: _vector.isCloseTo,
+        centreWith: _vector.centreWith,
+        rotate: _vector.rotateS,
+        snapToGrid: _vector.snapToGrid,
+        asPolar: _vector.asPolar,
+        standardise: _vector.standardise,
+        isVector: _vector.isVector,
+        isVectorArray: _vector.isVectorArray,
+    };
+    _vector.vector = Object.assign(vectorFunction, vectorObject);
+})(_vector || (_vector = {}));
+const vector = _vector.vector;
 var SOFTWARE_VERSION = "v25";
 $(document).ready(() => {
     NodeElements.init();
@@ -10,9 +262,9 @@ var Active;
 (function (Active) {
     function init() {
         Active.layout = new Circuit.Parts.Diagram(NodeElements.layoutContainer);
-        Active.layout.group.addClasses("layout");
+        $(Active.layout.root.group.element).addClass("layout");
         Active.schematic = new Circuit.Parts.Diagram(NodeElements.schematicContainer);
-        Active.schematic.group.addClasses("schematic");
+        $(Active.schematic.root.group.element).addClass("schematic");
     }
     Active.init = init;
 })(Active || (Active = {}));
@@ -50,19 +302,19 @@ var Circuit;
         })(Types = Component.Types || (Component.Types = {}));
         class Instance {
             constructor(properties, state) {
-                this.group = new Svg.Elements.Group();
+                this.group = Svg.Element.Group.make();
                 this.connectorSets = [];
                 this.location = state.location;
                 this.name = properties.name;
             }
             get location() {
-                return this.group.transforms;
+                return this.group.getTransforms();
             }
             set location(location) {
-                this.group.transforms = location;
+                this.group.setTransforms(location);
             }
-            insertInto(group) {
-                Utility.Insert.last(this.group.element, group.element);
+            insertInto(element) {
+                Utility.Insert.last(this.group.element, element);
             }
             getConnections() {
                 if (Circuit.manifest.layout.includes(this)) {
@@ -142,14 +394,6 @@ var Utility;
             return curried;
         }
         Curry.makeOptional = makeOptional;
-        function curry2(predicate) {
-            return (A) => (B) => predicate(A, B);
-        }
-        Curry.curry2 = curry2;
-        function curry3(predicate) {
-            return (A) => (B) => (C) => predicate(A, B, C);
-        }
-        Curry.curry3 = curry3;
     })(Curry = Utility.Curry || (Utility.Curry = {}));
 })(Utility || (Utility = {}));
 var Circuit;
@@ -164,8 +408,8 @@ var Circuit;
                 component.group.element.remove();
                 return false;
             });
-            Active.layout.group.clearChildren();
-            Active.schematic.group.clearChildren();
+            $(Active.layout.root.element).children().remove();
+            $(Active.schematic.root.element).children().remove();
         };
         let activeBoard;
         const constructFrom = (savedManifest) => {
@@ -194,7 +438,7 @@ var Circuit;
             });
         };
         const placeComponent = (component, diagram) => {
-            component.insertInto(diagram.group);
+            component.insertInto(diagram.root.group.element);
             $(component.group.element).trigger(Events.place);
         };
         const draw = () => {
@@ -472,103 +716,116 @@ var Circuit;
 })(Circuit || (Circuit = {}));
 var Svg;
 (function (Svg) {
-    class Element {
-        constructor(type, classes = "") {
-            this.element = Svg.makeSVGElement(type, classes);
+    var Element;
+    (function (Element) {
+        function make(type, classes = "") {
+            const element = document.createElementNS(Constants.svgURI, type);
+            $(element).addClass(classes);
+            return element;
         }
-        addClasses(classes) {
-            $(this.element).addClass(classes);
-            return this;
-        }
-        removeClasses(classes) {
-            $(this.element).removeClass(classes);
-            return this;
-        }
-        clearChildren(inclusionSelector = "*") {
-            let element = this.element;
-            $(element).children(inclusionSelector).remove();
-        }
-        convertVector(vector, direction, type) {
-            let conversionMatrix = this.element.getScreenCTM() || Svg.makeMatrix();
-            if (direction === "DomToSvg")
-                conversionMatrix = conversionMatrix.inverse();
-            if (type === "absToDoc" && this.element.transform.baseVal.numberOfItems > 0) {
-                this.element.transform.baseVal.consolidate();
-                let groupMatrix = this.element.transform.baseVal.getItem(0).matrix;
-                conversionMatrix = conversionMatrix.multiply(groupMatrix);
+        Element.make = make;
+        let Functions;
+        (function (Functions) {
+            function rotate(element) {
+                return (rotation, centre, insertBefore = false) => {
+                    let centreV;
+                    if (centre) {
+                        centreV = centre;
+                    }
+                    else {
+                        let bounds = element.getBBox();
+                        centreV = { x: bounds.width / 2 + bounds.x, y: bounds.height / 2 + bounds.y };
+                    }
+                    Svg.addTransform(element, t => t.setRotate(rotation, centreV.x, centreV.y), insertBefore);
+                    return svg(element);
+                };
             }
-            let convertedVector = {
-                X: vector.X * conversionMatrix.a + vector.Y * conversionMatrix.c,
-                Y: vector.Y * conversionMatrix.d + vector.X * conversionMatrix.b
-            };
-            if (type === "relToGroup") {
-                convertedVector.X += conversionMatrix.e;
-                convertedVector.Y += conversionMatrix.f;
+            Functions.rotate = rotate;
+            function translate(element) {
+                return (translation, insertBefore = true) => {
+                    Svg.addTransform(element, t => t.setTranslate(translation.x, translation.y), insertBefore);
+                    return svg(element);
+                };
             }
-            return convertedVector;
-        }
-        rotate(rotation, centre, insertBefore = false) {
-            let centreV;
-            if (centre) {
-                centreV = centre;
+            Functions.translate = translate;
+            function scale(element) {
+                return (scale, insertBefore = true) => {
+                    let scaleV = (typeof scale === "number") ? { x: scale, y: scale } : scale;
+                    Svg.addTransform(element, t => t.setScale(scaleV.x, scaleV.y), insertBefore);
+                    return svg(element);
+                };
             }
-            else {
-                let bounds = this.element.getBBox();
-                centreV = { X: bounds.width / 2 + bounds.x, Y: bounds.height / 2 + bounds.y };
+            Functions.scale = scale;
+            function getTransforms(element) {
+                return () => {
+                    let transform = element.transform.baseVal.consolidate();
+                    return (transform === null) ? Svg.makeMatrix() : {
+                        a: transform.matrix.a, b: transform.matrix.b, c: transform.matrix.c,
+                        d: transform.matrix.d, e: transform.matrix.e, f: transform.matrix.f
+                    };
+                };
             }
-            Svg.addTransform(this.element, t => t.setRotate(rotation, centreV.X, centreV.Y), insertBefore);
-            return this;
-        }
-        translate(translation, insertBefore = true) {
-            Svg.addTransform(this.element, t => t.setTranslate(translation.X, translation.Y), insertBefore);
-            return this;
-        }
-        scale(scale, insertBefore = true) {
-            let scaleV = (typeof scale === "number") ? { X: scale, Y: scale } : scale;
-            Svg.addTransform(this.element, t => t.setScale(scaleV.X, scaleV.Y), insertBefore);
-            return this;
-        }
-        get transforms() {
-            let transform = this.element.transform.baseVal.consolidate();
-            return (transform === null) ? Svg.makeMatrix() : {
-                a: transform.matrix.a, b: transform.matrix.b, c: transform.matrix.c,
-                d: transform.matrix.d, e: transform.matrix.e, f: transform.matrix.f
-            };
-        }
-        set transforms(transformMatrix) {
-            this.element.transform.baseVal.clear();
-            this.element.removeAttribute('transform');
-            let matrix = Svg.makeMatrix();
-            matrix.a = transformMatrix.a;
-            matrix.b = transformMatrix.b;
-            matrix.c = transformMatrix.c;
-            matrix.d = transformMatrix.d;
-            matrix.e = transformMatrix.e;
-            matrix.f = transformMatrix.f;
-            let transform = this.element.transform.baseVal.createSVGTransformFromMatrix(matrix);
-            this.element.transform.baseVal.appendItem(transform);
-        }
-    }
-    Svg.Element = Element;
+            Functions.getTransforms = getTransforms;
+            function setTransforms(element) {
+                return (transformMatrix) => {
+                    element.transform.baseVal.clear();
+                    element.removeAttribute('transform');
+                    let matrix = Svg.makeMatrix();
+                    matrix.a = transformMatrix.a;
+                    matrix.b = transformMatrix.b;
+                    matrix.c = transformMatrix.c;
+                    matrix.d = transformMatrix.d;
+                    matrix.e = transformMatrix.e;
+                    matrix.f = transformMatrix.f;
+                    let transform = element.transform.baseVal.createSVGTransformFromMatrix(matrix);
+                    element.transform.baseVal.appendItem(transform);
+                    return svg(element);
+                };
+            }
+            Functions.setTransforms = setTransforms;
+            function convertVector(element) {
+                return (vector, direction, type) => {
+                    let conversionMatrix = element.getScreenCTM() || Svg.makeMatrix();
+                    if (direction === "DomToSvg")
+                        conversionMatrix = conversionMatrix.inverse();
+                    if (type === "absToDoc" && element.transform.baseVal.numberOfItems > 0) {
+                        element.transform.baseVal.consolidate();
+                        let groupMatrix = element.transform.baseVal.getItem(0).matrix;
+                        conversionMatrix = conversionMatrix.multiply(groupMatrix);
+                    }
+                    let convertedVector = {
+                        x: vector.x * conversionMatrix.a + vector.y * conversionMatrix.c,
+                        y: vector.y * conversionMatrix.d + vector.x * conversionMatrix.b
+                    };
+                    if (type === "relToGroup") {
+                        convertedVector.x += conversionMatrix.e;
+                        convertedVector.y += conversionMatrix.f;
+                    }
+                    return convertedVector;
+                };
+            }
+            Functions.convertVector = convertVector;
+        })(Functions = Element.Functions || (Element.Functions = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
     class Root {
         constructor(classes = "") {
-            this.element = Svg.makeSVGElement("svg", classes);
-            $(this.element).addClass(classes);
-            this.group = new Svg.Elements.Group();
+            this.element = Svg.Element.SVG.make();
+            this.group = Svg.Element.Group.make();
+            $(this.element.element).addClass(classes);
         }
         draw(node) {
-            this.element.appendChild(this.group.element);
-            node.appendChild(this.element);
-            Svg.Addins.Draggable.init(this.group, {
+            this.element.append(this.group);
+            node.appendChild(this.element.element);
+            Svg.Addins.Draggable.init(this.group.element, {
                 grid: "off",
-                eventTarget: this.element,
+                eventTarget: this.element.element,
                 useHelper: true,
             });
-            Svg.Addins.Scaleable.init(this.group, {
-                eventTarget: this.element,
+            Svg.Addins.Scaleable.init(this.group.element, {
+                eventTarget: this.element.element,
             });
         }
     }
@@ -590,35 +847,48 @@ var Svg;
     }
     Svg.addTransform = addTransform;
     function makeTransform() {
-        return Svg.makeSVGElement("svg").createSVGTransform();
+        return Svg.Element.make("svg").createSVGTransform();
     }
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
     function makeMatrix() {
-        return Svg.makeSVGElement("svg").createSVGMatrix();
+        return Svg.Element.make("svg").createSVGMatrix();
     }
     Svg.makeMatrix = makeMatrix;
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
     function makePoint(vector) {
-        const point = Svg.makeSVGElement("svg").createSVGPoint();
-        point.x = vector.X;
-        point.y = vector.Y;
+        const point = Svg.Element.make("svg").createSVGPoint();
+        point.x = vector.x;
+        point.y = vector.y;
         return point;
     }
     Svg.makePoint = makePoint;
 })(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    function makeSVGElement(type, classes = "") {
-        const element = document.createElementNS(Constants.svgURI, type);
-        $(element).addClass(classes);
-        return element;
-    }
-    Svg.makeSVGElement = makeSVGElement;
-})(Svg || (Svg = {}));
+function svg(element) {
+    let extension = {
+        element: element
+    };
+    let elementExtension = (element instanceof SVGGraphicsElement) ? {
+        rotate: Svg.Element.Functions.rotate(element),
+        translate: Svg.Element.Functions.translate(element),
+        scale: Svg.Element.Functions.scale(element),
+        getTransforms: Svg.Element.Functions.getTransforms(element),
+        setTransforms: Svg.Element.Functions.setTransforms(element),
+        convertVector: Svg.Element.Functions.convertVector(element),
+    } : null;
+    let groupExtension = (element instanceof SVGGElement || element instanceof SVGSVGElement) ? {
+        append: Svg.Element.Group.Functions.append(element),
+        prepend: Svg.Element.Group.Functions.prepend(element),
+        clearChildren: Svg.Element.Group.Functions.clearChildren(element)
+    } : null;
+    let textExtension = (element instanceof SVGTextElement) ? {
+        followPath: Svg.Element.Text.Functions.followPath(element),
+    } : null;
+    return Object.assign({}, extension, elementExtension, groupExtension, textExtension);
+}
 var Ui;
 (function (Ui) {
     function init() {
@@ -685,7 +955,7 @@ var Ui;
     var Events;
     (function (Events) {
         function fitDiagramContents(diagram) {
-            let rootEl = diagram.root.element;
+            let rootEl = diagram.root.element.element;
             let group = diagram.group;
             let groupBBox = group.element.getBBox();
             let scaleX = (groupBBox.width) ? (rootEl.width.baseVal.value / groupBBox.width) : 0;
@@ -754,7 +1024,7 @@ var Ui;
         function rotateBoard() {
             if (Circuit.manifest.activeBoard) {
                 const bbox = Circuit.manifest.activeBoard.group.element.getBBox();
-                Circuit.manifest.activeBoard.group.rotate(90, { X: bbox.x + bbox.width / 2, Y: bbox.y + bbox.height / 2 }, false);
+                Circuit.manifest.activeBoard.group.rotate(90, { x: bbox.x + bbox.width / 2, y: bbox.y + bbox.height / 2 }, false);
             }
         }
         Events.rotateBoard = rotateBoard;
@@ -890,15 +1160,6 @@ var Utility;
 })(Utility || (Utility = {}));
 var Utility;
 (function (Utility) {
-    function pointsAreClose(vectorA, vectorB, closeBoundary = 1) {
-        return (Math.abs(vectorA.x - vectorB.x) < closeBoundary &&
-            Math.abs(vectorA.y - vectorB.y) < closeBoundary);
-    }
-    Utility.pointsAreClose = pointsAreClose;
-    ;
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
     function radiansToDegrees(angle) {
         return angle * 180 / Math.PI;
     }
@@ -973,7 +1234,7 @@ var Circuit;
         (function (Local) {
             Local.defaultState = {
                 location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
-                joints: [{ X: 0, Y: 0 }, { X: 20, Y: -20 }, { X: 40, Y: 0 }]
+                joints: [{ x: 0, y: 0 }, { x: 20, y: -20 }, { x: 40, y: 0 }]
             };
             Local.defaultProperties = {
                 name: "bipolar",
@@ -983,7 +1244,7 @@ var Circuit;
             class Instance extends Component.Instance {
                 constructor(properties, state) {
                     super(properties, state);
-                    this.group.addClasses("component " + this.name);
+                    $(this.group.element).addClass("component " + this.name);
                     this.joints = state.joints;
                     this.type = properties.type;
                     this.currentGain = properties.currentGain;
@@ -997,29 +1258,23 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.group.transforms,
+                        location: this.location,
                         joints: this.joints
                     };
                 }
                 draw() {
-                    let centre = {
-                        X: (this.joints[0].X + this.joints[1].X + this.joints[2].X) / 3,
-                        Y: (this.joints[0].Y + this.joints[1].Y + this.joints[2].Y) / 3,
-                    };
-                    let rotation = -Math.atan2(this.joints[2].Y - this.joints[0].Y, this.joints[2].X - this.joints[0].X) * 180 / Math.PI;
-                    let leadEmitterStart = Utility.Vector.rotate({ X: -12, Y: 3 }, rotation);
-                    let leadCollectorStart = Utility.Vector.rotate({ X: 0, Y: 3 }, rotation);
-                    let leadBaseStart = Utility.Vector.rotate({ X: 12, Y: 3 }, rotation);
-                    let leadPath = "M " + this.joints[0].X + " " + this.joints[0].Y
-                        + "L " + (centre.X + leadEmitterStart.X) + " " + (centre.Y + leadEmitterStart.Y)
-                        + "M " + this.joints[1].X + " " + this.joints[1].Y
-                        + "L " + (centre.X + leadCollectorStart.X) + " " + (centre.Y + leadCollectorStart.Y)
-                        + "M " + this.joints[2].X + " " + this.joints[2].Y
-                        + "L " + (centre.X + leadBaseStart.X) + " " + (centre.Y + leadBaseStart.Y);
-                    this.group.prepend([
-                        new Svg.Elements.Path(leadPath, "lead"),
-                        new Svg.Elements.Groups.BipolarBody(this.joints[0], this.joints[1], this.joints[2], "body").setValue(this.type)
-                    ]);
+                    let emitterEnd = this.joints[0];
+                    let collectorEnd = this.joints[1];
+                    let baseEnd = this.joints[2];
+                    let centre = vector(emitterEnd, collectorEnd, baseEnd).centre().vector;
+                    let rotation = vector(emitterEnd).getAngleTo(baseEnd);
+                    let [emitterStart, collectorStart, baseStart] = vector({ x: -12, y: 3 }, { x: 0, y: 3 }, { x: 12, y: 3 }).rotate(-rotation).sumWith(centre).vectors;
+                    let joints = [
+                        [emitterStart, emitterEnd],
+                        [collectorStart, collectorEnd],
+                        [baseStart, baseEnd],
+                    ];
+                    this.group.prepend(Svg.Element.Path.make(joints, "lead"), Svg.Element.Group.BipolarBody.make(this.type, centre, rotation, "body"));
                 }
                 makeConnectors() {
                     if (this.type === "PNP") {
@@ -1045,9 +1300,9 @@ var Circuit;
                 let state = (raw.state) ?
                     {
                         location: raw.state.location,
-                        joints: (raw.state.joints && (raw.state.joints.length === 3) && (raw.state.joints.every((j) => {
-                            return (('X' in j) && ('Y' in j) && (typeof j.X === 'number') && (typeof j.Y === 'number'));
-                        }))) ? raw.state.joints : undefined
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 3)
+                            ? vector.standardise(raw.state.joints)
+                            : undefined
                     } : {};
                 let properties = (raw.properties) ?
                     {
@@ -1058,7 +1313,7 @@ var Circuit;
                 return Local.makeInstance(properties, state, true);
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
-                component.group.addClasses("component " + component.name);
+                $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.Extendable.init(component);
@@ -1093,7 +1348,7 @@ var Circuit;
                 constructor(properties, state) {
                     super(properties, state);
                     this.name = "bipolar";
-                    this.group.addClasses("component " + this.name);
+                    $(this.group.element).addClass("component " + this.name);
                     this.orientation = state.orientation;
                     this.type = properties.type;
                     this.currentGain = properties.currentGain;
@@ -1107,31 +1362,31 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.group.transforms,
+                        location: this.location,
                         orientation: this.orientation
                     };
                 }
                 draw() {
-                    const scale = (this.orientation === "LR") ? { X: 1, Y: 1 } : { X: -1, Y: 1 };
-                    this.group.append(new Svg.Elements.Circle({ X: 0, Y: 0 }, 30, "extrathick highlight").scale(scale, true));
-                    this.group.append(new Svg.Elements.Line({ X: -15, Y: 0 }, { X: -50, Y: 0 }, "line thin").scale(scale), new Svg.Elements.Line({ X: +10, Y: -20 }, { X: +10, Y: -50 }, "line thin").scale(scale), new Svg.Elements.Line({ X: +10, Y: +20 }, { X: +10, Y: +50 }, "line thin").scale(scale), new Svg.Elements.Line({ X: -15, Y: -15 }, { X: -15, Y: +15 }, "line medium-thick nocap").scale(scale), new Svg.Elements.Line({ X: -15, Y: -5 }, { X: +10, Y: -20 }, "line thin").scale(scale), new Svg.Elements.Line({ X: -15, Y: 5 }, { X: 10, Y: 20 }, "line thin").scale(scale));
+                    const scale = (this.orientation === "LR") ? { x: 1, y: 1 } : { x: -1, y: 1 };
+                    this.group.append(Svg.Element.Circle.make({ x: 0, y: 0 }, 30, "extrathick highlight").scale(scale, true));
+                    this.group.append(Svg.Element.Line.make({ x: -15, y: 0 }, { x: -50, y: 0 }, "line thin").scale(scale), Svg.Element.Line.make({ x: +10, y: -20 }, { x: +10, y: -50 }, "line thin").scale(scale), Svg.Element.Line.make({ x: +10, y: +20 }, { x: +10, y: +50 }, "line thin").scale(scale), Svg.Element.Line.make({ x: -15, y: -15 }, { x: -15, y: +15 }, "line medium-thick nocap").scale(scale), Svg.Element.Line.make({ x: -15, y: -5 }, { x: +10, y: -20 }, "line thin").scale(scale), Svg.Element.Line.make({ x: -15, y: 5 }, { x: 10, y: 20 }, "line thin").scale(scale));
                     if (this.type === "PNP") {
-                        this.group.append(new Svg.Elements.Path('M -7 0 L 7 6 L 7 -6 L -7 0 Z', "body black thin").translate({ X: -8, Y: -9.2 }).rotate(-31).scale(scale, true));
+                        this.group.append(Svg.Element.Path.make('M -7 0 L 7 6 L 7 -6 L -7 0 Z', "body black thin").translate({ x: -8, y: -9.2 }).rotate(-31).scale(scale, true));
                     }
                     else {
-                        this.group.append(new Svg.Elements.Path('M 7 0 L -7 6 L -7 -6 L 7 0 Z', "body black thin").translate({ X: 4, Y: 16.4 }).rotate(31).scale(scale, true));
+                        this.group.append(Svg.Element.Path.make('M 7 0 L -7 6 L -7 -6 L 7 0 Z', "body black thin").translate({ x: 4, y: 16.4 }).rotate(31).scale(scale, true));
                     }
-                    this.group.append(new Svg.Elements.Circle({ X: 0, Y: 0 }, 30, "line medium nofill").scale(scale, true));
-                    let textPosition = (this.orientation === "LR") ? { X: 32, Y: 4 } : { X: -32, Y: 4 };
+                    this.group.append(Svg.Element.Circle.make({ x: 0, y: 0 }, 30, "line medium nofill").scale(scale, true));
+                    let textPosition = (this.orientation === "LR") ? { x: 32, y: 4 } : { x: -32, y: 4 };
                     let text = Utility.getStandardForm(this.currentGain, '');
                     let anchorClass = (this.orientation === "LR") ? "anchorstart" : "anchorend";
-                    this.group.append(new Svg.Elements.Text(text, textPosition, "text").addClasses(anchorClass));
+                    this.group.append(Svg.Element.Text.make(text, textPosition, "text " + anchorClass));
                 }
                 makeConnectors() {
                     let con1Pos, con2Pos, con3Pos;
                     [con1Pos, con2Pos, con3Pos] = (this.orientation === "LR")
-                        ? [{ X: -50, Y: 0 }, { X: +10, Y: -50 }, { X: +10, Y: +50 }]
-                        : [{ X: +50, Y: 0 }, { X: -10, Y: -50 }, { X: -10, Y: +50 }];
+                        ? [{ x: -50, y: 0 }, { x: +10, y: -50 }, { x: +10, y: +50 }]
+                        : [{ x: +50, y: 0 }, { x: -10, y: -50 }, { x: -10, y: +50 }];
                     if (this.type === "PNP") {
                         this.connectorSets = [[
                                 Component.Generics.makeConnector(this, "base", "node", con1Pos),
@@ -1175,7 +1430,7 @@ var Circuit;
                 return Local.makeInstance(properties, state, true);
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
-                component.group.addClasses("component " + component.name);
+                $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
             });
@@ -1214,7 +1469,7 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.group.transforms
+                        location: this.location
                     };
                 }
                 makeConnectors() { }
@@ -1263,13 +1518,13 @@ var Circuit;
                         height: 22 * gS
                     };
                     const centre = {
-                        X: 32.5 * gS,
-                        Y: 10.5 * gS
+                        x: 32.5 * gS,
+                        y: 10.5 * gS
                     };
-                    this.group.append(new Svg.Elements.Rect(centre, size, { X: 4, Y: 4 }, "body"), new Svg.Elements.Rect(centre, { width: size.width, height: gS * 0.75, }, { X: 0, Y: 0 }, "rut"), new Svg.Elements.Rect(centre, size, { X: 4, Y: 4 }, "body highlight"), new Svg.Elements.Path(railPairPathString + plussesPathString, "rail positive"), new Svg.Elements.Path(railPairPathString + minusesPathString, "rail negative").translate({ X: 0, Y: gS * 3 }), new Svg.Elements.Groups.TextSequence({ X: 64 * gS - gS / 6, Y: 4 * gS }, { X: 0, Y: gS }, { start: 1, length: 64 }).rotate(90), new Svg.Elements.Groups.TextSequence({ X: 64 * gS - gS / 6, Y: 17 * gS }, { X: 0, Y: gS }, { start: 1, length: 64 }).rotate(90), new Svg.Elements.Groups.TextSequence({ X: 65 * gS - gS / 4, Y: 5 * gS }, { X: gS, Y: 0 }, "abcde").rotate(90), new Svg.Elements.Groups.TextSequence({ X: 0 * gS, Y: 5 * gS }, { X: gS, Y: 0 }, "abcde").rotate(90), new Svg.Elements.Groups.TextSequence({ X: 65 * gS - gS / 4, Y: 12 * gS }, { X: gS, Y: 0 }, "fghij").rotate(90), new Svg.Elements.Groups.TextSequence({ X: 0 * gS, Y: 12 * gS }, { X: gS, Y: 0 }, "fghij").rotate(90), this.tracks.map(t => t.group));
+                    this.group.append(Svg.Element.Rect.make(centre, size, { x: 4, y: 4 }, "body"), Svg.Element.Rect.make(centre, { width: size.width, height: gS * 0.75, }, { x: 0, y: 0 }, "rut"), Svg.Element.Rect.make(centre, size, { x: 4, y: 4 }, "body highlight"), Svg.Element.Path.make(railPairPathString + plussesPathString, "rail positive"), Svg.Element.Path.make(railPairPathString + minusesPathString, "rail negative").translate({ x: 0, y: gS * 3 }), Svg.Element.Group.TextSequence.make({ x: 64 * gS - gS / 6, y: 4 * gS }, { x: 0, y: gS }, { start: 1, length: 64 }).rotate(90), Svg.Element.Group.TextSequence.make({ x: 64 * gS - gS / 6, y: 17 * gS }, { x: 0, y: gS }, { start: 1, length: 64 }).rotate(90), Svg.Element.Group.TextSequence.make({ x: 65 * gS - gS / 4, y: 5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90), Svg.Element.Group.TextSequence.make({ x: 0 * gS, y: 5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90), Svg.Element.Group.TextSequence.make({ x: 65 * gS - gS / 4, y: 12 * gS }, { x: gS, y: 0 }, "fghij").rotate(90), Svg.Element.Group.TextSequence.make({ x: 0 * gS, y: 12 * gS }, { x: gS, y: 0 }, "fghij").rotate(90), this.tracks.map(t => t.group));
                 }
-                insertInto(group) {
-                    Utility.Insert.first(this.group.element, group.element);
+                insertInto(element) {
+                    Utility.Insert.first(this.group.element, element);
                 }
                 transferFunction() { return []; }
                 ;
@@ -1285,7 +1540,7 @@ var Circuit;
                         let track = Component.Addins.Board.Track.makeInstance({
                             holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1].map(offset => offset * gS)
                         }, {});
-                        track.group.translate({ X: x, Y: y }).rotate(0);
+                        track.group.translate({ x: x, y: y }).rotate(0);
                         tracks.push(track);
                     }
                 }
@@ -1296,7 +1551,7 @@ var Circuit;
                         let track = Component.Addins.Board.Track.makeInstance({
                             holeSpacings: [0, 1, 1, 1, 1].map(offset => offset * gS)
                         }, {});
-                        track.group.translate({ X: x, Y: y }).rotate(90);
+                        track.group.translate({ x: x, y: y }).rotate(90);
                         tracks.push(track);
                     }
                 }
@@ -1313,7 +1568,7 @@ var Circuit;
                 return Local.makeInstance(properties, state, true);
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
-                component.group.addClasses("breadboard " + component.name);
+                $(component.group.element).addClass("breadboard " + component.name);
                 Component.Addins.Board.init(component, makeTracks);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.WireCreation.init(component);
@@ -1353,7 +1608,7 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.group.transforms
+                        location: this.location
                     };
                 }
                 makeConnectors() { }
@@ -1398,13 +1653,13 @@ var Circuit;
                         height: 22 * gS
                     };
                     const centre = {
-                        X: 15.5 * gS,
-                        Y: 10.5 * gS
+                        x: 15.5 * gS,
+                        y: 10.5 * gS
                     };
-                    this.group.append(new Svg.Elements.Rect(centre, size, { X: 4, Y: 4 }, "body"), new Svg.Elements.Rect(centre, { width: size.width, height: gS * 0.75, }, { X: 0, Y: 0 }, "rut"), new Svg.Elements.Rect(centre, size, { X: 4, Y: 4 }, "body highlight"), new Svg.Elements.Path(railPairPathString + plussesPathString, "rail positive"), new Svg.Elements.Path(railPairPathString + minusesPathString, "rail negative").translate({ X: 0, Y: gS * 3 }), new Svg.Elements.Groups.TextSequence({ X: 30 * gS - gS / 6, Y: 4 * gS }, { X: 0, Y: gS }, { start: 1, length: 30 }).rotate(90), new Svg.Elements.Groups.TextSequence({ X: 30 * gS - gS / 6, Y: 17 * gS }, { X: 0, Y: gS }, { start: 1, length: 30 }).rotate(90), new Svg.Elements.Groups.TextSequence({ X: 31 * gS - gS / 4, Y: 5 * gS }, { X: gS, Y: 0 }, "abcde").rotate(90), new Svg.Elements.Groups.TextSequence({ X: 0 * gS, Y: 5 * gS }, { X: gS, Y: 0 }, "abcde").rotate(90), new Svg.Elements.Groups.TextSequence({ X: 31 * gS - gS / 4, Y: 12 * gS }, { X: gS, Y: 0 }, "fghij").rotate(90), new Svg.Elements.Groups.TextSequence({ X: 0 * gS, Y: 12 * gS }, { X: gS, Y: 0 }, "fghij").rotate(90), this.tracks.map(t => t.group));
+                    this.group.append(Svg.Element.Rect.make(centre, size, { x: 4, y: 4 }, "body"), Svg.Element.Rect.make(centre, { width: size.width, height: gS * 0.75, }, { x: 0, y: 0 }, "rut"), Svg.Element.Rect.make(centre, size, { x: 4, y: 4 }, "body highlight"), Svg.Element.Path.make(railPairPathString + plussesPathString, "rail positive"), Svg.Element.Path.make(railPairPathString + minusesPathString, "rail negative").translate({ x: 0, y: gS * 3 }), Svg.Element.Group.TextSequence.make({ x: 30 * gS - gS / 6, y: 4 * gS }, { x: 0, y: gS }, { start: 1, length: 30 }).rotate(90), Svg.Element.Group.TextSequence.make({ x: 30 * gS - gS / 6, y: 17 * gS }, { x: 0, y: gS }, { start: 1, length: 30 }).rotate(90), Svg.Element.Group.TextSequence.make({ x: 31 * gS - gS / 4, y: 5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90), Svg.Element.Group.TextSequence.make({ x: 0 * gS, y: 5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90), Svg.Element.Group.TextSequence.make({ x: 31 * gS - gS / 4, y: 12 * gS }, { x: gS, y: 0 }, "fghij").rotate(90), Svg.Element.Group.TextSequence.make({ x: 0 * gS, y: 12 * gS }, { x: gS, y: 0 }, "fghij").rotate(90), this.tracks.map(t => t.group));
                 }
-                insertInto(group) {
-                    Utility.Insert.first(this.group.element, group.element);
+                insertInto(element) {
+                    Utility.Insert.first(this.group.element, element);
                 }
                 transferFunction() { return []; }
                 ;
@@ -1418,7 +1673,7 @@ var Circuit;
                     let track = Component.Addins.Board.Track.makeInstance({
                         holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1].map(offset => offset * gS)
                     }, {});
-                    track.group.translate({ X: gS * 1.5, Y: y }).rotate(0);
+                    track.group.translate({ x: gS * 1.5, y: y }).rotate(0);
                     tracks.push(track);
                 }
                 let mainGridTrackXPositions = [...Array(30).keys()].map(x => (x + 1) * gS);
@@ -1428,7 +1683,7 @@ var Circuit;
                         let track = Component.Addins.Board.Track.makeInstance({
                             holeSpacings: [0, 1, 1, 1, 1].map(offset => offset * gS)
                         }, {});
-                        track.group.translate({ X: x, Y: y }).rotate(90);
+                        track.group.translate({ x: x, y: y }).rotate(90);
                         tracks.push(track);
                     }
                 }
@@ -1445,7 +1700,7 @@ var Circuit;
                 return Local.makeInstance(properties, state, true);
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
-                component.group.addClasses("breadboard " + component.name);
+                $(component.group.element).addClass("breadboard " + component.name);
                 Component.Addins.Board.init(component, makeTracks);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.WireCreation.init(component);
@@ -1468,7 +1723,7 @@ var Circuit;
         (function (Local) {
             Local.defaultState = {
                 location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
-                joints: [{ X: 0, Y: 0 }, { X: 80, Y: 0 }]
+                joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }]
             };
             Local.defaultProperties = {
                 name: "capacitor",
@@ -1478,7 +1733,7 @@ var Circuit;
             class Instance extends Component.Instance {
                 constructor(properties, state) {
                     super(properties, state);
-                    this.group.addClasses("component " + this.name);
+                    $(this.group.element).addClass("component " + this.name);
                     this.joints = state.joints;
                     this.capacitance = properties.capacitance;
                     this.isPolarised = properties.isPolarised;
@@ -1492,22 +1747,17 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.group.transforms,
+                        location: this.location,
                         joints: this.joints
                     };
                 }
                 draw() {
-                    let leadPath = "";
-                    let joints = this.joints;
-                    leadPath = "M " + joints[0].X + " " + joints[0].Y;
-                    leadPath += "L " + joints[joints.length - 1].X + " " + joints[joints.length - 1].Y;
+                    const first = this.joints[0];
+                    const last = this.joints[this.joints.length - 1];
                     let capacitorBody = (this.isPolarised)
-                        ? new Svg.Elements.Groups.CapacitorBodyElectrolytic(this.capacitance, joints[0], joints[joints.length - 1], "bodyelectrolytic")
-                        : new Svg.Elements.Groups.CapacitorBodyCeramic(joints[0], joints[joints.length - 1], "bodyceramic").setValue(this.capacitance);
-                    this.group.prepend([
-                        new Svg.Elements.Path(leadPath, "lead"),
-                        capacitorBody
-                    ]);
+                        ? Svg.Element.Group.CapacitorBodyElectrolytic.make(this.capacitance, first, last, "bodyelectrolytic")
+                        : Svg.Element.Group.CapacitorBodyCeramic.make(this.capacitance, first, last, "bodyceramic");
+                    this.group.prepend(Svg.Element.Path.make(this.joints, "lead"), capacitorBody);
                 }
                 makeConnectors() {
                     let lead1Name = "";
@@ -1528,9 +1778,9 @@ var Circuit;
                 let state = (raw.state) ?
                     {
                         location: raw.state.location,
-                        joints: (raw.state.joints && (raw.state.joints.length === 2) && (raw.state.joints.every((j) => {
-                            return (('X' in j) && ('Y' in j) && (typeof j.X === 'number') && (typeof j.Y === 'number'));
-                        }))) ? raw.state.joints : undefined
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
+                            ? vector.standardise(raw.state.joints)
+                            : undefined
                     } : {};
                 let properties = (raw.properties) ?
                     {
@@ -1541,7 +1791,7 @@ var Circuit;
                 return Local.makeInstance(properties, state, true);
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
-                component.group.addClasses("component " + component.name);
+                $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.Extendable.init(component);
@@ -1575,7 +1825,7 @@ var Circuit;
             class Instance extends Component.Instance {
                 constructor(properties, state) {
                     super(properties, state);
-                    this.group.addClasses("component " + this.name);
+                    $(this.group.element).addClass("component " + this.name);
                     this.orientation = state.orientation;
                     this.capacitance = properties.capacitance;
                     this.isPolarised = properties.isPolarised;
@@ -1589,39 +1839,39 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.group.transforms,
+                        location: this.location,
                         orientation: this.orientation
                     };
                 }
                 draw() {
                     let isHorizontal = ["LR", "RL"].includes(this.orientation);
                     let highlightSize = (isHorizontal) ? { width: 15, height: 30 } : { width: 30, height: 15 };
-                    this.group.append(new Svg.Elements.Rect({ X: 0, Y: 0 }, highlightSize, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"));
+                    this.group.append(Svg.Element.Rect.make({ x: 0, y: 0 }, highlightSize, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"));
                     let body1Start, body2Start, body1End, body2End;
                     [body1Start, body2Start, body1End, body2End] = (isHorizontal)
-                        ? [{ X: -4, Y: -15 }, { X: +4, Y: -15 }, { X: -4, Y: +15 }, { X: +4, Y: +15 }]
-                        : [{ X: -15, Y: -4 }, { X: -15, Y: +4 }, { X: +15, Y: -4 }, { X: +15, Y: +4 }];
-                    this.group.append(new Svg.Elements.Line(body1Start, body1End, "line thick nocap"));
-                    this.group.append(new Svg.Elements.Line(body2Start, body2End, "line thick nocap"));
+                        ? [{ x: -4, y: -15 }, { x: +4, y: -15 }, { x: -4, y: +15 }, { x: +4, y: +15 }]
+                        : [{ x: -15, y: -4 }, { x: -15, y: +4 }, { x: +15, y: -4 }, { x: +15, y: +4 }];
+                    this.group.append(Svg.Element.Line.make(body1Start, body1End, "line thick nocap"));
+                    this.group.append(Svg.Element.Line.make(body2Start, body2End, "line thick nocap"));
                     let lead1Start, lead2Start, lead1End, lead2End;
                     [lead1Start, lead2Start, lead1End, lead2End] = (isHorizontal)
-                        ? [{ X: -6, Y: 0 }, { X: 6, Y: 0 }, { X: -20, Y: 0 }, { X: 20, Y: 0 }]
-                        : [{ X: 0, Y: -6 }, { X: 0, Y: 6 }, { X: 0, Y: -20 }, { X: 0, Y: 20 }];
-                    this.group.append(new Svg.Elements.Line(lead1Start, lead1End, "line thin"));
-                    this.group.append(new Svg.Elements.Line(lead2Start, lead2End, "line thin"));
-                    let textPosition = (isHorizontal) ? { X: 0, Y: -20 } : { X: -20, Y: 4 };
+                        ? [{ x: -6, y: 0 }, { x: 6, y: 0 }, { x: -20, y: 0 }, { x: 20, y: 0 }]
+                        : [{ x: 0, y: -6 }, { x: 0, y: 6 }, { x: 0, y: -20 }, { x: 0, y: 20 }];
+                    this.group.append(Svg.Element.Line.make(lead1Start, lead1End, "line thin"));
+                    this.group.append(Svg.Element.Line.make(lead2Start, lead2End, "line thin"));
+                    let textPosition = (isHorizontal) ? { x: 0, y: -20 } : { x: -20, y: 4 };
                     let text = Utility.getStandardForm(this.capacitance, 'F');
                     let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
-                    this.group.append(new Svg.Elements.Text(text, textPosition, "text").addClasses(anchorClass));
+                    this.group.append(Svg.Element.Text.make(text, textPosition, "text " + anchorClass));
                     if (this.isPolarised) {
                         let isLRorUD = ["LR", "UD"].includes(this.orientation);
                         let plus1Start, plus2Start, plus1End, plus2End;
                         [plus1Start, plus2Start, plus1End, plus2End] = (isLRorUD)
-                            ? [{ X: +15, Y: -10 }, { X: +11, Y: -6 }, { X: +7, Y: -10 }, { X: +11, Y: -14 }]
-                            : [{ X: -15, Y: -10 }, { X: -11, Y: -6 }, { X: -7, Y: -10 }, { X: -11, Y: -14 }];
+                            ? [{ x: +15, y: -10 }, { x: +11, y: -6 }, { x: +7, y: -10 }, { x: +11, y: -14 }]
+                            : [{ x: -15, y: -10 }, { x: -11, y: -6 }, { x: -7, y: -10 }, { x: -11, y: -14 }];
                         let rotation = isHorizontal ? 0 : 90;
-                        this.group.append(new Svg.Elements.Line(plus1Start, plus1End, "line thin").rotate(rotation));
-                        this.group.append(new Svg.Elements.Line(plus2Start, plus2End, "line thin").rotate(rotation));
+                        this.group.append(Svg.Element.Line.make(plus1Start, plus1End, "line thin").rotate(rotation));
+                        this.group.append(Svg.Element.Line.make(plus2Start, plus2End, "line thin").rotate(rotation));
                     }
                 }
                 makeConnectors() {
@@ -1629,8 +1879,8 @@ var Circuit;
                     let isLRorUD = ["LR", "UD"].includes(this.orientation);
                     let lead1End, lead2End;
                     [lead1End, lead2End] = (isHorizontal)
-                        ? [{ X: -20, Y: 0 }, { X: 20, Y: 0 }]
-                        : [{ X: 0, Y: -20 }, { X: 0, Y: 20 }];
+                        ? [{ x: -20, y: 0 }, { x: 20, y: 0 }]
+                        : [{ x: 0, y: -20 }, { x: 0, y: 20 }];
                     let lead1Name = "";
                     let lead2Name = "";
                     if (this.isPolarised) {
@@ -1673,7 +1923,7 @@ var Circuit;
                 return Local.makeInstance(properties, state, true);
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
-                component.group.addClasses("component " + component.name);
+                $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
             });
@@ -1695,7 +1945,7 @@ var Circuit;
         (function (Local) {
             Local.defaultState = {
                 location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
-                joints: [{ X: 0, Y: 0 }, { X: 80, Y: 0 }]
+                joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }]
             };
             Local.defaultProperties = {
                 name: "diode",
@@ -1705,7 +1955,7 @@ var Circuit;
             class Instance extends Component.Instance {
                 constructor(properties, state) {
                     super(properties, state);
-                    this.group.addClasses("component " + this.name);
+                    $(this.group.element).addClass("component " + this.name);
                     this.joints = state.joints;
                     this.saturationCurrent = properties.saturationCurrent;
                     this.breakdownVoltage = properties.breakdownVoltage;
@@ -1719,19 +1969,14 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.group.transforms,
+                        location: this.location,
                         joints: this.joints
                     };
                 }
                 draw() {
-                    let leadPath = "";
-                    let joints = this.joints;
-                    leadPath = "M " + joints[0].X + " " + joints[0].Y;
-                    leadPath += "L " + joints[joints.length - 1].X + " " + joints[joints.length - 1].Y;
-                    this.group.prepend([
-                        new Svg.Elements.Path(leadPath, "lead"),
-                        new Svg.Elements.Groups.DiodeBody(joints[0], joints[joints.length - 1], "body")
-                    ]);
+                    const first = this.joints[0];
+                    const last = this.joints[this.joints.length - 1];
+                    this.group.prepend(Svg.Element.Path.make(this.joints, "lead"), Svg.Element.Group.DiodeBody.make(this.breakdownVoltage, first, last, "body"));
                 }
                 makeConnectors() {
                     this.connectorSets = [[
@@ -1747,9 +1992,9 @@ var Circuit;
                 let state = (raw.state) ?
                     {
                         location: raw.state.location,
-                        joints: (raw.state.joints && (raw.state.joints.length === 2) && (raw.state.joints.every((j) => {
-                            return (('X' in j) && ('Y' in j) && (typeof j.X === 'number') && (typeof j.Y === 'number'));
-                        }))) ? raw.state.joints : undefined
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
+                            ? vector.standardise(raw.state.joints)
+                            : undefined
                     } : {};
                 let properties = (raw.properties) ?
                     {
@@ -1760,7 +2005,7 @@ var Circuit;
                 return Local.makeInstance(properties, state, true);
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
-                component.group.addClasses("component " + component.name);
+                $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.Extendable.init(component);
@@ -1794,7 +2039,7 @@ var Circuit;
             class Instance extends Component.Instance {
                 constructor(properties, state) {
                     super(properties, state);
-                    this.group.addClasses("component " + this.name);
+                    $(this.group.element).addClass("component " + this.name);
                     this.orientation = state.orientation;
                     this.breakdownVoltage = properties.breakdownVoltage;
                     this.saturationCurrent = properties.saturationCurrent;
@@ -1810,7 +2055,7 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.group.transforms,
+                        location: this.location,
                         orientation: this.orientation
                     };
                 }
@@ -1818,35 +2063,35 @@ var Circuit;
                     let isHorizontal = ["LR", "RL"].includes(this.orientation);
                     let isLRorUD = ["LR", "UD"].includes(this.orientation);
                     let rotation = (isHorizontal) ? 0 : 90;
-                    let scale = (isLRorUD) ? { X: 1, Y: 1 } : { X: -1, Y: 1 };
-                    this.group.append(new Svg.Elements.Path('M 12 0 L -12 12 L -12 -12 L 12 0 Z', "body highlight highlightwithfill extrathick").rotate(rotation).scale(scale, false));
-                    this.group.append(new Svg.Elements.Path('M 12 0 L -12 12 L -12 -12 L 12 0 Z', "body black").rotate(rotation).scale(scale, false));
+                    let scale = (isLRorUD) ? { x: 1, y: 1 } : { x: -1, y: 1 };
+                    this.group.append(Svg.Element.Path.make('M 12 0 L -12 12 L -12 -12 L 12 0 Z', "body highlight highlightwithfill extrathick").rotate(rotation).scale(scale, false));
+                    this.group.append(Svg.Element.Path.make('M 12 0 L -12 12 L -12 -12 L 12 0 Z', "body black").rotate(rotation).scale(scale, false));
                     if (this.breakdownVoltage < 51) {
-                        this.group.append(new Svg.Elements.Path('M 18 -12 L 12 -12 L 12 12 L 6 12', "line medium").rotate(rotation).scale(scale, false));
+                        this.group.append(Svg.Element.Path.make('M 18 -12 L 12 -12 L 12 12 L 6 12', "line medium").rotate(rotation).scale(scale, false));
                     }
                     else {
-                        this.group.append(new Svg.Elements.Path('M 12 -12 L 12 12', "line medium").rotate(rotation).scale(scale, false));
+                        this.group.append(Svg.Element.Path.make('M 12 -12 L 12 12', "line medium").rotate(rotation).scale(scale, false));
                     }
                     let lead1Start, lead2Start, lead1End, lead2End;
                     [lead1Start, lead2Start, lead1End, lead2End] = (isHorizontal)
-                        ? [{ X: -12, Y: 0 }, { X: 12, Y: 0 }, { X: -20, Y: 0 }, { X: 20, Y: 0 }]
-                        : [{ X: 0, Y: -12 }, { X: 0, Y: 12 }, { X: 0, Y: -20 }, { X: 0, Y: 20 }];
-                    this.group.append(new Svg.Elements.Line(lead1Start, lead1End, "line thin"));
-                    this.group.append(new Svg.Elements.Line(lead2Start, lead2End, "line thin"));
-                    let textPosition = (isHorizontal) ? { X: 0, Y: -15 } : { X: -15, Y: 4 };
+                        ? [{ x: -12, y: 0 }, { x: 12, y: 0 }, { x: -20, y: 0 }, { x: 20, y: 0 }]
+                        : [{ x: 0, y: -12 }, { x: 0, y: 12 }, { x: 0, y: -20 }, { x: 0, y: 20 }];
+                    this.group.append(Svg.Element.Line.make(lead1Start, lead1End, "line thin"));
+                    this.group.append(Svg.Element.Line.make(lead2Start, lead2End, "line thin"));
+                    let textPosition = (isHorizontal) ? { x: 0, y: -15 } : { x: -15, y: 4 };
                     let text = (this.breakdownVoltage < 51)
                         ? Utility.getStandardForm(this.breakdownVoltage, 'V')
                         : Utility.getStandardForm(this.saturationCurrent, 'A');
                     let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
-                    this.group.append(new Svg.Elements.Text(text, textPosition, "text").addClasses(anchorClass));
+                    this.group.append(Svg.Element.Text.make(text, textPosition, "text " + anchorClass));
                 }
                 makeConnectors() {
                     let isHorizontal = ["LR", "RL"].includes(this.orientation);
                     let isLRorUD = ["LR", "UD"].includes(this.orientation);
                     let lead1End, lead2End;
                     [lead1End, lead2End] = (isHorizontal)
-                        ? [{ X: -20, Y: 0 }, { X: 20, Y: 0 }]
-                        : [{ X: 0, Y: -20 }, { X: 0, Y: 20 }];
+                        ? [{ x: -20, y: 0 }, { x: 20, y: 0 }]
+                        : [{ x: 0, y: -20 }, { x: 0, y: 20 }];
                     let lead1Name, lead2Name;
                     [lead1Name, lead2Name] = (isLRorUD)
                         ? ["anode", "cathode"]
@@ -1886,7 +2131,7 @@ var Circuit;
                 return Local.makeInstance(properties, state, true);
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
-                component.group.addClasses("component " + component.name);
+                $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
             });
@@ -1908,7 +2153,7 @@ var Circuit;
         (function (Local) {
             Local.defaultState = {
                 location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
-                joints: [{ X: 0, Y: 0 }, { X: 80, Y: 0 }]
+                joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }]
             };
             Local.defaultProperties = {
                 name: "inductor",
@@ -1917,7 +2162,7 @@ var Circuit;
             class Instance extends Component.Instance {
                 constructor(properties, state) {
                     super(properties, state);
-                    this.group.addClasses("component " + this.name);
+                    $(this.group.element).addClass("component " + this.name);
                     this.joints = state.joints;
                     this.inductance = properties.inductance;
                 }
@@ -1927,30 +2172,16 @@ var Circuit;
                         inductance: this.inductance,
                     };
                 }
-                setProperties(properties) {
-                    this.inductance = properties.inductance;
-                    return this;
-                }
                 getState() {
                     return {
-                        location: this.group.transforms,
+                        location: this.location,
                         joints: this.joints
                     };
                 }
-                setState(state) {
-                    this.group.transforms = state.location;
-                    this.joints = state.joints;
-                    return this;
-                }
                 draw() {
-                    let leadPath = "";
-                    let joints = this.joints;
-                    leadPath = "M " + joints[0].X + " " + joints[0].Y;
-                    leadPath += "L " + joints[joints.length - 1].X + " " + joints[joints.length - 1].Y;
-                    this.group.prepend([
-                        new Svg.Elements.Path(leadPath, "lead"),
-                        new Svg.Elements.Groups.InductorBody(joints[0], joints[joints.length - 1], "body")
-                    ]);
+                    const first = this.joints[0];
+                    const last = this.joints[this.joints.length - 1];
+                    this.group.prepend(Svg.Element.Path.make(this.joints, "lead"), Svg.Element.Group.InductorBody.make(this.inductance, first, last, "body"));
                 }
                 makeConnectors() {
                     this.connectorSets = [[
@@ -1966,9 +2197,9 @@ var Circuit;
                 let state = (raw.state) ?
                     {
                         location: raw.state.location,
-                        joints: (raw.state.joints && (raw.state.joints.length === 2) && (raw.state.joints.every((j) => {
-                            return (('X' in j) && ('Y' in j) && (typeof j.X === 'number') && (typeof j.Y === 'number'));
-                        }))) ? raw.state.joints : undefined
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
+                            ? vector.standardise(raw.state.joints)
+                            : undefined
                     } : {};
                 let properties = (raw.properties) ?
                     {
@@ -1978,7 +2209,7 @@ var Circuit;
                 return Local.makeInstance(properties, state, true);
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
-                component.group.addClasses("component " + component.name);
+                $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.Extendable.init(component);
@@ -2011,7 +2242,7 @@ var Circuit;
             class Instance extends Component.Instance {
                 constructor(properties, state) {
                     super(properties, state);
-                    this.group.addClasses("component " + this.name);
+                    $(this.group.element).addClass("component " + this.name);
                     this.orientation = state.orientation;
                     this.inductance = properties.inductance;
                 }
@@ -2021,45 +2252,36 @@ var Circuit;
                         inductance: this.inductance,
                     };
                 }
-                setProperties(properties) {
-                    this.inductance = properties.inductance;
-                    return this;
-                }
                 getState() {
                     return {
-                        location: this.group.transforms,
+                        location: this.location,
                         orientation: this.orientation
                     };
-                }
-                setState(state) {
-                    this.group.transforms = state.location;
-                    this.orientation = state.orientation;
-                    return this;
                 }
                 draw() {
                     let isHorizontal = ["LR", "RL"].includes(this.orientation);
                     let isLRorUD = ["LR", "UD"].includes(this.orientation);
                     let rotation = (isHorizontal) ? 0 : 90;
-                    let scale = (isLRorUD) ? { X: 1, Y: 1 } : { X: -1, Y: 1 };
-                    this.group.append(new Svg.Elements.Rect({ X: 0, Y: -2 }, { width: 40, height: 12 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick").rotate(rotation).scale(scale));
-                    this.group.append(new Svg.Elements.Path('M-20 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0', "line medium").rotate(rotation).scale(scale));
+                    let scale = (isLRorUD) ? { x: 1, y: 1 } : { x: -1, y: 1 };
+                    this.group.append(Svg.Element.Rect.make({ x: 0, y: -2 }, { width: 40, height: 12 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick").rotate(rotation).scale(scale));
+                    this.group.append(Svg.Element.Path.make('M-20 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0', "line medium").rotate(rotation).scale(scale));
                     let lead1Start, lead2Start, lead1End, lead2End;
                     [lead1Start, lead2Start, lead1End, lead2End] = (isHorizontal)
-                        ? [{ X: -20, Y: 0 }, { X: 20, Y: 0 }, { X: -30, Y: 0 }, { X: 30, Y: 0 }]
-                        : [{ X: 0, Y: -20 }, { X: 0, Y: 20 }, { X: 0, Y: -30 }, { X: 0, Y: 30 }];
-                    this.group.append(new Svg.Elements.Line(lead1Start, lead1End, "line thin"));
-                    this.group.append(new Svg.Elements.Line(lead2Start, lead2End, "line thin"));
-                    let textPosition = (isHorizontal) ? { X: 0, Y: -13 } : { X: -13, Y: 4 };
+                        ? [{ x: -20, y: 0 }, { x: 20, y: 0 }, { x: -30, y: 0 }, { x: 30, y: 0 }]
+                        : [{ x: 0, y: -20 }, { x: 0, y: 20 }, { x: 0, y: -30 }, { x: 0, y: 30 }];
+                    this.group.append(Svg.Element.Line.make(lead1Start, lead1End, "line thin"));
+                    this.group.append(Svg.Element.Line.make(lead2Start, lead2End, "line thin"));
+                    let textPosition = (isHorizontal) ? { x: 0, y: -13 } : { x: -13, y: 4 };
                     let text = Utility.getStandardForm(this.inductance, 'H');
                     let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
-                    this.group.append(new Svg.Elements.Text(text, textPosition, "text").addClasses(anchorClass));
+                    this.group.append(Svg.Element.Text.make(text, textPosition, "text " + anchorClass));
                 }
                 makeConnectors() {
                     let isHorizontal = ["LR", "RL"].includes(this.orientation);
                     let lead1End, lead2End;
                     [lead1End, lead2End] = (isHorizontal)
-                        ? [{ X: -30, Y: 0 }, { X: 30, Y: 0 }]
-                        : [{ X: 0, Y: -30 }, { X: 0, Y: 30 }];
+                        ? [{ x: -30, y: 0 }, { x: 30, y: 0 }]
+                        : [{ x: 0, y: -30 }, { x: 0, y: 30 }];
                     this.connectorSets = [[
                             Component.Generics.makeConnector(this, "", "node", lead1End),
                             Component.Generics.makeConnector(this, "", "node", lead2End),
@@ -2091,7 +2313,7 @@ var Circuit;
                 return Local.makeInstance(properties, state, true);
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
-                component.group.addClasses("component " + component.name);
+                $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
             });
@@ -2122,7 +2344,7 @@ var Circuit;
             class Instance extends Component.Instance {
                 constructor(properties, state) {
                     super(properties, state);
-                    this.group.addClasses("component " + this.name);
+                    $(this.group.element).addClass("component " + this.name);
                     this.isDual = state.isDual;
                     this.offsetVoltage = properties.offsetVoltage;
                 }
@@ -2134,16 +2356,16 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.group.transforms,
+                        location: this.location,
                         isDual: this.isDual
                     };
                 }
                 draw() {
                     if (this.isDual) {
-                        this.group.append(new Svg.Elements.Groups.dip(4, "", "TL072", ""));
+                        this.group.append(Svg.Element.Group.Dip.make(4, "", "TL072", ""));
                     }
                     else {
-                        this.group.append(new Svg.Elements.Groups.dip(4, "", "TL071", ""));
+                        this.group.append(Svg.Element.Group.Dip.make(4, "", "TL071", ""));
                     }
                 }
                 makeConnectors() {
@@ -2151,26 +2373,26 @@ var Circuit;
                     if (this.isDual) {
                         let gridSpacing = Constants.gridSpacing;
                         this.connectorSets = [[
-                                Component.Generics.makeConnector(this, "vcc+", "pin", { X: 0 * gridSpacing, Y: 0 * gridSpacing }),
-                                Component.Generics.makeConnector(this, "out", "pin", { X: 1 * gridSpacing, Y: 0 * gridSpacing }),
-                                Component.Generics.makeConnector(this, "in-", "pin", { X: 2 * gridSpacing, Y: 0 * gridSpacing }),
-                                Component.Generics.makeConnector(this, "in+", "pin", { X: 3 * gridSpacing, Y: 0 * gridSpacing }),
-                                Component.Generics.makeConnector(this, "vcc-", "pin", { X: 3 * gridSpacing, Y: 3 * gridSpacing }),
+                                Component.Generics.makeConnector(this, "vcc+", "pin", { x: 0 * gridSpacing, y: 0 * gridSpacing }),
+                                Component.Generics.makeConnector(this, "out", "pin", { x: 1 * gridSpacing, y: 0 * gridSpacing }),
+                                Component.Generics.makeConnector(this, "in-", "pin", { x: 2 * gridSpacing, y: 0 * gridSpacing }),
+                                Component.Generics.makeConnector(this, "in+", "pin", { x: 3 * gridSpacing, y: 0 * gridSpacing }),
+                                Component.Generics.makeConnector(this, "vcc-", "pin", { x: 3 * gridSpacing, y: 3 * gridSpacing }),
                             ], [
-                                Component.Generics.makeConnector(this, "vcc+", "pin", { X: 0 * gridSpacing, Y: 0 * gridSpacing }),
-                                Component.Generics.makeConnector(this, "out", "pin", { X: 0 * gridSpacing, Y: 3 * gridSpacing }),
-                                Component.Generics.makeConnector(this, "in-", "pin", { X: 1 * gridSpacing, Y: 3 * gridSpacing }),
-                                Component.Generics.makeConnector(this, "in+", "pin", { X: 2 * gridSpacing, Y: 3 * gridSpacing }),
-                                Component.Generics.makeConnector(this, "vcc-", "pin", { X: 3 * gridSpacing, Y: 3 * gridSpacing }),
+                                Component.Generics.makeConnector(this, "vcc+", "pin", { x: 0 * gridSpacing, y: 0 * gridSpacing }),
+                                Component.Generics.makeConnector(this, "out", "pin", { x: 0 * gridSpacing, y: 3 * gridSpacing }),
+                                Component.Generics.makeConnector(this, "in-", "pin", { x: 1 * gridSpacing, y: 3 * gridSpacing }),
+                                Component.Generics.makeConnector(this, "in+", "pin", { x: 2 * gridSpacing, y: 3 * gridSpacing }),
+                                Component.Generics.makeConnector(this, "vcc-", "pin", { x: 3 * gridSpacing, y: 3 * gridSpacing }),
                             ]];
                     }
                     else {
                         this.connectorSets = [[
-                                Component.Generics.makeConnector(this, "vcc+", "pin", { X: 1 * gridSpacing, Y: 0 * gridSpacing }),
-                                Component.Generics.makeConnector(this, "out", "pin", { X: 2 * gridSpacing, Y: 0 * gridSpacing }),
-                                Component.Generics.makeConnector(this, "in-", "pin", { X: 1 * gridSpacing, Y: 3 * gridSpacing }),
-                                Component.Generics.makeConnector(this, "in+", "pin", { X: 2 * gridSpacing, Y: 3 * gridSpacing }),
-                                Component.Generics.makeConnector(this, "vcc-", "pin", { X: 3 * gridSpacing, Y: 3 * gridSpacing }),
+                                Component.Generics.makeConnector(this, "vcc+", "pin", { x: 1 * gridSpacing, y: 0 * gridSpacing }),
+                                Component.Generics.makeConnector(this, "out", "pin", { x: 2 * gridSpacing, y: 0 * gridSpacing }),
+                                Component.Generics.makeConnector(this, "in-", "pin", { x: 1 * gridSpacing, y: 3 * gridSpacing }),
+                                Component.Generics.makeConnector(this, "in+", "pin", { x: 2 * gridSpacing, y: 3 * gridSpacing }),
+                                Component.Generics.makeConnector(this, "vcc-", "pin", { x: 3 * gridSpacing, y: 3 * gridSpacing }),
                             ]];
                     }
                 }
@@ -2198,9 +2420,9 @@ var Circuit;
                 return Local.makeInstance(properties, state, true);
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
-                component.group.addClasses("component " + component.name);
+                $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Draggable.init(component);
-                Component.Addins.Rotatable.init(component, { X: Constants.gridSpacing * 1.5, Y: Constants.gridSpacing * 1.5 });
+                Component.Addins.Rotatable.init(component, { x: Constants.gridSpacing * 1.5, y: Constants.gridSpacing * 1.5 });
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component);
             });
@@ -2232,7 +2454,7 @@ var Circuit;
             class Instance extends Component.Instance {
                 constructor(properties, state) {
                     super(properties, state);
-                    this.group.addClasses("component " + this.name);
+                    $(this.group.element).addClass("component " + this.name);
                     this.orientation = state.orientation;
                     this.whichInputAtTop = state.whichInputAtTop;
                     this.offsetVoltage = properties.offsetVoltage;
@@ -2245,35 +2467,35 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.group.transforms,
+                        location: this.location,
                         orientation: this.orientation,
                         whichInputAtTop: this.whichInputAtTop
                     };
                 }
                 draw() {
                     let inversionScale = {
-                        X: (this.orientation === "LR") ? 1 : -1,
-                        Y: (this.whichInputAtTop === "non-inverting") ? 1 : -1
+                        x: (this.orientation === "LR") ? 1 : -1,
+                        y: (this.whichInputAtTop === "non-inverting") ? 1 : -1
                     };
                     let bodyPath = "M-25 -25 L 25 0 L -25 25 L -25 -25 Z";
-                    this.group.append(new Svg.Elements.Path(bodyPath, "highlight highlightwithfill extrathick").scale(inversionScale));
-                    this.group.append(new Svg.Elements.Path(bodyPath, "body white").scale(inversionScale));
-                    this.group.append(new Svg.Elements.Line({ X: -22, Y: -10 }, { X: -14, Y: -10 }, "line thin").scale(inversionScale));
-                    this.group.append(new Svg.Elements.Line({ X: -18, Y: -6 }, { X: -18, Y: -14 }, "line thin").scale(inversionScale));
-                    this.group.append(new Svg.Elements.Line({ X: -22, Y: +10 }, { X: -14, Y: +10 }, "line thin").scale(inversionScale));
-                    this.group.append(new Svg.Elements.Line({ X: -25, Y: -10 }, { X: -30, Y: -10 }, "line thin").scale(inversionScale));
-                    this.group.append(new Svg.Elements.Line({ X: -25, Y: 10 }, { X: -30, Y: 10 }, "line thin").scale(inversionScale));
-                    this.group.append(new Svg.Elements.Line({ X: 25, Y: 0 }, { X: 40, Y: 0 }, "line thin").scale(inversionScale));
+                    this.group.append(Svg.Element.Path.make(bodyPath, "highlight highlightwithfill extrathick").scale(inversionScale));
+                    this.group.append(Svg.Element.Path.make(bodyPath, "body white").scale(inversionScale));
+                    this.group.append(Svg.Element.Line.make({ x: -22, y: -10 }, { x: -14, y: -10 }, "line thin").scale(inversionScale));
+                    this.group.append(Svg.Element.Line.make({ x: -18, y: -6 }, { x: -18, y: -14 }, "line thin").scale(inversionScale));
+                    this.group.append(Svg.Element.Line.make({ x: -22, y: +10 }, { x: -14, y: +10 }, "line thin").scale(inversionScale));
+                    this.group.append(Svg.Element.Line.make({ x: -25, y: -10 }, { x: -30, y: -10 }, "line thin").scale(inversionScale));
+                    this.group.append(Svg.Element.Line.make({ x: -25, y: 10 }, { x: -30, y: 10 }, "line thin").scale(inversionScale));
+                    this.group.append(Svg.Element.Line.make({ x: 25, y: 0 }, { x: 40, y: 0 }, "line thin").scale(inversionScale));
                 }
                 makeConnectors() {
                     let nonInvertingY = (this.whichInputAtTop === "non-inverting") ? -10 : 10;
                     this.connectorSets = [
                         [
-                            Component.Generics.makeConnector(this, "vcc+", "node", { X: 0, Y: -12 }),
-                            Component.Generics.makeConnector(this, "out", "node", { X: 40, Y: 0 }),
-                            Component.Generics.makeConnector(this, "in-", "node", { X: -30, Y: -nonInvertingY }),
-                            Component.Generics.makeConnector(this, "in+", "node", { X: -30, Y: nonInvertingY }),
-                            Component.Generics.makeConnector(this, "vcc-", "node", { X: 0, Y: 12 }),
+                            Component.Generics.makeConnector(this, "vcc+", "node", { x: 0, y: -12 }),
+                            Component.Generics.makeConnector(this, "out", "node", { x: 40, y: 0 }),
+                            Component.Generics.makeConnector(this, "in-", "node", { x: -30, y: -nonInvertingY }),
+                            Component.Generics.makeConnector(this, "in+", "node", { x: -30, y: nonInvertingY }),
+                            Component.Generics.makeConnector(this, "vcc-", "node", { x: 0, y: 12 }),
                         ]
                     ];
                 }
@@ -2304,9 +2526,9 @@ var Circuit;
                 };
                 if ((raw.minOutput) && (raw.maxOutput)) {
                     let topPower = Component.PowerSchematic.makeInstance({ voltage: raw.maxOutput || 5 }, { location: state.location }, true);
-                    topPower.group.translate({ X: 0, Y: -22 });
+                    topPower.group.translate({ x: 0, y: -22 });
                     let bottomPower = Component.PowerSchematic.makeInstance({ voltage: raw.minOutput || -5 }, { location: state.location }, true);
-                    bottomPower.group.translate({ X: 0, Y: 22 });
+                    bottomPower.group.translate({ x: 0, y: 22 });
                     let opAmp = Local.makeInstance(properties, state, true);
                     let instances = [
                         topPower,
@@ -2320,7 +2542,7 @@ var Circuit;
                 }
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
-                component.group.addClasses("component " + component.name);
+                $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
             });
@@ -2361,20 +2583,20 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.group.transforms
+                        location: this.location
                     };
                 }
-                insertInto(group) {
-                    Utility.Insert.before(this.group.element, group.element, ".component");
+                insertInto(element) {
+                    Utility.Insert.before(this.group.element, element, ".component");
                 }
                 draw() {
-                    this.group.addClasses(this.name);
+                    $(this.group.element).addClass(this.name);
                     let text = this.voltage.toFixed(1);
-                    this.group.append(new Svg.Elements.Rect({ X: 0, Y: 5 }, { width: 180, height: 95 }, { X: 10, Y: 10 }, "body highlight"), new Svg.Elements.Rect({ X: 0, Y: -5 }, { width: 160, height: 65 }, { X: 10, Y: 10 }, "screen"), new Svg.Elements.Text("8".repeat(text.length - 1), { X: 0, Y: 20 }, "screentext off"), new Svg.Elements.Text(text, { X: 0, Y: 20 }, "screentext on"), new Svg.Elements.Circle({ X: 0, Y: 40 }, 5, "hole"));
+                    this.group.append(Svg.Element.Rect.make({ x: 0, y: 5 }, { width: 180, height: 95 }, { x: 10, y: 10 }, "body highlight"), Svg.Element.Rect.make({ x: 0, y: -5 }, { width: 160, height: 65 }, { x: 10, y: 10 }, "screen"), Svg.Element.Text.make("8".repeat(text.length - 1), { x: 0, y: 20 }, "screentext off"), Svg.Element.Text.make(text, { x: 0, y: 20 }, "screentext on"), Svg.Element.Circle.make({ x: 0, y: 40 }, 5, "hole"));
                 }
                 makeConnectors() {
                     this.connectorSets = [[
-                            Component.Generics.makeConnector(this, "", "hole", { X: 0, Y: 40 })
+                            Component.Generics.makeConnector(this, "", "hole", { x: 0, y: 40 })
                         ]];
                 }
                 transferFunction() { return []; }
@@ -2397,7 +2619,7 @@ var Circuit;
                 return Local.makeInstance(properties, state, true);
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
-                component.group.addClasses(component.name);
+                $(component.group.element).addClass(component.name);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, true, getHighlightColor(component));
@@ -2437,7 +2659,7 @@ var Circuit;
             class Instance extends Component.Instance {
                 constructor(properties, state) {
                     super(properties, state);
-                    this.group.addClasses("component " + this.name);
+                    $(this.group.element).addClass("component " + this.name);
                     this.voltage = properties.voltage;
                 }
                 getProperties() {
@@ -2448,7 +2670,7 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.group.transforms
+                        location: this.location
                     };
                 }
                 draw() {
@@ -2465,10 +2687,10 @@ var Circuit;
                 makeConnectors() {
                     let lead1End;
                     lead1End = (this.voltage < 0)
-                        ? { X: 0, Y: -10 }
+                        ? { x: 0, y: -10 }
                         : (this.voltage > 0)
-                            ? { X: 0, Y: 10 }
-                            : { X: 0, Y: -10 };
+                            ? { x: 0, y: 10 }
+                            : { x: 0, y: -10 };
                     this.connectorSets = [
                         [Component.Generics.makeConnector(this, "", "node", lead1End)]
                     ];
@@ -2499,17 +2721,17 @@ var Circuit;
             };
             function drawPowerPositive(component) {
                 let text = Utility.getStandardForm(component.voltage, "V");
-                component.group.append(new Svg.Elements.Rect({ X: 0, Y: -8 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"), new Svg.Elements.Line({ X: -12, Y: -5 }, { X: 12, Y: -5 }, "line medium"), new Svg.Elements.Text(text, { X: 0, Y: -9 }, "text bold"), new Svg.Elements.Line({ X: 0, Y: -5 }, { X: 0, Y: 10 }, "line thin"));
+                component.group.append(Svg.Element.Rect.make({ x: 0, y: -8 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"), Svg.Element.Line.make({ x: -12, y: -5 }, { x: 12, y: -5 }, "line medium"), Svg.Element.Text.make(text, { x: 0, y: -9 }, "text bold"), Svg.Element.Line.make({ x: 0, y: -5 }, { x: 0, y: 10 }, "line thin"));
             }
             function drawPowerNegative(component) {
                 let text = Utility.getStandardForm(component.voltage, "V");
-                component.group.append(new Svg.Elements.Rect({ X: 0, Y: 8 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"), new Svg.Elements.Line({ X: -12, Y: 5 }, { X: 12, Y: 5 }, "line medium"), new Svg.Elements.Text(text, { X: 0, Y: 19 }, "text bold"), new Svg.Elements.Line({ X: 0, Y: 5 }, { X: 0, Y: -10 }, "line thin"));
+                component.group.append(Svg.Element.Rect.make({ x: 0, y: 8 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"), Svg.Element.Line.make({ x: -12, y: 5 }, { x: 12, y: 5 }, "line medium"), Svg.Element.Text.make(text, { x: 0, y: 19 }, "text bold"), Svg.Element.Line.make({ x: 0, y: 5 }, { x: 0, y: -10 }, "line thin"));
             }
             function drawPowerGround(component) {
-                component.group.append(new Svg.Elements.Rect({ X: 0, Y: 5 }, { width: 40, height: 20 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"), new Svg.Elements.Line({ X: -18, Y: 0 }, { X: 18, Y: 0 }, "line medium"), new Svg.Elements.Line({ X: -12, Y: 5 }, { X: 12, Y: 5 }, "line medium"), new Svg.Elements.Line({ X: -6, Y: 10 }, { X: 6, Y: 10 }, "line medium"), new Svg.Elements.Line({ X: 0, Y: 0 }, { X: 0, Y: -10 }, "line thin"));
+                component.group.append(Svg.Element.Rect.make({ x: 0, y: 5 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"), Svg.Element.Line.make({ x: -18, y: 0 }, { x: 18, y: 0 }, "line medium"), Svg.Element.Line.make({ x: -12, y: 5 }, { x: 12, y: 5 }, "line medium"), Svg.Element.Line.make({ x: -6, y: 10 }, { x: 6, y: 10 }, "line medium"), Svg.Element.Line.make({ x: 0, y: 0 }, { x: 0, y: -10 }, "line thin"));
             }
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
-                component.group.addClasses("component " + component.name);
+                $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
             });
@@ -2531,7 +2753,7 @@ var Circuit;
         (function (Local) {
             Local.defaultState = {
                 location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
-                joints: [{ X: 0, Y: 0 }, { X: 80, Y: 0 }]
+                joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }]
             };
             Local.defaultProperties = {
                 name: "resistor",
@@ -2540,7 +2762,7 @@ var Circuit;
             class Instance extends Component.Instance {
                 constructor(properties, state) {
                     super(properties, state);
-                    this.group.addClasses("component " + this.name);
+                    $(this.group.element).addClass("component " + this.name);
                     this.joints = state.joints;
                     this.resistance = properties.resistance;
                 }
@@ -2552,19 +2774,14 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.group.transforms,
+                        location: this.location,
                         joints: this.joints
                     };
                 }
                 draw() {
-                    let leadPath = "";
-                    let joints = this.joints;
-                    leadPath = "M " + joints[0].X + " " + joints[0].Y;
-                    leadPath += "L " + joints[joints.length - 1].X + " " + joints[joints.length - 1].Y;
-                    this.group.prepend([
-                        new Svg.Elements.Path(leadPath, "lead"),
-                        new Svg.Elements.Groups.ResistorBody(joints[0], joints[joints.length - 1], "body").setValue(this.resistance)
-                    ]);
+                    const first = this.joints[0];
+                    const last = this.joints[this.joints.length - 1];
+                    this.group.prepend(Svg.Element.Path.make(this.joints, "lead"), Svg.Element.Group.ResistorBody.make(this.resistance, first, last, "body"));
                 }
                 makeConnectors() {
                     this.connectorSets = [
@@ -2580,9 +2797,9 @@ var Circuit;
                 let state = (raw.state) ?
                     {
                         location: raw.state.location,
-                        joints: (raw.state.joints && (raw.state.joints.length === 2) && (raw.state.joints.every((j) => {
-                            return (('X' in j) && ('Y' in j) && (typeof j.X === 'number') && (typeof j.Y === 'number'));
-                        }))) ? raw.state.joints : undefined
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
+                            ? vector.standardise(raw.state.joints)
+                            : undefined
                     } : {};
                 let properties = (raw.properties) ?
                     {
@@ -2592,7 +2809,7 @@ var Circuit;
                 return Local.makeInstance(properties, state, true);
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
-                component.group.addClasses("component " + component.name);
+                $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.Extendable.init(component);
@@ -2625,7 +2842,7 @@ var Circuit;
             class Instance extends Component.Instance {
                 constructor(properties, state) {
                     super(properties, state);
-                    this.group.addClasses("component " + this.name);
+                    $(this.group.element).addClass("component " + this.name);
                     this.orientation = state.orientation;
                     this.resistance = properties.resistance;
                 }
@@ -2637,32 +2854,32 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.group.transforms,
+                        location: this.location,
                         orientation: this.orientation
                     };
                 }
                 draw() {
                     let isHorizontal = ["LR", "RL"].includes(this.orientation);
                     let bodySize = (isHorizontal) ? { width: 46, height: 18 } : { width: 18, height: 46 };
-                    this.group.append(new Svg.Elements.Rect({ X: 0, Y: 0 }, bodySize, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"));
-                    this.group.append(new Svg.Elements.Rect({ X: 0, Y: 0 }, bodySize, { X: 2, Y: 2 }, "body white"));
+                    this.group.append(Svg.Element.Rect.make({ x: 0, y: 0 }, bodySize, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"));
+                    this.group.append(Svg.Element.Rect.make({ x: 0, y: 0 }, bodySize, { x: 2, y: 2 }, "body white"));
                     let lead1Start, lead2Start, lead1End, lead2End;
                     [lead1Start, lead2Start, lead1End, lead2End] = (isHorizontal)
-                        ? [{ X: -24, Y: 0 }, { X: 24, Y: 0 }, { X: -30, Y: 0 }, { X: 30, Y: 0 }]
-                        : [{ X: 0, Y: -24 }, { X: 0, Y: 24 }, { X: 0, Y: -30 }, { X: 0, Y: 30 }];
-                    this.group.append(new Svg.Elements.Line(lead1Start, lead1End, "line thin"));
-                    this.group.append(new Svg.Elements.Line(lead2Start, lead2End, "line thin"));
-                    let textPosition = (isHorizontal) ? { X: 0, Y: -15 } : { X: -15, Y: 4 };
+                        ? [{ x: -24, y: 0 }, { x: 24, y: 0 }, { x: -30, y: 0 }, { x: 30, y: 0 }]
+                        : [{ x: 0, y: -24 }, { x: 0, y: 24 }, { x: 0, y: -30 }, { x: 0, y: 30 }];
+                    this.group.append(Svg.Element.Line.make(lead1Start, lead1End, "line thin"));
+                    this.group.append(Svg.Element.Line.make(lead2Start, lead2End, "line thin"));
+                    let textPosition = (isHorizontal) ? { x: 0, y: -15 } : { x: -15, y: 4 };
                     let text = Utility.getStandardForm(this.resistance, 'Ω');
                     let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
-                    this.group.append(new Svg.Elements.Text(text, textPosition, "text").addClasses(anchorClass));
+                    this.group.append(Svg.Element.Text.make(text, textPosition, "text " + anchorClass));
                 }
                 makeConnectors() {
                     let isHorizontal = ["LR", "RL"].includes(this.orientation);
                     let lead1End, lead2End;
                     [lead1End, lead2End] = (isHorizontal)
-                        ? [{ X: -30, Y: 0 }, { X: 30, Y: 0 }]
-                        : [{ X: 0, Y: -30 }, { X: 0, Y: 30 }];
+                        ? [{ x: -30, y: 0 }, { x: 30, y: 0 }]
+                        : [{ x: 0, y: -30 }, { x: 0, y: 30 }];
                     this.connectorSets = [
                         [Component.Generics.makeConnector(this, "", "node", lead1End),
                             Component.Generics.makeConnector(this, "", "node", lead2End),]
@@ -2694,7 +2911,7 @@ var Circuit;
                 return Local.makeInstance(properties, state, true);
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
-                component.group.addClasses("component " + component.name);
+                $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
             });
@@ -2742,19 +2959,19 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.group.transforms
+                        location: this.location
                     };
                 }
                 makeConnectors() { }
                 draw() {
                     const gS = Constants.gridSpacing;
-                    const centre = { X: (this.columns - 1) * gS / 2, Y: (this.rows - 1) * gS / 2 };
+                    const centre = { x: (this.columns - 1) * gS / 2, y: (this.rows - 1) * gS / 2 };
                     const size = { width: (this.columns + 0.5) * gS, height: (this.rows + 0.5) * gS };
-                    const cornerRounding = { X: 3, Y: 3 };
-                    this.group.append(new Svg.Elements.Rect(centre, size, cornerRounding, "body highlight"), this.tracks.map(t => t.group));
+                    const cornerRounding = { x: 3, y: 3 };
+                    this.group.append(Svg.Element.Rect.make(centre, size, cornerRounding, "body highlight"), this.tracks.map(t => t.group));
                 }
-                insertInto(group) {
-                    Utility.Insert.first(this.group.element, group.element);
+                insertInto(element) {
+                    Utility.Insert.first(this.group.element, element);
                 }
                 transferFunction() { return []; }
                 ;
@@ -2769,7 +2986,7 @@ var Circuit;
                         holeSpacings: holeSpacings,
                         style: "stripboard"
                     }, {});
-                    track.group.translate({ X: 0, Y: row * gS }).rotate(0);
+                    track.group.translate({ x: 0, y: row * gS }).rotate(0);
                     tracks.push(track);
                 }
                 return tracks;
@@ -2796,7 +3013,7 @@ var Circuit;
                 return Local.makeInstance(properties, state, true);
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
-                component.group.addClasses(component.name);
+                $(component.group.element).addClass(component.name);
                 Component.Addins.Board.init(component, makeTracks, true);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.WireCreation.init(component);
@@ -2819,7 +3036,7 @@ var Circuit;
         (function (Local) {
             Local.defaultState = {
                 location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
-                joints: [{ X: 0, Y: 0 }, { X: 80, Y: 0 }],
+                joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
                 color: "#545454"
             };
             Local.defaultProperties = {
@@ -2828,7 +3045,7 @@ var Circuit;
             class Instance extends Component.Instance {
                 constructor(properties, state) {
                     super(properties, state);
-                    this.group.addClasses("component " + this.name);
+                    $(this.group.element).addClass("component " + this.name);
                     this.joints = state.joints;
                     this.color = state.color;
                 }
@@ -2839,7 +3056,7 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.group.transforms,
+                        location: this.location,
                         joints: this.joints,
                         color: this.color
                     };
@@ -2848,7 +3065,7 @@ var Circuit;
                     let coverPath, leadPath = "";
                     let coverRatio = 0.6;
                     let joints = this.joints;
-                    coverPath = leadPath = "M " + joints[0].X + " " + this.joints[0].Y;
+                    coverPath = leadPath = "M " + joints[0].x + " " + this.joints[0].y;
                     coverPath += getSegmentTowardsJointMid(joints[0], joints[1], -coverRatio);
                     leadPath += getSegmentTowardsJointMid(joints[0], joints[1], 1);
                     let pathMid = getBezierBetweenJoints(joints);
@@ -2856,10 +3073,10 @@ var Circuit;
                     leadPath += pathMid;
                     coverPath += getSegmentTowardsJointMid(joints[joints.length - 2], joints[joints.length - 1], coverRatio);
                     leadPath += getSegmentTowardsJointMid(joints[joints.length - 2], joints[joints.length - 1], 1);
-                    let cover = new Svg.Elements.Path(coverPath, "cover");
+                    let cover = Svg.Element.Path.make(coverPath, "cover");
                     this.group.prepend([
-                        new Svg.Elements.Path(leadPath, "lead"),
-                        new Svg.Elements.Path(coverPath, "leadhighlight highlight"),
+                        Svg.Element.Path.make(leadPath, "lead"),
+                        Svg.Element.Path.make(coverPath, "leadhighlight highlight"),
                         cover,
                     ]);
                     $(cover.element).css("stroke", this.color);
@@ -2879,9 +3096,9 @@ var Circuit;
                 let state = (raw.state) ?
                     {
                         location: raw.state.location,
-                        joints: (raw.state.joints && (raw.state.joints.length > 1) && (raw.state.joints.every((j) => {
-                            return (('X' in j) && ('Y' in j) && (typeof j.X === 'number') && (typeof j.Y === 'number'));
-                        }))) ? raw.state.joints : undefined,
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length > 1)
+                            ? vector.standardise(raw.state.joints)
+                            : undefined,
                         color: raw.state.color
                     } : {};
                 let properties = (raw.properties) ?
@@ -2894,39 +3111,36 @@ var Circuit;
                 let path = "";
                 for (let j = 1; j < joints.length - 1; j++) {
                     let p3 = {
-                        X: (joints[j + 1].X + joints[j].X) / 2,
-                        Y: (joints[j + 1].Y + joints[j].Y) / 2
+                        x: (joints[j + 1].x + joints[j].x) / 2,
+                        y: (joints[j + 1].y + joints[j].y) / 2
                     };
-                    path += "Q " + joints[j].X + " " + joints[j].Y +
-                        " " + p3.X + " " + p3.Y;
+                    path += "Q " + joints[j].x + " " + joints[j].y +
+                        " " + p3.x + " " + p3.y;
                 }
                 return path;
             }
             function getSegmentTowardsJointMid(j0, j1, ratio) {
                 let changeMid = {
-                    X: (j1.X - j0.X) / 2,
-                    Y: (j1.Y - j0.Y) / 2
+                    x: (j1.x - j0.x) / 2,
+                    y: (j1.y - j0.y) / 2
                 };
                 if (Math.sign(ratio) >= 0) {
-                    return 'l' + (changeMid.X * ratio) + " " + (changeMid.Y * ratio) +
-                        'm' + (changeMid.X * (1 - ratio)) + " " + (changeMid.Y * (1 - ratio));
+                    return 'l' + (changeMid.x * ratio) + " " + (changeMid.y * ratio) +
+                        'm' + (changeMid.x * (1 - ratio)) + " " + (changeMid.y * (1 - ratio));
                 }
                 else {
                     ratio = Math.abs(ratio);
-                    return 'm' + (changeMid.X * (1 - ratio)) + " " + (changeMid.Y * (1 - ratio)) +
-                        'l' + (changeMid.X * ratio) + " " + (changeMid.Y * ratio);
+                    return 'm' + (changeMid.x * (1 - ratio)) + " " + (changeMid.y * (1 - ratio)) +
+                        'l' + (changeMid.x * ratio) + " " + (changeMid.y * ratio);
                 }
             }
             function getRecolorPosition(component) {
-                const angle = Utility.Vector.getAngleBetween(component.joints[0], component.joints[1]) - Math.PI / 4;
+                const angle = vector(component.joints[0]).getAngleTo(component.joints[1]);
                 const offset = Utility.Polar.toVector(12, angle);
-                return {
-                    X: component.joints[0].X + offset.X,
-                    Y: component.joints[0].Y + offset.Y
-                };
+                return vector(component.joints[0]).sumWith(offset).vector;
             }
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
-                component.group.addClasses("component " + component.name);
+                $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.Extendable.init(component, true, true, true);
@@ -2951,7 +3165,7 @@ var Circuit;
         (function (Local) {
             Local.defaultState = {
                 location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
-                joints: [{ X: 0, Y: 0 }, { X: 10, Y: 10 }]
+                joints: [{ x: 0, y: 0 }, { x: 10, y: 10 }]
             };
             Local.defaultProperties = {
                 name: "wire",
@@ -2960,7 +3174,7 @@ var Circuit;
                 constructor(properties, state) {
                     super(properties, state);
                     this.connectorSets = [];
-                    this.group.addClasses("component " + this.name);
+                    $(this.group.element).addClass("component " + this.name);
                     this.joints = state.joints;
                 }
                 getProperties() {
@@ -2970,16 +3184,16 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.group.transforms,
+                        location: this.location,
                         joints: this.joints
                     };
                 }
                 draw() {
-                    let pathString = "M " + this.joints[0].X + " " + this.joints[0].Y;
+                    let pathString = "M " + this.joints[0].x + " " + this.joints[0].y;
                     for (let j = 1; j < this.joints.length; j++) {
-                        pathString += " L " + this.joints[j].X + " " + +this.joints[j].Y;
+                        pathString += " L " + this.joints[j].x + " " + +this.joints[j].y;
                     }
-                    this.group.append(new Svg.Elements.Path(pathString, "line thin"));
+                    this.group.append(Svg.Element.Path.make(pathString, "line thin"));
                 }
                 makeConnectors() {
                     let end1 = this.joints[0];
@@ -2989,8 +3203,8 @@ var Circuit;
                             Component.Generics.makeConnector(this, "", "node", end2)]
                     ];
                 }
-                insertInto(group) {
-                    Utility.Insert.first(this.group.element, group.element);
+                insertInto(element) {
+                    Utility.Insert.first(this.group.element, element);
                 }
                 transferFunction(from) {
                     return Utility.flatten2d(this.connectorSets.map(connectorSet => connectorSet.filter(connector => (connector !== from))));
@@ -3001,17 +3215,17 @@ var Circuit;
                 let state = (raw.state) ?
                     {
                         location: raw.state.location,
-                        joints: (raw.state.joints && (raw.state.joints.length > 1) && (raw.state.joints.every((j) => {
-                            return (('X' in j) && ('Y' in j) && (typeof j.X === 'number') && (typeof j.Y === 'number'));
-                        }))) ? raw.state.joints : undefined,
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length > 1)
+                            ? vector.standardise(raw.state.joints)
+                            : undefined
                     } : {
                     location: (raw.where) ? {
                         e: raw.where.X,
                         f: raw.where.Y
                     } : undefined,
-                    joints: (raw.joints && (raw.joints.length > 1) && (raw.joints.every((j) => {
-                        return (('X' in j) && ('Y' in j) && (typeof j.X === 'number') && (typeof j.Y === 'number'));
-                    }))) ? raw.joints : undefined,
+                    joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length > 1)
+                        ? vector.standardise(raw.state.joints)
+                        : undefined
                 };
                 let properties = (raw.properties) ?
                     {
@@ -3020,7 +3234,7 @@ var Circuit;
                 return Local.makeInstance(properties, state, true);
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
-                component.group.addClasses("component " + component.name);
+                $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Junctions.init(component);
             });
         })(Local || (Local = {}));
@@ -3084,7 +3298,7 @@ var Circuit;
                 const point = connector.point;
                 return allConnectors.filter(other => {
                     return (acceptedTypes.includes(other.type)
-                        && Utility.pointsAreClose(point, other.point));
+                        && vector(point).isCloseTo(other.point));
                 });
             }
         })(Generics = Component.Generics || (Component.Generics = {}));
@@ -19972,46 +20186,41 @@ var Svg;
         var Draggable;
         (function (Draggable) {
             Draggable.init = (element, options = {}) => {
-                let eventTarget = options.eventTarget !== undefined ? options.eventTarget : element.element;
+                let eventTarget = options.eventTarget !== undefined ? options.eventTarget : element;
                 let grid = options.grid !== undefined ? options.grid : {
-                    X: 10,
-                    Y: 10
+                    x: 10,
+                    y: 10
                 };
                 let styleClass = options.styleClass !== undefined ? options.styleClass : "dragging";
                 let lastPosition;
                 if ($(eventTarget).draggable("instance") === undefined) {
                     $(eventTarget).draggable({
                         start: (event, ui) => {
-                            element.addClasses(styleClass);
+                            $(element).addClass(styleClass);
                             if (grid !== "off") {
-                                let gridSvg = element.convertVector(grid, "SvgToDom", "absToDoc");
-                                $(eventTarget).draggable("option", "grid", [gridSvg.X, gridSvg.Y]);
+                                let gridSvg = svg(element).convertVector(grid, "SvgToDom", "absToDoc");
+                                $(eventTarget).draggable("option", "grid", [gridSvg.x, gridSvg.y]);
                             }
                             lastPosition = {
-                                X: ui.originalPosition.left,
-                                Y: ui.originalPosition.top
+                                x: ui.originalPosition.left,
+                                y: ui.originalPosition.top
                             };
                         },
                         drag: (event, ui) => {
                             let dragChangeDom = {
-                                X: ui.position.left - lastPosition.X,
-                                Y: ui.position.top - lastPosition.Y
+                                x: ui.position.left - lastPosition.x,
+                                y: ui.position.top - lastPosition.y
                             };
-                            let dragChangeSvg = element.convertVector(dragChangeDom, "DomToSvg", "absToDoc");
-                            $(eventTarget).triggerHandler("dragSVGConstraintCheck", [
-                                ui,
-                                dragChangeSvg,
-                                dragChangeDom
-                            ]);
+                            let dragChangeSvg = svg(element).convertVector(dragChangeDom, "DomToSvg", "absToDoc");
                             lastPosition = {
-                                X: ui.position.left,
-                                Y: ui.position.top
+                                x: ui.position.left,
+                                y: ui.position.top
                             };
                             $(eventTarget).trigger("dragSVG", [ui, dragChangeSvg]);
                         },
                         stop: (event, ui) => {
-                            $(element.element).removeClass(styleClass);
-                            element.element.transform.baseVal.consolidate();
+                            $(element).removeClass(styleClass);
+                            element.transform.baseVal.consolidate();
                         }
                     });
                 }
@@ -20025,7 +20234,7 @@ var Svg;
                 if (options.disableMovement !== true) {
                     $(eventTarget).on("dragSVG", (e, ui, drag) => {
                         if ($(e.target).closest(".ui-draggable").is(eventTarget)) {
-                            element.translate(drag, true);
+                            svg(element).translate(drag, true);
                         }
                     });
                 }
@@ -20033,10 +20242,10 @@ var Svg;
                     $(eventTarget).on("dragSVGConstraintCheck", (e, ui, dragSvg, dragDom) => {
                         if (options.constrainWith)
                             if (options.constrainWith(dragSvg)) {
-                                dragSvg.X = 0;
-                                dragSvg.Y = 0;
-                                ui.position.top = lastPosition.Y;
-                                ui.position.left = lastPosition.X;
+                                dragSvg.x = 0;
+                                dragSvg.y = 0;
+                                ui.position.top = lastPosition.y;
+                                ui.position.left = lastPosition.x;
                             }
                     });
                 }
@@ -20066,42 +20275,42 @@ var Svg;
         var Scaleable;
         (function (Scaleable) {
             Scaleable.init = (element, options = {}) => {
-                let eventTarget = options.eventTarget !== undefined ? options.eventTarget : element.element;
+                let eventTarget = options.eventTarget !== undefined ? options.eventTarget : element;
                 let mouseWheelHandler = (e) => {
                     if (e.buttons === 1 || e.buttons === 3) {
                         return;
                     }
                     let scaleChange = Math.sign(e.wheelDelta) * 0.05;
-                    let clientBounds = element.element.getBoundingClientRect();
-                    let owner = element.element.ownerSVGElement;
+                    let clientBounds = element.getBoundingClientRect();
+                    let owner = element.ownerSVGElement;
                     let rootClientBounds = (owner) ? owner.getBoundingClientRect() : {
                         left: 0,
                         top: 0
                     };
                     let clientStart = {
-                        X: clientBounds.left - rootClientBounds.left,
-                        Y: clientBounds.top - rootClientBounds.top
+                        x: clientBounds.left - rootClientBounds.left,
+                        y: clientBounds.top - rootClientBounds.top
                     };
-                    let svgStart = element.convertVector(clientStart, "DomToSvg", "absToDoc");
-                    let svgSize = element.convertVector({
-                        X: clientBounds.width,
-                        Y: clientBounds.height
+                    let svgStart = svg(element).convertVector(clientStart, "DomToSvg", "absToDoc");
+                    let svgSize = svg(element).convertVector({
+                        x: clientBounds.width,
+                        y: clientBounds.height
                     }, "DomToSvg", "absToDoc");
                     let mousePosDomFromCentre = {
-                        X: e.clientX - (clientBounds.left + clientBounds.width / 2),
-                        Y: e.clientY - (clientBounds.top + clientBounds.height / 2)
+                        x: e.clientX - (clientBounds.left + clientBounds.width / 2),
+                        y: e.clientY - (clientBounds.top + clientBounds.height / 2)
                     };
-                    let mousePosSvgFromCentre = element.convertVector(mousePosDomFromCentre, "DomToSvg", "absToDoc");
+                    let mousePosSvgFromCentre = svg(element).convertVector(mousePosDomFromCentre, "DomToSvg", "absToDoc");
                     let scale = {
-                        X: 1 + scaleChange,
-                        Y: 1 + scaleChange
+                        x: 1 + scaleChange,
+                        y: 1 + scaleChange
                     };
-                    element.scale(scale, true);
+                    svg(element).scale(scale, true);
                     let scaleTranslationAdjust = {
-                        X: (svgStart.X + svgSize.X / 2 + mousePosSvgFromCentre.X) * -scaleChange,
-                        Y: (svgStart.Y + svgSize.Y / 2 + mousePosSvgFromCentre.Y) * -scaleChange
+                        x: (svgStart.x + svgSize.x / 2 + mousePosSvgFromCentre.x) * -scaleChange,
+                        y: (svgStart.y + svgSize.y / 2 + mousePosSvgFromCentre.y) * -scaleChange
                     };
-                    element.translate(scaleTranslationAdjust, true);
+                    svg(element).translate(scaleTranslationAdjust, true);
                     if (options.onScale !== undefined) {
                         options.onScale(scale, scaleTranslationAdjust);
                     }
@@ -20118,247 +20327,230 @@ var Svg;
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
-    var Elements;
-    (function (Elements) {
-        class Circle extends Svg.Element {
-            constructor(centreVector, radius, classes = "") {
-                super('circle', classes);
-                this.element.setAttribute("cx", centreVector.X.toString());
-                this.element.setAttribute("cy", centreVector.Y.toString());
-                this.element.setAttribute("r", radius.toString());
+    var Element;
+    (function (Element) {
+        var Circle;
+        (function (Circle) {
+            function make(centreVector, radius, classes = "") {
+                const element = Element.make("circle", classes);
+                element.setAttribute("cx", centreVector.x.toString());
+                element.setAttribute("cy", centreVector.y.toString());
+                element.setAttribute("r", radius.toString());
+                return svg(element);
             }
-        }
-        Elements.Circle = Circle;
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
+            Circle.make = make;
+        })(Circle = Element.Circle || (Element.Circle = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
-    var Elements;
-    (function (Elements) {
-        class Ellipse extends Svg.Element {
-            constructor(centreVector, radiusVector, classes = "") {
-                super('ellipse', classes);
-                this.element.setAttribute("cx", centreVector.X.toString());
-                this.element.setAttribute("cy", centreVector.Y.toString());
-                this.element.setAttribute("rx", radiusVector.X.toString());
-                this.element.setAttribute("ry", radiusVector.Y.toString());
+    var Element;
+    (function (Element) {
+        var Ellipse;
+        (function (Ellipse) {
+            function make(centreVector, radiusVector, classes = "") {
+                const element = Element.make("ellipse", classes);
+                element.setAttribute("cx", centreVector.x.toString());
+                element.setAttribute("cy", centreVector.y.toString());
+                element.setAttribute("rx", radiusVector.x.toString());
+                element.setAttribute("ry", radiusVector.y.toString());
+                return svg(element);
             }
-        }
-        Elements.Ellipse = Ellipse;
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
+            Ellipse.make = make;
+        })(Ellipse = Element.Ellipse || (Element.Ellipse = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
-    var Elements;
-    (function (Elements) {
-        class Graphic extends Svg.Element {
-            constructor(type, classes = "") {
-                super(type, classes);
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            function make(classes = "") {
+                return svg(Element.make("g", classes));
             }
-        }
-        Elements.Graphic = Graphic;
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
+            Group.make = make;
+            let Functions;
+            (function (Functions) {
+                function append(element) {
+                    return (...elements) => {
+                        addChildren(element, (child) => {
+                            element.appendChild(child);
+                        }, ...elements);
+                        return svg(element);
+                    };
+                }
+                Functions.append = append;
+                function prepend(element) {
+                    return (...elements) => {
+                        let firstChild = element.firstChild;
+                        addChildren(element, (child) => {
+                            element.insertBefore(child, firstChild);
+                        }, ...elements);
+                        return svg(element);
+                    };
+                }
+                Functions.prepend = prepend;
+                function clearChildren(element) {
+                    return (inclusionSelector = "*") => {
+                        $(element).children(inclusionSelector).remove();
+                        return svg(element);
+                    };
+                }
+                Functions.clearChildren = clearChildren;
+                function addChildren(to, addCallback, ...elements) {
+                    elements.forEach(item => {
+                        let asArray = item instanceof Array ? item : [item];
+                        asArray.forEach(member => {
+                            let element = member instanceof SVGGraphicsElement ? member : member.element;
+                            addCallback(element);
+                        });
+                    });
+                    return to;
+                }
+            })(Functions = Group.Functions || (Group.Functions = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
-    var Elements;
-    (function (Elements) {
-        class Group extends Svg.Element {
-            constructor(classes = "") {
-                super("g", classes);
+    var Element;
+    (function (Element) {
+        var Line;
+        (function (Line) {
+            function make(startVector, endVector, classes = "") {
+                const element = Element.make("line", classes);
+                element.setAttribute("x1", startVector.x.toString());
+                element.setAttribute("y1", startVector.y.toString());
+                element.setAttribute("x2", endVector.x.toString());
+                element.setAttribute("y2", endVector.y.toString());
+                return svg(element);
             }
-            append(...elements) {
-                return this._addChildren((element) => {
-                    this.element.appendChild(element);
-                }, ...elements);
-            }
-            prepend(...elements) {
-                let firstChild = this.element.firstChild;
-                return this._addChildren((element) => {
-                    this.element.insertBefore(element, firstChild);
-                }, ...elements);
-            }
-            _addChildren(addCallback, ...elements) {
-                elements.forEach(item => {
-                    item = item instanceof Array ? item : [item];
-                    item.forEach(element => addCallback(element.element));
-                });
-                return this;
-            }
-        }
-        Elements.Group = Group;
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
+            Line.make = make;
+        })(Line = Element.Line || (Element.Line = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
-    var Elements;
-    (function (Elements) {
-        class Line extends Svg.Element {
-            constructor(startVector, endVector, classes = "") {
-                super('line', classes);
-                this.element.setAttribute("x1", startVector.X.toString());
-                this.element.setAttribute("y1", startVector.Y.toString());
-                this.element.setAttribute("x2", endVector.X.toString());
-                this.element.setAttribute("y2", endVector.Y.toString());
+    var Element;
+    (function (Element) {
+        var Path;
+        (function (Path) {
+            function make(path, classes = "") {
+                const element = Element.make("path", classes);
+                let pathString = (path instanceof Array) ? getLinePath(path) : path;
+                element.setAttribute('d', pathString);
+                return svg(element);
             }
-        }
-        Elements.Line = Line;
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
+            Path.make = make;
+            function getLinePath(jointSet) {
+                if (jointSet.length > 0 && jointSet[0] instanceof Array) {
+                    let jointArrays = jointSet;
+                    return jointArrays.map(getSingleLinePath).join();
+                }
+                else {
+                    let joints = jointSet;
+                    return getSingleLinePath(joints);
+                }
+            }
+            function getSingleLinePath(joints) {
+                if (joints.length < 1) {
+                    return "";
+                }
+                else {
+                    return "M" + joints[0].x + " " + joints[0].y
+                        + joints.map(joint => "L" + joint.x + " " + joint.y).join();
+                }
+            }
+        })(Path = Element.Path || (Element.Path = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
-    var Elements;
-    (function (Elements) {
-        class Path extends Svg.Element {
-            constructor(path, classes = "") {
-                super('path', classes);
-                this.element.setAttribute('d', path);
+    var Element;
+    (function (Element) {
+        var Rect;
+        (function (Rect) {
+            function make(centre, size, cornerRounding = { x: 0, y: 0 }, classes = "") {
+                const element = Element.make("rect", classes);
+                element.setAttribute("x", (centre.x - size.width / 2).toString());
+                element.setAttribute("y", (centre.y - size.height / 2).toString());
+                element.setAttribute("width", size.width.toString());
+                element.setAttribute("height", size.height.toString());
+                element.setAttribute("rx", cornerRounding.x.toString());
+                element.setAttribute("ry", cornerRounding.y.toString());
+                return svg(element);
             }
-        }
-        Elements.Path = Path;
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
+            Rect.make = make;
+        })(Rect = Element.Rect || (Element.Rect = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
-    var Elements;
-    (function (Elements) {
-        class Polygon extends Svg.Element {
-            constructor(points, classes = "") {
-                super('polygon', classes);
-                this.element.setAttribute("points", points);
+    var Element;
+    (function (Element) {
+        var SVG;
+        (function (SVG) {
+            function make(classes = "") {
+                const element = Element.make("svg", classes);
+                return svg(element);
             }
-        }
-        Elements.Polygon = Polygon;
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
+            SVG.make = make;
+        })(SVG = Element.SVG || (Element.SVG = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
-    var Elements;
-    (function (Elements) {
-        class Rect extends Svg.Element {
-            constructor(centre, size, cornerRounding = { X: 0, Y: 0 }, classes = "") {
-                super('rect', classes);
-                this.element.setAttribute("x", (centre.X - size.width / 2).toString());
-                this.element.setAttribute("y", (centre.Y - size.height / 2).toString());
-                this.element.setAttribute("width", size.width.toString());
-                this.element.setAttribute("height", size.height.toString());
-                this.element.setAttribute("rx", cornerRounding.X.toString());
-                this.element.setAttribute("ry", cornerRounding.Y.toString());
+    var Element;
+    (function (Element) {
+        var Text;
+        (function (Text) {
+            let textPathCount = 0;
+            function make(text, startVector, classes = "") {
+                const element = Element.make("text", classes);
+                element.setAttribute('x', startVector.x.toString());
+                element.setAttribute('y', startVector.y.toString());
+                element.appendChild(document.createTextNode(text));
+                return svg(element);
             }
-        }
-        Elements.Rect = Rect;
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Elements;
-    (function (Elements) {
-        let textPathCount = 0;
-        class Text extends Svg.Element {
-            constructor(text, startVector, classes = "") {
-                super('text', classes);
-                this.element.setAttribute('x', startVector.X.toString());
-                this.element.setAttribute('y', startVector.Y.toString());
-                this.element.appendChild(document.createTextNode(text));
-            }
-            followPath(pathString) {
-                let path = new Elements.Path(pathString);
-                $(path.element).hide();
-                let pathID = "pathForText" + textPathCount;
-                path.element.setAttribute("id", pathID);
-                textPathCount += 1;
-                let textPathEl = Svg.makeSVGElement("textPath");
-                textPathEl.setAttribute("href", "#" + pathID);
-                let text = $(this.element).text();
-                $(this.element).text("");
-                textPathEl.appendChild(document.createTextNode(text));
-                this.element.appendChild(path.element);
-                this.element.appendChild(textPathEl);
-                return this;
-            }
-        }
-        Elements.Text = Text;
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
+            Text.make = make;
+            let Functions;
+            (function (Functions) {
+                function followPath(element) {
+                    return (pathString) => {
+                        let path = Element.Path.make(pathString);
+                        $(path.element).hide();
+                        let pathID = "pathForText" + textPathCount;
+                        path.element.setAttribute("id", pathID);
+                        textPathCount += 1;
+                        let textPathEl = Element.make("textPath");
+                        textPathEl.setAttribute("href", "#" + pathID);
+                        let text = $(element).text();
+                        $(element).text("");
+                        textPathEl.appendChild(document.createTextNode(text));
+                        element.appendChild(path.element);
+                        element.appendChild(textPathEl);
+                        return svg(element);
+                    };
+                }
+                Functions.followPath = followPath;
+            })(Functions = Text.Functions || (Text.Functions = {}));
+        })(Text = Element.Text || (Element.Text = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
 })(Svg || (Svg = {}));
 var Utility;
 (function (Utility) {
     var Polar;
     (function (Polar) {
         function toVector(radius, angle) {
+            const rads = Utility.degreesToRadians(angle);
             return {
-                X: radius * Math.cos(angle),
-                Y: radius * Math.sin(angle)
+                x: radius * Math.cos(rads),
+                y: radius * Math.sin(rads)
             };
         }
         Polar.toVector = toVector;
     })(Polar = Utility.Polar || (Utility.Polar = {}));
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    var Vector;
-    (function (Vector) {
-        function areClose(vectorA, vectorB, closeBoundary = 1) {
-            const vectorXisClose = (Math.abs(vectorA.X - vectorB.X) < closeBoundary);
-            const vectorYisClose = (Math.abs(vectorA.Y - vectorB.Y) < closeBoundary);
-            return (vectorXisClose && vectorYisClose);
-        }
-        Vector.areClose = areClose;
-        ;
-    })(Vector = Utility.Vector || (Utility.Vector = {}));
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    var Vector;
-    (function (Vector) {
-        function getAngleBetween(from, to) {
-            return Math.atan2(from.Y - to.Y, from.X - to.X);
-        }
-        Vector.getAngleBetween = getAngleBetween;
-    })(Vector = Utility.Vector || (Utility.Vector = {}));
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    var Vector;
-    (function (Vector) {
-        function rotate(vector, angle) {
-            let radians = (Math.PI / 180) * angle;
-            let cos = Math.cos(radians);
-            let sin = Math.sin(radians);
-            let rotatedVector = {
-                X: (cos * vector.X) + (sin * vector.Y),
-                Y: (cos * vector.Y) - (sin * vector.X)
-            };
-            return rotatedVector;
-        }
-        Vector.rotate = rotate;
-    })(Vector = Utility.Vector || (Utility.Vector = {}));
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    var Vector;
-    (function (Vector) {
-        function snapToGrid(vector) {
-            let gridSpacing = Constants.gridSpacing;
-            return {
-                X: Math.round(vector.X / (gridSpacing / 2)) * (gridSpacing / 2),
-                Y: Math.round(vector.Y / (gridSpacing / 2)) * (gridSpacing / 2)
-            };
-        }
-        Vector.snapToGrid = snapToGrid;
-    })(Vector = Utility.Vector || (Utility.Vector = {}));
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    var Vector;
-    (function (Vector) {
-        function toPolar(vector) {
-            return {
-                radius: Math.sqrt(Math.pow(vector.X, 2) + Math.pow(vector.Y, 2)),
-                angle: Math.atan(vector.Y / vector.X)
-            };
-        }
-        Vector.toPolar = toPolar;
-    })(Vector = Utility.Vector || (Utility.Vector = {}));
 })(Utility || (Utility = {}));
 var Circuit;
 (function (Circuit) {
@@ -20369,7 +20561,7 @@ var Circuit;
             var Board;
             (function (Board) {
                 function init(component, trackMaker, isReversible) {
-                    component.group.addClasses("board");
+                    $(component.group.element).addClass("board");
                     component.tracks = trackMaker(component);
                     component.tracks.forEach(track => track.makeConnectors());
                     Object.defineProperty(component, 'connectorSets', {
@@ -20425,7 +20617,7 @@ var Circuit;
                             let holeSpacingRunningSum = 0;
                             this.connectorSets = [[]];
                             this.holeSpacings.forEach(hS => {
-                                this.connectorSets[0].push(Component.Generics.makeConnector(this, "", "hole", { X: (holeSpacingRunningSum += hS), Y: 0 }));
+                                this.connectorSets[0].push(Component.Generics.makeConnector(this, "", "hole", { x: (holeSpacingRunningSum += hS), y: 0 }));
                             });
                         }
                         transferFunction(from) {
@@ -20449,42 +20641,42 @@ var Circuit;
                         let height = Constants.gridSpacing * 14 / 16;
                         let holeSpacingRunningSum = 0;
                         component.holeSpacings.forEach(hS => {
-                            component.group.append(new Svg.Elements.Circle({ X: (holeSpacingRunningSum += hS), Y: 0 }, 4, "hole"));
+                            component.group.append(Svg.Element.Circle.make({ x: (holeSpacingRunningSum += hS), y: 0 }, 4, "hole"));
                         });
                         let size = {
                             width: holeSpacingRunningSum + Constants.gridSpacing * 0.8,
                             height: height
                         };
                         let centre = {
-                            X: holeSpacingRunningSum / 2,
-                            Y: 0
+                            x: holeSpacingRunningSum / 2,
+                            y: 0
                         };
-                        component.group.prepend(new Svg.Elements.Rect(centre, size, {
-                            X: 0,
-                            Y: 0
+                        component.group.prepend(Svg.Element.Rect.make(centre, size, {
+                            x: 0,
+                            y: 0
                         }, 'body'));
                     };
                     const drawBreadboard = (component) => {
                         let height = Constants.gridSpacing * 14 / 16;
                         let holeSpacingRunningSum = 0;
                         component.holeSpacings.forEach(hS => {
-                            component.group.append(new Svg.Elements.Path("M" + (holeSpacingRunningSum += hS) + " " + 0 + "m-4 -4h 8v 8h -8Z", "hole"));
+                            component.group.append(Svg.Element.Path.make("M" + (holeSpacingRunningSum += hS) + " " + 0 + "m-4 -4h 8v 8h -8Z", "hole"));
                         });
                         let size = {
                             width: holeSpacingRunningSum + Constants.gridSpacing * 0.8,
                             height: height
                         };
                         let centre = {
-                            X: holeSpacingRunningSum / 2,
-                            Y: 0
+                            x: holeSpacingRunningSum / 2,
+                            y: 0
                         };
-                        component.group.prepend(new Svg.Elements.Rect(centre, size, {
-                            X: 0,
-                            Y: 0
+                        component.group.prepend(Svg.Element.Rect.make(centre, size, {
+                            x: 0,
+                            y: 0
                         }, 'body'));
                     };
                     Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
-                        component.group.addClasses(component.name);
+                        $(component.group.element).addClass(component.name);
                     });
                 })(Local || (Local = {}));
                 Board.Track = {
@@ -20496,11 +20688,11 @@ var Circuit;
                 let Reversible;
                 (function (Reversible) {
                     Reversible.init = (component) => {
-                        let element = component.group.element;
-                        $(element).on("select", () => {
+                        let element = component.group;
+                        $(element.element).on("select", () => {
                             createGhost(component);
                         });
-                        $(element).on("deselect", () => {
+                        $(element.element).on("deselect", () => {
                             clearGhost(component);
                         });
                         component.tracks.forEach((track, trackIdx) => {
@@ -20530,23 +20722,23 @@ var Circuit;
                             let ctm = (track.group.element.getCTM() || Svg.makeMatrix()).inverse();
                             track.connectorSets[0].forEach((hole, holeIdx) => {
                                 let point = (ctm) ? hole.point.matrixTransform(ctm) : hole.point;
-                                let breaker = new Svg.Elements.Circle({ X: point.x, Y: point.y }, 6, "breaker");
+                                let breaker = Svg.Element.Circle.make({ x: point.x, y: point.y }, 6, "breaker");
                                 if (hole.type === "brokenhole")
-                                    breaker.addClasses("broken");
+                                    $(breaker.element).addClass("broken");
                                 if (getPinsAtHole(hole, allValidConnectors).length) {
-                                    breaker.addClasses("withPin");
+                                    $(breaker.element).addClass("withPin");
                                 }
                                 ;
                                 trackGhostGroup.appendChild(breaker.element);
                                 let holePosition = { track: trackIdx, hole: holeIdx };
                                 $(breaker.element).click(() => {
                                     if (hole.type === "hole") {
-                                        breaker.addClasses("broken");
+                                        $(breaker.element).addClass("broken");
                                         hole.type = "brokenhole";
                                         component.trackBreaks.push(holePosition);
                                     }
                                     else if (hole.type === "brokenhole") {
-                                        breaker.removeClasses("broken");
+                                        $(breaker.element).removeClass("broken");
                                         hole.type = "hole";
                                         component.trackBreaks = component.trackBreaks.filter(trackBreak => (trackBreak.hole !== holePosition.hole || trackBreak.track !== holePosition.track));
                                     }
@@ -20564,7 +20756,7 @@ var Circuit;
                         let point = connector.point;
                         let attachedConnectors = allConnectors.filter(other => {
                             return (acceptedTypes.includes(other.type)
-                                && Utility.pointsAreClose(point, other.point));
+                                && vector(point).isCloseTo(other.point));
                         });
                         return attachedConnectors;
                     }
@@ -20582,22 +20774,22 @@ var Circuit;
             var ConnectionHighlights;
             (function (ConnectionHighlights) {
                 ConnectionHighlights.init = (component, propogate = true, colorPalette = defaultColorPalette) => {
-                    let element = component.group.element;
-                    $(element).on(Events.select, () => {
+                    let element = component.group;
+                    $(element.element).on(Events.select, () => {
                         createConnectionsHighlights(component, propogate, colorPalette);
                     });
-                    $(element).on(Events.moved, () => {
+                    $(element.element).on(Events.moved, () => {
                         clearConnectionsHighlights(component);
                         createConnectionsHighlights(component, propogate, colorPalette);
                     });
-                    $(element).on(Events.deselect, () => {
+                    $(element.element).on(Events.deselect, () => {
                         clearConnectionsHighlights(component);
                     });
                 };
                 const createConnectorHighlights = (component, connection, color) => {
                     let ctm = component.group.element.getCTM();
                     let point = (ctm) ? connection.point.matrixTransform(ctm.inverse()) : connection.point;
-                    let highlight = new Svg.Elements.Circle({ X: point.x, Y: point.y }, 4, "highlight highlightwithfill connectivityhighlight");
+                    let highlight = Svg.Element.Circle.make({ x: point.x, y: point.y }, 4, "highlight highlightwithfill connectivityhighlight");
                     $(highlight.element).css({ "fill": color, "stroke": color });
                     component.group.append(highlight);
                 };
@@ -20643,9 +20835,9 @@ var Circuit;
             var Draggable;
             (function (Draggable) {
                 Draggable.init = (component) => {
-                    Svg.Addins.Draggable.init(component.group, {
+                    Svg.Addins.Draggable.init(component.group.element, {
                         onStart: () => {
-                            component.insertInto(component.group);
+                            component.insertInto(component.group.element);
                         }
                     });
                 };
@@ -20684,8 +20876,8 @@ var Circuit;
                 const initHandleInsertion = (component) => {
                     $(component.group.element).dblclick(e => {
                         if ($(e.target).closest(".handle").length < 1) {
-                            let position = component.group.convertVector({ X: e.clientX, Y: e.clientY }, "DomToSvg", "relToGroup");
-                            position = Utility.Vector.snapToGrid(position);
+                            let position = component.group.convertVector({ x: e.clientX, y: e.clientY }, "DomToSvg", "relToGroup");
+                            position = vector(position).snapToGrid().vector;
                             component.joints.splice(getJointInsertionIdx(component, position), 0, position);
                             addHandle(component, position);
                             refreshComponent(component);
@@ -20709,19 +20901,19 @@ var Circuit;
                 };
                 const initComponentRemoval = (component) => {
                     $(component.group.element).on(Events.dragStop, ".dragHandle", (e) => {
-                        if (component.joints.length === 2 && Utility.Vector.areClose(component.joints[0], component.joints[1])) {
+                        if (component.joints.length === 2 && vector(component.joints[0]).isCloseTo(component.joints[1])) {
                             Circuit.manifest.removeComponent(component);
                         }
                     });
                 };
                 const addHandle = (component, point) => {
-                    let dragHandle = new Svg.Elements.Circle(point, 5, "handle dragHandle highlight highlightwithfill");
+                    let dragHandle = Svg.Element.Circle.make(point, 5, "handle dragHandle highlight highlightwithfill");
                     $(dragHandle.element).data('point', point);
                     component.group.append(dragHandle);
-                    Svg.Addins.Draggable.init(dragHandle);
+                    Svg.Addins.Draggable.init(dragHandle.element);
                     $(dragHandle.element).on(Events.drag, (e, ui, drag) => {
-                        point.X += drag.X;
-                        point.Y += drag.Y;
+                        point.x += drag.x;
+                        point.y += drag.y;
                         refreshComponent(component);
                     });
                     return dragHandle;
@@ -20729,7 +20921,7 @@ var Circuit;
                 const removeExcessJoints = (component, point) => {
                     if (component.joints.length > 2) {
                         component.joints = component.joints.filter((joint, idx) => {
-                            if ((joint !== point) && Utility.Vector.areClose(point, joint)) {
+                            if ((joint !== point) && vector(point).isCloseTo(joint)) {
                                 $(component.group.element).children(".dragHandle").filter((i, el) => $(el).data('point') === joint).remove();
                                 return false;
                             }
@@ -20739,7 +20931,7 @@ var Circuit;
                     ;
                 };
                 const getJointInsertionIdx = (component, point) => {
-                    let jointAngles = component.joints.map((j) => Math.atan2(point.Y - j.Y, point.X - j.X) * 180 / Math.PI);
+                    let jointAngles = component.joints.map((j) => Math.atan2(point.y - j.y, point.x - j.x) * 180 / Math.PI);
                     let bestAnglePair = 180;
                     let bestJointIdx = 0;
                     for (let i = 1; i < jointAngles.length; i++) {
@@ -20764,8 +20956,8 @@ var Circuit;
             var Junctions;
             (function (Junctions) {
                 Junctions.init = (component) => {
-                    let element = component.group.element;
-                    $(element).on(Events.moved + " " + Events.place, () => {
+                    let element = component.group;
+                    $(element.element).on(Events.moved + " " + Events.place, () => {
                         clearJunctions(component);
                         createJunctions(component);
                     });
@@ -20774,11 +20966,11 @@ var Circuit;
                     let otherConnectors = Utility.flatten2d(Circuit.manifest.schematic.map(component => Utility.flatten2d(component.connectorSets).filter(connector => (connector.type === "node"))));
                     component.connectorSets.forEach(connectorSet => connectorSet.forEach(connector => {
                         let point = connector.point;
-                        let attachedConnectors = otherConnectors.filter(other => Utility.pointsAreClose(point, other.point));
+                        let attachedConnectors = otherConnectors.filter(other => vector(point).isCloseTo(other.point));
                         if (attachedConnectors.length === 3) {
-                            let ctm = Active.schematic.group.element.getCTM();
+                            let ctm = Active.schematic.root.group.element.getCTM();
                             point = (ctm) ? point.matrixTransform(ctm.inverse()) : point;
-                            component.group.prepend(new Svg.Elements.Circle({ X: point.x, Y: point.y }, 5, "junction black"));
+                            component.group.prepend(Svg.Element.Circle.make({ x: point.x, y: point.y }, 5, "junction black"));
                         }
                     }));
                 };
@@ -20798,15 +20990,15 @@ var Circuit;
             var Recolorable;
             (function (Recolorable) {
                 Recolorable.init = (component, where, recolorSelector = "*", colorPalette = defaultColorPalette) => {
-                    let element = component.group.element;
-                    $(element).on(Events.select, () => {
+                    let element = component.group;
+                    $(element.element).on(Events.select, () => {
                         createRecolorHandle(component, where(), recolorSelector, colorPalette);
                     });
-                    $(element).on(Events.moved, () => {
+                    $(element.element).on(Events.moved, () => {
                         clearRecolorHandle(component);
                         createRecolorHandle(component, where(), recolorSelector, colorPalette);
                     });
-                    $(element).on(Events.deselect, () => {
+                    $(element.element).on(Events.deselect, () => {
                         clearRecolorHandle(component);
                     });
                 };
@@ -20816,11 +21008,11 @@ var Circuit;
                     component.draw();
                 };
                 const createRecolorHandle = (component, position, recolorSelector, colorPalette) => {
-                    let recolorSegmentGroup = new Svg.Elements.Group("recolorSegmentGroup");
-                    let recolorHandle = new Svg.Elements.Circle(position, 7, "handle recolorHandle");
-                    Svg.Addins.Draggable.init(recolorHandle, { disableMovement: true });
-                    let segment1 = new Svg.Elements.Rect(position, { width: 10, height: 20 }, undefined, "recolorHandleSegment").translate({ X: -4, Y: -4 }).rotate(45, position);
-                    let segment2 = new Svg.Elements.Rect(position, { width: 10, height: 20 }, undefined, "recolorHandleSegment").translate({ X: 4, Y: 4 }).rotate(45, position);
+                    let recolorSegmentGroup = Svg.Element.Group.make("recolorSegmentGroup");
+                    let recolorHandle = Svg.Element.Circle.make(position, 7, "handle recolorHandle");
+                    Svg.Addins.Draggable.init(recolorHandle.element, { disableMovement: true });
+                    let segment1 = Svg.Element.Rect.make(position, { width: 10, height: 20 }, undefined, "recolorHandleSegment").translate({ x: -4, y: -4 }).rotate(45, position);
+                    let segment2 = Svg.Element.Rect.make(position, { width: 10, height: 20 }, undefined, "recolorHandleSegment").translate({ x: 4, y: 4 }).rotate(45, position);
                     $(segment1.element).css("fill", "#4fd56b");
                     $(segment2.element).css("fill", "#d54f6b");
                     recolorSegmentGroup.append(segment1, segment2);
@@ -20865,7 +21057,7 @@ var Circuit;
         (function (Addins) {
             var Rotatable;
             (function (Rotatable) {
-                Rotatable.init = (component, rotationCentre = { X: 0, Y: 0 }) => {
+                Rotatable.init = (component, rotationCentre = { x: 0, y: 0 }) => {
                     $(component.group.element).dblclick(() => {
                         component.group.rotate(90, rotationCentre);
                         $(component.group.element).trigger(Events.rotate);
@@ -20921,11 +21113,11 @@ var Circuit;
                 const setDisplayHandlers = (component) => {
                     $(component.group.element).on(Events.select, () => {
                         console.log(component);
-                        component.group.addClasses("selected");
-                        component.insertInto(component.group);
+                        $(component.group.element).addClass("selected");
+                        component.insertInto(component.group.element);
                     });
                     $(component.group.element).on(Events.deselect, () => {
-                        component.group.removeClasses("selected");
+                        $(component.group.element).removeClass("selected");
                     });
                 };
             })(Selectable = Addins.Selectable || (Addins.Selectable = {}));
@@ -20943,15 +21135,15 @@ var Circuit;
                 WireCreation.init = (component) => {
                     $(component.group.element).on("mouseenter", ".hole", (mOE) => {
                         if (!$(mOE.target).draggable('instance')) {
-                            Svg.Addins.Draggable.init(component.group, {
+                            Svg.Addins.Draggable.init(component.group.element, {
                                 eventTarget: mOE.target,
                                 disableMovement: true,
                                 styleClass: ""
                             });
                             let dragHandle;
                             $(mOE.target).on(Events.dragStart, (e, ui, drag) => {
-                                const position = Active.layout.group.convertVector({ X: e.clientX, Y: e.clientY }, "DomToSvg", "relToGroup");
-                                const gridPosition = Utility.Vector.snapToGrid(position);
+                                const position = { x: e.clientX, y: e.clientY };
+                                const gridPosition = vector(position).snapToGrid().vector;
                                 const wire = createWireAtPoint(gridPosition);
                                 dragHandle = $(wire.group.element).find(".dragHandle")[0];
                                 $(dragHandle).trigger("mousedown");
@@ -20968,7 +21160,7 @@ var Circuit;
                 };
                 const createWireAtPoint = (vector) => {
                     const wire = Component.WireLayout.makeInstance({}, {
-                        joints: [{ X: vector.X, Y: vector.Y }, { X: vector.X, Y: vector.Y }]
+                        joints: [{ x: vector.x, y: vector.y }, { x: vector.x, y: vector.y }]
                     });
                     Circuit.manifest.addComponent(wire, Circuit.manifest.layout);
                     return wire;
@@ -21154,142 +21346,123 @@ var FileIO;
 })(FileIO || (FileIO = {}));
 var Svg;
 (function (Svg) {
-    var Elements;
-    (function (Elements) {
-        var Groups;
-        (function (Groups) {
-            class BipolarBody extends Svg.Elements.Group {
-                constructor(start, middle, end, classes = "") {
-                    super(classes);
-                    let centre = {
-                        X: (start.X + middle.X + end.X) / 3,
-                        Y: (start.Y + middle.Y + end.Y) / 3,
-                    };
-                    let rotation = Math.atan2(end.Y - start.Y, end.X - start.X) * 180 / Math.PI;
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var BipolarBody;
+            (function (BipolarBody) {
+                function make(text, centre, rotation, classes = "") {
+                    const element = Group.make(classes);
                     let semiCircleString = "M " + (16) + " " + (4) +
                         "a " + (1) + " " + (1) + " " + (0) + " " + (0) + " " + (0) + " " + (-32) + " " + (0) +
                         "v " + (3) +
                         "h " + (32) +
                         "v " + (-3) +
                         "Z";
-                    this.text = new Svg.Elements.Text("", { X: 0, Y: 4 }, "text");
-                    this.append(new Svg.Elements.Path(semiCircleString, "body highlight"), this.text);
-                    this.translate({
-                        X: centre.X,
-                        Y: centre.Y
-                    }).rotate(rotation);
+                    element.append(Svg.Element.Path.make(semiCircleString, "body highlight").element, Svg.Element.Text.make(text, { x: 0, y: 4 }, "text").element);
+                    element.translate(centre).rotate(rotation);
+                    return element;
                 }
-                setValue(text) {
-                    $(this.text.element).text(text);
-                    return this;
-                }
-            }
-            Groups.BipolarBody = BipolarBody;
-        })(Groups = Elements.Groups || (Elements.Groups = {}));
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
+                BipolarBody.make = make;
+            })(BipolarBody = Group.BipolarBody || (Group.BipolarBody = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
-    var Elements;
-    (function (Elements) {
-        var Groups;
-        (function (Groups) {
-            class CapacitorBodyCeramic extends Svg.Elements.Group {
-                constructor(betweenStart, betweenEnd, classes = "") {
-                    super(classes);
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var CapacitorBodyCeramic;
+            (function (CapacitorBodyCeramic) {
+                function make(value, start, end, classes = "") {
+                    const element = Group.make(classes);
                     let centre = {
-                        X: (betweenStart.X + betweenEnd.X) / 2,
-                        Y: (betweenStart.Y + betweenEnd.Y) / 2
+                        x: (start.x + end.x) / 2,
+                        y: (start.y + end.y) / 2
                     };
-                    let rotation = Math.atan2(centre.Y - betweenStart.Y, centre.X - betweenStart.X) *
-                        180 /
-                        Math.PI;
-                    this.text = new Svg.Elements.Text("", { X: 0, Y: 0 }, "text");
-                    this.append(new Svg.Elements.Ellipse({ X: 0, Y: 0 }, { X: 16, Y: 8 }, "body highlight nofill"), this.text);
-                    this.translate({
-                        X: centre.X,
-                        Y: centre.Y
-                    }).rotate(rotation);
+                    let rotation = vector(start).getAngleTo(end);
+                    const text = Utility.getStandardForm(value, 'F');
+                    element.append(Svg.Element.Ellipse.make({ x: 0, y: 0 }, { x: 16, y: 8 }, "body highlight nofill"), Svg.Element.Text.make(text, { x: 0, y: 0 }, "text"));
+                    element.translate({ x: centre.x, y: centre.y }).rotate(rotation);
+                    return element;
                 }
-                setValue(num) {
-                    $(this.text.element).text(Utility.getStandardForm(num, 'F'));
-                    return this;
-                }
-            }
-            Groups.CapacitorBodyCeramic = CapacitorBodyCeramic;
-        })(Groups = Elements.Groups || (Elements.Groups = {}));
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
+                CapacitorBodyCeramic.make = make;
+            })(CapacitorBodyCeramic = Group.CapacitorBodyCeramic || (Group.CapacitorBodyCeramic = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
-    var Elements;
-    (function (Elements) {
-        var Groups;
-        (function (Groups) {
-            class CapacitorBodyElectrolytic extends Svg.Elements.Group {
-                constructor(value, betweenStart, betweenEnd, classes = "") {
-                    super(classes);
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var CapacitorBodyElectrolytic;
+            (function (CapacitorBodyElectrolytic) {
+                function make(value, start, end, classes = "") {
+                    const element = Group.make(classes);
                     const centre = {
-                        X: (betweenStart.X + betweenEnd.X) / 2,
-                        Y: (betweenStart.Y + betweenEnd.Y) / 2
+                        x: (start.x + end.x) / 2,
+                        y: (start.y + end.y) / 2
                     };
-                    const rotation = Math.atan2(centre.Y - betweenStart.Y, centre.X - betweenStart.X) *
-                        180 /
-                        Math.PI;
+                    let rotation = vector(start).getAngleTo(end);
                     const text = Utility.getStandardForm(value, 'F');
                     const bodyArcEndPoint = 14 / Math.SQRT2;
                     const textArcEndPoint = 12.5 / Math.SQRT2;
                     const bodyPathString = "m14 0 A14 14 0 1 0 " + (bodyArcEndPoint) + " " + (bodyArcEndPoint);
                     const minusPathString = "m14 0 A14 14 0 0 1 " + (bodyArcEndPoint) + " " + (bodyArcEndPoint);
                     const pathForTextString = "m" + (textArcEndPoint) + " " + (textArcEndPoint) + "A12.5 12.5 0 1 1 12.5 0";
-                    this.append(new Svg.Elements.Circle({ X: 0, Y: 0 }, 16, "highlight nofill"), new Svg.Elements.Path(bodyPathString, "body").rotate(157.5), new Svg.Elements.Path(minusPathString, "minus").rotate(157.5), new Svg.Elements.Text(text, { X: 1, Y: 0 }, "text").followPath(pathForTextString).rotate(157.5));
-                    this.translate({ X: centre.X, Y: centre.Y }).rotate(rotation);
+                    element.append(Svg.Element.Circle.make({ x: 0, y: 0 }, 16, "highlight nofill"), Element.Path.make(bodyPathString, "body").rotate(157.5), Element.Path.make(minusPathString, "minus").rotate(157.5), Element.Text.make(text, { x: 1, y: 0 }, "text").followPath(pathForTextString).rotate(157.5));
+                    element.translate({ x: centre.x, y: centre.y }).rotate(rotation);
+                    return element;
                 }
-            }
-            Groups.CapacitorBodyElectrolytic = CapacitorBodyElectrolytic;
-        })(Groups = Elements.Groups || (Elements.Groups = {}));
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
+                CapacitorBodyElectrolytic.make = make;
+            })(CapacitorBodyElectrolytic = Group.CapacitorBodyElectrolytic || (Group.CapacitorBodyElectrolytic = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
-    var Elements;
-    (function (Elements) {
-        var Groups;
-        (function (Groups) {
-            class DiodeBody extends Svg.Elements.Group {
-                constructor(betweenStart, betweenEnd, classes = "") {
-                    super(classes);
-                    let centre = { X: (betweenStart.X + betweenEnd.X) / 2, Y: (betweenStart.Y + betweenEnd.Y) / 2 };
-                    let rotation = Math.atan2(centre.Y - betweenStart.Y, centre.X - betweenStart.X) * 180 / Math.PI;
-                    this.append(new Svg.Elements.Rect({ X: -5.5, Y: 0 }, { width: 29, height: 15 }, { X: 0, Y: 0 }, "body"), new Svg.Elements.Rect({ X: 17.5, Y: 0 }, { width: 5, height: 15 }, { X: 0, Y: 0 }, "body"), new Svg.Elements.Rect({ X: 12, Y: 0 }, { width: 6, height: 15 }, { X: 0, Y: 0 }, "cathode"), new Svg.Elements.Rect({ X: 0, Y: 0 }, { width: 40, height: 15 }, { X: 1, Y: 1 }, "highlight nofill"));
-                    this.translate({ X: centre.X, Y: centre.Y }).rotate(rotation);
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var DiodeBody;
+            (function (DiodeBody) {
+                function make(value, start, end, classes = "") {
+                    const element = Group.make(classes);
+                    let centre = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
+                    let rotation = vector(start).getAngleTo(end);
+                    element.append(Svg.Element.Rect.make({ x: -5.5, y: 0 }, { width: 29, height: 15 }, { x: 0, y: 0 }, "body"), Svg.Element.Rect.make({ x: 17.5, y: 0 }, { width: 5, height: 15 }, { x: 0, y: 0 }, "body"), Svg.Element.Rect.make({ x: 12, y: 0 }, { width: 6, height: 15 }, { x: 0, y: 0 }, "cathode"), Svg.Element.Rect.make({ x: 0, y: 0 }, { width: 40, height: 15 }, { x: 1, y: 1 }, "highlight nofill"));
+                    element.translate({ x: centre.x, y: centre.y }).rotate(rotation);
+                    return element;
                 }
-                setValue(num) {
-                    return this;
-                }
-            }
-            Groups.DiodeBody = DiodeBody;
-        })(Groups = Elements.Groups || (Elements.Groups = {}));
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
+                DiodeBody.make = make;
+            })(DiodeBody = Group.DiodeBody || (Group.DiodeBody = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
-    var Elements;
-    (function (Elements) {
-        var Groups;
-        (function (Groups) {
-            class dip extends Svg.Elements.Group {
-                constructor(pinsPerSide = 4, textLineOne = "", textLineTwo = "", textLineThree = "", classes = "") {
-                    super(classes);
-                    $(this.element).addClass("dip", classes);
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var Dip;
+            (function (Dip) {
+                function make(pinsPerSide = 4, textLineOne = "", textLineTwo = "", textLineThree = "", classes = "") {
+                    const element = Group.make("dip" + classes);
                     let gridSpacing = Constants.gridSpacing;
                     let bodySize = {
                         width: gridSpacing * pinsPerSide,
                         height: gridSpacing * 2.8
                     };
                     let centre = {
-                        X: gridSpacing * (pinsPerSide - 1) / 2,
-                        Y: gridSpacing * 1.5
+                        x: gridSpacing * (pinsPerSide - 1) / 2,
+                        y: gridSpacing * 1.5
                     };
                     let pinString = "M " + (0) + " " + (-2.5)
                         + "h " + (-4)
@@ -21300,65 +21473,33 @@ var Svg;
                         + "v " + (-3)
                         + "Z";
                     for (let i = 0; i < pinsPerSide; i++) {
-                        this.append(new Svg.Elements.Path(pinString, "pin").scale({ X: 1, Y: -1 }).translate({ X: gridSpacing * i, Y: 0 }), new Svg.Elements.Path(pinString, "pin").translate({ X: gridSpacing * i, Y: 3 * gridSpacing }));
+                        element.append(Element.Path.make(pinString, "pin").scale({ x: 1, y: -1 }).translate({ x: gridSpacing * i, y: 0 }), Element.Path.make(pinString, "pin").translate({ x: gridSpacing * i, y: 3 * gridSpacing }));
                     }
                     ;
-                    let notchString = "M " + (-0.5 * gridSpacing) + " " + (centre.Y) +
+                    let notchString = "M " + (-0.5 * gridSpacing) + " " + (centre.y) +
                         "v " + (8) +
                         "a " + (1) + " " + (1) + " " + (0) + " " + (0) + " " + (0) + " " + (0) + " " + (-16) +
                         "Z";
-                    this.append(new Svg.Elements.Rect(centre, bodySize, { X: 5, Y: 5 }, "body"), new Svg.Elements.Path(notchString, "notch"), new Svg.Elements.Rect(centre, bodySize, { X: 5, Y: 5 }, "body highlight"), new Svg.Elements.Text(textLineOne, { X: 0.25 * gridSpacing, Y: 1 * gridSpacing }, "text"), new Svg.Elements.Text(textLineTwo, { X: 0.25 * gridSpacing, Y: 1.75 * gridSpacing }, "text"), new Svg.Elements.Text(textLineThree, { X: 0.25 * gridSpacing, Y: 2.5 * gridSpacing }, "text"));
+                    element.append(Svg.Element.Rect.make(centre, bodySize, { x: 5, y: 5 }, "body"), Svg.Element.Path.make(notchString, "notch"), Svg.Element.Rect.make(centre, bodySize, { x: 5, y: 5 }, "body highlight"), Svg.Element.Text.make(textLineOne, { x: 0.25 * gridSpacing, y: 1 * gridSpacing }, "text"), Svg.Element.Text.make(textLineTwo, { x: 0.25 * gridSpacing, y: 1.75 * gridSpacing }, "text"), Svg.Element.Text.make(textLineThree, { x: 0.25 * gridSpacing, y: 2.5 * gridSpacing }, "text"));
+                    return element;
                 }
-                setValue(num) {
-                    let exp = num.toExponential(1);
-                    let sigFig1 = exp.slice(exp.indexOf(".") - 1)[0];
-                    let sigFig2 = exp.slice(exp.indexOf(".") + 1)[0];
-                    let multiplier = (parseInt(exp.slice(exp.indexOf("e") + 1), 10) - 1).toString();
-                    let colours = {
-                        "-3": "pink",
-                        "-2": "silver",
-                        "-1": "gold",
-                        "0": "black",
-                        "1": "brown",
-                        "2": "red",
-                        "3": "#FF7F26",
-                        "4": "yellow",
-                        "5": "green",
-                        "6": "blue",
-                        "7": "violet",
-                        "8": "grey",
-                        "9": "white"
-                    };
-                    $(this.element)
-                        .children(".band1")
-                        .css("fill", colours[sigFig1]);
-                    $(this.element)
-                        .children(".band2")
-                        .css("fill", colours[sigFig2]);
-                    $(this.element)
-                        .children(".band3")
-                        .css("fill", colours[multiplier]);
-                    $(this.element)
-                        .children(".band4")
-                        .css("fill", "transparent");
-                    return this;
-                }
-            }
-            Groups.dip = dip;
-        })(Groups = Elements.Groups || (Elements.Groups = {}));
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
+                Dip.make = make;
+            })(Dip = Group.Dip || (Group.Dip = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
-    var Elements;
-    (function (Elements) {
-        var Groups;
-        (function (Groups) {
-            class InductorBody extends Svg.Elements.Group {
-                constructor(betweenStart, betweenEnd, classes = "") {
-                    super(classes);
-                    let centre = { X: (betweenStart.X + betweenEnd.X) / 2, Y: (betweenStart.Y + betweenEnd.Y) / 2 };
-                    let rotation = Math.atan2(centre.Y - betweenStart.Y, centre.X - betweenStart.X) * 180 / Math.PI;
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var InductorBody;
+            (function (InductorBody) {
+                function make(value, start, end, classes = "") {
+                    const element = Group.make(classes);
+                    let centre = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
+                    let rotation = vector(start).getAngleTo(end);
                     const nCoils = 4;
                     const wireWidth = 8;
                     const coilTop = -15;
@@ -21373,46 +21514,37 @@ var Svg;
                         bodyEdgePath += "M" + (x0) + " " + (coilBottom) + "L" + (x1) + " " + (coilTop);
                     }
                     bodyPath += "L" + (-coilStart) + " " + (coilTop);
-                    this.append(new Svg.Elements.Path(bodyPath, "highlight highlightwithfill"), new Svg.Elements.Path(bodyPath, "body"), new Svg.Elements.Path(bodyEdgePath, "bodyEdge"));
-                    this.translate({ X: centre.X, Y: centre.Y }).rotate(rotation);
+                    element.append(Svg.Element.Path.make(bodyPath, "highlight highlightwithfill"), Svg.Element.Path.make(bodyPath, "body"), Svg.Element.Path.make(bodyEdgePath, "bodyEdge"));
+                    element.translate({ x: centre.x, y: centre.y }).rotate(rotation);
+                    return element;
                 }
-                setValue(num) {
-                    return this;
-                }
-            }
-            Groups.InductorBody = InductorBody;
-        })(Groups = Elements.Groups || (Elements.Groups = {}));
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
+                InductorBody.make = make;
+            })(InductorBody = Group.InductorBody || (Group.InductorBody = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
-    var Elements;
-    (function (Elements) {
-        var Groups;
-        (function (Groups) {
-            class ResistorBody extends Svg.Elements.Group {
-                constructor(betweenStart, betweenEnd, classes = "") {
-                    super(classes);
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var ResistorBody;
+            (function (ResistorBody) {
+                function make(value, start, end, classes = "") {
+                    const element = Group.make(classes);
                     let centre = {
-                        X: (betweenStart.X + betweenEnd.X) / 2,
-                        Y: (betweenStart.Y + betweenEnd.Y) / 2
+                        x: (start.x + end.x) / 2,
+                        y: (start.y + end.y) / 2
                     };
-                    let rotation = Math.atan2(centre.Y - betweenStart.Y, centre.X - betweenStart.X) *
-                        180 /
-                        Math.PI;
-                    let bodyPath = "m-12.5 -6" +
-                        "h25" +
-                        "c15 -8 15 20 0 12" +
-                        "h-25" +
-                        "c-15 +8 -15 -20 0 -12" +
-                        "Z";
-                    this.append(new Svg.Elements.Path(bodyPath, "body"), new Svg.Elements.Rect({ X: -17.5, Y: 0 }, { width: 3, height: 18 }, undefined, "band1"), new Svg.Elements.Rect({ X: -11, Y: 0 }, { width: 3, height: 12 }, undefined, "band2"), new Svg.Elements.Rect({ X: -4, Y: 0 }, { width: 3, height: 12 }, undefined, "band3"), new Svg.Elements.Rect({ X: 3.5, Y: 0 }, { width: 4, height: 12 }, undefined, "band4"), new Svg.Elements.Path(bodyPath, "highlight nofill"));
-                    this.translate({
-                        X: centre.X,
-                        Y: centre.Y
-                    }).rotate(rotation);
+                    let rotation = vector(start).getAngleTo(end);
+                    let bodyPath = "m-12.5 -6" + "h25" + "c15 -8 15 20 0 12" + "h-25" + "c-15 +8 -15 -20 0 -12" + "Z";
+                    element.append(Svg.Element.Path.make(bodyPath, "body"), getBands(value), Svg.Element.Path.make(bodyPath, "highlight nofill"));
+                    element.translate({ x: centre.x, y: centre.y }).rotate(rotation);
+                    return element;
                 }
-                setValue(num) {
+                ResistorBody.make = make;
+                function getBands(num) {
                     let exp = num.toExponential(1);
                     let sigFig1 = exp.slice(exp.indexOf(".") - 1)[0];
                     let sigFig2 = exp.slice(exp.indexOf(".") + 1)[0];
@@ -21432,34 +21564,30 @@ var Svg;
                         "8": "grey",
                         "9": "white"
                     };
-                    $(this.element)
-                        .children(".band1")
-                        .css("fill", colours[sigFig1]);
-                    $(this.element)
-                        .children(".band2")
-                        .css("fill", colours[sigFig2]);
-                    $(this.element)
-                        .children(".band3")
-                        .css("fill", colours[multiplier]);
-                    $(this.element)
-                        .children(".band4")
-                        .css("fill", "transparent");
-                    return this;
+                    let b1 = Svg.Element.Rect.make({ x: -17.5, y: 0 }, { width: 3, height: 18 }, undefined, "band1");
+                    let b2 = Svg.Element.Rect.make({ x: -11, y: 0 }, { width: 3, height: 12 }, undefined, "band2");
+                    let b3 = Svg.Element.Rect.make({ x: -4, y: 0 }, { width: 3, height: 12 }, undefined, "band3");
+                    let b4 = Svg.Element.Rect.make({ x: 3.5, y: 0 }, { width: 4, height: 12 }, undefined, "band4");
+                    $(b1.element).css("fill", colours[sigFig1]);
+                    $(b2.element).css("fill", colours[sigFig2]);
+                    $(b3.element).css("fill", colours[multiplier]);
+                    $(b4.element).css("fill", "transparent");
+                    return [b1, b2, b3, b4];
                 }
-            }
-            Groups.ResistorBody = ResistorBody;
-        })(Groups = Elements.Groups || (Elements.Groups = {}));
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
+            })(ResistorBody = Group.ResistorBody || (Group.ResistorBody = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
 })(Svg || (Svg = {}));
 var Svg;
 (function (Svg) {
-    var Elements;
-    (function (Elements) {
-        var Groups;
-        (function (Groups) {
-            class TextSequence extends Svg.Elements.Group {
-                constructor(start, gap, sequence, classes = "") {
-                    super(classes);
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var TextSequence;
+            (function (TextSequence) {
+                function make(start, gap, sequence, classes = "") {
+                    const element = Group.make(classes);
                     let textArray = [];
                     if (sequence instanceof Array) {
                         textArray = sequence.map(String);
@@ -21470,16 +21598,12 @@ var Svg;
                     else {
                         textArray = [...Array(sequence.length).keys()].map(v => (v + sequence.start).toString());
                     }
-                    for (let [i, txt] of textArray.entries()) {
-                        this.append(new Svg.Elements.Text(txt, { X: gap.X * i, Y: gap.Y * i }, "text"));
-                    }
-                    this.translate({
-                        X: start.X,
-                        Y: start.Y
-                    });
+                    element.append(textArray.map((txt, i) => Svg.Element.Text.make(txt, { x: gap.x * i, y: gap.y * i }, "text")));
+                    element.translate({ x: start.x, y: start.y });
+                    return element;
                 }
-            }
-            Groups.TextSequence = TextSequence;
-        })(Groups = Elements.Groups || (Elements.Groups = {}));
-    })(Elements = Svg.Elements || (Svg.Elements = {}));
+                TextSequence.make = make;
+            })(TextSequence = Group.TextSequence || (Group.TextSequence = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
 })(Svg || (Svg = {}));

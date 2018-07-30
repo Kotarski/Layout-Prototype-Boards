@@ -35,7 +35,7 @@ namespace Circuit.Component {
 
          constructor(properties: Types.properties, state: Types.state) {
             super(properties, state);
-            this.group.addClasses("component " + this.name);
+            $(this.group.element).addClass("component " + this.name);
             this.isDual = state.isDual;
             this.offsetVoltage = properties.offsetVoltage;
          }
@@ -49,16 +49,16 @@ namespace Circuit.Component {
 
          getState(): Types.state {
             return {
-               location: this.group.transforms,
+               location: this.location,
                isDual: this.isDual
             }
          }
 
          draw() {
             if (this.isDual) {
-               this.group.append(new Svg.Elements.Groups.dip(4, "", "TL072", ""));
+               this.group.append(Svg.Element.Group.Dip.make(4, "", "TL072", ""));
             } else {
-               this.group.append(new Svg.Elements.Groups.dip(4, "", "TL071", ""));
+               this.group.append(Svg.Element.Group.Dip.make(4, "", "TL071", ""));
             }
          }
 
@@ -68,28 +68,28 @@ namespace Circuit.Component {
                let gridSpacing = Constants.gridSpacing;
                // Note that the power selectors physically occupy the same space.
                this.connectorSets = [[
-                  Component.Generics.makeConnector(this, "vcc+", "pin", { X: 0 * gridSpacing, Y: 0 * gridSpacing }),//8
-                  Component.Generics.makeConnector(this, "out", "pin", { X: 1 * gridSpacing, Y: 0 * gridSpacing }),//7
-                  Component.Generics.makeConnector(this, "in-", "pin", { X: 2 * gridSpacing, Y: 0 * gridSpacing }),//6
-                  Component.Generics.makeConnector(this, "in+", "pin", { X: 3 * gridSpacing, Y: 0 * gridSpacing }),//5
-                  Component.Generics.makeConnector(this, "vcc-", "pin", { X: 3 * gridSpacing, Y: 3 * gridSpacing }),//4
+                  Component.Generics.makeConnector(this, "vcc+", "pin", { x: 0 * gridSpacing, y: 0 * gridSpacing }),//8
+                  Component.Generics.makeConnector(this, "out", "pin", { x: 1 * gridSpacing, y: 0 * gridSpacing }),//7
+                  Component.Generics.makeConnector(this, "in-", "pin", { x: 2 * gridSpacing, y: 0 * gridSpacing }),//6
+                  Component.Generics.makeConnector(this, "in+", "pin", { x: 3 * gridSpacing, y: 0 * gridSpacing }),//5
+                  Component.Generics.makeConnector(this, "vcc-", "pin", { x: 3 * gridSpacing, y: 3 * gridSpacing }),//4
                ], [
-                  Component.Generics.makeConnector(this, "vcc+", "pin", { X: 0 * gridSpacing, Y: 0 * gridSpacing }),//8
-                  Component.Generics.makeConnector(this, "out", "pin", { X: 0 * gridSpacing, Y: 3 * gridSpacing }),//1
-                  Component.Generics.makeConnector(this, "in-", "pin", { X: 1 * gridSpacing, Y: 3 * gridSpacing }),//2
-                  Component.Generics.makeConnector(this, "in+", "pin", { X: 2 * gridSpacing, Y: 3 * gridSpacing }),//3
-                  Component.Generics.makeConnector(this, "vcc-", "pin", { X: 3 * gridSpacing, Y: 3 * gridSpacing }),//4
+                  Component.Generics.makeConnector(this, "vcc+", "pin", { x: 0 * gridSpacing, y: 0 * gridSpacing }),//8
+                  Component.Generics.makeConnector(this, "out", "pin", { x: 0 * gridSpacing, y: 3 * gridSpacing }),//1
+                  Component.Generics.makeConnector(this, "in-", "pin", { x: 1 * gridSpacing, y: 3 * gridSpacing }),//2
+                  Component.Generics.makeConnector(this, "in+", "pin", { x: 2 * gridSpacing, y: 3 * gridSpacing }),//3
+                  Component.Generics.makeConnector(this, "vcc-", "pin", { x: 3 * gridSpacing, y: 3 * gridSpacing }),//4
                ]];
             } else {
                this.connectorSets = [[
-                  //Component.Generics.makeConnector(this, "nc", "pin", { X: 0 * gridSpacing, Y: 0 * gridSpacing }),//8
-                  Component.Generics.makeConnector(this, "vcc+", "pin", { X: 1 * gridSpacing, Y: 0 * gridSpacing }),//7
-                  Component.Generics.makeConnector(this, "out", "pin", { X: 2 * gridSpacing, Y: 0 * gridSpacing }),//6
-                  //Component.Generics.makeConnector(this, "offset n1", "pin", { X: 3 * gridSpacing, Y: 0 * gridSpacing }),//5
-                  //Component.Generics.makeConnector(this, "offset n2", "pin", { X: 0 * gridSpacing, Y: 3 * gridSpacing }),//1
-                  Component.Generics.makeConnector(this, "in-", "pin", { X: 1 * gridSpacing, Y: 3 * gridSpacing }),//2
-                  Component.Generics.makeConnector(this, "in+", "pin", { X: 2 * gridSpacing, Y: 3 * gridSpacing }),//3
-                  Component.Generics.makeConnector(this, "vcc-", "pin", { X: 3 * gridSpacing, Y: 3 * gridSpacing }),//4
+                  //Component.Generics.makeConnector(this, "nc", "pin", { x: 0 * gridSpacing, y: 0 * gridSpacing }),//8
+                  Component.Generics.makeConnector(this, "vcc+", "pin", { x: 1 * gridSpacing, y: 0 * gridSpacing }),//7
+                  Component.Generics.makeConnector(this, "out", "pin", { x: 2 * gridSpacing, y: 0 * gridSpacing }),//6
+                  //Component.Generics.makeConnector(this, "offset n1", "pin", { x: 3 * gridSpacing, y: 0 * gridSpacing }),//5
+                  //Component.Generics.makeConnector(this, "offset n2", "pin", { x: 0 * gridSpacing, y: 3 * gridSpacing }),//1
+                  Component.Generics.makeConnector(this, "in-", "pin", { x: 1 * gridSpacing, y: 3 * gridSpacing }),//2
+                  Component.Generics.makeConnector(this, "in+", "pin", { x: 2 * gridSpacing, y: 3 * gridSpacing }),//3
+                  Component.Generics.makeConnector(this, "vcc-", "pin", { x: 3 * gridSpacing, y: 3 * gridSpacing }),//4
                ]];
             }
 
@@ -123,9 +123,9 @@ namespace Circuit.Component {
 
       export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
-            component.group.addClasses("component " + component.name);
+            $(component.group.element).addClass("component " + component.name);
             Addins.Draggable.init(component);
-            Addins.Rotatable.init(component, { X: Constants.gridSpacing * 1.5, Y: Constants.gridSpacing * 1.5 });
+            Addins.Rotatable.init(component, { x: Constants.gridSpacing * 1.5, y: Constants.gridSpacing * 1.5 });
             Addins.Selectable.init(component);
             Addins.ConnectionHighlights.init(component);
          }

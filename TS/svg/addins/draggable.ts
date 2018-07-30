@@ -1,14 +1,14 @@
 namespace Svg.Addins.Draggable {
-   export const init = (element: Svg.Element, options: draggableOptions = {}): void => {
+   export const init = (element: SVGGraphicsElement, options: draggableOptions = {}): void => {
       // Allow an object to be dragged.
       // Set the drag event to occur on another target, but apply the drag to yourself
-      let eventTarget = options.eventTarget !== undefined ? options.eventTarget : element.element;
+      let eventTarget = options.eventTarget !== undefined ? options.eventTarget : element;
 
       // The default grid will snap to board holes, the option can prevent this or redefine the size
       // TODO USE CONSTANT
       let grid = options.grid !== undefined ? options.grid : {
-         X: 10,
-         Y: 10
+         x: 10,
+         y: 10
       };
 
       // Changes the draggables position in the document tree, default is to not
@@ -17,7 +17,7 @@ namespace Svg.Addins.Draggable {
       // Styles the draggable
       let styleClass = options.styleClass !== undefined ? options.styleClass : "dragging";
 
-      let lastPosition: Global.Types.vector;
+      let lastPosition: Vector;
 
       // Set to draggable (JQuery UI)
       if ($(eventTarget).draggable("instance") === undefined) {
@@ -25,22 +25,17 @@ namespace Svg.Addins.Draggable {
             //On drag start
             start: (event, ui) => {
                // Add class for visual feedback (opacity)
-               element.addClasses(styleClass);
+               $(element).addClass(styleClass);
 
                //Enable grid snapping, the default grid will snap to board holes
                if (grid !== "off") {
-                  let gridSvg = element.convertVector(grid, "SvgToDom", "absToDoc");
-                  $(eventTarget).draggable("option", "grid", [gridSvg.X, gridSvg.Y]);
+                  let gridSvg = svg(element).convertVector(grid, "SvgToDom", "absToDoc");
+                  $(eventTarget).draggable("option", "grid", [gridSvg.x, gridSvg.y]);
                }
 
-               // Simulate drag for matching children (to attach component pins etc)
-               // if (options.dropChildren !== undefined) {
-               //   $(eventTarget).data('draggedChildren', $(this.element).children(options.dropChildren));
-               // }
-
                lastPosition = {
-                  X: ui.originalPosition.left,
-                  Y: ui.originalPosition.top
+                  x: ui.originalPosition.left,
+                  y: ui.originalPosition.top
                };
             },
             //On each drag step
@@ -49,22 +44,22 @@ namespace Svg.Addins.Draggable {
                //console.log(lastPosition);
 
                let dragChangeDom = {
-                  X: ui.position.left - lastPosition.X,
-                  Y: ui.position.top - lastPosition.Y
+                  x: ui.position.left - lastPosition.x,
+                  y: ui.position.top - lastPosition.y
                };
                // Convert amount dragged this step to the coordinate system of the svg element
-               let dragChangeSvg = element.convertVector(dragChangeDom, "DomToSvg", "absToDoc");
+               let dragChangeSvg = svg(element).convertVector(dragChangeDom, "DomToSvg", "absToDoc");
 
                //Call constraint functions (via a custom event listener
-               $(eventTarget).triggerHandler("dragSVGConstraintCheck", [
-                  ui,
-                  dragChangeSvg,
-                  dragChangeDom
-               ]);
+               // $(eventTarget).triggerHandler("dragSVGConstraintCheck", [
+               //    ui,
+               //    dragChangeSvg,
+               //    dragChangeDom
+               // ]);
 
                lastPosition = {
-                  X: ui.position.left,
-                  Y: ui.position.top
+                  x: ui.position.left,
+                  y: ui.position.top
                };
 
                //Call on drag functions (via a custom event listener
@@ -75,8 +70,8 @@ namespace Svg.Addins.Draggable {
             //On drag stop
             stop: (event, ui) => {
                // Remove class for visual feedback (opacity)
-               $(element.element).removeClass(styleClass);
-               element.element.transform.baseVal.consolidate();
+               $(element).removeClass(styleClass);
+               element.transform.baseVal.consolidate();
             }
          });
       }
@@ -91,7 +86,7 @@ namespace Svg.Addins.Draggable {
       if (options.disableMovement !== true) {
          $(eventTarget).on("dragSVG", (e, ui, drag) => {
             if ($(e.target).closest(".ui-draggable").is(eventTarget)) {
-               element.translate(drag, true);
+               svg(element).translate(drag, true);
             }
          });
       }
@@ -99,14 +94,14 @@ namespace Svg.Addins.Draggable {
       if (options.constrainWith !== undefined) {
          $(eventTarget).on(
             "dragSVGConstraintCheck",
-            (e, ui, dragSvg: Global.Types.vector, dragDom: Global.Types.vector) => {
+            (e, ui, dragSvg: Vector, dragDom: Vector) => {
                // If both components of the drag are too much...
                if (options.constrainWith) if (options.constrainWith(dragSvg)) {
                   // Don't let it move
-                  dragSvg.X = 0;
-                  dragSvg.Y = 0;
-                  ui.position.top = lastPosition.Y;
-                  ui.position.left = lastPosition.X;
+                  dragSvg.x = 0;
+                  dragSvg.y = 0;
+                  ui.position.top = lastPosition.y;
+                  ui.position.left = lastPosition.x;
                }
             }
          );
@@ -138,13 +133,13 @@ namespace Svg.Addins.Draggable {
 
 interface draggableOptions {
    disableMovement?: boolean; //All other options ignored if this is true
-   onDrag?: (drag: Global.Types.vector, e?: JQueryEventObject) => void;
+   onDrag?: (drag: Vector, e?: JQueryEventObject) => void;
    onStop?: (e?: JQueryEventObject) => void;
    onStart?: (e?: JQueryEventObject) => void;
-   constrainWith?: (drag: Global.Types.vector, e?: JQueryEventObject) => boolean;
+   constrainWith?: (drag: Vector, e?: JQueryEventObject) => boolean;
    useHelper?: boolean;
    eventTarget?: SVGGraphicsElement | SVGGraphicsElement[];
-   grid?: Global.Types.vector | "off";
+   grid?: Vector | "off";
    styleClass?: string;
 }
 

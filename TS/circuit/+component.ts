@@ -10,7 +10,7 @@ namespace Circuit.Component {
       }
 
       export interface insertionFunction {
-         (group: Svg.Elements.Group, target: Svg.Elements.Group, ...any: any[]): void;
+         (group: SVGGElement, target: SVGGElement, ...any: any[]): void;
       }
 
       export interface loadFunction {
@@ -41,13 +41,13 @@ namespace Circuit.Component {
 
    export abstract class Instance implements Types.properties, Types.state {
       name: string;
-      group: Svg.Elements.Group = new Svg.Elements.Group();
+      group = Svg.Element.Group.make();
       connectorSets: Types.connector[][] = [];
       get location() {
-         return this.group.transforms
+         return this.group.getTransforms();
       }
       set location(location: Svg.Types.transformMatrix) {
-         this.group.transforms = location;
+         this.group.setTransforms(location);
       }
 
       constructor(properties: Types.properties, state: Types.state) {
@@ -65,8 +65,8 @@ namespace Circuit.Component {
       /** Builds and draws the components connectors */
       abstract makeConnectors(): void;
 
-      insertInto(group: Svg.Elements.Group) {
-         Utility.Insert.last(this.group.element, group.element);
+      insertInto(element: SVGGraphicsElement) {
+         Utility.Insert.last(this.group.element, element);
       }
 
       /** Gets other components that this component is connected to, or that

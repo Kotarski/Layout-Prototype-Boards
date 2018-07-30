@@ -1,5 +1,5 @@
 namespace Circuit.Component.Addins.Extendable {
-   type extendableComponent = Component.Instance & { joints: Global.Types.vector[] };
+   type extendableComponent = Component.Instance & { joints: Vector[] };
    export const init = (
       component: extendableComponent,
       canAddJoints: boolean = false,
@@ -29,8 +29,8 @@ namespace Circuit.Component.Addins.Extendable {
       $(component.group.element).dblclick(e => {
          if ($(e.target).closest(".handle").length < 1) {
             // Get position in svg coordinates, rounded to grid
-            let position = component.group.convertVector({ X: e.clientX, Y: e.clientY }, "DomToSvg", "relToGroup");
-            position = Utility.Vector.snapToGrid(position);
+            let position = component.group.convertVector({ x: e.clientX, y: e.clientY }, "DomToSvg", "relToGroup");
+            position = vector(position).snapToGrid().vector;
 
             //insert joint at position
             component.joints.splice(getJointInsertionIdx(component, position), 0, position);
@@ -59,21 +59,21 @@ namespace Circuit.Component.Addins.Extendable {
 
    const initComponentRemoval = (component: extendableComponent) => {
       $(component.group.element).on(Events.dragStop, ".dragHandle", (e) => {
-         if (component.joints.length === 2 && Utility.Vector.areClose(component.joints[0], component.joints[1])) {
+         if (component.joints.length === 2 && vector(component.joints[0]).isCloseTo(component.joints[1])) {
             manifest.removeComponent(component);
          }
       });
    };
 
-   const addHandle = (component: extendableComponent, point: Global.Types.vector) => {
-      let dragHandle = new Svg.Elements.Circle(point, 5, "handle dragHandle highlight highlightwithfill");
+   const addHandle = (component: extendableComponent, point: Vector) => {
+      let dragHandle = Svg.Element.Circle.make(point, 5, "handle dragHandle highlight highlightwithfill");
       $(dragHandle.element).data('point', point);
       component.group.append(dragHandle);
-      Svg.Addins.Draggable.init(dragHandle);
+      Svg.Addins.Draggable.init(dragHandle.element);
 
-      $(dragHandle.element).on(Events.drag, (e, ui, drag: Global.Types.vector) => {
-         point.X += drag.X;
-         point.Y += drag.Y;
+      $(dragHandle.element).on(Events.drag, (e, ui, drag: Vector) => {
+         point.x += drag.x;
+         point.y += drag.y;
          refreshComponent(component);
       });
 
@@ -81,10 +81,10 @@ namespace Circuit.Component.Addins.Extendable {
       return dragHandle;
    };
 
-   const removeExcessJoints = (component: extendableComponent, point: Global.Types.vector) => {
+   const removeExcessJoints = (component: extendableComponent, point: Vector) => {
       if (component.joints.length > 2) {
          component.joints = component.joints.filter((joint, idx) => {
-            if ((joint !== point) && Utility.Vector.areClose(point, joint)) {
+            if ((joint !== point) && vector(point).isCloseTo(joint)) {
                $(component.group.element).children(".dragHandle").filter((i, el) => $(el).data('point') === joint).remove();
                return false;
             }
@@ -93,10 +93,10 @@ namespace Circuit.Component.Addins.Extendable {
       };
    }
 
-   const getJointInsertionIdx = (component: extendableComponent, point: Global.Types.vector) => {
+   const getJointInsertionIdx = (component: extendableComponent, point: Vector) => {
       //handles: (Parts.Pins.MovePin)[],
       let jointAngles = component.joints.map((j) =>
-         Math.atan2(point.Y - j.Y, point.X - j.X) * 180 / Math.PI
+         Math.atan2(point.y - j.y, point.x - j.x) * 180 / Math.PI
       );
 
       let bestAnglePair = 180;

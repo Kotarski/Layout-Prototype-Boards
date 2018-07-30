@@ -1,7 +1,7 @@
 namespace Svg.Addins.Scaleable {
-   export const init = (element: Svg.Element, options: scalableOptions = {}): void => {
+   export const init = (element: SVGGraphicsElement, options: scalableOptions = {}): void => {
       // Set the event to occur on another target, but apply to yourself
-      let eventTarget = options.eventTarget !== undefined ? options.eventTarget : element.element;
+      let eventTarget = options.eventTarget !== undefined ? options.eventTarget : element;
 
       // Scale occurs on mousewheel
       let mouseWheelHandler = (e: WheelEvent) => {
@@ -15,37 +15,37 @@ namespace Svg.Addins.Scaleable {
          let scaleChange = Math.sign(e.wheelDelta) * 0.05;
 
          // Find the postion and size of the element on screen
-         let clientBounds = element.element.getBoundingClientRect();
+         let clientBounds = element.getBoundingClientRect();
 
          // Find the position relative to the SVG position
-         let owner = element.element.ownerSVGElement;
+         let owner = element.ownerSVGElement;
          let rootClientBounds = (owner) ? owner.getBoundingClientRect() : {
             left: 0,
             top: 0
          };
          let clientStart = {
-            X: clientBounds.left - rootClientBounds.left,
-            Y: clientBounds.top - rootClientBounds.top
+            x: clientBounds.left - rootClientBounds.left,
+            y: clientBounds.top - rootClientBounds.top
          };
 
          // Find the elements relative position in its own coordinate system
-         let svgStart = element.convertVector(clientStart, "DomToSvg", "absToDoc");
-         let svgSize = element.convertVector({
-            X: clientBounds.width,
-            Y: clientBounds.height
+         let svgStart = svg(element).convertVector(clientStart, "DomToSvg", "absToDoc");
+         let svgSize = svg(element).convertVector({
+            x: clientBounds.width,
+            y: clientBounds.height
          },
             "DomToSvg",
             "absToDoc"
          );
 
          // Find the position of the mouse relative to the centre of the element on screen
-         let mousePosDomFromCentre: Global.Types.vector = {
-            X: e.clientX - (clientBounds.left + clientBounds.width / 2),
-            Y: e.clientY - (clientBounds.top + clientBounds.height / 2)
+         let mousePosDomFromCentre: Vector = {
+            x: e.clientX - (clientBounds.left + clientBounds.width / 2),
+            y: e.clientY - (clientBounds.top + clientBounds.height / 2)
          };
 
          // Find the position of the mouse relative to the centre of the element in its own coordinate system
-         let mousePosSvgFromCentre = element.convertVector(
+         let mousePosSvgFromCentre = svg(element).convertVector(
             mousePosDomFromCentre,
             "DomToSvg",
             "absToDoc"
@@ -53,18 +53,18 @@ namespace Svg.Addins.Scaleable {
 
          // Perform the scale
          let scale = {
-            X: 1 + scaleChange,
-            Y: 1 + scaleChange
+            x: 1 + scaleChange,
+            y: 1 + scaleChange
          };
-         element.scale(scale, true);
+         svg(element).scale(scale, true);
 
          // Work out the translation required to keep the element under the mouse
          let scaleTranslationAdjust = {
-            X: (svgStart.X + svgSize.X / 2 + mousePosSvgFromCentre.X) * -scaleChange,
-            Y: (svgStart.Y + svgSize.Y / 2 + mousePosSvgFromCentre.Y) * -scaleChange
+            x: (svgStart.x + svgSize.x / 2 + mousePosSvgFromCentre.x) * -scaleChange,
+            y: (svgStart.y + svgSize.y / 2 + mousePosSvgFromCentre.y) * -scaleChange
          };
          // Translate
-         element.translate(scaleTranslationAdjust, true);
+         svg(element).translate(scaleTranslationAdjust, true);
 
          if (options.onScale !== undefined) {
             options.onScale(scale, scaleTranslationAdjust);
@@ -84,6 +84,6 @@ namespace Svg.Addins.Scaleable {
 
 interface scalableOptions {
    eventTarget?: SVGGElement;
-   onScale?: (scale: Global.Types.vector, translation: Global.Types.vector) => void;
+   onScale?: (scale: Vector, translation: Vector) => void;
 }
 

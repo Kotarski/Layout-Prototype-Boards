@@ -41,7 +41,7 @@ namespace Circuit.Component {
 
          constructor(properties: Types.properties, state: Types.state) {
             super(properties, state);
-            this.group.addClasses("component " + this.name);
+            $(this.group.element).addClass("component " + this.name);
             this.orientation = state.orientation;
             this.whichInputAtTop = state.whichInputAtTop;
             this.offsetVoltage = properties.offsetVoltage;
@@ -56,50 +56,50 @@ namespace Circuit.Component {
 
          getState(): Types.state {
             return {
-               location: this.group.transforms,
+               location: this.location,
                orientation: this.orientation,
                whichInputAtTop: this.whichInputAtTop
             }
          }
 
          draw() {
-            let inversionScale: Global.Types.vector = {
-               X: (this.orientation === "LR") ? 1 : -1,
-               Y: (this.whichInputAtTop === "non-inverting") ? 1 : -1
+            let inversionScale: Vector = {
+               x: (this.orientation === "LR") ? 1 : -1,
+               y: (this.whichInputAtTop === "non-inverting") ? 1 : -1
             };
 
             let bodyPath = "M-25 -25 L 25 0 L -25 25 L -25 -25 Z";
 
-            this.group.append(new Svg.Elements.Path(
+            this.group.append(Svg.Element.Path.make(
                bodyPath, "highlight highlightwithfill extrathick").scale(inversionScale)
             );
 
-            this.group.append(new Svg.Elements.Path(
+            this.group.append(Svg.Element.Path.make(
                bodyPath, "body white").scale(inversionScale)
             );
 
             //Plus
-            this.group.append(new Svg.Elements.Line(
-               { X: -22, Y: -10 }, { X: -14, Y: -10 }, "line thin").scale(inversionScale)
+            this.group.append(Svg.Element.Line.make(
+               { x: -22, y: -10 }, { x: -14, y: -10 }, "line thin").scale(inversionScale)
             );
-            this.group.append(new Svg.Elements.Line(
-               { X: -18, Y: -6 }, { X: -18, Y: -14 }, "line thin").scale(inversionScale)
+            this.group.append(Svg.Element.Line.make(
+               { x: -18, y: -6 }, { x: -18, y: -14 }, "line thin").scale(inversionScale)
             );
 
             //Minus
-            this.group.append(new Svg.Elements.Line(
-               { X: -22, Y: +10 }, { X: -14, Y: +10 }, "line thin").scale(inversionScale)
+            this.group.append(Svg.Element.Line.make(
+               { x: -22, y: +10 }, { x: -14, y: +10 }, "line thin").scale(inversionScale)
             );
 
             //Leads
-            this.group.append(new Svg.Elements.Line(
-               { X: -25, Y: -10 }, { X: -30, Y: -10 }, "line thin").scale(inversionScale)
+            this.group.append(Svg.Element.Line.make(
+               { x: -25, y: -10 }, { x: -30, y: -10 }, "line thin").scale(inversionScale)
             );
-            this.group.append(new Svg.Elements.Line(
-               { X: -25, Y: 10 }, { X: -30, Y: 10 }, "line thin").scale(inversionScale)
+            this.group.append(Svg.Element.Line.make(
+               { x: -25, y: 10 }, { x: -30, y: 10 }, "line thin").scale(inversionScale)
             );
-            this.group.append(new Svg.Elements.Line(
-               { X: 25, Y: 0 }, { X: 40, Y: 0 }, "line thin").scale(inversionScale)
+            this.group.append(Svg.Element.Line.make(
+               { x: 25, y: 0 }, { x: 40, y: 0 }, "line thin").scale(inversionScale)
             );
          }
 
@@ -109,13 +109,13 @@ namespace Circuit.Component {
 
             this.connectorSets = [
                [//Component.Generics.makeConnector(this, "nc", "node", {???}),//8
-                  Component.Generics.makeConnector(this, "vcc+", "node", { X: 0, Y: -12 }),//7
-                  Component.Generics.makeConnector(this, "out", "node", { X: 40, Y: 0 }),//6
+                  Component.Generics.makeConnector(this, "vcc+", "node", { x: 0, y: -12 }),//7
+                  Component.Generics.makeConnector(this, "out", "node", { x: 40, y: 0 }),//6
                   //Component.Generics.makeConnector(this, "offset n1", "node", {???}),//5
                   //Component.Generics.makeConnector(this, "offset n2", "node", {???}),//1
-                  Component.Generics.makeConnector(this, "in-", "node", { X: -30, Y: -nonInvertingY }),//2
-                  Component.Generics.makeConnector(this, "in+", "node", { X: -30, Y: nonInvertingY }),//3
-                  Component.Generics.makeConnector(this, "vcc-", "node", { X: 0, Y: 12 }),//4
+                  Component.Generics.makeConnector(this, "in-", "node", { x: -30, y: -nonInvertingY }),//2
+                  Component.Generics.makeConnector(this, "in+", "node", { x: -30, y: nonInvertingY }),//3
+                  Component.Generics.makeConnector(this, "vcc-", "node", { x: 0, y: 12 }),//4
                ]
             ];
          }
@@ -152,12 +152,12 @@ namespace Circuit.Component {
             let topPower = PowerSchematic.makeInstance(
                { voltage: raw.maxOutput || 5 }, { location: state.location }, true
             );
-            topPower.group.translate({ X: 0, Y: -22 });
+            topPower.group.translate({ x: 0, y: -22 });
 
             let bottomPower = PowerSchematic.makeInstance(
                { voltage: raw.minOutput || -5 }, { location: state.location }, true
             );
-            bottomPower.group.translate({ X: 0, Y: 22 });
+            bottomPower.group.translate({ x: 0, y: 22 });
 
             let opAmp = makeInstance(properties, state, true);
 
@@ -175,7 +175,7 @@ namespace Circuit.Component {
 
       export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
-            component.group.addClasses("component " + component.name);
+            $(component.group.element).addClass("component " + component.name);
             Addins.Selectable.init(component);
             Addins.ConnectionHighlights.init(component, false);
          }

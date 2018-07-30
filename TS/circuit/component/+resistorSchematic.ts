@@ -37,7 +37,7 @@ namespace Circuit.Component {
 
          constructor(properties: Types.properties, state: Types.state) {
             super(properties, state);
-            this.group.addClasses("component " + this.name);
+            $(this.group.element).addClass("component " + this.name);
             this.orientation = state.orientation;
             this.resistance = properties.resistance;
          }
@@ -51,7 +51,7 @@ namespace Circuit.Component {
 
          getState(): Types.state {
             return {
-               location: this.group.transforms,
+               location: this.location,
                orientation: this.orientation
             }
          }
@@ -63,28 +63,28 @@ namespace Circuit.Component {
             // Body & highlight
             let bodySize = (isHorizontal) ? { width: 46, height: 18 } : { width: 18, height: 46 };
 
-            this.group.append(new Svg.Elements.Rect(
-               { X: 0, Y: 0 }, bodySize, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"
+            this.group.append(Svg.Element.Rect.make(
+               { x: 0, y: 0 }, bodySize, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"
             ));
 
-            this.group.append(new Svg.Elements.Rect(
-               { X: 0, Y: 0 }, bodySize, { X: 2, Y: 2 }, "body white"
+            this.group.append(Svg.Element.Rect.make(
+               { x: 0, y: 0 }, bodySize, { x: 2, y: 2 }, "body white"
             ));
 
             // Leads 
             let lead1Start, lead2Start, lead1End, lead2End;
             [lead1Start, lead2Start, lead1End, lead2End] = (isHorizontal)
-               ? [{ X: -24, Y: 0 }, { X: 24, Y: 0 }, { X: -30, Y: 0 }, { X: 30, Y: 0 }]
-               : [{ X: 0, Y: -24 }, { X: 0, Y: 24 }, { X: 0, Y: -30 }, { X: 0, Y: 30 }];
-            this.group.append(new Svg.Elements.Line(lead1Start, lead1End, "line thin"));
-            this.group.append(new Svg.Elements.Line(lead2Start, lead2End, "line thin"));
+               ? [{ x: -24, y: 0 }, { x: 24, y: 0 }, { x: -30, y: 0 }, { x: 30, y: 0 }]
+               : [{ x: 0, y: -24 }, { x: 0, y: 24 }, { x: 0, y: -30 }, { x: 0, y: 30 }];
+            this.group.append(Svg.Element.Line.make(lead1Start, lead1End, "line thin"));
+            this.group.append(Svg.Element.Line.make(lead2Start, lead2End, "line thin"));
 
             //Text
-            let textPosition = (isHorizontal) ? { X: 0, Y: -15 } : { X: -15, Y: 4 }
+            let textPosition = (isHorizontal) ? { x: 0, y: -15 } : { x: -15, y: 4 }
             let text = Utility.getStandardForm(this.resistance, 'Ω')
             let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
             this.group.append(
-               new Svg.Elements.Text(text, textPosition, "text").addClasses(anchorClass)
+               Svg.Element.Text.make(text, textPosition, "text " + anchorClass)
             );
          }
 
@@ -95,8 +95,8 @@ namespace Circuit.Component {
             // Leads 
             let lead1End, lead2End;
             [lead1End, lead2End] = (isHorizontal)
-               ? [{ X: -30, Y: 0 }, { X: 30, Y: 0 }]
-               : [{ X: 0, Y: -30 }, { X: 0, Y: 30 }];
+               ? [{ x: -30, y: 0 }, { x: 30, y: 0 }]
+               : [{ x: 0, y: -30 }, { x: 0, y: 30 }];
             this.connectorSets = [
                [Component.Generics.makeConnector(this, "", "node", lead1End),
                Component.Generics.makeConnector(this, "", "node", lead2End),]
@@ -132,7 +132,7 @@ namespace Circuit.Component {
 
       export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
-            component.group.addClasses("component " + component.name);
+            $(component.group.element).addClass("component " + component.name);
             Addins.Selectable.init(component);
             Addins.ConnectionHighlights.init(component, false);
          }

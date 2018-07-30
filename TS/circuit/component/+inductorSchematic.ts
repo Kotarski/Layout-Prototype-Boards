@@ -35,7 +35,7 @@ namespace Circuit.Component {
 
          constructor(properties: Types.properties, state: Types.state) {
             super(properties, state);
-            this.group.addClasses("component " + this.name);
+            $(this.group.element).addClass("component " + this.name);
             this.orientation = state.orientation;
             this.inductance = properties.inductance;
          }
@@ -47,56 +47,43 @@ namespace Circuit.Component {
             }
          }
 
-         setProperties(properties: Types.properties) {
-            this.inductance = properties.inductance;
-            return this;
-         }
-
          getState(): Types.state {
             return {
-               location: this.group.transforms,
+               location: this.location,
                orientation: this.orientation
             }
          }
-
-         setState(state: Types.state) {
-            this.group.transforms = state.location;
-            this.orientation = state.orientation;
-            return this;
-         }
-
-
          draw() {
             let isHorizontal = ["LR", "RL"].includes(this.orientation);
             let isLRorUD = ["LR", "UD"].includes(this.orientation);
 
             let rotation = (isHorizontal) ? 0 : 90;
-            let scale = (isLRorUD) ? { X: 1, Y: 1 } : { X: -1, Y: 1 };
+            let scale = (isLRorUD) ? { x: 1, y: 1 } : { x: -1, y: 1 };
 
             // Body & highlight
-            this.group.append(new Svg.Elements.Rect(
-               { X: 0, Y: -2 }, { width: 40, height: 12 }, { X: 2, Y: 2 }, "highlight highlightwithfill extrathick"
+            this.group.append(Svg.Element.Rect.make(
+               { x: 0, y: -2 }, { width: 40, height: 12 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"
             ).rotate(rotation).scale(scale));
 
-            this.group.append(new Svg.Elements.Path(
+            this.group.append(Svg.Element.Path.make(
                'M-20 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0', "line medium"
             ).rotate(rotation).scale(scale));
 
             // Leads 
             let lead1Start, lead2Start, lead1End, lead2End;
             [lead1Start, lead2Start, lead1End, lead2End] = (isHorizontal)
-               ? [{ X: -20, Y: 0 }, { X: 20, Y: 0 }, { X: -30, Y: 0 }, { X: 30, Y: 0 }]
-               : [{ X: 0, Y: -20 }, { X: 0, Y: 20 }, { X: 0, Y: -30 }, { X: 0, Y: 30 }];
-            this.group.append(new Svg.Elements.Line(lead1Start, lead1End, "line thin"));
-            this.group.append(new Svg.Elements.Line(lead2Start, lead2End, "line thin"));
+               ? [{ x: -20, y: 0 }, { x: 20, y: 0 }, { x: -30, y: 0 }, { x: 30, y: 0 }]
+               : [{ x: 0, y: -20 }, { x: 0, y: 20 }, { x: 0, y: -30 }, { x: 0, y: 30 }];
+            this.group.append(Svg.Element.Line.make(lead1Start, lead1End, "line thin"));
+            this.group.append(Svg.Element.Line.make(lead2Start, lead2End, "line thin"));
 
             // Text
-            let textPosition = (isHorizontal) ? { X: 0, Y: -13 } : { X: -13, Y: 4 };
+            let textPosition = (isHorizontal) ? { x: 0, y: -13 } : { x: -13, y: 4 };
             let text = Utility.getStandardForm(this.inductance, 'H');
 
             let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
             this.group.append(
-               new Svg.Elements.Text(text, textPosition, "text").addClasses(anchorClass)
+               Svg.Element.Text.make(text, textPosition, "text " + anchorClass)
             );
          }
 
@@ -107,8 +94,8 @@ namespace Circuit.Component {
             // Leads 
             let lead1End, lead2End;
             [lead1End, lead2End] = (isHorizontal)
-               ? [{ X: -30, Y: 0 }, { X: 30, Y: 0 }]
-               : [{ X: 0, Y: -30 }, { X: 0, Y: 30 }];
+               ? [{ x: -30, y: 0 }, { x: 30, y: 0 }]
+               : [{ x: 0, y: -30 }, { x: 0, y: 30 }];
 
             this.connectorSets = [[
                Component.Generics.makeConnector(this, "", "node", lead1End),
@@ -145,7 +132,7 @@ namespace Circuit.Component {
 
       export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
-            component.group.addClasses("component " + component.name);
+            $(component.group.element).addClass("component " + component.name);
             Addins.Selectable.init(component);
             Addins.ConnectionHighlights.init(component, false);
          }

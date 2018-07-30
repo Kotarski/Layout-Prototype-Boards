@@ -1,8 +1,9 @@
 namespace Utility.Polar {
-   export function toVector(radius: number, angle: number): Global.Types.vector {
+   export function toVector(radius: number, angle: number): Vector {
+      const rads = Utility.degreesToRadians(angle)
       return {
-         X: radius * Math.cos(angle),
-         Y: radius * Math.sin(angle)
+         x: radius * Math.cos(rads),
+         y: radius * Math.sin(rads)
       };
    }
 }

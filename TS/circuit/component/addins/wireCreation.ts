@@ -8,7 +8,7 @@ namespace Circuit.Component.Addins.WireCreation {
       $(component.group.element).on("mouseenter", ".hole", (mOE) => {
          // Set the hole as draggable if it isn't already
          if (!$(mOE.target).draggable('instance')) {
-            Svg.Addins.Draggable.init(component.group, {
+            Svg.Addins.Draggable.init(component.group.element, {
                eventTarget: mOE.target as SVGGraphicsElement,
                disableMovement: true,
                styleClass: ""
@@ -16,9 +16,11 @@ namespace Circuit.Component.Addins.WireCreation {
             let dragHandle: SVGGraphicsElement;
 
             // Create the wire, select it, and grab a handle (any is fine)
-            $(mOE.target).on(Events.dragStart, (e, ui, drag: Global.Types.vector) => {
-               const position = Active.layout.group.convertVector({ X: e.clientX, Y: e.clientY }, "DomToSvg", "relToGroup");
-               const gridPosition = Utility.Vector.snapToGrid(position);
+            $(mOE.target).on(Events.dragStart, (e, ui, drag: Vector) => {
+               //TODO 
+               const position = { x: e.clientX, y: e.clientY };
+               //const position = Active.layout.root.convertVector({ x: e.clientX, y: e.clientY }, "DomToSvg", "relToGroup");
+               const gridPosition = vector(position).snapToGrid().vector;
                const wire = createWireAtPoint(gridPosition);
                dragHandle = $(wire.group.element).find(".dragHandle")[0] as any;
                $(dragHandle).trigger("mousedown");
@@ -26,7 +28,7 @@ namespace Circuit.Component.Addins.WireCreation {
             })
 
             // Pass the handlers to the wire
-            $(mOE.target).on(Events.drag, (e, ui, drag: Global.Types.vector) => {
+            $(mOE.target).on(Events.drag, (e, ui, drag: Vector) => {
                $(dragHandle).trigger(Events.drag, [ui, drag]);
             });
 
@@ -39,9 +41,9 @@ namespace Circuit.Component.Addins.WireCreation {
 
    }
 
-   const createWireAtPoint = (vector: Global.Types.vector) => {
+   const createWireAtPoint = (vector: Vector) => {
       const wire = Component.WireLayout.makeInstance({}, {
-         joints: [{ X: vector.X, Y: vector.Y }, { X: vector.X, Y: vector.Y }]
+         joints: [{ x: vector.x, y: vector.y }, { x: vector.x, y: vector.y }]
       });
       manifest.addComponent(wire, manifest.layout);
 

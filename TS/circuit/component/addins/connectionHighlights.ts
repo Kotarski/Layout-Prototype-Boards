@@ -3,16 +3,16 @@ namespace Circuit.Component.Addins.ConnectionHighlights {
    type colorPalette = string[];
 
    export const init = (component: Component.Instance, propogate: boolean = true, colorPalette: colorPalette = defaultColorPalette) => {
-      let element = component.group.element;
+      let element = component.group;
 
-      $(element).on(Events.select, () => {
+      $(element.element).on(Events.select, () => {
          createConnectionsHighlights(component, propogate, colorPalette);
       });
-      $(element).on(Events.moved, () => {
+      $(element.element).on(Events.moved, () => {
          clearConnectionsHighlights(component);
          createConnectionsHighlights(component, propogate, colorPalette);
       });
-      $(element).on(Events.deselect, () => {
+      $(element.element).on(Events.deselect, () => {
          clearConnectionsHighlights(component);
       });
 
@@ -21,8 +21,8 @@ namespace Circuit.Component.Addins.ConnectionHighlights {
    const createConnectorHighlights = (component: Component.Instance, connection: Component.Types.connector, color: string) => {
       let ctm = component.group.element.getCTM();
       let point = (ctm) ? connection.point.matrixTransform(ctm.inverse()) : connection.point;
-      let highlight = new Svg.Elements.Circle(
-         { X: point.x, Y: point.y }, 4, "highlight highlightwithfill connectivityhighlight"
+      let highlight = Svg.Element.Circle.make(
+         { x: point.x, y: point.y }, 4, "highlight highlightwithfill connectivityhighlight"
       );
       $(highlight.element).css({ "fill": color, "stroke": color })
       component.group.append(highlight);

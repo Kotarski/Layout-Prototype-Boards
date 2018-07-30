@@ -3,7 +3,7 @@ namespace Circuit.Component.Generics {
       component: Instance,
       name: string,
       type: T,
-      position: Global.Types.vector,
+      position: Vector,
    ): Types.connector & { type: T } {
 
       let connector = {
