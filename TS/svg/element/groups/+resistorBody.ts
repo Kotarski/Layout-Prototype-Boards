@@ -1,6 +1,6 @@
 namespace Svg.Element.Group.ResistorBody {
    export type type = ReturnType<typeof make>;
-   export function make(value: number, start: Global.Types.vector, end: Global.Types.vector, classes: string = "") {
+   export function make(value: number, start: Vector, end: Vector, classes: string = "") {
       const element = Group.make(classes);
 
       let centre = {
@@ -8,7 +8,7 @@ namespace Svg.Element.Group.ResistorBody {
          y: (start.y + end.y) / 2
       };
 
-      let rotation = Utility.Vector.getAngleBetween(start, end);
+      let rotation = vector(start).getAngleTo(end);
 
       let bodyPath = "m-12.5 -6" + "h25" + "c15 -8 15 20 0 12" + "h-25" + "c-15 +8 -15 -20 0 -12" + "Z";
 

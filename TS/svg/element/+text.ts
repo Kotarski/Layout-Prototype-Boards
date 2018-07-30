@@ -1,7 +1,7 @@
 namespace Svg.Element.Text {
    let textPathCount = 0;
    export type type = ReturnType<typeof make>;
-   export function make(text: string, startVector: Global.Types.vector, classes: string = "") {
+   export function make(text: string, startVector: Vector, classes: string = "") {
       const element: SVGTextElement = Element.make("text", classes);
       element.setAttribute('x', startVector.x.toString());
       element.setAttribute('y', startVector.y.toString());

@@ -2,8 +2,8 @@ namespace Svg.Element.Group.CapacitorBodyCeramic {
    export type type = ReturnType<typeof make>;
    export function make(
       value: number,
-      start: Global.Types.vector,
-      end: Global.Types.vector,
+      start: Vector,
+      end: Vector,
       classes: string = ""
    ) {
       const element = Group.make(classes);
@@ -13,7 +13,7 @@ namespace Svg.Element.Group.CapacitorBodyCeramic {
          y: (start.y + end.y) / 2
       };
 
-      let rotation = Utility.Vector.getAngleBetween(start, end);
+      let rotation = vector(start).getAngleTo(end);
 
       const text = Utility.getStandardForm(value, 'F');
 

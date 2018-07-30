@@ -2,11 +2,6 @@
 
 namespace Global {
    export namespace Types {
-      export type vector = {
-         x: number;
-         y: number;
-      }
-
       export type polar = {
          radius: number;
          angle: number;
@@ -17,7 +12,7 @@ namespace Global {
          height: number;
       }
 
-      export type rect = vector & size;
+      export type rect = Vector & size;
 
       export type orientation = (0 | 90 | 180 | 270);
 

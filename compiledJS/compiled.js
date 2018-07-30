@@ -1,4 +1,256 @@
 "use strict";
+var _vector;
+(function (_vector) {
+    function standardise(inVectors, moreVectors) {
+        const vectorsAsArray = ((inVectors instanceof Array) ? inVectors : [inVectors]);
+        const moreVectorsAsArray = (moreVectors !== undefined) ? moreVectors : [];
+        const standardised = (vectorsAsArray.concat(moreVectorsAsArray)).map(inVector => {
+            if (_vector.isLVector(inVector)) {
+                return { x: inVector.x, y: inVector.y };
+            }
+            else if (_vector.isUVector(inVector)) {
+                return { x: inVector.X, y: inVector.Y };
+            }
+            else {
+                return { x: NaN, y: NaN };
+            }
+        });
+        return (standardised.length === 1 && !(inVectors instanceof Array)) ? standardised[0] : standardised;
+    }
+    _vector.standardise = standardise;
+})(_vector || (_vector = {}));
+var _vector;
+(function (_vector) {
+    function sumWithS(inVector) {
+        return (...sumVectors) => {
+            return _vector.vector(add(inVector, sum(sumVectors)));
+        };
+    }
+    _vector.sumWithS = sumWithS;
+    function sumWithM(inVectors) {
+        return (...sumVectors) => {
+            let b = sum(sumVectors);
+            return _vector.vector(inVectors.map(a => {
+                return add(a, b);
+            }));
+        };
+    }
+    _vector.sumWithM = sumWithM;
+    function add(a, b) {
+        return {
+            x: a.x + b.x,
+            y: a.y + b.y
+        };
+    }
+    function sum(inVectors) {
+        let sum = { x: 0, y: 0 };
+        inVectors.forEach(inVector => {
+            sum = add(sum, inVector);
+        });
+        return sum;
+    }
+})(_vector || (_vector = {}));
+var _vector;
+(function (_vector) {
+    function centreWith(inVector) {
+        return (...vectors) => {
+            let sum = { x: 0, y: 0 };
+            let count = 0;
+            vectors.forEach(vectorSet => {
+                let asArray = vectorSet instanceof Array ? vectorSet : [vectorSet];
+                asArray.forEach(vector => {
+                    count += 1;
+                    sum.x += vector.x;
+                    sum.y += vector.y;
+                });
+            });
+            const mean = {
+                x: sum.x / count,
+                y: sum.y / count
+            };
+            return _vector.vector(mean);
+        };
+    }
+    _vector.centreWith = centreWith;
+})(_vector || (_vector = {}));
+var _vector;
+(function (_vector) {
+    function rotateS(inVector) {
+        return (angle) => {
+            return _vector.vector(curriedRotate(angle)(inVector));
+        };
+    }
+    _vector.rotateS = rotateS;
+    function rotateM(inVectors) {
+        return (angle) => {
+            return _vector.vector(inVectors.map(curriedRotate(angle)));
+        };
+    }
+    _vector.rotateM = rotateM;
+    function curriedRotate(angle) {
+        const radians = (Math.PI / 180) * angle;
+        const cos = Math.cos(radians);
+        const sin = Math.sin(radians);
+        return (inVector) => {
+            return {
+                x: (cos * inVector.x) + (sin * inVector.y),
+                y: (cos * inVector.y) - (sin * inVector.x)
+            };
+        };
+    }
+})(_vector || (_vector = {}));
+var _vector;
+(function (_vector) {
+    function snapToGrid(inVector) {
+        return (grid = { x: 10, y: 10 }) => {
+            return _vector.vector({
+                x: Math.round(inVector.x / (grid.x)) * (grid.x),
+                y: Math.round(inVector.y / (grid.y)) * (grid.y)
+            });
+        };
+    }
+    _vector.snapToGrid = snapToGrid;
+})(_vector || (_vector = {}));
+var _vector;
+(function (_vector) {
+    function getAngleTo(inVector) {
+        return (compareVector) => {
+            return Math.atan2(compareVector.y - inVector.y, compareVector.x - inVector.x) * 180 / Math.PI;
+        };
+    }
+    _vector.getAngleTo = getAngleTo;
+})(_vector || (_vector = {}));
+var _vector;
+(function (_vector) {
+    function asPolar(inVector) {
+        return (compareVector, boundary = 5) => {
+            return {
+                radius: Math.sqrt(Math.pow(inVector.x, 2) + Math.pow(inVector.y, 2)),
+                angle: Math.atan(inVector.y / inVector.x)
+            };
+        };
+    }
+    _vector.asPolar = asPolar;
+})(_vector || (_vector = {}));
+var _vector;
+(function (_vector) {
+    function isCloseTo(inVector) {
+        return (compareVector, boundary = 5) => {
+            const vectorXisClose = (Math.abs(inVector.x - compareVector.x) < boundary);
+            const vectorYisClose = (Math.abs(inVector.y - compareVector.y) < boundary);
+            return (vectorXisClose && vectorYisClose);
+        };
+    }
+    _vector.isCloseTo = isCloseTo;
+})(_vector || (_vector = {}));
+var _vector;
+(function (_vector) {
+    function sum(inVectors) {
+        return () => {
+            let sum = { x: 0, y: 0 };
+            inVectors.forEach(inVector => {
+                sum.x += inVector.x;
+                sum.y += inVector.y;
+            });
+            return _vector.vector(sum);
+        };
+    }
+    _vector.sum = sum;
+})(_vector || (_vector = {}));
+var _vector;
+(function (_vector) {
+    function centre(inVectors) {
+        return () => {
+            let sum = { x: 0, y: 0 };
+            let count = 0;
+            inVectors.forEach(inVector => {
+                count += 1;
+                sum.x += inVector.x;
+                sum.y += inVector.y;
+            });
+            const mean = {
+                x: sum.x / count,
+                y: sum.y / count
+            };
+            return _vector.vector(mean);
+        };
+    }
+    _vector.centre = centre;
+})(_vector || (_vector = {}));
+var _vector;
+(function (_vector) {
+    function isVector(inVector) {
+        return (isLVector(inVector) || isUVector(inVector));
+    }
+    _vector.isVector = isVector;
+    function isVectorArray(inVectors) {
+        return (inVectors instanceof Array &&
+            inVectors.every(isVector));
+    }
+    _vector.isVectorArray = isVectorArray;
+    function isLVector(inVector) {
+        return (inVector.hasOwnProperty("x") &&
+            inVector.hasOwnProperty("y") &&
+            (typeof inVector.x === 'number') &&
+            (typeof inVector.y === 'number'));
+    }
+    _vector.isLVector = isLVector;
+    function isUVector(inVector) {
+        return (inVector.hasOwnProperty("X") &&
+            inVector.hasOwnProperty("Y") &&
+            (typeof inVector.X === 'number') &&
+            (typeof inVector.Y === 'number'));
+    }
+    _vector.isUVector = isUVector;
+})(_vector || (_vector = {}));
+var _vector;
+(function (_vector) {
+    const singleExtension = (inVector) => {
+        return {
+            vector: inVector,
+            getAngleTo: _vector.getAngleTo(inVector),
+            asPolar: _vector.asPolar(inVector),
+            isCloseTo: _vector.isCloseTo(inVector),
+            sumWith: _vector.sumWithS(inVector),
+            centreWith: _vector.centreWith(inVector),
+            rotate: _vector.rotateS(inVector),
+            snapToGrid: _vector.snapToGrid(inVector)
+        };
+    };
+    const multiExtension = (inVectors) => {
+        return {
+            vectors: inVectors,
+            sum: _vector.sum(inVectors),
+            sumWith: _vector.sumWithM(inVectors),
+            rotate: _vector.rotateM(inVectors),
+            centre: _vector.centre(inVectors),
+        };
+    };
+    function vectorFunction(inVectors, ...moreVectors) {
+        const vectorsAsArray = ((inVectors instanceof Array) ? inVectors : [inVectors]);
+        const moreVectorsAsArray = (moreVectors !== undefined) ? moreVectors : [];
+        const vCopy = _vector.standardise(vectorsAsArray.concat(moreVectorsAsArray));
+        const isSingle = (vCopy.length === 1 && !(inVectors instanceof Array));
+        const ismulti = vCopy.length > 1;
+        const single = (isSingle) ? singleExtension(vCopy[0]) : null;
+        const array = (ismulti) ? multiExtension(vCopy) : null;
+        return Object.assign({}, single, array);
+    }
+    const vectorObject = {
+        sumWith: _vector.sumWithS,
+        getAngleTo: _vector.getAngleTo,
+        isCloseTo: _vector.isCloseTo,
+        centreWith: _vector.centreWith,
+        rotate: _vector.rotateS,
+        snapToGrid: _vector.snapToGrid,
+        asPolar: _vector.asPolar,
+        standardise: _vector.standardise,
+        isVector: _vector.isVector,
+        isVectorArray: _vector.isVectorArray,
+    };
+    _vector.vector = Object.assign(vectorFunction, vectorObject);
+})(_vector || (_vector = {}));
+const vector = _vector.vector;
 var SOFTWARE_VERSION = "v25";
 $(document).ready(() => {
     NodeElements.init();
@@ -635,7 +887,7 @@ function svg(element) {
     let textExtension = (element instanceof SVGTextElement) ? {
         followPath: Svg.Element.Text.Functions.followPath(element),
     } : null;
-    return Object.assign({}, extension, elementExtension, groupExtension);
+    return Object.assign({}, extension, elementExtension, groupExtension, textExtension);
 }
 var Ui;
 (function (Ui) {
@@ -908,15 +1160,6 @@ var Utility;
 })(Utility || (Utility = {}));
 var Utility;
 (function (Utility) {
-    function pointsAreClose(vectorA, vectorB, closeBoundary = 5) {
-        return (Math.abs(vectorA.x - vectorB.x) < closeBoundary &&
-            Math.abs(vectorA.y - vectorB.y) < closeBoundary);
-    }
-    Utility.pointsAreClose = pointsAreClose;
-    ;
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
     function radiansToDegrees(angle) {
         return angle * 180 / Math.PI;
     }
@@ -1020,21 +1263,18 @@ var Circuit;
                     };
                 }
                 draw() {
-                    let centre = {
-                        x: (this.joints[0].x + this.joints[1].x + this.joints[2].x) / 3,
-                        y: (this.joints[0].y + this.joints[1].y + this.joints[2].y) / 3,
-                    };
-                    let rotation = -Math.atan2(this.joints[2].y - this.joints[0].y, this.joints[2].x - this.joints[0].x) * 180 / Math.PI;
-                    let leadEmitterStart = Utility.Vector.rotate({ x: -12, y: 3 }, rotation);
-                    let leadCollectorStart = Utility.Vector.rotate({ x: 0, y: 3 }, rotation);
-                    let leadBaseStart = Utility.Vector.rotate({ x: 12, y: 3 }, rotation);
-                    let leadPath = "M " + this.joints[0].x + " " + this.joints[0].y
-                        + "L " + (centre.x + leadEmitterStart.x) + " " + (centre.y + leadEmitterStart.y)
-                        + "M " + this.joints[1].x + " " + this.joints[1].y
-                        + "L " + (centre.x + leadCollectorStart.x) + " " + (centre.y + leadCollectorStart.y)
-                        + "M " + this.joints[2].x + " " + this.joints[2].y
-                        + "L " + (centre.x + leadBaseStart.x) + " " + (centre.y + leadBaseStart.y);
-                    this.group.prepend(Svg.Element.Path.make(leadPath, "lead"), Svg.Element.Group.BipolarBody.make(this.type, this.joints[0], this.joints[1], this.joints[2], "body"));
+                    let emitterEnd = this.joints[0];
+                    let collectorEnd = this.joints[1];
+                    let baseEnd = this.joints[2];
+                    let centre = vector(emitterEnd, collectorEnd, baseEnd).centre().vector;
+                    let rotation = vector(emitterEnd).getAngleTo(baseEnd);
+                    let [emitterStart, collectorStart, baseStart] = vector({ x: -12, y: 3 }, { x: 0, y: 3 }, { x: 12, y: 3 }).rotate(-rotation).sumWith(centre).vectors;
+                    let joints = [
+                        [emitterStart, emitterEnd],
+                        [collectorStart, collectorEnd],
+                        [baseStart, baseEnd],
+                    ];
+                    this.group.prepend(Svg.Element.Path.make(joints, "lead"), Svg.Element.Group.BipolarBody.make(this.type, centre, rotation, "body"));
                 }
                 makeConnectors() {
                     if (this.type === "PNP") {
@@ -1060,9 +1300,9 @@ var Circuit;
                 let state = (raw.state) ?
                     {
                         location: raw.state.location,
-                        joints: (raw.state.joints && (raw.state.joints.length === 3) && (raw.state.joints.every((j) => {
-                            return (('x' in j) && ('y' in j) && (typeof j.x === 'number') && (typeof j.y === 'number'));
-                        }))) ? raw.state.joints : undefined
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 3)
+                            ? vector.standardise(raw.state.joints)
+                            : undefined
                     } : {};
                 let properties = (raw.properties) ?
                     {
@@ -1512,17 +1752,12 @@ var Circuit;
                     };
                 }
                 draw() {
-                    let leadPath = "";
-                    let joints = this.joints;
-                    leadPath = "M " + joints[0].x + " " + joints[0].y;
-                    leadPath += "L " + joints[joints.length - 1].x + " " + joints[joints.length - 1].y;
+                    const first = this.joints[0];
+                    const last = this.joints[this.joints.length - 1];
                     let capacitorBody = (this.isPolarised)
-                        ? Svg.Element.Group.CapacitorBodyElectrolytic.make(this.capacitance, joints[0], joints[joints.length - 1], "bodyelectrolytic")
-                        : Svg.Element.Group.CapacitorBodyCeramic.make(this.capacitance, joints[0], joints[joints.length - 1], "bodyceramic");
-                    this.group.prepend([
-                        Svg.Element.Path.make(leadPath, "lead"),
-                        capacitorBody
-                    ]);
+                        ? Svg.Element.Group.CapacitorBodyElectrolytic.make(this.capacitance, first, last, "bodyelectrolytic")
+                        : Svg.Element.Group.CapacitorBodyCeramic.make(this.capacitance, first, last, "bodyceramic");
+                    this.group.prepend(Svg.Element.Path.make(this.joints, "lead"), capacitorBody);
                 }
                 makeConnectors() {
                     let lead1Name = "";
@@ -1543,9 +1778,9 @@ var Circuit;
                 let state = (raw.state) ?
                     {
                         location: raw.state.location,
-                        joints: (raw.state.joints && (raw.state.joints.length === 2) && (raw.state.joints.every((j) => {
-                            return (('x' in j) && ('y' in j) && (typeof j.x === 'number') && (typeof j.y === 'number'));
-                        }))) ? raw.state.joints : undefined
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
+                            ? vector.standardise(raw.state.joints)
+                            : undefined
                     } : {};
                 let properties = (raw.properties) ?
                     {
@@ -1739,14 +1974,9 @@ var Circuit;
                     };
                 }
                 draw() {
-                    let leadPath = "";
-                    let joints = this.joints;
-                    leadPath = "M " + joints[0].x + " " + joints[0].y;
-                    leadPath += "L " + joints[joints.length - 1].x + " " + joints[joints.length - 1].y;
-                    this.group.prepend([
-                        Svg.Element.Path.make(leadPath, "lead"),
-                        Svg.Element.Group.DiodeBody.make(this.breakdownVoltage, joints[0], joints[joints.length - 1], "body")
-                    ]);
+                    const first = this.joints[0];
+                    const last = this.joints[this.joints.length - 1];
+                    this.group.prepend(Svg.Element.Path.make(this.joints, "lead"), Svg.Element.Group.DiodeBody.make(this.breakdownVoltage, first, last, "body"));
                 }
                 makeConnectors() {
                     this.connectorSets = [[
@@ -1762,9 +1992,9 @@ var Circuit;
                 let state = (raw.state) ?
                     {
                         location: raw.state.location,
-                        joints: (raw.state.joints && (raw.state.joints.length === 2) && (raw.state.joints.every((j) => {
-                            return (('x' in j) && ('y' in j) && (typeof j.x === 'number') && (typeof j.y === 'number'));
-                        }))) ? raw.state.joints : undefined
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
+                            ? vector.standardise(raw.state.joints)
+                            : undefined
                     } : {};
                 let properties = (raw.properties) ?
                     {
@@ -1949,14 +2179,9 @@ var Circuit;
                     };
                 }
                 draw() {
-                    let leadPath = "";
-                    let joints = this.joints;
-                    leadPath = "M " + joints[0].x + " " + joints[0].y;
-                    leadPath += "L " + joints[joints.length - 1].x + " " + joints[joints.length - 1].y;
-                    this.group.prepend([
-                        Svg.Element.Path.make(leadPath, "lead"),
-                        Svg.Element.Group.InductorBody.make(this.inductance, joints[0], joints[joints.length - 1], "body")
-                    ]);
+                    const first = this.joints[0];
+                    const last = this.joints[this.joints.length - 1];
+                    this.group.prepend(Svg.Element.Path.make(this.joints, "lead"), Svg.Element.Group.InductorBody.make(this.inductance, first, last, "body"));
                 }
                 makeConnectors() {
                     this.connectorSets = [[
@@ -1972,9 +2197,9 @@ var Circuit;
                 let state = (raw.state) ?
                     {
                         location: raw.state.location,
-                        joints: (raw.state.joints && (raw.state.joints.length === 2) && (raw.state.joints.every((j) => {
-                            return (('x' in j) && ('y' in j) && (typeof j.x === 'number') && (typeof j.y === 'number'));
-                        }))) ? raw.state.joints : undefined
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
+                            ? vector.standardise(raw.state.joints)
+                            : undefined
                     } : {};
                 let properties = (raw.properties) ?
                     {
@@ -2554,14 +2779,9 @@ var Circuit;
                     };
                 }
                 draw() {
-                    let leadPath = "";
-                    let joints = this.joints;
-                    leadPath = "M " + joints[0].x + " " + joints[0].y;
-                    leadPath += "L " + joints[joints.length - 1].x + " " + joints[joints.length - 1].y;
-                    this.group.prepend([
-                        Svg.Element.Path.make(leadPath, "lead"),
-                        Svg.Element.Group.ResistorBody.make(this.resistance, joints[0], joints[joints.length - 1], "body")
-                    ]);
+                    const first = this.joints[0];
+                    const last = this.joints[this.joints.length - 1];
+                    this.group.prepend(Svg.Element.Path.make(this.joints, "lead"), Svg.Element.Group.ResistorBody.make(this.resistance, first, last, "body"));
                 }
                 makeConnectors() {
                     this.connectorSets = [
@@ -2577,9 +2797,9 @@ var Circuit;
                 let state = (raw.state) ?
                     {
                         location: raw.state.location,
-                        joints: (raw.state.joints && (raw.state.joints.length === 2) && (raw.state.joints.every((j) => {
-                            return (('x' in j) && ('y' in j) && (typeof j.x === 'number') && (typeof j.y === 'number'));
-                        }))) ? raw.state.joints : undefined
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
+                            ? vector.standardise(raw.state.joints)
+                            : undefined
                     } : {};
                 let properties = (raw.properties) ?
                     {
@@ -2876,9 +3096,9 @@ var Circuit;
                 let state = (raw.state) ?
                     {
                         location: raw.state.location,
-                        joints: (raw.state.joints && (raw.state.joints.length > 1) && (raw.state.joints.every((j) => {
-                            return (('x' in j) && ('y' in j) && (typeof j.x === 'number') && (typeof j.y === 'number'));
-                        }))) ? raw.state.joints : undefined,
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length > 1)
+                            ? vector.standardise(raw.state.joints)
+                            : undefined,
                         color: raw.state.color
                     } : {};
                 let properties = (raw.properties) ?
@@ -2915,12 +3135,9 @@ var Circuit;
                 }
             }
             function getRecolorPosition(component) {
-                const angle = Utility.Vector.getAngleBetween(component.joints[0], component.joints[1]) - Math.PI / 4;
+                const angle = vector(component.joints[0]).getAngleTo(component.joints[1]);
                 const offset = Utility.Polar.toVector(12, angle);
-                return {
-                    x: component.joints[0].x + offset.x,
-                    y: component.joints[0].y + offset.y
-                };
+                return vector(component.joints[0]).sumWith(offset).vector;
             }
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 $(component.group.element).addClass("component " + component.name);
@@ -2998,17 +3215,17 @@ var Circuit;
                 let state = (raw.state) ?
                     {
                         location: raw.state.location,
-                        joints: (raw.state.joints && (raw.state.joints.length > 1) && (raw.state.joints.every((j) => {
-                            return (('x' in j) && ('y' in j) && (typeof j.x === 'number') && (typeof j.y === 'number'));
-                        }))) ? raw.state.joints : undefined,
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length > 1)
+                            ? vector.standardise(raw.state.joints)
+                            : undefined
                     } : {
                     location: (raw.where) ? {
                         e: raw.where.X,
                         f: raw.where.Y
                     } : undefined,
-                    joints: (raw.joints && (raw.joints.length > 1) && (raw.joints.every((j) => {
-                        return (('X' in j) && ('Y' in j) && (typeof j.X === 'number') && (typeof j.Y === 'number'));
-                    }))) ? Utility.Vector.standardise(raw.joints) : undefined,
+                    joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length > 1)
+                        ? vector.standardise(raw.state.joints)
+                        : undefined
                 };
                 let properties = (raw.properties) ?
                     {
@@ -3081,7 +3298,7 @@ var Circuit;
                 const point = connector.point;
                 return allConnectors.filter(other => {
                     return (acceptedTypes.includes(other.type)
-                        && Utility.pointsAreClose(point, other.point));
+                        && vector(point).isCloseTo(other.point));
                 });
             }
         })(Generics = Component.Generics || (Component.Generics = {}));
@@ -20221,10 +20438,30 @@ var Svg;
         (function (Path) {
             function make(path, classes = "") {
                 const element = Element.make("path", classes);
-                element.setAttribute('d', path);
+                let pathString = (path instanceof Array) ? getLinePath(path) : path;
+                element.setAttribute('d', pathString);
                 return svg(element);
             }
             Path.make = make;
+            function getLinePath(jointSet) {
+                if (jointSet.length > 0 && jointSet[0] instanceof Array) {
+                    let jointArrays = jointSet;
+                    return jointArrays.map(getSingleLinePath).join();
+                }
+                else {
+                    let joints = jointSet;
+                    return getSingleLinePath(joints);
+                }
+            }
+            function getSingleLinePath(joints) {
+                if (joints.length < 1) {
+                    return "";
+                }
+                else {
+                    return "M" + joints[0].x + " " + joints[0].y
+                        + joints.map(joint => "L" + joint.x + " " + joint.y).join();
+                }
+            }
         })(Path = Element.Path || (Element.Path = {}));
     })(Element = Svg.Element || (Svg.Element = {}));
 })(Svg || (Svg = {}));
@@ -20306,96 +20543,14 @@ var Utility;
     var Polar;
     (function (Polar) {
         function toVector(radius, angle) {
+            const rads = Utility.degreesToRadians(angle);
             return {
-                x: radius * Math.cos(angle),
-                y: radius * Math.sin(angle)
+                x: radius * Math.cos(rads),
+                y: radius * Math.sin(rads)
             };
         }
         Polar.toVector = toVector;
     })(Polar = Utility.Polar || (Utility.Polar = {}));
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    var Vector;
-    (function (Vector) {
-        function areClose(vectorA, vectorB, closeBoundary = 5) {
-            const vectorXisClose = (Math.abs(vectorA.x - vectorB.x) < closeBoundary);
-            const vectorYisClose = (Math.abs(vectorA.y - vectorB.y) < closeBoundary);
-            return (vectorXisClose && vectorYisClose);
-        }
-        Vector.areClose = areClose;
-        ;
-    })(Vector = Utility.Vector || (Utility.Vector = {}));
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    var Vector;
-    (function (Vector) {
-        function getAngleBetween(from, to) {
-            return Math.atan2(to.y - from.y, to.x - from.x) * 180 / Math.PI;
-        }
-        Vector.getAngleBetween = getAngleBetween;
-    })(Vector = Utility.Vector || (Utility.Vector = {}));
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    var Vector;
-    (function (Vector) {
-        function rotate(vector, angle) {
-            let radians = (Math.PI / 180) * angle;
-            let cos = Math.cos(radians);
-            let sin = Math.sin(radians);
-            let rotatedVector = {
-                x: (cos * vector.x) + (sin * vector.y),
-                y: (cos * vector.y) - (sin * vector.x)
-            };
-            return rotatedVector;
-        }
-        Vector.rotate = rotate;
-    })(Vector = Utility.Vector || (Utility.Vector = {}));
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    var Vector;
-    (function (Vector) {
-        function snapToGrid(vector) {
-            let gridSpacing = Constants.gridSpacing;
-            return {
-                x: Math.round(vector.x / (gridSpacing / 2)) * (gridSpacing / 2),
-                y: Math.round(vector.y / (gridSpacing / 2)) * (gridSpacing / 2)
-            };
-        }
-        Vector.snapToGrid = snapToGrid;
-    })(Vector = Utility.Vector || (Utility.Vector = {}));
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    var Vector;
-    (function (Vector) {
-        function standardise(vectors) {
-            if (vectors instanceof Array) {
-                return vectors.map(vector => ({ x: vector.X, y: vector.Y }));
-            }
-            else {
-                return { x: vectors.X, y: vectors.Y };
-            }
-        }
-        Vector.standardise = standardise;
-        ;
-    })(Vector = Utility.Vector || (Utility.Vector = {}));
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    var Vector;
-    (function (Vector) {
-        function toPolar(vector) {
-            return {
-                radius: Math.sqrt(Math.pow(vector.x, 2) + Math.pow(vector.y, 2)),
-                angle: Math.atan(vector.y / vector.x)
-            };
-        }
-        Vector.toPolar = toPolar;
-    })(Vector = Utility.Vector || (Utility.Vector = {}));
 })(Utility || (Utility = {}));
 var Circuit;
 (function (Circuit) {
@@ -20601,7 +20756,7 @@ var Circuit;
                         let point = connector.point;
                         let attachedConnectors = allConnectors.filter(other => {
                             return (acceptedTypes.includes(other.type)
-                                && Utility.pointsAreClose(point, other.point));
+                                && vector(point).isCloseTo(other.point));
                         });
                         return attachedConnectors;
                     }
@@ -20722,7 +20877,7 @@ var Circuit;
                     $(component.group.element).dblclick(e => {
                         if ($(e.target).closest(".handle").length < 1) {
                             let position = component.group.convertVector({ x: e.clientX, y: e.clientY }, "DomToSvg", "relToGroup");
-                            position = Utility.Vector.snapToGrid(position);
+                            position = vector(position).snapToGrid().vector;
                             component.joints.splice(getJointInsertionIdx(component, position), 0, position);
                             addHandle(component, position);
                             refreshComponent(component);
@@ -20746,7 +20901,7 @@ var Circuit;
                 };
                 const initComponentRemoval = (component) => {
                     $(component.group.element).on(Events.dragStop, ".dragHandle", (e) => {
-                        if (component.joints.length === 2 && Utility.Vector.areClose(component.joints[0], component.joints[1])) {
+                        if (component.joints.length === 2 && vector(component.joints[0]).isCloseTo(component.joints[1])) {
                             Circuit.manifest.removeComponent(component);
                         }
                     });
@@ -20766,7 +20921,7 @@ var Circuit;
                 const removeExcessJoints = (component, point) => {
                     if (component.joints.length > 2) {
                         component.joints = component.joints.filter((joint, idx) => {
-                            if ((joint !== point) && Utility.Vector.areClose(point, joint)) {
+                            if ((joint !== point) && vector(point).isCloseTo(joint)) {
                                 $(component.group.element).children(".dragHandle").filter((i, el) => $(el).data('point') === joint).remove();
                                 return false;
                             }
@@ -20811,7 +20966,7 @@ var Circuit;
                     let otherConnectors = Utility.flatten2d(Circuit.manifest.schematic.map(component => Utility.flatten2d(component.connectorSets).filter(connector => (connector.type === "node"))));
                     component.connectorSets.forEach(connectorSet => connectorSet.forEach(connector => {
                         let point = connector.point;
-                        let attachedConnectors = otherConnectors.filter(other => Utility.pointsAreClose(point, other.point));
+                        let attachedConnectors = otherConnectors.filter(other => vector(point).isCloseTo(other.point));
                         if (attachedConnectors.length === 3) {
                             let ctm = Active.schematic.root.group.element.getCTM();
                             point = (ctm) ? point.matrixTransform(ctm.inverse()) : point;
@@ -20988,7 +21143,7 @@ var Circuit;
                             let dragHandle;
                             $(mOE.target).on(Events.dragStart, (e, ui, drag) => {
                                 const position = { x: e.clientX, y: e.clientY };
-                                const gridPosition = Utility.Vector.snapToGrid(position);
+                                const gridPosition = vector(position).snapToGrid().vector;
                                 const wire = createWireAtPoint(gridPosition);
                                 dragHandle = $(wire.group.element).find(".dragHandle")[0];
                                 $(dragHandle).trigger("mousedown");
@@ -21197,13 +21352,8 @@ var Svg;
         (function (Group) {
             var BipolarBody;
             (function (BipolarBody) {
-                function make(text, start, middle, end, classes = "") {
+                function make(text, centre, rotation, classes = "") {
                     const element = Group.make(classes);
-                    let centre = {
-                        x: (start.x + middle.x + end.x) / 3,
-                        y: (start.y + middle.y + end.y) / 3,
-                    };
-                    let rotation = Utility.Vector.getAngleBetween(start, end);
                     let semiCircleString = "M " + (16) + " " + (4) +
                         "a " + (1) + " " + (1) + " " + (0) + " " + (0) + " " + (0) + " " + (-32) + " " + (0) +
                         "v " + (3) +
@@ -21211,7 +21361,7 @@ var Svg;
                         "v " + (-3) +
                         "Z";
                     element.append(Svg.Element.Path.make(semiCircleString, "body highlight").element, Svg.Element.Text.make(text, { x: 0, y: 4 }, "text").element);
-                    element.translate({ x: centre.x, y: centre.y }).rotate(rotation);
+                    element.translate(centre).rotate(rotation);
                     return element;
                 }
                 BipolarBody.make = make;
@@ -21233,7 +21383,7 @@ var Svg;
                         x: (start.x + end.x) / 2,
                         y: (start.y + end.y) / 2
                     };
-                    let rotation = Utility.Vector.getAngleBetween(start, end);
+                    let rotation = vector(start).getAngleTo(end);
                     const text = Utility.getStandardForm(value, 'F');
                     element.append(Svg.Element.Ellipse.make({ x: 0, y: 0 }, { x: 16, y: 8 }, "body highlight nofill"), Svg.Element.Text.make(text, { x: 0, y: 0 }, "text"));
                     element.translate({ x: centre.x, y: centre.y }).rotate(rotation);
@@ -21258,7 +21408,7 @@ var Svg;
                         x: (start.x + end.x) / 2,
                         y: (start.y + end.y) / 2
                     };
-                    let rotation = Utility.Vector.getAngleBetween(start, end);
+                    let rotation = vector(start).getAngleTo(end);
                     const text = Utility.getStandardForm(value, 'F');
                     const bodyArcEndPoint = 14 / Math.SQRT2;
                     const textArcEndPoint = 12.5 / Math.SQRT2;
@@ -21285,7 +21435,7 @@ var Svg;
                 function make(value, start, end, classes = "") {
                     const element = Group.make(classes);
                     let centre = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
-                    let rotation = Utility.Vector.getAngleBetween(start, end);
+                    let rotation = vector(start).getAngleTo(end);
                     element.append(Svg.Element.Rect.make({ x: -5.5, y: 0 }, { width: 29, height: 15 }, { x: 0, y: 0 }, "body"), Svg.Element.Rect.make({ x: 17.5, y: 0 }, { width: 5, height: 15 }, { x: 0, y: 0 }, "body"), Svg.Element.Rect.make({ x: 12, y: 0 }, { width: 6, height: 15 }, { x: 0, y: 0 }, "cathode"), Svg.Element.Rect.make({ x: 0, y: 0 }, { width: 40, height: 15 }, { x: 1, y: 1 }, "highlight nofill"));
                     element.translate({ x: centre.x, y: centre.y }).rotate(rotation);
                     return element;
@@ -21349,7 +21499,7 @@ var Svg;
                 function make(value, start, end, classes = "") {
                     const element = Group.make(classes);
                     let centre = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
-                    let rotation = Utility.Vector.getAngleBetween(start, end);
+                    let rotation = vector(start).getAngleTo(end);
                     const nCoils = 4;
                     const wireWidth = 8;
                     const coilTop = -15;
@@ -21387,7 +21537,7 @@ var Svg;
                         x: (start.x + end.x) / 2,
                         y: (start.y + end.y) / 2
                     };
-                    let rotation = Utility.Vector.getAngleBetween(start, end);
+                    let rotation = vector(start).getAngleTo(end);
                     let bodyPath = "m-12.5 -6" + "h25" + "c15 -8 15 20 0 12" + "h-25" + "c-15 +8 -15 -20 0 -12" + "Z";
                     element.append(Svg.Element.Path.make(bodyPath, "body"), getBands(value), Svg.Element.Path.make(bodyPath, "highlight nofill"));
                     element.translate({ x: centre.x, y: centre.y }).rotate(rotation);

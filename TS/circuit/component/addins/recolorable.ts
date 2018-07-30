@@ -5,7 +5,7 @@ namespace Circuit.Component.Addins.Recolorable {
 
    export const init = (
       component: recolorableComponent,
-      where: () => Global.Types.vector,
+      where: () => Vector,
       recolorSelector: string = "*",
       colorPalette: colorPalette = defaultColorPalette
    ) => {
@@ -29,7 +29,7 @@ namespace Circuit.Component.Addins.Recolorable {
       component.draw();
    };
 
-   const createRecolorHandle = (component: recolorableComponent, position: Global.Types.vector, recolorSelector: string, colorPalette: colorPalette) => {
+   const createRecolorHandle = (component: recolorableComponent, position: Vector, recolorSelector: string, colorPalette: colorPalette) => {
       let recolorSegmentGroup = Svg.Element.Group.make("recolorSegmentGroup");
       let recolorHandle = Svg.Element.Circle.make(position, 7, "handle recolorHandle");
       Svg.Addins.Draggable.init(recolorHandle.element, { disableMovement: true });

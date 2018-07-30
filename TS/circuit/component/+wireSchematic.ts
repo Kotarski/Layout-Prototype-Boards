@@ -5,7 +5,7 @@ namespace Circuit.Component {
          export interface properties extends Component.Types.properties { }
 
          export interface state extends Component.Types.state {
-            joints: Global.Types.vector[];
+            joints: Vector[];
          }
       }
    }
@@ -23,7 +23,7 @@ namespace Circuit.Component {
       }
 
       export class Instance extends Component.Instance implements Types.properties, Types.state {
-         joints: Global.Types.vector[];
+         joints: Vector[];
          connectorSets: Component.Types.node[][] = [];
 
 
@@ -84,17 +84,17 @@ namespace Circuit.Component {
          let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
             {
                location: raw.state.location,
-               joints: (raw.state.joints && (raw.state.joints.length > 1) && (raw.state.joints.every((j: Global.Types.vector) => {
-                  return (('x' in j) && ('y' in j) && (typeof j.x === 'number') && (typeof j.y === 'number'));
-               }))) ? raw.state.joints : undefined,
+               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length > 1)
+                  ? vector.standardise(raw.state.joints as AnyVector[])
+                  : undefined
             } : {
                location: (raw.where) ? {
                   e: raw.where.X,
                   f: raw.where.Y
                } : undefined,
-               joints: (raw.joints && (raw.joints.length > 1) && (raw.joints.every((j: { X: number, Y: number }) => {
-                  return (('X' in j) && ('Y' in j) && (typeof j.X === 'number') && (typeof j.Y === 'number'));
-               }))) ? Utility.Vector.standardise(raw.joints) : undefined,
+               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length > 1)
+                  ? vector.standardise(raw.state.joints as AnyVector[])
+                  : undefined
             };
          let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
             {

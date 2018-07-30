@@ -1,6 +1,6 @@
 namespace Svg.Element.Group.TextSequence {
    export type type = ReturnType<typeof make>;
-   export function make(start: Global.Types.vector, gap: Global.Types.vector, sequence: (string | number)[] | string | { start: number, length: number }, classes: string = "") {
+   export function make(start: Vector, gap: Vector, sequence: (string | number)[] | string | { start: number, length: number }, classes: string = "") {
       const element = Group.make(classes);
 
       let textArray: string[] = [];

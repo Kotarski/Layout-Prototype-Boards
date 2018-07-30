@@ -23,7 +23,7 @@ function svg<T extends SVGElement>(element: T) {
       followPath: Svg.Element.Text.Functions.followPath(element),
    } : null;
 
-   return Object.assign({}, extension, elementExtension, groupExtension) as (
+   return Object.assign({}, extension, elementExtension, groupExtension, textExtension) as (
       (typeof extension) &
       (T extends SVGGraphicsElement ? NonNullable<typeof elementExtension> : {}) &
       (T extends SVGGElement | SVGSVGElement ? NonNullable<typeof groupExtension> : {}) &

@@ -295,7 +295,7 @@ namespace Circuit.Component.Addins.Board {
          let attachedConnectors: Component.Types.connector[] = allConnectors.filter(other => {
             return (
                acceptedTypes.includes(other.type)
-               && Utility.pointsAreClose(point, other.point)
+               && vector(point).isCloseTo(other.point)
             )
          });
 

@@ -10,8 +10,8 @@ namespace Svg.Element {
    export namespace Functions {
 
       export function rotate<T extends SVGGraphicsElement>(element: T) {
-         return (rotation: number, centre?: Global.Types.vector, insertBefore: boolean = false) => {
-            let centreV: Global.Types.vector;
+         return (rotation: number, centre?: Vector, insertBefore: boolean = false) => {
+            let centreV: Vector;
             if (centre) {
                centreV = centre;
             } else {
@@ -26,14 +26,14 @@ namespace Svg.Element {
       }
 
       export function translate<T extends SVGGraphicsElement>(element: T) {
-         return (translation: Global.Types.vector, insertBefore: boolean = true) => {
+         return (translation: Vector, insertBefore: boolean = true) => {
             addTransform(element, t => t.setTranslate(translation.x, translation.y), insertBefore)
             return svg(element);
          }
       }
 
       export function scale<T extends SVGGraphicsElement>(element: T) {
-         return (scale: (Global.Types.vector | number), insertBefore: boolean = true) => {
+         return (scale: (Vector | number), insertBefore: boolean = true) => {
             let scaleV = (typeof scale === "number") ? { x: scale, y: scale } : scale;
             addTransform(element, t => t.setScale(scaleV.x, scaleV.y), insertBefore)
             return svg(element);
@@ -72,7 +72,7 @@ namespace Svg.Element {
       // Generally will want to use relative for sizes (or drags) and absolute for the rest
       export function convertVector<T extends SVGGraphicsElement>(element: T) {
 
-         return (vector: Global.Types.vector, direction: "DomToSvg" | "SvgToDom", type: "relToGroup" | "absToDoc"): Global.Types.vector => {
+         return (vector: Vector, direction: "DomToSvg" | "SvgToDom", type: "relToGroup" | "absToDoc"): Vector => {
             // Matrix representing transforms from element coordinates to dom coordinates
             // (It actually converts to the SVGs viewport, but that is unused and will be same as DOM)
             let conversionMatrix = element.getScreenCTM() || Svg.makeMatrix();

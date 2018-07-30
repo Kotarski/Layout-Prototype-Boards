@@ -82,7 +82,7 @@ namespace Circuit.Component.Generics {
       return allConnectors.filter(other => {
          return (
             acceptedTypes.includes(other.type)
-            && Utility.pointsAreClose(point, other.point)
+            && vector(point).isCloseTo(other.point)
          )
       });
    }

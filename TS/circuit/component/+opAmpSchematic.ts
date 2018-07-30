@@ -63,7 +63,7 @@ namespace Circuit.Component {
          }
 
          draw() {
-            let inversionScale: Global.Types.vector = {
+            let inversionScale: Vector = {
                x: (this.orientation === "LR") ? 1 : -1,
                y: (this.whichInputAtTop === "non-inverting") ? 1 : -1
             };

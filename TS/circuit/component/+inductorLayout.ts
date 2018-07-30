@@ -6,7 +6,7 @@ namespace Circuit.Component {
          export type properties = InductorSchematic.Types.properties;
 
          export interface state extends Component.Types.state {
-            joints: Global.Types.vector[];
+            joints: Vector[];
          }
 
          export interface loadFunction extends Component.Types.loadFunction {
@@ -29,7 +29,7 @@ namespace Circuit.Component {
 
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          inductance: number;
-         joints: Global.Types.vector[];
+         joints: Vector[];
 
          constructor(properties: Types.properties, state: Types.state) {
             super(properties, state);
@@ -53,23 +53,14 @@ namespace Circuit.Component {
          }
 
          draw() {
-            let leadPath: string = "";
-
-            // Just for ease
-            let joints = this.joints //this.handles.map(h => h.position);
-
-            //Start at the beginning, end at the end
-            leadPath = "M " + joints[0].x + " " + joints[0].y;
-            leadPath += "L " + joints[joints.length - 1].x + " " + joints[joints.length - 1].y;
-
+            const first = this.joints[0];
+            const last = this.joints[this.joints.length - 1];
             //Style and add lead and highlight
             //(Prepend so handles appear on top)
-            this.group.prepend([
-               Svg.Element.Path.make(leadPath, "lead"),
-               Svg.Element.Group.InductorBody.make(this.inductance,
-                  joints[0], joints[joints.length - 1], "body")
-            ]);
-
+            this.group.prepend(
+               Svg.Element.Path.make(this.joints, "lead"),
+               Svg.Element.Group.InductorBody.make(this.inductance, first, last, "body")
+            );
          }
 
          /** Builds the components connectors */
@@ -88,9 +79,9 @@ namespace Circuit.Component {
          let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
             {
                location: raw.state.location,
-               joints: (raw.state.joints && (raw.state.joints.length === 2) && (raw.state.joints.every((j: Global.Types.vector) => {
-                  return (('x' in j) && ('y' in j) && (typeof j.x === 'number') && (typeof j.y === 'number'));
-               }))) ? raw.state.joints : undefined
+               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
+                  ? vector.standardise(raw.state.joints as AnyVector[])
+                  : undefined
             } : {};
          let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
             {

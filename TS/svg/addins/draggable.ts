@@ -17,7 +17,7 @@ namespace Svg.Addins.Draggable {
       // Styles the draggable
       let styleClass = options.styleClass !== undefined ? options.styleClass : "dragging";
 
-      let lastPosition: Global.Types.vector;
+      let lastPosition: Vector;
 
       // Set to draggable (JQuery UI)
       if ($(eventTarget).draggable("instance") === undefined) {
@@ -94,7 +94,7 @@ namespace Svg.Addins.Draggable {
       if (options.constrainWith !== undefined) {
          $(eventTarget).on(
             "dragSVGConstraintCheck",
-            (e, ui, dragSvg: Global.Types.vector, dragDom: Global.Types.vector) => {
+            (e, ui, dragSvg: Vector, dragDom: Vector) => {
                // If both components of the drag are too much...
                if (options.constrainWith) if (options.constrainWith(dragSvg)) {
                   // Don't let it move
@@ -133,13 +133,13 @@ namespace Svg.Addins.Draggable {
 
 interface draggableOptions {
    disableMovement?: boolean; //All other options ignored if this is true
-   onDrag?: (drag: Global.Types.vector, e?: JQueryEventObject) => void;
+   onDrag?: (drag: Vector, e?: JQueryEventObject) => void;
    onStop?: (e?: JQueryEventObject) => void;
    onStart?: (e?: JQueryEventObject) => void;
-   constrainWith?: (drag: Global.Types.vector, e?: JQueryEventObject) => boolean;
+   constrainWith?: (drag: Vector, e?: JQueryEventObject) => boolean;
    useHelper?: boolean;
    eventTarget?: SVGGraphicsElement | SVGGraphicsElement[];
-   grid?: Global.Types.vector | "off";
+   grid?: Vector | "off";
    styleClass?: string;
 }
 

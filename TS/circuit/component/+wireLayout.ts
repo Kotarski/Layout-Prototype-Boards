@@ -5,7 +5,7 @@ namespace Circuit.Component {
          export type properties = Component.Types.properties;
 
          export interface state extends Component.Types.state {
-            joints: Global.Types.vector[];
+            joints: Vector[];
             color: string;
          }
 
@@ -31,7 +31,7 @@ namespace Circuit.Component {
       }
 
       export class Instance extends Component.Instance implements Types.properties, Types.state {
-         joints: Global.Types.vector[];
+         joints: Vector[];
          color: string;
 
          constructor(properties: Types.properties, state: Types.state) {
@@ -112,9 +112,9 @@ namespace Circuit.Component {
          let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
             {
                location: raw.state.location,
-               joints: (raw.state.joints && (raw.state.joints.length > 1) && (raw.state.joints.every((j: Global.Types.vector) => {
-                  return (('x' in j) && ('y' in j) && (typeof j.x === 'number') && (typeof j.y === 'number'));
-               }))) ? raw.state.joints : undefined,
+               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length > 1)
+                  ? vector.standardise(raw.state.joints as AnyVector[])
+                  : undefined,
                color: raw.state.color
             } : {};
          let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
@@ -125,7 +125,7 @@ namespace Circuit.Component {
          return makeInstance(properties, state, true);
       }
 
-      function getBezierBetweenJoints(joints: Global.Types.vector[]): string {
+      function getBezierBetweenJoints(joints: Vector[]): string {
          //Assume we are starting at the midpoint between first two joints
          let path: string = "";
 
@@ -145,7 +145,7 @@ namespace Circuit.Component {
       }
 
       // Starting or ending at a midpoint
-      function getSegmentTowardsJointMid(j0: Global.Types.vector, j1: Global.Types.vector, ratio: number): string {
+      function getSegmentTowardsJointMid(j0: Vector, j1: Vector, ratio: number): string {
          let changeMid = {
             x: (j1.x - j0.x) / 2,
             y: (j1.y - j0.y) / 2
@@ -161,13 +161,10 @@ namespace Circuit.Component {
          }
       }
 
-      function getRecolorPosition(component: Instance): Global.Types.vector {
-         const angle = Utility.Vector.getAngleBetween(component.joints[0], component.joints[1]) - Math.PI / 4;
+      function getRecolorPosition(component: Instance): Vector {
+         const angle = vector(component.joints[0]).getAngleTo(component.joints[1]);
          const offset = Utility.Polar.toVector(12, angle);
-         return {
-            x: component.joints[0].x + offset.x,
-            y: component.joints[0].y + offset.y
-         };
+         return vector(component.joints[0]).sumWith(offset).vector;
       }
 
       export const makeInstance = getMaker(Instance, defaultProperties, defaultState,

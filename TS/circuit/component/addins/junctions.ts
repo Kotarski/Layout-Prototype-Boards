@@ -22,7 +22,7 @@ namespace Circuit.Component.Addins.Junctions {
       component.connectorSets.forEach(connectorSet => connectorSet.forEach(connector => {
          let point = connector.point;
          let attachedConnectors = otherConnectors.filter(other =>
-            Utility.pointsAreClose(point, other.point)
+            vector(point).isCloseTo(other.point)
          );
          if (attachedConnectors.length === 3) {
             let ctm = Active.schematic.root.group.element.getCTM();

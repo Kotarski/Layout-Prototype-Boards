@@ -39,7 +39,7 @@ namespace Svg.Addins.Scaleable {
          );
 
          // Find the position of the mouse relative to the centre of the element on screen
-         let mousePosDomFromCentre: Global.Types.vector = {
+         let mousePosDomFromCentre: Vector = {
             x: e.clientX - (clientBounds.left + clientBounds.width / 2),
             y: e.clientY - (clientBounds.top + clientBounds.height / 2)
          };
@@ -84,6 +84,6 @@ namespace Svg.Addins.Scaleable {
 
 interface scalableOptions {
    eventTarget?: SVGGElement;
-   onScale?: (scale: Global.Types.vector, translation: Global.Types.vector) => void;
+   onScale?: (scale: Vector, translation: Vector) => void;
 }
 
