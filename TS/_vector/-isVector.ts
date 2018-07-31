@@ -15,8 +15,6 @@ namespace _vector {
 
    export function isLVector(inVector: any): inVector is Vector {
       return (
-         inVector.hasOwnProperty("x") &&
-         inVector.hasOwnProperty("y") &&
          (typeof inVector.x === 'number') &&
          (typeof inVector.y === 'number')
       );
@@ -24,8 +22,6 @@ namespace _vector {
 
    export function isUVector(inVector: any): inVector is UVector {
       return (
-         inVector.hasOwnProperty("X") &&
-         inVector.hasOwnProperty("Y") &&
          (typeof inVector.X === 'number') &&
          (typeof inVector.Y === 'number')
       );

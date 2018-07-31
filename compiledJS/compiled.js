@@ -12,6 +12,7 @@ var _vector;
                 return { x: inVector.X, y: inVector.Y };
             }
             else {
+                console.error("IS NOT A VECTOR");
                 return { x: NaN, y: NaN };
             }
         });
@@ -189,16 +190,12 @@ var _vector;
     }
     _vector.isVectorArray = isVectorArray;
     function isLVector(inVector) {
-        return (inVector.hasOwnProperty("x") &&
-            inVector.hasOwnProperty("y") &&
-            (typeof inVector.x === 'number') &&
+        return ((typeof inVector.x === 'number') &&
             (typeof inVector.y === 'number'));
     }
     _vector.isLVector = isLVector;
     function isUVector(inVector) {
-        return (inVector.hasOwnProperty("X") &&
-            inVector.hasOwnProperty("Y") &&
-            (typeof inVector.X === 'number') &&
+        return ((typeof inVector.X === 'number') &&
             (typeof inVector.Y === 'number'));
     }
     _vector.isUVector = isUVector;
@@ -3223,8 +3220,8 @@ var Circuit;
                         e: raw.where.X,
                         f: raw.where.Y
                     } : undefined,
-                    joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length > 1)
-                        ? vector.standardise(raw.state.joints)
+                    joints: (vector.isVectorArray(raw.joints) && raw.joints.length > 1)
+                        ? vector.standardise(raw.joints)
                         : undefined
                 };
                 let properties = (raw.properties) ?
@@ -20789,7 +20786,7 @@ var Circuit;
                 const createConnectorHighlights = (component, connection, color) => {
                     let ctm = component.group.element.getCTM();
                     let point = (ctm) ? connection.point.matrixTransform(ctm.inverse()) : connection.point;
-                    let highlight = Svg.Element.Circle.make({ x: point.x, y: point.y }, 4, "highlight highlightwithfill connectivityhighlight");
+                    let highlight = Svg.Element.Circle.make(point, 4, "highlight highlightwithfill connectivityhighlight");
                     $(highlight.element).css({ "fill": color, "stroke": color });
                     component.group.append(highlight);
                 };
@@ -20966,11 +20963,13 @@ var Circuit;
                     let otherConnectors = Utility.flatten2d(Circuit.manifest.schematic.map(component => Utility.flatten2d(component.connectorSets).filter(connector => (connector.type === "node"))));
                     component.connectorSets.forEach(connectorSet => connectorSet.forEach(connector => {
                         let point = connector.point;
-                        let attachedConnectors = otherConnectors.filter(other => vector(point).isCloseTo(other.point));
+                        let attachedConnectors = otherConnectors.filter(other => {
+                            return vector(point).isCloseTo(other.point);
+                        });
                         if (attachedConnectors.length === 3) {
                             let ctm = Active.schematic.root.group.element.getCTM();
                             point = (ctm) ? point.matrixTransform(ctm.inverse()) : point;
-                            component.group.prepend(Svg.Element.Circle.make({ x: point.x, y: point.y }, 5, "junction black"));
+                            component.group.prepend(Svg.Element.Circle.make(point, 5, "junction black"));
                         }
                     }));
                 };

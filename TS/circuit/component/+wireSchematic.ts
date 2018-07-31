@@ -92,8 +92,8 @@ namespace Circuit.Component {
                   e: raw.where.X,
                   f: raw.where.Y
                } : undefined,
-               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length > 1)
-                  ? vector.standardise(raw.state.joints as AnyVector[])
+               joints: (vector.isVectorArray(raw.joints) && raw.joints.length > 1)
+                  ? vector.standardise(raw.joints as AnyVector[])
                   : undefined
             };
          let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?

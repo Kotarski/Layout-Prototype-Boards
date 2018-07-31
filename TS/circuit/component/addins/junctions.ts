@@ -21,14 +21,14 @@ namespace Circuit.Component.Addins.Junctions {
 
       component.connectorSets.forEach(connectorSet => connectorSet.forEach(connector => {
          let point = connector.point;
-         let attachedConnectors = otherConnectors.filter(other =>
-            vector(point).isCloseTo(other.point)
-         );
+         let attachedConnectors = otherConnectors.filter(other => {
+            return vector(point).isCloseTo(other.point)
+         });
          if (attachedConnectors.length === 3) {
             let ctm = Active.schematic.root.group.element.getCTM();
             point = (ctm) ? point.matrixTransform(ctm.inverse()) : point;
             component.group.prepend(
-               Svg.Element.Circle.make({ x: point.x, y: point.y }, 5, "junction black")
+               Svg.Element.Circle.make(point, 5, "junction black")
             );
          }
       }));

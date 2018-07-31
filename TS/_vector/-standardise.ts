@@ -16,6 +16,7 @@ namespace _vector {
             return { x: inVector.X, y: inVector.Y }
          } else {
             //TODO 
+            console.error("IS NOT A VECTOR")
             return { x: NaN, y: NaN };
          }
       });
