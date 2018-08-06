@@ -1,26 +1,24 @@
-namespace Svg.Element.Group.ResistorBody {
+namespace Svg.Element.Group.Resistor.Layout {
    export type type = ReturnType<typeof make>;
    export function make(value: number, start: Vector, end: Vector, classes: string = "") {
-      const element = Group.make(classes);
+      const bodyGroup = Group.make(classes);
 
-      let centre = {
-         x: (start.x + end.x) / 2,
-         y: (start.y + end.y) / 2
-      };
+      let centre = vector(start, end).centre().vector;
 
       let rotation = vector(start).getAngleTo(end);
 
       let bodyPath = "m-12.5 -6" + "h25" + "c15 -8 15 20 0 12" + "h-25" + "c-15 +8 -15 -20 0 -12" + "Z";
 
-      element.append(
+      bodyGroup.append(
          Svg.Element.Path.make(bodyPath, "body"),
          getBands(value),
          Svg.Element.Path.make(bodyPath, "highlight nofill")
       );
 
-      element.translate({ x: centre.x, y: centre.y }).rotate(rotation);
-
-      return element;
+      return [
+         Svg.Element.Path.make([start, end], "lead"),
+         bodyGroup.translate(centre).rotate(rotation)
+      ];
    }
 
    function getBands(num: number) {

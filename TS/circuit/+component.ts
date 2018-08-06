@@ -27,6 +27,7 @@ namespace Circuit.Component {
          type: connectorTypes;
          point: SVGPoint;
          component: Instance;
+         symbol: string;
       }
 
       export interface hole extends connector {

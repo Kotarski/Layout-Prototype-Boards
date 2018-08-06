@@ -9,7 +9,7 @@ namespace Circuit.Component {
          }
 
          export interface state extends Component.Types.state {
-            orientation: "LR" | "UD" | "RL" | "DU";
+            joints: [Vector, Vector];
          }
 
          export interface loadFunction extends Component.Types.loadFunction {
@@ -23,7 +23,7 @@ namespace Circuit.Component {
 
       export const defaultState: Types.state = {
          location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
-         orientation: "LR"
+         joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }]
       }
 
       export const defaultProperties: Types.properties = {
@@ -34,13 +34,13 @@ namespace Circuit.Component {
 
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          capacitance: number;
-         orientation: "LR" | "UD" | "RL" | "DU";
+         joints: [Vector, Vector];
          isPolarised: boolean;
 
          constructor(properties: Types.properties, state: Types.state) {
             super(properties, state);
             $(this.group.element).addClass("component " + this.name);
-            this.orientation = state.orientation;
+            this.joints = state.joints;
             this.capacitance = properties.capacitance;
             this.isPolarised = properties.isPolarised;
          }
@@ -56,83 +56,28 @@ namespace Circuit.Component {
          getState(): Types.state {
             return {
                location: this.location,
-               orientation: this.orientation
+               joints: this.joints
             }
          }
 
          draw() {
-
-            let isHorizontal = ["LR", "RL"].includes(this.orientation);
-
-            // Body lines & highlight
-            let highlightSize = (isHorizontal) ? { width: 15, height: 30 } : { width: 30, height: 15 };
-
-            this.group.append(Svg.Element.Rect.make(
-               { x: 0, y: 0 }, highlightSize, { x: 2, y: 2 }, "highlight highlightwithfill extrathick")
-            );
-
-            let body1Start, body2Start, body1End, body2End;
-            [body1Start, body2Start, body1End, body2End] = (isHorizontal)
-               ? [{ x: -4, y: -15 }, { x: +4, y: -15 }, { x: -4, y: +15 }, { x: +4, y: +15 }]
-               : [{ x: -15, y: -4 }, { x: -15, y: +4 }, { x: +15, y: -4 }, { x: +15, y: +4 }];
-            this.group.append(Svg.Element.Line.make(body1Start, body1End, "line thick nocap"));
-            this.group.append(Svg.Element.Line.make(body2Start, body2End, "line thick nocap"));
-
-            // Leads 
-            let lead1Start, lead2Start, lead1End, lead2End;
-            [lead1Start, lead2Start, lead1End, lead2End] = (isHorizontal)
-               ? [{ x: -6, y: 0 }, { x: 6, y: 0 }, { x: -20, y: 0 }, { x: 20, y: 0 }]
-               : [{ x: 0, y: -6 }, { x: 0, y: 6 }, { x: 0, y: -20 }, { x: 0, y: 20 }];
-            this.group.append(Svg.Element.Line.make(lead1Start, lead1End, "line thin"));
-            this.group.append(Svg.Element.Line.make(lead2Start, lead2End, "line thin"));
-
-            //Text
-            let textPosition = (isHorizontal) ? { x: 0, y: -20 } : { x: -20, y: 4 }
-            let text = Utility.getStandardForm(this.capacitance, 'F');
-            let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
-            this.group.append(
-               Svg.Element.Text.make(text, textPosition, "text " + anchorClass)
-            );
-
-            //Polarisation symbol (+)
-            if (this.isPolarised) {
-               let isLRorUD = ["LR", "UD"].includes(this.orientation);
-               let plus1Start, plus2Start, plus1End, plus2End;
-               [plus1Start, plus2Start, plus1End, plus2End] = (isLRorUD)
-                  ? [{ x: +15, y: -10 }, { x: +11, y: -6 }, { x: +7, y: -10 }, { x: +11, y: -14 }]
-                  : [{ x: -15, y: -10 }, { x: -11, y: -6 }, { x: -7, y: -10 }, { x: -11, y: -14 }]
-
-               let rotation = isHorizontal ? 0 : 90;
-
-               //let transforms = [{ translate: this.centre }, { rotate: this.rotation }, { scale: inversionScale }];
-               this.group.append(Svg.Element.Line.make(plus1Start, plus1End, "line thin").rotate(rotation));
-               this.group.append(Svg.Element.Line.make(plus2Start, plus2End, "line thin").rotate(rotation));
-            }
+            this.group.prepend(Svg.Element.Group.Capacitor.Schematic.make(
+               this.capacitance,
+               this.isPolarised,
+               this.joints[0],
+               this.joints[1],
+               "body"
+            ));
          }
 
          /** Builds and draws the components connectors */
          makeConnectors() {
-            let isHorizontal = ["LR", "RL"].includes(this.orientation);
-            let isLRorUD = ["LR", "UD"].includes(this.orientation);
-            // Leads 
-            let lead1End, lead2End;
-            [lead1End, lead2End] = (isHorizontal)
-               ? [{ x: -20, y: 0 }, { x: 20, y: 0 }]
-               : [{ x: 0, y: -20 }, { x: 0, y: 20 }];
-
-            let lead1Name = "";
-            let lead2Name = "";
-            if (this.isPolarised) {
-               [lead1Name, lead2Name] = (isLRorUD)
-                  ? ["cathode", "anode"]
-                  : ["anode", "cathode"];
-            }
+            let [lead1Name, lead2Name] = (this.isPolarised) ? ["cathode", "anode"] : ["", ""];
 
             this.connectorSets = [[
-               Component.Generics.makeConnector(this, lead1Name, "node", lead1End),
-               Component.Generics.makeConnector(this, lead2Name, "node", lead2End),
+               Component.Generics.makeConnector(this, lead1Name, "node", this.joints[0]),
+               Component.Generics.makeConnector(this, lead2Name, "node", this.joints[1]),
             ]]
-            if (!isLRorUD) this.connectorSets[0].reverse();
          }
 
          transferFunction() { return [] };
@@ -142,14 +87,23 @@ namespace Circuit.Component {
       export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
          let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
             {
-               orientation: (["LR", "UD", "RL", "DU"].includes(raw.state.orientation)) ? raw.state.orientation : undefined,
-               location: raw.state.location
+               location: raw.state.location,
+               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
+                  ? vector.standardise(raw.state.joints as AnyVector[])
+                  : undefined
             } : {
-               orientation: (["LR", "UD", "RL", "DU"].includes(raw.orientation)) ? raw.orientation : undefined,
                location: (raw.where) ? {
                   e: raw.where.X,
                   f: raw.where.Y
                } : {},
+               joints: (["LR", "UD", "RL", "DU"].includes(raw.orientation))
+                  ? ({
+                     LR: [{ x: -20, y: 0 }, { x: 20, y: 0 }],
+                     UD: [{ x: 0, y: -20 }, { x: 0, y: 20 }],
+                     RL: [{ x: 20, y: 0 }, { x: -20, y: 0 }],
+                     DU: [{ x: 0, y: 20 }, { x: 0, y: -20 }]
+                  } as { [key: string]: [Vector, Vector] })[raw.orientation]
+                  : undefined,
             };
          let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
             {
@@ -169,6 +123,8 @@ namespace Circuit.Component {
             $(component.group.element).addClass("component " + component.name);
             Addins.Selectable.init(component);
             Addins.ConnectionHighlights.init(component, false);
+            Addins.Extendable.init(component);
+            Addins.Draggable.init(component);
          }
       );
    }

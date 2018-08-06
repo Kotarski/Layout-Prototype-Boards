@@ -5,14 +5,18 @@ namespace Ui.Events {
       let rootEl = diagram.root.element.element;
       let group = diagram.group;
 
-      let groupBBox = group.element.getBBox();
+      let margin = 3;
 
-      let scaleX: number = (groupBBox.width) ? (rootEl.width.baseVal.value / groupBBox.width) : 0;
-      let scaleY: number = (groupBBox.height) ? (rootEl.height.baseVal.value / groupBBox.height) : 0;
+      let groupBBox = group.element.getBBox();
+      let groupWidth = groupBBox.width + margin * 2;
+      let groupHeight = groupBBox.height + margin * 2;
+
+      let scaleX: number = (groupWidth) ? (rootEl.width.baseVal.value / groupWidth) : 0;
+      let scaleY: number = (groupHeight) ? (rootEl.height.baseVal.value / groupHeight) : 0;
       let scaleMin: number = Math.min(scaleX, scaleY);
 
-      let offsetX = -groupBBox.x * scaleMin + (rootEl.width.baseVal.value - groupBBox.width * scaleMin) / 2;
-      let offsetY = (-groupBBox.y * scaleMin) + (rootEl.height.baseVal.value - groupBBox.height * scaleMin) / 2;
+      let offsetX = -groupBBox.x * scaleMin + (rootEl.width.baseVal.value - groupWidth * scaleMin) / 2 + margin;
+      let offsetY = (-groupBBox.y * scaleMin) + (rootEl.height.baseVal.value - groupHeight * scaleMin) / 2 + margin;
 
       let transformString = "translate(" + offsetX + " " + offsetY + ")" + "scale(" + scaleMin + ")";
       group.element.setAttribute('transform', transformString);

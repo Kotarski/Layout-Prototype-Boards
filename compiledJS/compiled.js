@@ -1,9 +1,12 @@
 "use strict";
 var _vector;
 (function (_vector) {
-    function standardise(inVectors, moreVectors) {
-        const vectorsAsArray = ((inVectors instanceof Array) ? inVectors : [inVectors]);
-        const moreVectorsAsArray = (moreVectors !== undefined) ? moreVectors : [];
+    function standardise(inVectors, ...moreVectors) {
+        if (typeof inVectors === "number") {
+            return { x: inVectors, y: inVectors };
+        }
+        const vectorsAsArray = ((isVectorArray(inVectors)) ? inVectors : [inVectors]);
+        const moreVectorsAsArray = ((moreVectors !== undefined) ? moreVectors : []);
         const standardised = (vectorsAsArray.concat(moreVectorsAsArray)).map(inVector => {
             if (_vector.isLVector(inVector)) {
                 return { x: inVector.x, y: inVector.y };
@@ -11,14 +14,27 @@ var _vector;
             else if (_vector.isUVector(inVector)) {
                 return { x: inVector.X, y: inVector.Y };
             }
+            else if (inVector instanceof Array && (typeof inVector[0] === "number") && (typeof inVector[1] === "number")) {
+                return { x: inVector[0], y: inVector[1] };
+            }
             else {
                 console.error("IS NOT A VECTOR");
                 return { x: NaN, y: NaN };
             }
         });
-        return (standardised.length === 1 && !(inVectors instanceof Array)) ? standardised[0] : standardised;
+        if (standardised.length > 1 || isVectorArray(inVectors)) {
+            return standardised;
+        }
+        else {
+            return standardised[0];
+        }
     }
     _vector.standardise = standardise;
+    function isVectorArray(inVectors) {
+        return (inVectors instanceof Array &&
+            !(typeof inVectors[0] === "number" &&
+                typeof inVectors[1] === "number"));
+    }
 })(_vector || (_vector = {}));
 var _vector;
 (function (_vector) {
@@ -205,10 +221,13 @@ var _vector;
     const singleExtension = (inVector) => {
         return {
             vector: inVector,
+            x: inVector.x,
+            y: inVector.y,
             getAngleTo: _vector.getAngleTo(inVector),
             asPolar: _vector.asPolar(inVector),
             isCloseTo: _vector.isCloseTo(inVector),
             sumWith: _vector.sumWithS(inVector),
+            scaleWith: _vector.scaleWithS(inVector),
             centreWith: _vector.centreWith(inVector),
             rotate: _vector.rotateS(inVector),
             snapToGrid: _vector.snapToGrid(inVector)
@@ -219,22 +238,21 @@ var _vector;
             vectors: inVectors,
             sum: _vector.sum(inVectors),
             sumWith: _vector.sumWithM(inVectors),
+            scaleWith: _vector.scaleWithM(inVectors),
             rotate: _vector.rotateM(inVectors),
             centre: _vector.centre(inVectors),
         };
     };
     function vectorFunction(inVectors, ...moreVectors) {
-        const vectorsAsArray = ((inVectors instanceof Array) ? inVectors : [inVectors]);
-        const moreVectorsAsArray = (moreVectors !== undefined) ? moreVectors : [];
-        const vCopy = _vector.standardise(vectorsAsArray.concat(moreVectorsAsArray));
-        const isSingle = (vCopy.length === 1 && !(inVectors instanceof Array));
-        const ismulti = vCopy.length > 1;
-        const single = (isSingle) ? singleExtension(vCopy[0]) : null;
-        const array = (ismulti) ? multiExtension(vCopy) : null;
-        return Object.assign({}, single, array);
+        const vCopy = _vector.standardise(inVectors, ...moreVectors);
+        const ext = (vCopy instanceof Array)
+            ? multiExtension(vCopy)
+            : singleExtension(vCopy);
+        return Object.assign({}, ext);
     }
     const vectorObject = {
         sumWith: _vector.sumWithS,
+        scaleWith: _vector.scaleWithS,
         getAngleTo: _vector.getAngleTo,
         isCloseTo: _vector.isCloseTo,
         centreWith: _vector.centreWith,
@@ -471,6 +489,7 @@ var Circuit;
                 if (Circuit.mappings.isUnique(layComponent)) {
                     schConnectorSets = [mergeConnectorsSets(schConnectorSets)];
                 }
+                console.log(layComponent, schConnectorSets);
                 return schConnectorSets.some(connectorSetsHaveMatch(layConnectorSets));
             });
             return {
@@ -748,7 +767,7 @@ var Svg;
             function scale(element) {
                 return (scale, insertBefore = true) => {
                     let scaleV = (typeof scale === "number") ? { x: scale, y: scale } : scale;
-                    Svg.addTransform(element, t => t.setScale(scaleV.x, scaleV.y), insertBefore);
+                    Svg.addTransform(element, t => t.setScale((scaleV.x || 1), (scaleV.y || 1)), insertBefore);
                     return svg(element);
                 };
             }
@@ -883,6 +902,7 @@ function svg(element) {
     } : null;
     let textExtension = (element instanceof SVGTextElement) ? {
         followPath: Svg.Element.Text.Functions.followPath(element),
+        rotatePosition: Svg.Element.Text.Functions.rotatePosition(element),
     } : null;
     return Object.assign({}, extension, elementExtension, groupExtension, textExtension);
 }
@@ -954,12 +974,15 @@ var Ui;
         function fitDiagramContents(diagram) {
             let rootEl = diagram.root.element.element;
             let group = diagram.group;
+            let margin = 3;
             let groupBBox = group.element.getBBox();
-            let scaleX = (groupBBox.width) ? (rootEl.width.baseVal.value / groupBBox.width) : 0;
-            let scaleY = (groupBBox.height) ? (rootEl.height.baseVal.value / groupBBox.height) : 0;
+            let groupWidth = groupBBox.width + margin * 2;
+            let groupHeight = groupBBox.height + margin * 2;
+            let scaleX = (groupWidth) ? (rootEl.width.baseVal.value / groupWidth) : 0;
+            let scaleY = (groupHeight) ? (rootEl.height.baseVal.value / groupHeight) : 0;
             let scaleMin = Math.min(scaleX, scaleY);
-            let offsetX = -groupBBox.x * scaleMin + (rootEl.width.baseVal.value - groupBBox.width * scaleMin) / 2;
-            let offsetY = (-groupBBox.y * scaleMin) + (rootEl.height.baseVal.value - groupBBox.height * scaleMin) / 2;
+            let offsetX = -groupBBox.x * scaleMin + (rootEl.width.baseVal.value - groupWidth * scaleMin) / 2 + margin;
+            let offsetY = (-groupBBox.y * scaleMin) + (rootEl.height.baseVal.value - groupHeight * scaleMin) / 2 + margin;
             let transformString = "translate(" + offsetX + " " + offsetY + ")" + "scale(" + scaleMin + ")";
             group.element.setAttribute('transform', transformString);
         }
@@ -1223,6 +1246,29 @@ var Utility;
         Insert.before = before;
     })(Insert = Utility.Insert || (Utility.Insert = {}));
 })(Utility || (Utility = {}));
+var _vector;
+(function (_vector) {
+    function scaleWithS(inVector) {
+        return (scaleVector) => {
+            return _vector.vector(scale(inVector, scaleVector));
+        };
+    }
+    _vector.scaleWithS = scaleWithS;
+    function scaleWithM(inVectors) {
+        return (scaleVector) => {
+            return _vector.vector(inVectors.map(a => {
+                return scale(a, scaleVector);
+            }));
+        };
+    }
+    _vector.scaleWithM = scaleWithM;
+    function scale(a, b) {
+        return {
+            x: a.x * (b.x || 1),
+            y: a.y * (b.y || 1)
+        };
+    }
+})(_vector || (_vector = {}));
 var Circuit;
 (function (Circuit) {
     var Component;
@@ -1260,34 +1306,14 @@ var Circuit;
                     };
                 }
                 draw() {
-                    let emitterEnd = this.joints[0];
-                    let collectorEnd = this.joints[1];
-                    let baseEnd = this.joints[2];
-                    let centre = vector(emitterEnd, collectorEnd, baseEnd).centre().vector;
-                    let rotation = vector(emitterEnd).getAngleTo(baseEnd);
-                    let [emitterStart, collectorStart, baseStart] = vector({ x: -12, y: 3 }, { x: 0, y: 3 }, { x: 12, y: 3 }).rotate(-rotation).sumWith(centre).vectors;
-                    let joints = [
-                        [emitterStart, emitterEnd],
-                        [collectorStart, collectorEnd],
-                        [baseStart, baseEnd],
-                    ];
-                    this.group.prepend(Svg.Element.Path.make(joints, "lead"), Svg.Element.Group.BipolarBody.make(this.type, centre, rotation, "body"));
+                    this.group.prepend(Svg.Element.Group.Bipolar.Layout.make(this.type, this.joints[0], this.joints[1], this.joints[2], "body"));
                 }
                 makeConnectors() {
-                    if (this.type === "PNP") {
-                        this.connectorSets = [[
-                                Component.Generics.makeConnector(this, "base", "pin", this.joints[2]),
-                                Component.Generics.makeConnector(this, "emitter", "pin", this.joints[0]),
-                                Component.Generics.makeConnector(this, "collector", "pin", this.joints[1])
-                            ]];
-                    }
-                    else {
-                        this.connectorSets = [[
-                                Component.Generics.makeConnector(this, "base", "pin", this.joints[2]),
-                                Component.Generics.makeConnector(this, "collector", "pin", this.joints[1]),
-                                Component.Generics.makeConnector(this, "emitter", "pin", this.joints[0])
-                            ]];
-                    }
+                    this.connectorSets = [[
+                            Component.Generics.makeConnector(this, "emitter", "pin", this.joints[0], "e"),
+                            Component.Generics.makeConnector(this, "collector", "pin", this.joints[1], "c"),
+                            Component.Generics.makeConnector(this, "base", "pin", this.joints[2], "b")
+                        ]];
                 }
                 transferFunction() { return []; }
                 ;
@@ -1334,7 +1360,7 @@ var Circuit;
         (function (Local) {
             Local.defaultState = {
                 location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
-                orientation: "LR"
+                joints: [{ x: -50, y: 0 }, { x: +10, y: -50 }, { x: +10, y: +50 }]
             };
             Local.defaultProperties = {
                 name: "bipolar",
@@ -1346,7 +1372,7 @@ var Circuit;
                     super(properties, state);
                     this.name = "bipolar";
                     $(this.group.element).addClass("component " + this.name);
-                    this.orientation = state.orientation;
+                    this.joints = state.joints;
                     this.type = properties.type;
                     this.currentGain = properties.currentGain;
                 }
@@ -1360,44 +1386,18 @@ var Circuit;
                 getState() {
                     return {
                         location: this.location,
-                        orientation: this.orientation
+                        joints: this.joints
                     };
                 }
                 draw() {
-                    const scale = (this.orientation === "LR") ? { x: 1, y: 1 } : { x: -1, y: 1 };
-                    this.group.append(Svg.Element.Circle.make({ x: 0, y: 0 }, 30, "extrathick highlight").scale(scale, true));
-                    this.group.append(Svg.Element.Line.make({ x: -15, y: 0 }, { x: -50, y: 0 }, "line thin").scale(scale), Svg.Element.Line.make({ x: +10, y: -20 }, { x: +10, y: -50 }, "line thin").scale(scale), Svg.Element.Line.make({ x: +10, y: +20 }, { x: +10, y: +50 }, "line thin").scale(scale), Svg.Element.Line.make({ x: -15, y: -15 }, { x: -15, y: +15 }, "line medium-thick nocap").scale(scale), Svg.Element.Line.make({ x: -15, y: -5 }, { x: +10, y: -20 }, "line thin").scale(scale), Svg.Element.Line.make({ x: -15, y: 5 }, { x: 10, y: 20 }, "line thin").scale(scale));
-                    if (this.type === "PNP") {
-                        this.group.append(Svg.Element.Path.make('M -7 0 L 7 6 L 7 -6 L -7 0 Z', "body black thin").translate({ x: -8, y: -9.2 }).rotate(-31).scale(scale, true));
-                    }
-                    else {
-                        this.group.append(Svg.Element.Path.make('M 7 0 L -7 6 L -7 -6 L 7 0 Z', "body black thin").translate({ x: 4, y: 16.4 }).rotate(31).scale(scale, true));
-                    }
-                    this.group.append(Svg.Element.Circle.make({ x: 0, y: 0 }, 30, "line medium nofill").scale(scale, true));
-                    let textPosition = (this.orientation === "LR") ? { x: 32, y: 4 } : { x: -32, y: 4 };
-                    let text = Utility.getStandardForm(this.currentGain, '');
-                    let anchorClass = (this.orientation === "LR") ? "anchorstart" : "anchorend";
-                    this.group.append(Svg.Element.Text.make(text, textPosition, "text " + anchorClass));
+                    this.group.prepend(Svg.Element.Group.Bipolar.Schematic.make(this.type, this.currentGain, this.joints[0], this.joints[1], this.joints[2], "body"));
                 }
                 makeConnectors() {
-                    let con1Pos, con2Pos, con3Pos;
-                    [con1Pos, con2Pos, con3Pos] = (this.orientation === "LR")
-                        ? [{ x: -50, y: 0 }, { x: +10, y: -50 }, { x: +10, y: +50 }]
-                        : [{ x: +50, y: 0 }, { x: -10, y: -50 }, { x: -10, y: +50 }];
-                    if (this.type === "PNP") {
-                        this.connectorSets = [[
-                                Component.Generics.makeConnector(this, "base", "node", con1Pos),
-                                Component.Generics.makeConnector(this, "emitter", "node", con2Pos),
-                                Component.Generics.makeConnector(this, "collector", "node", con3Pos)
-                            ]];
-                    }
-                    else {
-                        this.connectorSets = [[
-                                Component.Generics.makeConnector(this, "base", "node", con1Pos),
-                                Component.Generics.makeConnector(this, "collector", "node", con2Pos),
-                                Component.Generics.makeConnector(this, "emitter", "node", con3Pos)
-                            ]];
-                    }
+                    this.connectorSets = [[
+                            Component.Generics.makeConnector(this, "emitter", "node", this.joints[0], "e"),
+                            Component.Generics.makeConnector(this, "collector", "node", this.joints[1], "c"),
+                            Component.Generics.makeConnector(this, "base", "node", this.joints[2], "b"),
+                        ]];
                 }
                 transferFunction() { return []; }
                 ;
@@ -1406,14 +1406,23 @@ var Circuit;
             Local.loadInstance = (raw) => {
                 let state = (raw.state) ?
                     {
-                        orientation: (["LR", "RL"].includes(raw.state.orientation)) ? raw.state.orientation : undefined,
-                        location: raw.state.location
+                        location: raw.state.location,
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 3)
+                            ? vector.standardise(raw.state.joints)
+                            : undefined
                     } : {
-                    orientation: (["LR", "RL"].includes(raw.orientation)) ? raw.orientation : undefined,
-                    location: (raw.where) ? {
-                        e: raw.where.X,
+                    location: (raw.where && ["LR", "RL"].includes(raw.orientation)) ? {
+                        e: raw.where.X + ((raw.orientation === "LR") ? 10 : -10),
                         f: raw.where.Y
                     } : undefined,
+                    joints: (["LR", "RL"].includes(raw.orientation) && ["NPN", "PNP"].includes(raw.type))
+                        ? {
+                            LRPNP: [{ x: 0, y: -50 }, { x: 0, y: +50 }, { x: -60, y: 0 }],
+                            RLPNP: [{ x: 0, y: -50 }, { x: 0, y: +50 }, { x: +60, y: 0 }],
+                            LRNPN: [{ x: 0, y: +50 }, { x: 0, y: -50 }, { x: -60, y: 0 }],
+                            RLNPN: [{ x: 0, y: +50 }, { x: 0, y: -50 }, { x: +60, y: 0 }],
+                        }[raw.orientation + raw.type]
+                        : undefined,
                 };
                 let properties = (raw.properties) ?
                     {
@@ -1430,6 +1439,8 @@ var Circuit;
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
+                Component.Addins.Draggable.init(component);
+                Component.Addins.Extendable.init(component);
             });
         })(Local || (Local = {}));
         Component.BipolarSchematic = {
@@ -1749,12 +1760,11 @@ var Circuit;
                     };
                 }
                 draw() {
-                    const first = this.joints[0];
-                    const last = this.joints[this.joints.length - 1];
+                    const [start, end] = this.joints;
                     let capacitorBody = (this.isPolarised)
-                        ? Svg.Element.Group.CapacitorBodyElectrolytic.make(this.capacitance, first, last, "bodyelectrolytic")
-                        : Svg.Element.Group.CapacitorBodyCeramic.make(this.capacitance, first, last, "bodyceramic");
-                    this.group.prepend(Svg.Element.Path.make(this.joints, "lead"), capacitorBody);
+                        ? Svg.Element.Group.Capacitor.Layout.Electrolytic.make(this.capacitance, start, end, "bodyelectrolytic")
+                        : Svg.Element.Group.Capacitor.Layout.Ceramic.make(this.capacitance, start, end, "bodyceramic");
+                    this.group.prepend(capacitorBody);
                 }
                 makeConnectors() {
                     let lead1Name = "";
@@ -1812,7 +1822,7 @@ var Circuit;
         (function (Local) {
             Local.defaultState = {
                 location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
-                orientation: "LR"
+                joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }]
             };
             Local.defaultProperties = {
                 name: "capacitor",
@@ -1823,7 +1833,7 @@ var Circuit;
                 constructor(properties, state) {
                     super(properties, state);
                     $(this.group.element).addClass("component " + this.name);
-                    this.orientation = state.orientation;
+                    this.joints = state.joints;
                     this.capacitance = properties.capacitance;
                     this.isPolarised = properties.isPolarised;
                 }
@@ -1837,60 +1847,18 @@ var Circuit;
                 getState() {
                     return {
                         location: this.location,
-                        orientation: this.orientation
+                        joints: this.joints
                     };
                 }
                 draw() {
-                    let isHorizontal = ["LR", "RL"].includes(this.orientation);
-                    let highlightSize = (isHorizontal) ? { width: 15, height: 30 } : { width: 30, height: 15 };
-                    this.group.append(Svg.Element.Rect.make({ x: 0, y: 0 }, highlightSize, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"));
-                    let body1Start, body2Start, body1End, body2End;
-                    [body1Start, body2Start, body1End, body2End] = (isHorizontal)
-                        ? [{ x: -4, y: -15 }, { x: +4, y: -15 }, { x: -4, y: +15 }, { x: +4, y: +15 }]
-                        : [{ x: -15, y: -4 }, { x: -15, y: +4 }, { x: +15, y: -4 }, { x: +15, y: +4 }];
-                    this.group.append(Svg.Element.Line.make(body1Start, body1End, "line thick nocap"));
-                    this.group.append(Svg.Element.Line.make(body2Start, body2End, "line thick nocap"));
-                    let lead1Start, lead2Start, lead1End, lead2End;
-                    [lead1Start, lead2Start, lead1End, lead2End] = (isHorizontal)
-                        ? [{ x: -6, y: 0 }, { x: 6, y: 0 }, { x: -20, y: 0 }, { x: 20, y: 0 }]
-                        : [{ x: 0, y: -6 }, { x: 0, y: 6 }, { x: 0, y: -20 }, { x: 0, y: 20 }];
-                    this.group.append(Svg.Element.Line.make(lead1Start, lead1End, "line thin"));
-                    this.group.append(Svg.Element.Line.make(lead2Start, lead2End, "line thin"));
-                    let textPosition = (isHorizontal) ? { x: 0, y: -20 } : { x: -20, y: 4 };
-                    let text = Utility.getStandardForm(this.capacitance, 'F');
-                    let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
-                    this.group.append(Svg.Element.Text.make(text, textPosition, "text " + anchorClass));
-                    if (this.isPolarised) {
-                        let isLRorUD = ["LR", "UD"].includes(this.orientation);
-                        let plus1Start, plus2Start, plus1End, plus2End;
-                        [plus1Start, plus2Start, plus1End, plus2End] = (isLRorUD)
-                            ? [{ x: +15, y: -10 }, { x: +11, y: -6 }, { x: +7, y: -10 }, { x: +11, y: -14 }]
-                            : [{ x: -15, y: -10 }, { x: -11, y: -6 }, { x: -7, y: -10 }, { x: -11, y: -14 }];
-                        let rotation = isHorizontal ? 0 : 90;
-                        this.group.append(Svg.Element.Line.make(plus1Start, plus1End, "line thin").rotate(rotation));
-                        this.group.append(Svg.Element.Line.make(plus2Start, plus2End, "line thin").rotate(rotation));
-                    }
+                    this.group.prepend(Svg.Element.Group.Capacitor.Schematic.make(this.capacitance, this.isPolarised, this.joints[0], this.joints[1], "body"));
                 }
                 makeConnectors() {
-                    let isHorizontal = ["LR", "RL"].includes(this.orientation);
-                    let isLRorUD = ["LR", "UD"].includes(this.orientation);
-                    let lead1End, lead2End;
-                    [lead1End, lead2End] = (isHorizontal)
-                        ? [{ x: -20, y: 0 }, { x: 20, y: 0 }]
-                        : [{ x: 0, y: -20 }, { x: 0, y: 20 }];
-                    let lead1Name = "";
-                    let lead2Name = "";
-                    if (this.isPolarised) {
-                        [lead1Name, lead2Name] = (isLRorUD)
-                            ? ["cathode", "anode"]
-                            : ["anode", "cathode"];
-                    }
+                    let [lead1Name, lead2Name] = (this.isPolarised) ? ["cathode", "anode"] : ["", ""];
                     this.connectorSets = [[
-                            Component.Generics.makeConnector(this, lead1Name, "node", lead1End),
-                            Component.Generics.makeConnector(this, lead2Name, "node", lead2End),
+                            Component.Generics.makeConnector(this, lead1Name, "node", this.joints[0]),
+                            Component.Generics.makeConnector(this, lead2Name, "node", this.joints[1]),
                         ]];
-                    if (!isLRorUD)
-                        this.connectorSets[0].reverse();
                 }
                 transferFunction() { return []; }
                 ;
@@ -1899,14 +1867,23 @@ var Circuit;
             Local.loadInstance = (raw) => {
                 let state = (raw.state) ?
                     {
-                        orientation: (["LR", "UD", "RL", "DU"].includes(raw.state.orientation)) ? raw.state.orientation : undefined,
-                        location: raw.state.location
+                        location: raw.state.location,
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
+                            ? vector.standardise(raw.state.joints)
+                            : undefined
                     } : {
-                    orientation: (["LR", "UD", "RL", "DU"].includes(raw.orientation)) ? raw.orientation : undefined,
                     location: (raw.where) ? {
                         e: raw.where.X,
                         f: raw.where.Y
                     } : {},
+                    joints: (["LR", "UD", "RL", "DU"].includes(raw.orientation))
+                        ? {
+                            LR: [{ x: -20, y: 0 }, { x: 20, y: 0 }],
+                            UD: [{ x: 0, y: -20 }, { x: 0, y: 20 }],
+                            RL: [{ x: 20, y: 0 }, { x: -20, y: 0 }],
+                            DU: [{ x: 0, y: 20 }, { x: 0, y: -20 }]
+                        }[raw.orientation]
+                        : undefined,
                 };
                 let properties = (raw.properties) ?
                     {
@@ -1923,6 +1900,8 @@ var Circuit;
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
+                Component.Addins.Extendable.init(component);
+                Component.Addins.Draggable.init(component);
             });
         })(Local || (Local = {}));
         Component.CapacitorSchematic = {
@@ -1971,9 +1950,8 @@ var Circuit;
                     };
                 }
                 draw() {
-                    const first = this.joints[0];
-                    const last = this.joints[this.joints.length - 1];
-                    this.group.prepend(Svg.Element.Path.make(this.joints, "lead"), Svg.Element.Group.DiodeBody.make(this.breakdownVoltage, first, last, "body"));
+                    const [start, end] = this.joints;
+                    this.group.prepend(Svg.Element.Group.Diode.Layout.make(this.breakdownVoltage, start, end, "body"));
                 }
                 makeConnectors() {
                     this.connectorSets = [[
@@ -2026,7 +2004,7 @@ var Circuit;
         (function (Local) {
             Local.defaultState = {
                 location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
-                orientation: "LR"
+                joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }]
             };
             Local.defaultProperties = {
                 name: "diode",
@@ -2037,7 +2015,7 @@ var Circuit;
                 constructor(properties, state) {
                     super(properties, state);
                     $(this.group.element).addClass("component " + this.name);
-                    this.orientation = state.orientation;
+                    this.joints = state.joints;
                     this.breakdownVoltage = properties.breakdownVoltage;
                     this.saturationCurrent = properties.saturationCurrent;
                     Component.Addins.Selectable.init(this);
@@ -2053,52 +2031,17 @@ var Circuit;
                 getState() {
                     return {
                         location: this.location,
-                        orientation: this.orientation
+                        joints: this.joints
                     };
                 }
                 draw() {
-                    let isHorizontal = ["LR", "RL"].includes(this.orientation);
-                    let isLRorUD = ["LR", "UD"].includes(this.orientation);
-                    let rotation = (isHorizontal) ? 0 : 90;
-                    let scale = (isLRorUD) ? { x: 1, y: 1 } : { x: -1, y: 1 };
-                    this.group.append(Svg.Element.Path.make('M 12 0 L -12 12 L -12 -12 L 12 0 Z', "body highlight highlightwithfill extrathick").rotate(rotation).scale(scale, false));
-                    this.group.append(Svg.Element.Path.make('M 12 0 L -12 12 L -12 -12 L 12 0 Z', "body black").rotate(rotation).scale(scale, false));
-                    if (this.breakdownVoltage < 51) {
-                        this.group.append(Svg.Element.Path.make('M 18 -12 L 12 -12 L 12 12 L 6 12', "line medium").rotate(rotation).scale(scale, false));
-                    }
-                    else {
-                        this.group.append(Svg.Element.Path.make('M 12 -12 L 12 12', "line medium").rotate(rotation).scale(scale, false));
-                    }
-                    let lead1Start, lead2Start, lead1End, lead2End;
-                    [lead1Start, lead2Start, lead1End, lead2End] = (isHorizontal)
-                        ? [{ x: -12, y: 0 }, { x: 12, y: 0 }, { x: -20, y: 0 }, { x: 20, y: 0 }]
-                        : [{ x: 0, y: -12 }, { x: 0, y: 12 }, { x: 0, y: -20 }, { x: 0, y: 20 }];
-                    this.group.append(Svg.Element.Line.make(lead1Start, lead1End, "line thin"));
-                    this.group.append(Svg.Element.Line.make(lead2Start, lead2End, "line thin"));
-                    let textPosition = (isHorizontal) ? { x: 0, y: -15 } : { x: -15, y: 4 };
-                    let text = (this.breakdownVoltage < 51)
-                        ? Utility.getStandardForm(this.breakdownVoltage, 'V')
-                        : Utility.getStandardForm(this.saturationCurrent, 'A');
-                    let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
-                    this.group.append(Svg.Element.Text.make(text, textPosition, "text " + anchorClass));
+                    this.group.prepend(Svg.Element.Group.Diode.Schematic.make(this.breakdownVoltage, this.saturationCurrent, this.joints[0], this.joints[1], "body"));
                 }
                 makeConnectors() {
-                    let isHorizontal = ["LR", "RL"].includes(this.orientation);
-                    let isLRorUD = ["LR", "UD"].includes(this.orientation);
-                    let lead1End, lead2End;
-                    [lead1End, lead2End] = (isHorizontal)
-                        ? [{ x: -20, y: 0 }, { x: 20, y: 0 }]
-                        : [{ x: 0, y: -20 }, { x: 0, y: 20 }];
-                    let lead1Name, lead2Name;
-                    [lead1Name, lead2Name] = (isLRorUD)
-                        ? ["anode", "cathode"]
-                        : ["cathode", "anode"];
                     this.connectorSets = [[
-                            Component.Generics.makeConnector(this, lead1Name, "node", lead1End),
-                            Component.Generics.makeConnector(this, lead2Name, "node", lead2End),
+                            Component.Generics.makeConnector(this, "anode", "node", this.joints[0]),
+                            Component.Generics.makeConnector(this, "cathode", "node", this.joints[1]),
                         ]];
-                    if (!isLRorUD)
-                        this.connectorSets[0].reverse();
                 }
                 transferFunction() { return []; }
                 ;
@@ -2107,14 +2050,23 @@ var Circuit;
             Local.loadInstance = (raw) => {
                 let state = (raw.state) ?
                     {
-                        orientation: (["LR", "UD", "RL", "DU"].includes(raw.state.orientation)) ? raw.state.orientation : undefined,
-                        location: raw.state.location
+                        location: raw.state.location,
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
+                            ? vector.standardise(raw.state.joints)
+                            : undefined
                     } : {
-                    orientation: (["LR", "UD", "RL", "DU"].includes(raw.orientation)) ? raw.orientation : undefined,
                     location: (raw.where) ? {
                         e: raw.where.X,
                         f: raw.where.Y
                     } : undefined,
+                    joints: (["LR", "UD", "RL", "DU"].includes(raw.orientation))
+                        ? {
+                            LR: [{ x: -20, y: 0 }, { x: 20, y: 0 }],
+                            UD: [{ x: 0, y: -20 }, { x: 0, y: 20 }],
+                            RL: [{ x: 20, y: 0 }, { x: -20, y: 0 }],
+                            DU: [{ x: 0, y: 20 }, { x: 0, y: -20 }]
+                        }[raw.orientation]
+                        : undefined,
                 };
                 let properties = (raw.properties) ?
                     {
@@ -2131,6 +2083,8 @@ var Circuit;
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
+                Component.Addins.Extendable.init(component);
+                Component.Addins.Draggable.init(component);
             });
         })(Local || (Local = {}));
         Component.DiodeSchematic = {
@@ -2176,9 +2130,8 @@ var Circuit;
                     };
                 }
                 draw() {
-                    const first = this.joints[0];
-                    const last = this.joints[this.joints.length - 1];
-                    this.group.prepend(Svg.Element.Path.make(this.joints, "lead"), Svg.Element.Group.InductorBody.make(this.inductance, first, last, "body"));
+                    const [start, end] = this.joints;
+                    this.group.prepend(Svg.Element.Group.Inductor.Layout.make(this.inductance, start, end, "body"));
                 }
                 makeConnectors() {
                     this.connectorSets = [[
@@ -2230,7 +2183,7 @@ var Circuit;
         (function (Local) {
             Local.defaultState = {
                 location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
-                orientation: "LR"
+                joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }]
             };
             Local.defaultProperties = {
                 name: "inductor",
@@ -2240,7 +2193,7 @@ var Circuit;
                 constructor(properties, state) {
                     super(properties, state);
                     $(this.group.element).addClass("component " + this.name);
-                    this.orientation = state.orientation;
+                    this.joints = state.joints;
                     this.inductance = properties.inductance;
                 }
                 getProperties() {
@@ -2252,36 +2205,16 @@ var Circuit;
                 getState() {
                     return {
                         location: this.location,
-                        orientation: this.orientation
+                        joints: this.joints
                     };
                 }
                 draw() {
-                    let isHorizontal = ["LR", "RL"].includes(this.orientation);
-                    let isLRorUD = ["LR", "UD"].includes(this.orientation);
-                    let rotation = (isHorizontal) ? 0 : 90;
-                    let scale = (isLRorUD) ? { x: 1, y: 1 } : { x: -1, y: 1 };
-                    this.group.append(Svg.Element.Rect.make({ x: 0, y: -2 }, { width: 40, height: 12 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick").rotate(rotation).scale(scale));
-                    this.group.append(Svg.Element.Path.make('M-20 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0', "line medium").rotate(rotation).scale(scale));
-                    let lead1Start, lead2Start, lead1End, lead2End;
-                    [lead1Start, lead2Start, lead1End, lead2End] = (isHorizontal)
-                        ? [{ x: -20, y: 0 }, { x: 20, y: 0 }, { x: -30, y: 0 }, { x: 30, y: 0 }]
-                        : [{ x: 0, y: -20 }, { x: 0, y: 20 }, { x: 0, y: -30 }, { x: 0, y: 30 }];
-                    this.group.append(Svg.Element.Line.make(lead1Start, lead1End, "line thin"));
-                    this.group.append(Svg.Element.Line.make(lead2Start, lead2End, "line thin"));
-                    let textPosition = (isHorizontal) ? { x: 0, y: -13 } : { x: -13, y: 4 };
-                    let text = Utility.getStandardForm(this.inductance, 'H');
-                    let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
-                    this.group.append(Svg.Element.Text.make(text, textPosition, "text " + anchorClass));
+                    this.group.prepend(Svg.Element.Group.Inductor.Schematic.make(this.inductance, this.joints[0], this.joints[1], "body"));
                 }
                 makeConnectors() {
-                    let isHorizontal = ["LR", "RL"].includes(this.orientation);
-                    let lead1End, lead2End;
-                    [lead1End, lead2End] = (isHorizontal)
-                        ? [{ x: -30, y: 0 }, { x: 30, y: 0 }]
-                        : [{ x: 0, y: -30 }, { x: 0, y: 30 }];
                     this.connectorSets = [[
-                            Component.Generics.makeConnector(this, "", "node", lead1End),
-                            Component.Generics.makeConnector(this, "", "node", lead2End),
+                            Component.Generics.makeConnector(this, "", "node", this.joints[0]),
+                            Component.Generics.makeConnector(this, "", "node", this.joints[1]),
                         ]];
                 }
                 transferFunction() { return []; }
@@ -2291,14 +2224,23 @@ var Circuit;
             Local.loadInstance = (raw) => {
                 let state = (raw.state) ?
                     {
-                        orientation: (["LR", "UD", "RL", "DU"].includes(raw.state.orientation)) ? raw.state.orientation : undefined,
-                        location: raw.state.location
+                        location: raw.state.location,
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
+                            ? vector.standardise(raw.state.joints)
+                            : undefined
                     } : {
-                    orientation: (["LR", "UD", "RL", "DU"].includes(raw.orientation)) ? raw.orientation : undefined,
                     location: (raw.where) ? {
                         e: raw.where.X,
                         f: raw.where.Y
                     } : undefined,
+                    joints: (["LR", "UD", "RL", "DU"].includes(raw.orientation))
+                        ? {
+                            LR: [{ x: -30, y: 0 }, { x: 30, y: 0 }],
+                            UD: [{ x: 0, y: -30 }, { x: 0, y: 30 }],
+                            RL: [{ x: 30, y: 0 }, { x: -30, y: 0 }],
+                            DU: [{ x: 0, y: 30 }, { x: 0, y: -30 }]
+                        }[raw.orientation]
+                        : undefined,
                 };
                 let properties = (raw.properties) ?
                     {
@@ -2313,6 +2255,8 @@ var Circuit;
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
+                Component.Addins.Extendable.init(component);
+                Component.Addins.Draggable.init(component);
             });
         })(Local || (Local = {}));
         Component.InductorSchematic = {
@@ -2358,38 +2302,33 @@ var Circuit;
                     };
                 }
                 draw() {
-                    if (this.isDual) {
-                        this.group.append(Svg.Element.Group.Dip.make(4, "", "TL072", ""));
-                    }
-                    else {
-                        this.group.append(Svg.Element.Group.Dip.make(4, "", "TL071", ""));
-                    }
+                    this.group.prepend(Svg.Element.Group.OpAmp.Layout.make(this.isDual, "body"));
                 }
                 makeConnectors() {
                     let gridSpacing = Constants.gridSpacing;
                     if (this.isDual) {
                         let gridSpacing = Constants.gridSpacing;
                         this.connectorSets = [[
-                                Component.Generics.makeConnector(this, "vcc+", "pin", { x: 0 * gridSpacing, y: 0 * gridSpacing }),
-                                Component.Generics.makeConnector(this, "out", "pin", { x: 1 * gridSpacing, y: 0 * gridSpacing }),
-                                Component.Generics.makeConnector(this, "in-", "pin", { x: 2 * gridSpacing, y: 0 * gridSpacing }),
-                                Component.Generics.makeConnector(this, "in+", "pin", { x: 3 * gridSpacing, y: 0 * gridSpacing }),
-                                Component.Generics.makeConnector(this, "vcc-", "pin", { x: 3 * gridSpacing, y: 3 * gridSpacing }),
+                                Component.Generics.makeConnector(this, "vcc+", "pin", { x: 0 * gridSpacing, y: 0 * gridSpacing }, "v+"),
+                                Component.Generics.makeConnector(this, "out", "pin", { x: 1 * gridSpacing, y: 0 * gridSpacing }, "1o"),
+                                Component.Generics.makeConnector(this, "in-", "pin", { x: 2 * gridSpacing, y: 0 * gridSpacing }, "1i-"),
+                                Component.Generics.makeConnector(this, "in+", "pin", { x: 3 * gridSpacing, y: 0 * gridSpacing }, "1i+"),
+                                Component.Generics.makeConnector(this, "vcc-", "pin", { x: 3 * gridSpacing, y: 3 * gridSpacing }, "v-"),
                             ], [
-                                Component.Generics.makeConnector(this, "vcc+", "pin", { x: 0 * gridSpacing, y: 0 * gridSpacing }),
-                                Component.Generics.makeConnector(this, "out", "pin", { x: 0 * gridSpacing, y: 3 * gridSpacing }),
-                                Component.Generics.makeConnector(this, "in-", "pin", { x: 1 * gridSpacing, y: 3 * gridSpacing }),
-                                Component.Generics.makeConnector(this, "in+", "pin", { x: 2 * gridSpacing, y: 3 * gridSpacing }),
-                                Component.Generics.makeConnector(this, "vcc-", "pin", { x: 3 * gridSpacing, y: 3 * gridSpacing }),
+                                Component.Generics.makeConnector(this, "vcc+", "pin", { x: 0 * gridSpacing, y: 0 * gridSpacing }, "v+"),
+                                Component.Generics.makeConnector(this, "out", "pin", { x: 0 * gridSpacing, y: 3 * gridSpacing }, "2o"),
+                                Component.Generics.makeConnector(this, "in-", "pin", { x: 1 * gridSpacing, y: 3 * gridSpacing }, "2i-"),
+                                Component.Generics.makeConnector(this, "in+", "pin", { x: 2 * gridSpacing, y: 3 * gridSpacing }, "2i+"),
+                                Component.Generics.makeConnector(this, "vcc-", "pin", { x: 3 * gridSpacing, y: 3 * gridSpacing }, "v-"),
                             ]];
                     }
                     else {
                         this.connectorSets = [[
-                                Component.Generics.makeConnector(this, "vcc+", "pin", { x: 1 * gridSpacing, y: 0 * gridSpacing }),
-                                Component.Generics.makeConnector(this, "out", "pin", { x: 2 * gridSpacing, y: 0 * gridSpacing }),
-                                Component.Generics.makeConnector(this, "in-", "pin", { x: 1 * gridSpacing, y: 3 * gridSpacing }),
-                                Component.Generics.makeConnector(this, "in+", "pin", { x: 2 * gridSpacing, y: 3 * gridSpacing }),
-                                Component.Generics.makeConnector(this, "vcc-", "pin", { x: 3 * gridSpacing, y: 3 * gridSpacing }),
+                                Component.Generics.makeConnector(this, "vcc+", "pin", { x: 1 * gridSpacing, y: 0 * gridSpacing }, "v+"),
+                                Component.Generics.makeConnector(this, "out", "pin", { x: 2 * gridSpacing, y: 0 * gridSpacing }, "o"),
+                                Component.Generics.makeConnector(this, "in-", "pin", { x: 1 * gridSpacing, y: 3 * gridSpacing }, "i-"),
+                                Component.Generics.makeConnector(this, "in+", "pin", { x: 2 * gridSpacing, y: 3 * gridSpacing }, "i+"),
+                                Component.Generics.makeConnector(this, "vcc-", "pin", { x: 3 * gridSpacing, y: 3 * gridSpacing }, "v-"),
                             ]];
                     }
                 }
@@ -2441,8 +2380,8 @@ var Circuit;
         (function (Local) {
             Local.defaultState = {
                 location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
-                orientation: "LR",
-                whichInputAtTop: "non-inverting"
+                whichInputAtTop: "non-inverting",
+                joints: [{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: 40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: 20 }]
             };
             Local.defaultProperties = {
                 name: "opAmp",
@@ -2452,7 +2391,7 @@ var Circuit;
                 constructor(properties, state) {
                     super(properties, state);
                     $(this.group.element).addClass("component " + this.name);
-                    this.orientation = state.orientation;
+                    this.joints = state.joints;
                     this.whichInputAtTop = state.whichInputAtTop;
                     this.offsetVoltage = properties.offsetVoltage;
                 }
@@ -2465,34 +2404,24 @@ var Circuit;
                 getState() {
                     return {
                         location: this.location,
-                        orientation: this.orientation,
+                        joints: this.joints,
                         whichInputAtTop: this.whichInputAtTop
                     };
                 }
                 draw() {
-                    let inversionScale = {
-                        x: (this.orientation === "LR") ? 1 : -1,
-                        y: (this.whichInputAtTop === "non-inverting") ? 1 : -1
-                    };
-                    let bodyPath = "M-25 -25 L 25 0 L -25 25 L -25 -25 Z";
-                    this.group.append(Svg.Element.Path.make(bodyPath, "highlight highlightwithfill extrathick").scale(inversionScale));
-                    this.group.append(Svg.Element.Path.make(bodyPath, "body white").scale(inversionScale));
-                    this.group.append(Svg.Element.Line.make({ x: -22, y: -10 }, { x: -14, y: -10 }, "line thin").scale(inversionScale));
-                    this.group.append(Svg.Element.Line.make({ x: -18, y: -6 }, { x: -18, y: -14 }, "line thin").scale(inversionScale));
-                    this.group.append(Svg.Element.Line.make({ x: -22, y: +10 }, { x: -14, y: +10 }, "line thin").scale(inversionScale));
-                    this.group.append(Svg.Element.Line.make({ x: -25, y: -10 }, { x: -30, y: -10 }, "line thin").scale(inversionScale));
-                    this.group.append(Svg.Element.Line.make({ x: -25, y: 10 }, { x: -30, y: 10 }, "line thin").scale(inversionScale));
-                    this.group.append(Svg.Element.Line.make({ x: 25, y: 0 }, { x: 40, y: 0 }, "line thin").scale(inversionScale));
+                    this.group.prepend(Svg.Element.Group.OpAmp.Schematic.make(this.joints[0], this.joints[1], this.joints[2], this.joints[3], this.joints[4]));
                 }
                 makeConnectors() {
-                    let nonInvertingY = (this.whichInputAtTop === "non-inverting") ? -10 : 10;
+                    let [posPower, negPower] = (this.joints[3].y < this.joints[4].y)
+                        ? [this.joints[3], this.joints[4]]
+                        : [this.joints[4], this.joints[3]];
                     this.connectorSets = [
                         [
-                            Component.Generics.makeConnector(this, "vcc+", "node", { x: 0, y: -12 }),
-                            Component.Generics.makeConnector(this, "out", "node", { x: 40, y: 0 }),
-                            Component.Generics.makeConnector(this, "in-", "node", { x: -30, y: -nonInvertingY }),
-                            Component.Generics.makeConnector(this, "in+", "node", { x: -30, y: nonInvertingY }),
-                            Component.Generics.makeConnector(this, "vcc-", "node", { x: 0, y: 12 }),
+                            Component.Generics.makeConnector(this, "vcc+", "node", posPower, "v+"),
+                            Component.Generics.makeConnector(this, "out", "node", this.joints[2], "o"),
+                            Component.Generics.makeConnector(this, "in-", "node", this.joints[1], "i-"),
+                            Component.Generics.makeConnector(this, "in+", "node", this.joints[0], "i+"),
+                            Component.Generics.makeConnector(this, "vcc-", "node", negPower, "v-"),
                         ]
                     ];
                 }
@@ -2503,16 +2432,25 @@ var Circuit;
             Local.loadInstance = (raw) => {
                 let state = (raw.state) ?
                     {
-                        orientation: (["LR", "RL"].includes(raw.state.orientation)) ? raw.state.orientation : undefined,
                         whichInputAtTop: (["inverting", "non-inverting"].includes(raw.state.whichInputAtTop)) ? raw.state.whichInputAtTop : undefined,
-                        location: raw.state.location
+                        location: raw.state.location,
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 3)
+                            ? vector.standardise(raw.state.joints)
+                            : undefined
                     } : {
-                    orientation: (["LR", "RL"].includes(raw.orientation)) ? raw.orientation : undefined,
                     whichInputAtTop: (["inverting", "non-inverting"].includes(raw.whichInputAtTop)) ? raw.whichInputAtTop : undefined,
                     location: (raw.where) ? {
                         e: raw.where.X,
                         f: raw.where.Y
                     } : undefined,
+                    joints: (["LR", "RL"].includes(raw.orientation) && ["inverting", "non-inverting"].includes(raw.whichInputAtTop))
+                        ? {
+                            "LRinverting": [{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: +40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: +20 }],
+                            "RLinverting": [{ x: +30, y: -10 }, { x: +30, y: +10 }, { x: -40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: +20 }],
+                            "LRnon-inverting": [{ x: -30, y: +10 }, { x: -30, y: -10 }, { x: +40, y: 0 }, { x: 0, y: +20 }, { x: 0, y: -20 }],
+                            "RLnon-inverting": [{ x: +30, y: +10 }, { x: +30, y: -10 }, { x: -40, y: 0 }, { x: 0, y: +20 }, { x: 0, y: -20 }],
+                        }[raw.orientation + raw.whichInputAtTop]
+                        : undefined,
                 };
                 let properties = (raw.properties) ?
                     {
@@ -2523,9 +2461,9 @@ var Circuit;
                 };
                 if ((raw.minOutput) && (raw.maxOutput)) {
                     let topPower = Component.PowerSchematic.makeInstance({ voltage: raw.maxOutput || 5 }, { location: state.location }, true);
-                    topPower.group.translate({ x: 0, y: -22 });
+                    topPower.group.translate({ x: 0, y: -30 });
                     let bottomPower = Component.PowerSchematic.makeInstance({ voltage: raw.minOutput || -5 }, { location: state.location }, true);
-                    bottomPower.group.translate({ x: 0, y: 22 });
+                    bottomPower.group.translate({ x: 0, y: 30 });
                     let opAmp = Local.makeInstance(properties, state, true);
                     let instances = [
                         topPower,
@@ -2542,6 +2480,8 @@ var Circuit;
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
+                Component.Addins.Draggable.init(component);
+                Component.Addins.Extendable.init(component);
             });
         })(Local || (Local = {}));
         Component.OpAmpSchematic = {
@@ -2561,6 +2501,7 @@ var Circuit;
         (function (Local) {
             Local.defaultState = {
                 location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
+                joints: [{ x: 0, y: 40 }]
             };
             Local.defaultProperties = {
                 name: "power",
@@ -2570,7 +2511,9 @@ var Circuit;
                 constructor(properties, state) {
                     super(properties, state);
                     this.connectorSets = [];
+                    $(this.group.element).addClass("component " + this.name);
                     this.voltage = properties.voltage;
+                    this.joints = state.joints;
                 }
                 getProperties() {
                     return {
@@ -2580,20 +2523,19 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.location
+                        location: this.location,
+                        joints: this.joints
                     };
                 }
                 insertInto(element) {
                     Utility.Insert.before(this.group.element, element, ".component");
                 }
                 draw() {
-                    $(this.group.element).addClass(this.name);
-                    let text = this.voltage.toFixed(1);
-                    this.group.append(Svg.Element.Rect.make({ x: 0, y: 5 }, { width: 180, height: 95 }, { x: 10, y: 10 }, "body highlight"), Svg.Element.Rect.make({ x: 0, y: -5 }, { width: 160, height: 65 }, { x: 10, y: 10 }, "screen"), Svg.Element.Text.make("8".repeat(text.length - 1), { x: 0, y: 20 }, "screentext off"), Svg.Element.Text.make(text, { x: 0, y: 20 }, "screentext on"), Svg.Element.Circle.make({ x: 0, y: 40 }, 5, "hole"));
+                    this.group.prepend(Svg.Element.Group.Power.Layout.make(this.voltage, this.joints[0], "body"));
                 }
                 makeConnectors() {
                     this.connectorSets = [[
-                            Component.Generics.makeConnector(this, "", "hole", { x: 0, y: 40 })
+                            Component.Generics.makeConnector(this, "", "hole", this.joints[0])
                         ]];
                 }
                 transferFunction() { return []; }
@@ -2601,18 +2543,18 @@ var Circuit;
             }
             Local.Instance = Instance;
             Local.loadInstance = (raw) => {
-                let state = Object.assign({}, Local.defaultState);
-                let properties = Object.assign({}, Local.defaultProperties);
-                if (raw.state) {
-                    if (raw.state.location) {
-                        state.location = raw.state.location;
-                    }
-                }
-                if (raw.properties) {
-                    if (raw.properties.voltage) {
-                        properties.voltage = Number(raw.properties.voltage) || 0;
-                    }
-                }
+                let state = (raw.state) ?
+                    {
+                        location: raw.state.location,
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 1)
+                            ? vector.standardise(raw.state.joints)
+                            : undefined
+                    } : {};
+                let properties = (raw.properties) ?
+                    {
+                        name: raw.properties.name,
+                        voltage: raw.properties.voltage,
+                    } : {};
                 return Local.makeInstance(properties, state, true);
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
@@ -2648,6 +2590,7 @@ var Circuit;
         (function (Local) {
             Local.defaultState = {
                 location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
+                joints: [{ x: 0, y: 0 }]
             };
             Local.defaultProperties = {
                 name: "power",
@@ -2658,6 +2601,7 @@ var Circuit;
                     super(properties, state);
                     $(this.group.element).addClass("component " + this.name);
                     this.voltage = properties.voltage;
+                    this.joints = state.joints;
                 }
                 getProperties() {
                     return {
@@ -2667,19 +2611,12 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.location
+                        location: this.location,
+                        joints: this.joints
                     };
                 }
                 draw() {
-                    if (this.voltage < 0) {
-                        drawPowerNegative(this);
-                    }
-                    else if (this.voltage > 0) {
-                        drawPowerPositive(this);
-                    }
-                    else {
-                        drawPowerGround(this);
-                    }
+                    this.group.prepend(Svg.Element.Group.Power.Schematic.make(this.voltage, this.joints[0]));
                 }
                 makeConnectors() {
                     let lead1End;
@@ -2697,40 +2634,33 @@ var Circuit;
             }
             Local.Instance = Instance;
             Local.loadInstance = (raw) => {
-                let state = Object.assign({}, Local.defaultState);
-                let properties = Object.assign({}, Local.defaultProperties);
-                if (raw.where) {
-                    state.location.e = Number(raw.where.X) || 0;
-                    state.location.f = Number(raw.where.Y) || 0;
-                }
-                properties.voltage = raw.value || 0;
-                if (raw.state) {
-                    if (raw.state.location) {
-                        state.location = raw.state.location;
-                    }
-                }
-                if (raw.properties) {
-                    if (raw.properties.voltage) {
-                        properties.voltage = Number(raw.properties.voltage) || 0;
-                    }
-                }
+                let state = (raw.state) ?
+                    {
+                        location: raw.state.location,
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 1)
+                            ? vector.standardise(raw.state.joints)
+                            : undefined
+                    } : {
+                    location: (raw.where) ? {
+                        e: raw.where.X,
+                        f: raw.where.Y
+                    } : undefined,
+                    joints: undefined,
+                };
+                let properties = (raw.properties) ?
+                    {
+                        name: raw.properties.name,
+                        voltage: raw.properties.voltage,
+                    } : {
+                    voltage: raw.value,
+                };
                 return Local.makeInstance(properties, state, true);
             };
-            function drawPowerPositive(component) {
-                let text = Utility.getStandardForm(component.voltage, "V");
-                component.group.append(Svg.Element.Rect.make({ x: 0, y: -8 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"), Svg.Element.Line.make({ x: -12, y: -5 }, { x: 12, y: -5 }, "line medium"), Svg.Element.Text.make(text, { x: 0, y: -9 }, "text bold"), Svg.Element.Line.make({ x: 0, y: -5 }, { x: 0, y: 10 }, "line thin"));
-            }
-            function drawPowerNegative(component) {
-                let text = Utility.getStandardForm(component.voltage, "V");
-                component.group.append(Svg.Element.Rect.make({ x: 0, y: 8 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"), Svg.Element.Line.make({ x: -12, y: 5 }, { x: 12, y: 5 }, "line medium"), Svg.Element.Text.make(text, { x: 0, y: 19 }, "text bold"), Svg.Element.Line.make({ x: 0, y: 5 }, { x: 0, y: -10 }, "line thin"));
-            }
-            function drawPowerGround(component) {
-                component.group.append(Svg.Element.Rect.make({ x: 0, y: 5 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"), Svg.Element.Line.make({ x: -18, y: 0 }, { x: 18, y: 0 }, "line medium"), Svg.Element.Line.make({ x: -12, y: 5 }, { x: 12, y: 5 }, "line medium"), Svg.Element.Line.make({ x: -6, y: 10 }, { x: 6, y: 10 }, "line medium"), Svg.Element.Line.make({ x: 0, y: 0 }, { x: 0, y: -10 }, "line thin"));
-            }
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
+                Component.Addins.Draggable.init(component);
             });
         })(Local || (Local = {}));
         Component.PowerSchematic = {
@@ -2776,9 +2706,8 @@ var Circuit;
                     };
                 }
                 draw() {
-                    const first = this.joints[0];
-                    const last = this.joints[this.joints.length - 1];
-                    this.group.prepend(Svg.Element.Path.make(this.joints, "lead"), Svg.Element.Group.ResistorBody.make(this.resistance, first, last, "body"));
+                    const [start, end] = this.joints;
+                    this.group.prepend(Svg.Element.Group.Resistor.Layout.make(this.resistance, start, end, "body"));
                 }
                 makeConnectors() {
                     this.connectorSets = [
@@ -2830,7 +2759,7 @@ var Circuit;
         (function (Local) {
             Local.defaultState = {
                 location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
-                orientation: "LR"
+                joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }]
             };
             Local.defaultProperties = {
                 name: "resistor",
@@ -2840,7 +2769,7 @@ var Circuit;
                 constructor(properties, state) {
                     super(properties, state);
                     $(this.group.element).addClass("component " + this.name);
-                    this.orientation = state.orientation;
+                    this.joints = state.joints;
                     this.resistance = properties.resistance;
                 }
                 getProperties() {
@@ -2852,34 +2781,16 @@ var Circuit;
                 getState() {
                     return {
                         location: this.location,
-                        orientation: this.orientation
+                        joints: this.joints
                     };
                 }
                 draw() {
-                    let isHorizontal = ["LR", "RL"].includes(this.orientation);
-                    let bodySize = (isHorizontal) ? { width: 46, height: 18 } : { width: 18, height: 46 };
-                    this.group.append(Svg.Element.Rect.make({ x: 0, y: 0 }, bodySize, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"));
-                    this.group.append(Svg.Element.Rect.make({ x: 0, y: 0 }, bodySize, { x: 2, y: 2 }, "body white"));
-                    let lead1Start, lead2Start, lead1End, lead2End;
-                    [lead1Start, lead2Start, lead1End, lead2End] = (isHorizontal)
-                        ? [{ x: -24, y: 0 }, { x: 24, y: 0 }, { x: -30, y: 0 }, { x: 30, y: 0 }]
-                        : [{ x: 0, y: -24 }, { x: 0, y: 24 }, { x: 0, y: -30 }, { x: 0, y: 30 }];
-                    this.group.append(Svg.Element.Line.make(lead1Start, lead1End, "line thin"));
-                    this.group.append(Svg.Element.Line.make(lead2Start, lead2End, "line thin"));
-                    let textPosition = (isHorizontal) ? { x: 0, y: -15 } : { x: -15, y: 4 };
-                    let text = Utility.getStandardForm(this.resistance, 'Ω');
-                    let anchorClass = (isHorizontal) ? "anchormid" : "anchorend";
-                    this.group.append(Svg.Element.Text.make(text, textPosition, "text " + anchorClass));
+                    this.group.prepend(Svg.Element.Group.Resistor.Schematic.make(this.resistance, this.joints[0], this.joints[1], "body"));
                 }
                 makeConnectors() {
-                    let isHorizontal = ["LR", "RL"].includes(this.orientation);
-                    let lead1End, lead2End;
-                    [lead1End, lead2End] = (isHorizontal)
-                        ? [{ x: -30, y: 0 }, { x: 30, y: 0 }]
-                        : [{ x: 0, y: -30 }, { x: 0, y: 30 }];
                     this.connectorSets = [
-                        [Component.Generics.makeConnector(this, "", "node", lead1End),
-                            Component.Generics.makeConnector(this, "", "node", lead2End),]
+                        [Component.Generics.makeConnector(this, "", "node", this.joints[0]),
+                            Component.Generics.makeConnector(this, "", "node", this.joints[1]),]
                     ];
                 }
                 transferFunction() { return []; }
@@ -2889,14 +2800,23 @@ var Circuit;
             Local.loadInstance = (raw) => {
                 let state = (raw.state) ?
                     {
-                        orientation: (["LR", "UD", "RL", "DU"].includes(raw.state.orientation)) ? raw.state.orientation : undefined,
-                        location: raw.state.location
+                        location: raw.state.location,
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
+                            ? vector.standardise(raw.state.joints)
+                            : undefined
                     } : {
-                    orientation: (["LR", "UD", "RL", "DU"].includes(raw.orientation)) ? raw.orientation : undefined,
                     location: (raw.where) ? {
                         e: raw.where.X,
                         f: raw.where.Y
                     } : undefined,
+                    joints: (["LR", "UD", "RL", "DU"].includes(raw.orientation))
+                        ? {
+                            LR: [{ x: -30, y: 0 }, { x: 30, y: 0 }],
+                            UD: [{ x: 0, y: -30 }, { x: 0, y: 30 }],
+                            RL: [{ x: 30, y: 0 }, { x: -30, y: 0 }],
+                            DU: [{ x: 0, y: 30 }, { x: 0, y: -30 }]
+                        }[raw.orientation]
+                        : undefined,
                 };
                 let properties = (raw.properties) ?
                     {
@@ -2911,6 +2831,8 @@ var Circuit;
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
+                Component.Addins.Extendable.init(component);
+                Component.Addins.Draggable.init(component);
             });
         })(Local || (Local = {}));
         Component.ResistorSchematic = {
@@ -3133,7 +3055,7 @@ var Circuit;
             }
             function getRecolorPosition(component) {
                 const angle = vector(component.joints[0]).getAngleTo(component.joints[1]);
-                const offset = Utility.Polar.toVector(12, angle);
+                const offset = Utility.Polar.toVector(12, angle + 45);
                 return vector(component.joints[0]).sumWith(offset).vector;
             }
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
@@ -3186,11 +3108,7 @@ var Circuit;
                     };
                 }
                 draw() {
-                    let pathString = "M " + this.joints[0].x + " " + this.joints[0].y;
-                    for (let j = 1; j < this.joints.length; j++) {
-                        pathString += " L " + this.joints[j].x + " " + +this.joints[j].y;
-                    }
-                    this.group.append(Svg.Element.Path.make(pathString, "line thin"));
+                    this.group.prepend(Svg.Element.Path.make(this.joints, "line thin"));
                 }
                 makeConnectors() {
                     let end1 = this.joints[0];
@@ -3233,6 +3151,9 @@ var Circuit;
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Junctions.init(component);
+                Component.Addins.Selectable.init(component);
+                Component.Addins.Draggable.init(component);
+                Component.Addins.Extendable.init(component, true, true);
             });
         })(Local || (Local = {}));
         Component.WireSchematic = {
@@ -3307,9 +3228,10 @@ var Circuit;
     (function (Component) {
         var Generics;
         (function (Generics) {
-            function makeConnector(component, name, type, position) {
+            function makeConnector(component, name, type, position, symbol = "") {
                 let connector = {
                     name: name,
+                    symbol: symbol,
                     type: type,
                     component: component,
                     get point() {
@@ -20213,7 +20135,7 @@ var Svg;
                                 x: ui.position.left,
                                 y: ui.position.top
                             };
-                            $(eventTarget).trigger("dragSVG", [ui, dragChangeSvg]);
+                            $(eventTarget).trigger(Events.drag, [ui, dragChangeSvg]);
                         },
                         stop: (event, ui) => {
                             $(element).removeClass(styleClass);
@@ -20531,6 +20453,35 @@ var Svg;
                     };
                 }
                 Functions.followPath = followPath;
+                function rotatePosition(element) {
+                    return (rotation) => {
+                        const position = {
+                            x: Number(element.getAttribute("x")),
+                            y: Number(element.getAttribute("y"))
+                        };
+                        svg(element).rotate(rotation).rotate(-rotation, position);
+                        if (25 < rotation && rotation < 155) {
+                            $(element).css("text-anchor", "start");
+                        }
+                        else if (-155 < rotation && rotation < -25) {
+                            $(element).css("text-anchor", "end");
+                        }
+                        else {
+                            $(element).css("text-anchor", "middle");
+                        }
+                        if (135 < rotation || rotation < -135) {
+                            $(element).css("alignment-baseline", "hanging");
+                        }
+                        else if (-55 < rotation && rotation < 45) {
+                            $(element).css("alignment-baseline", "baseline");
+                        }
+                        else {
+                            $(element).css("alignment-baseline", "middle");
+                        }
+                        return svg(element);
+                    };
+                }
+                Functions.rotatePosition = rotatePosition;
             })(Functions = Text.Functions || (Text.Functions = {}));
         })(Text = Element.Text || (Element.Text = {}));
     })(Element = Svg.Element || (Svg.Element = {}));
@@ -20686,10 +20637,10 @@ var Circuit;
                 (function (Reversible) {
                     Reversible.init = (component) => {
                         let element = component.group;
-                        $(element.element).on("select", () => {
+                        $(element.element).on(Events.select, () => {
                             createGhost(component);
                         });
-                        $(element.element).on("deselect", () => {
+                        $(element.element).on(Events.deselect, () => {
                             clearGhost(component);
                         });
                         component.tracks.forEach((track, trackIdx) => {
@@ -20783,12 +20734,16 @@ var Circuit;
                         clearConnectionsHighlights(component);
                     });
                 };
-                const createConnectorHighlights = (component, connection, color) => {
+                const createConnectorHighlights = (component, connection, color, symbol) => {
                     let ctm = component.group.element.getCTM();
                     let point = (ctm) ? connection.point.matrixTransform(ctm.inverse()) : connection.point;
                     let highlight = Svg.Element.Circle.make(point, 4, "highlight highlightwithfill connectivityhighlight");
                     $(highlight.element).css({ "fill": color, "stroke": color });
                     component.group.append(highlight);
+                    if (connection.symbol !== "") {
+                        let symbol = Svg.Element.Text.make(connection.symbol, point, "text connectivityhighlight");
+                        component.group.append(symbol);
+                    }
                 };
                 const createConnectionsHighlights = (component, propogate, colorPalette) => {
                     let connectionSets = component.getConnections();
@@ -20800,9 +20755,7 @@ var Circuit;
                                     createConnectorHighlights(component, connector, color);
                                 });
                             }
-                            else {
-                                createConnectorHighlights(component, connectorConnections[0], color);
-                            }
+                            createConnectorHighlights(component, connectorConnections[0], color);
                         });
                     });
                 };
@@ -20811,7 +20764,7 @@ var Circuit;
                 };
                 const defaultColorPalette = [
                     "red",
-                    "green",
+                    "#8bc34a",
                     "pink",
                     "yellow",
                     "cyan",
@@ -20863,7 +20816,6 @@ var Circuit;
                     component.group.clearChildren(":not(.handle)");
                     component.makeConnectors();
                     component.draw();
-                    $(component.group.element).trigger(Events.select);
                 };
                 const initHandles = (component) => {
                     component.joints.forEach(joint => {
@@ -21002,16 +20954,15 @@ var Circuit;
                     });
                 };
                 const refreshComponent = (component) => {
-                    component.group.clearChildren(":not(.handle)");
+                    component.group.clearChildren(":not(.handle,.connectivityhighlight)");
                     component.makeConnectors();
                     component.draw();
                 };
                 const createRecolorHandle = (component, position, recolorSelector, colorPalette) => {
                     let recolorSegmentGroup = Svg.Element.Group.make("recolorSegmentGroup");
                     let recolorHandle = Svg.Element.Circle.make(position, 7, "handle recolorHandle");
-                    Svg.Addins.Draggable.init(recolorHandle.element, { disableMovement: true });
-                    let segment1 = Svg.Element.Rect.make(position, { width: 10, height: 20 }, undefined, "recolorHandleSegment").translate({ x: -4, y: -4 }).rotate(45, position);
-                    let segment2 = Svg.Element.Rect.make(position, { width: 10, height: 20 }, undefined, "recolorHandleSegment").translate({ x: 4, y: 4 }).rotate(45, position);
+                    let segment1 = Svg.Element.Rect.make(position, { width: 10, height: 20 }, undefined, "recolorHandleSegment").rotate(45, position).translate({ x: -4, y: -4 });
+                    let segment2 = Svg.Element.Rect.make(position, { width: 10, height: 20 }, undefined, "recolorHandleSegment").rotate(45, position).translate({ x: 4, y: 4 });
                     $(segment1.element).css("fill", "#4fd56b");
                     $(segment2.element).css("fill", "#d54f6b");
                     recolorSegmentGroup.append(segment1, segment2);
@@ -21028,7 +20979,6 @@ var Circuit;
                         ;
                         component.color = color;
                         refreshComponent(component);
-                        $(component.group.element).trigger("select");
                     });
                 };
                 const clearRecolorHandle = (component) => {
@@ -21111,7 +21061,6 @@ var Circuit;
                 };
                 const setDisplayHandlers = (component) => {
                     $(component.group.element).on(Events.select, () => {
-                        console.log(component);
                         $(component.group.element).addClass("selected");
                         component.insertInto(component.group.element);
                     });
@@ -21141,7 +21090,7 @@ var Circuit;
                             });
                             let dragHandle;
                             $(mOE.target).on(Events.dragStart, (e, ui, drag) => {
-                                const position = { x: e.clientX, y: e.clientY };
+                                const position = Active.layout.group.convertVector({ x: e.clientX, y: e.clientY }, "DomToSvg", "relToGroup");
                                 const gridPosition = vector(position).snapToGrid().vector;
                                 const wire = createWireAtPoint(gridPosition);
                                 dragHandle = $(wire.group.element).find(".dragHandle")[0];
@@ -21349,107 +21298,6 @@ var Svg;
     (function (Element) {
         var Group;
         (function (Group) {
-            var BipolarBody;
-            (function (BipolarBody) {
-                function make(text, centre, rotation, classes = "") {
-                    const element = Group.make(classes);
-                    let semiCircleString = "M " + (16) + " " + (4) +
-                        "a " + (1) + " " + (1) + " " + (0) + " " + (0) + " " + (0) + " " + (-32) + " " + (0) +
-                        "v " + (3) +
-                        "h " + (32) +
-                        "v " + (-3) +
-                        "Z";
-                    element.append(Svg.Element.Path.make(semiCircleString, "body highlight").element, Svg.Element.Text.make(text, { x: 0, y: 4 }, "text").element);
-                    element.translate(centre).rotate(rotation);
-                    return element;
-                }
-                BipolarBody.make = make;
-            })(BipolarBody = Group.BipolarBody || (Group.BipolarBody = {}));
-        })(Group = Element.Group || (Element.Group = {}));
-    })(Element = Svg.Element || (Svg.Element = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Element;
-    (function (Element) {
-        var Group;
-        (function (Group) {
-            var CapacitorBodyCeramic;
-            (function (CapacitorBodyCeramic) {
-                function make(value, start, end, classes = "") {
-                    const element = Group.make(classes);
-                    let centre = {
-                        x: (start.x + end.x) / 2,
-                        y: (start.y + end.y) / 2
-                    };
-                    let rotation = vector(start).getAngleTo(end);
-                    const text = Utility.getStandardForm(value, 'F');
-                    element.append(Svg.Element.Ellipse.make({ x: 0, y: 0 }, { x: 16, y: 8 }, "body highlight nofill"), Svg.Element.Text.make(text, { x: 0, y: 0 }, "text"));
-                    element.translate({ x: centre.x, y: centre.y }).rotate(rotation);
-                    return element;
-                }
-                CapacitorBodyCeramic.make = make;
-            })(CapacitorBodyCeramic = Group.CapacitorBodyCeramic || (Group.CapacitorBodyCeramic = {}));
-        })(Group = Element.Group || (Element.Group = {}));
-    })(Element = Svg.Element || (Svg.Element = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Element;
-    (function (Element) {
-        var Group;
-        (function (Group) {
-            var CapacitorBodyElectrolytic;
-            (function (CapacitorBodyElectrolytic) {
-                function make(value, start, end, classes = "") {
-                    const element = Group.make(classes);
-                    const centre = {
-                        x: (start.x + end.x) / 2,
-                        y: (start.y + end.y) / 2
-                    };
-                    let rotation = vector(start).getAngleTo(end);
-                    const text = Utility.getStandardForm(value, 'F');
-                    const bodyArcEndPoint = 14 / Math.SQRT2;
-                    const textArcEndPoint = 12.5 / Math.SQRT2;
-                    const bodyPathString = "m14 0 A14 14 0 1 0 " + (bodyArcEndPoint) + " " + (bodyArcEndPoint);
-                    const minusPathString = "m14 0 A14 14 0 0 1 " + (bodyArcEndPoint) + " " + (bodyArcEndPoint);
-                    const pathForTextString = "m" + (textArcEndPoint) + " " + (textArcEndPoint) + "A12.5 12.5 0 1 1 12.5 0";
-                    element.append(Svg.Element.Circle.make({ x: 0, y: 0 }, 16, "highlight nofill"), Element.Path.make(bodyPathString, "body").rotate(157.5), Element.Path.make(minusPathString, "minus").rotate(157.5), Element.Text.make(text, { x: 1, y: 0 }, "text").followPath(pathForTextString).rotate(157.5));
-                    element.translate({ x: centre.x, y: centre.y }).rotate(rotation);
-                    return element;
-                }
-                CapacitorBodyElectrolytic.make = make;
-            })(CapacitorBodyElectrolytic = Group.CapacitorBodyElectrolytic || (Group.CapacitorBodyElectrolytic = {}));
-        })(Group = Element.Group || (Element.Group = {}));
-    })(Element = Svg.Element || (Svg.Element = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Element;
-    (function (Element) {
-        var Group;
-        (function (Group) {
-            var DiodeBody;
-            (function (DiodeBody) {
-                function make(value, start, end, classes = "") {
-                    const element = Group.make(classes);
-                    let centre = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
-                    let rotation = vector(start).getAngleTo(end);
-                    element.append(Svg.Element.Rect.make({ x: -5.5, y: 0 }, { width: 29, height: 15 }, { x: 0, y: 0 }, "body"), Svg.Element.Rect.make({ x: 17.5, y: 0 }, { width: 5, height: 15 }, { x: 0, y: 0 }, "body"), Svg.Element.Rect.make({ x: 12, y: 0 }, { width: 6, height: 15 }, { x: 0, y: 0 }, "cathode"), Svg.Element.Rect.make({ x: 0, y: 0 }, { width: 40, height: 15 }, { x: 1, y: 1 }, "highlight nofill"));
-                    element.translate({ x: centre.x, y: centre.y }).rotate(rotation);
-                    return element;
-                }
-                DiodeBody.make = make;
-            })(DiodeBody = Group.DiodeBody || (Group.DiodeBody = {}));
-        })(Group = Element.Group || (Element.Group = {}));
-    })(Element = Svg.Element || (Svg.Element = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Element;
-    (function (Element) {
-        var Group;
-        (function (Group) {
             var Dip;
             (function (Dip) {
                 function make(pinsPerSide = 4, textLineOne = "", textLineTwo = "", textLineThree = "", classes = "") {
@@ -21493,96 +21341,6 @@ var Svg;
     (function (Element) {
         var Group;
         (function (Group) {
-            var InductorBody;
-            (function (InductorBody) {
-                function make(value, start, end, classes = "") {
-                    const element = Group.make(classes);
-                    let centre = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
-                    let rotation = vector(start).getAngleTo(end);
-                    const nCoils = 4;
-                    const wireWidth = 8;
-                    const coilTop = -15;
-                    const coilBottom = 15;
-                    const coilStart = (-(nCoils * wireWidth) / 2 + wireWidth / 4);
-                    let bodyPath = "M" + (coilStart) + " " + (coilBottom);
-                    let bodyEdgePath = "";
-                    for (let i = 1; i < nCoils; i++) {
-                        let x0 = coilStart + wireWidth * (i - 0.5);
-                        let x1 = coilStart + wireWidth * (i);
-                        bodyPath += "L" + (x0) + " " + (coilTop) + "L" + (x1) + " " + (coilBottom);
-                        bodyEdgePath += "M" + (x0) + " " + (coilBottom) + "L" + (x1) + " " + (coilTop);
-                    }
-                    bodyPath += "L" + (-coilStart) + " " + (coilTop);
-                    element.append(Svg.Element.Path.make(bodyPath, "highlight highlightwithfill"), Svg.Element.Path.make(bodyPath, "body"), Svg.Element.Path.make(bodyEdgePath, "bodyEdge"));
-                    element.translate({ x: centre.x, y: centre.y }).rotate(rotation);
-                    return element;
-                }
-                InductorBody.make = make;
-            })(InductorBody = Group.InductorBody || (Group.InductorBody = {}));
-        })(Group = Element.Group || (Element.Group = {}));
-    })(Element = Svg.Element || (Svg.Element = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Element;
-    (function (Element) {
-        var Group;
-        (function (Group) {
-            var ResistorBody;
-            (function (ResistorBody) {
-                function make(value, start, end, classes = "") {
-                    const element = Group.make(classes);
-                    let centre = {
-                        x: (start.x + end.x) / 2,
-                        y: (start.y + end.y) / 2
-                    };
-                    let rotation = vector(start).getAngleTo(end);
-                    let bodyPath = "m-12.5 -6" + "h25" + "c15 -8 15 20 0 12" + "h-25" + "c-15 +8 -15 -20 0 -12" + "Z";
-                    element.append(Svg.Element.Path.make(bodyPath, "body"), getBands(value), Svg.Element.Path.make(bodyPath, "highlight nofill"));
-                    element.translate({ x: centre.x, y: centre.y }).rotate(rotation);
-                    return element;
-                }
-                ResistorBody.make = make;
-                function getBands(num) {
-                    let exp = num.toExponential(1);
-                    let sigFig1 = exp.slice(exp.indexOf(".") - 1)[0];
-                    let sigFig2 = exp.slice(exp.indexOf(".") + 1)[0];
-                    let multiplier = (parseInt(exp.slice(exp.indexOf("e") + 1), 10) - 1).toString();
-                    let colours = {
-                        "-3": "pink",
-                        "-2": "silver",
-                        "-1": "gold",
-                        "0": "black",
-                        "1": "brown",
-                        "2": "red",
-                        "3": "#FF7F26",
-                        "4": "yellow",
-                        "5": "green",
-                        "6": "blue",
-                        "7": "violet",
-                        "8": "grey",
-                        "9": "white"
-                    };
-                    let b1 = Svg.Element.Rect.make({ x: -17.5, y: 0 }, { width: 3, height: 18 }, undefined, "band1");
-                    let b2 = Svg.Element.Rect.make({ x: -11, y: 0 }, { width: 3, height: 12 }, undefined, "band2");
-                    let b3 = Svg.Element.Rect.make({ x: -4, y: 0 }, { width: 3, height: 12 }, undefined, "band3");
-                    let b4 = Svg.Element.Rect.make({ x: 3.5, y: 0 }, { width: 4, height: 12 }, undefined, "band4");
-                    $(b1.element).css("fill", colours[sigFig1]);
-                    $(b2.element).css("fill", colours[sigFig2]);
-                    $(b3.element).css("fill", colours[multiplier]);
-                    $(b4.element).css("fill", "transparent");
-                    return [b1, b2, b3, b4];
-                }
-            })(ResistorBody = Group.ResistorBody || (Group.ResistorBody = {}));
-        })(Group = Element.Group || (Element.Group = {}));
-    })(Element = Svg.Element || (Svg.Element = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Element;
-    (function (Element) {
-        var Group;
-        (function (Group) {
             var TextSequence;
             (function (TextSequence) {
                 function make(start, gap, sequence, classes = "") {
@@ -21598,11 +21356,546 @@ var Svg;
                         textArray = [...Array(sequence.length).keys()].map(v => (v + sequence.start).toString());
                     }
                     element.append(textArray.map((txt, i) => Svg.Element.Text.make(txt, { x: gap.x * i, y: gap.y * i }, "text")));
-                    element.translate({ x: start.x, y: start.y });
+                    element.translate(start);
                     return element;
                 }
                 TextSequence.make = make;
             })(TextSequence = Group.TextSequence || (Group.TextSequence = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var Bipolar;
+            (function (Bipolar) {
+                var Layout;
+                (function (Layout) {
+                    function make(text, emitterEnd, collectorEnd, baseEnd, classes = "") {
+                        const bodyGroup = Group.make(classes);
+                        let centre = vector(emitterEnd, collectorEnd, baseEnd).centre().vector;
+                        let rotation = vector(emitterEnd).getAngleTo(baseEnd);
+                        let [emitterStart, collectorStart, baseStart] = vector({ x: -12, y: 3 }, { x: 0, y: 3 }, { x: 12, y: 3 }).rotate(-rotation).sumWith(centre).vectors;
+                        let joints = [
+                            [emitterStart, emitterEnd],
+                            [collectorStart, collectorEnd],
+                            [baseStart, baseEnd],
+                        ];
+                        let semiCircleString = "M " + (16) + " " + (4) +
+                            "a " + (1) + " " + (1) + " " + (0) + " " + (0) + " " + (0) + " " + (-32) + " " + (0) +
+                            "v " + (3) +
+                            "h " + (32) +
+                            "v " + (-3) +
+                            "Z";
+                        bodyGroup.append(Svg.Element.Path.make(semiCircleString, "body highlight"), Svg.Element.Text.make(text, { x: 0, y: 4 }, "text"));
+                        return [
+                            Svg.Element.Path.make(joints, "lead"),
+                            bodyGroup.translate(centre).rotate(rotation)
+                        ];
+                    }
+                    Layout.make = make;
+                })(Layout = Bipolar.Layout || (Bipolar.Layout = {}));
+            })(Bipolar = Group.Bipolar || (Group.Bipolar = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var Bipolar;
+            (function (Bipolar) {
+                var Schematic;
+                (function (Schematic) {
+                    function make(type, currentGain, emitterEnd, collectorEnd, baseEnd, classes = "") {
+                        const bodyGroup = Group.make(classes);
+                        let arrowJoints = (type === "PNP")
+                            ? [{ x: 15, y: -18 }, { x: 9, y: -7.5 }, { x: 24, y: -5.5 }, { x: 15, y: -18 }]
+                            : [{ x: 9, y: -7.5 }, { x: 15, y: -18 }, { x: 0, y: -20 }, { x: 9, y: -7.5 }];
+                        bodyGroup.append(Svg.Element.Circle.make({ x: 10, y: 0 }, 30, "extrathick highlight"), Svg.Element.Line.make({ x: 25, y: -15 }, { x: 25, y: +15 }, "line medium-thick nocap"), Svg.Element.Line.make({ x: 25, y: -5 }, { x: 0, y: -20 }, "line thin"), Svg.Element.Line.make({ x: 25, y: 5 }, { x: 0, y: 20 }, "line thin"), Svg.Element.Line.make({ x: 25, y: 0 }, { x: 40, y: 0 }, "line thin"), Svg.Element.Line.make({ x: 0, y: -20 }, { x: 0, y: -28 }, "line thin"), Svg.Element.Line.make({ x: 0, y: 20 }, { x: 0, y: 28 }, "line thin"), Svg.Element.Path.make(arrowJoints, "body black thin"), Svg.Element.Circle.make({ x: 10, y: 0 }, 30, "line medium nofill"));
+                        let centre = vector(emitterEnd, collectorEnd).centre().vector;
+                        let angleCentreBase = vector(centre).getAngleTo(baseEnd);
+                        let angleEmitterCollector = vector(emitterEnd).getAngleTo(collectorEnd);
+                        let rotation = angleEmitterCollector - 90;
+                        let scale = (((angleEmitterCollector - angleCentreBase + 360) % 360) > 180)
+                            ? { x: -1 }
+                            : { x: 1 };
+                        let [emitterStart, collectorStart, baseStart] = vector({ x: 0, y: -28 }, { x: 0, y: 28 }, { x: 40, y: 0 }).scaleWith(scale).rotate(-rotation).sumWith(centre).vectors;
+                        let joints = [
+                            [emitterStart, emitterEnd],
+                            [collectorStart, collectorEnd],
+                            [baseStart, baseEnd],
+                        ];
+                        let text = Utility.getStandardForm(currentGain, '');
+                        let textEl = Svg.Element.Text.make(text, vector({ x: -40, y: 0 }).scaleWith(scale), "text");
+                        return [
+                            bodyGroup.translate(centre).rotate(rotation).scale(scale, false),
+                            Svg.Element.Path.make(joints, "line thin"),
+                            textEl.translate(centre).rotatePosition(rotation),
+                        ];
+                    }
+                    Schematic.make = make;
+                })(Schematic = Bipolar.Schematic || (Bipolar.Schematic = {}));
+            })(Bipolar = Group.Bipolar || (Group.Bipolar = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var Capacitor;
+            (function (Capacitor) {
+                var Layout;
+                (function (Layout) {
+                    let Ceramic;
+                    (function (Ceramic) {
+                        function make(value, start, end, classes = "") {
+                            const bodyGroup = Group.make(classes);
+                            let centre = vector(start, end).centre().vector;
+                            let rotation = vector(start).getAngleTo(end);
+                            const text = Utility.getStandardForm(value, 'F');
+                            bodyGroup.append(Svg.Element.Ellipse.make({ x: 0, y: 0 }, { x: 16, y: 8 }, "body highlight nofill"), Svg.Element.Text.make(text, { x: 0, y: 0 }, "text"));
+                            return [
+                                Svg.Element.Path.make([start, end], "lead"),
+                                bodyGroup.translate(centre).rotate(rotation)
+                            ];
+                        }
+                        Ceramic.make = make;
+                    })(Ceramic = Layout.Ceramic || (Layout.Ceramic = {}));
+                    let Electrolytic;
+                    (function (Electrolytic) {
+                        function make(value, start, end, classes = "") {
+                            const bodyGroup = Group.make(classes);
+                            let centre = vector(start, end).centre().vector;
+                            let rotation = vector(start).getAngleTo(end);
+                            const text = Utility.getStandardForm(value, 'F');
+                            const bodyArcEndPoint = 14 / Math.SQRT2;
+                            const textArcEndPoint = 12.5 / Math.SQRT2;
+                            const bodyPathString = "m14 0 A14 14 0 1 0 " + (bodyArcEndPoint) + " " + (bodyArcEndPoint);
+                            const minusPathString = "m14 0 A14 14 0 0 1 " + (bodyArcEndPoint) + " " + (bodyArcEndPoint);
+                            const pathForTextString = "m" + (textArcEndPoint) + " " + (textArcEndPoint) + "A12.5 12.5 0 1 1 12.5 0";
+                            bodyGroup.append(Svg.Element.Circle.make({ x: 0, y: 0 }, 16, "highlight nofill"), Element.Path.make(bodyPathString, "body").rotate(157.5), Element.Path.make(minusPathString, "minus").rotate(157.5), Element.Text.make(text, { x: 1, y: 0 }, "text").followPath(pathForTextString).rotate(157.5));
+                            return [
+                                Svg.Element.Path.make([start, end], "lead"),
+                                bodyGroup.translate(centre).rotate(rotation)
+                            ];
+                        }
+                        Electrolytic.make = make;
+                    })(Electrolytic = Layout.Electrolytic || (Layout.Electrolytic = {}));
+                })(Layout = Capacitor.Layout || (Capacitor.Layout = {}));
+            })(Capacitor = Group.Capacitor || (Group.Capacitor = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var Capacitor;
+            (function (Capacitor) {
+                var Schematic;
+                (function (Schematic) {
+                    function make(capacitance, isPolarised, end1, end2, classes = "") {
+                        const bodyGroup = Group.make(classes);
+                        let centre = vector(end1, end2).centre().vector;
+                        let rotation = vector(end1).getAngleTo(end2);
+                        let [start1, start2] = vector({ x: -6, y: 0 }, { x: 6, y: 0 }).rotate(-rotation).sumWith(centre).vectors;
+                        let text = Utility.getStandardForm(capacitance, 'F');
+                        bodyGroup.append(Svg.Element.Rect.make(vector(0), { width: 15, height: 30 }, vector(2), "highlight highlightwithfill extrathick"), Svg.Element.Line.make({ x: -4, y: -15 }, { x: -4, y: +15 }, "line thick nocap"), Svg.Element.Line.make({ x: +4, y: -15 }, { x: +4, y: +15 }, "line thick nocap"));
+                        if (isPolarised) {
+                            bodyGroup.append(Svg.Element.Path.make([
+                                [{ x: +15, y: -10 }, { x: +7, y: -10 }],
+                                [{ x: +11, y: -6 }, { x: +11, y: -14 }]
+                            ], "line thin"));
+                        }
+                        let textEl = Svg.Element.Text.make(text, { x: 0, y: -20 }, "text");
+                        return [
+                            Svg.Element.Path.make([[start1, end1], [start2, end2]], "line thin"),
+                            bodyGroup.translate(centre).rotate(rotation),
+                            textEl.translate(centre).rotatePosition(rotation),
+                        ];
+                    }
+                    Schematic.make = make;
+                })(Schematic = Capacitor.Schematic || (Capacitor.Schematic = {}));
+            })(Capacitor = Group.Capacitor || (Group.Capacitor = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var Diode;
+            (function (Diode) {
+                var Layout;
+                (function (Layout) {
+                    function make(value, start, end, classes = "") {
+                        const bodyGroup = Group.make(classes);
+                        let centre = vector(start, end).centre().vector;
+                        let rotation = vector(start).getAngleTo(end);
+                        bodyGroup.append(Svg.Element.Rect.make({ x: -5.5, y: 0 }, { width: 29, height: 15 }, { x: 0, y: 0 }, "body"), Svg.Element.Rect.make({ x: 17.5, y: 0 }, { width: 5, height: 15 }, { x: 0, y: 0 }, "body"), Svg.Element.Rect.make({ x: 12, y: 0 }, { width: 6, height: 15 }, { x: 0, y: 0 }, "cathode"), Svg.Element.Rect.make({ x: 0, y: 0 }, { width: 40, height: 15 }, { x: 1, y: 1 }, "highlight nofill"));
+                        return [
+                            Svg.Element.Path.make([start, end], "lead"),
+                            bodyGroup.translate(centre).rotate(rotation)
+                        ];
+                    }
+                    Layout.make = make;
+                })(Layout = Diode.Layout || (Diode.Layout = {}));
+            })(Diode = Group.Diode || (Group.Diode = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var Diode;
+            (function (Diode) {
+                var Schematic;
+                (function (Schematic) {
+                    function make(breakdownVoltage, saturationCurrent, end1, end2, classes = "") {
+                        const bodyGroup = Group.make(classes);
+                        let centre = vector(end1, end2).centre().vector;
+                        let rotation = vector(end1).getAngleTo(end2);
+                        let [start1, start2] = vector({ x: -12, y: 0 }, { x: 12, y: 0 }).rotate(-rotation).sumWith(centre).vectors;
+                        let text = (breakdownVoltage < 51)
+                            ? Utility.getStandardForm(breakdownVoltage, 'V')
+                            : Utility.getStandardForm(saturationCurrent, 'A');
+                        let bodyPath = 'M 12 0 L -12 12 L -12 -12 L 12 0 Z';
+                        bodyGroup.append(Svg.Element.Path.make(bodyPath, "body highlight highlightwithfill extrathick"), Svg.Element.Path.make(bodyPath, "body black"));
+                        if (breakdownVoltage < 51) {
+                            bodyGroup.append(Svg.Element.Path.make('M 18 -12 L 12 -12 L 12 12 L 6 12', "line medium"));
+                        }
+                        else {
+                            bodyGroup.append(Svg.Element.Path.make('M 12 -12 L 12 12', "line medium"));
+                        }
+                        let textEl = Svg.Element.Text.make(text, { x: 0, y: -15 }, "text");
+                        return [
+                            Svg.Element.Path.make([[start1, end1], [start2, end2]], "line thin"),
+                            bodyGroup.translate(centre).rotate(rotation),
+                            textEl.translate(centre).rotatePosition(rotation),
+                        ];
+                    }
+                    Schematic.make = make;
+                })(Schematic = Diode.Schematic || (Diode.Schematic = {}));
+            })(Diode = Group.Diode || (Group.Diode = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var Inductor;
+            (function (Inductor) {
+                var Layout;
+                (function (Layout) {
+                    function make(value, start, end, classes = "") {
+                        const bodyGroup = Group.make(classes);
+                        let centre = vector(start, end).centre().vector;
+                        let rotation = vector(start).getAngleTo(end);
+                        const nCoils = 4;
+                        const wireWidth = 8;
+                        const coilTop = -15;
+                        const coilBottom = 15;
+                        const coilStart = (-(nCoils * wireWidth) / 2 + wireWidth / 4);
+                        let bodyPath = "M" + (coilStart) + " " + (coilBottom);
+                        let bodyEdgePath = "";
+                        for (let i = 1; i < nCoils; i++) {
+                            let x0 = coilStart + wireWidth * (i - 0.5);
+                            let x1 = coilStart + wireWidth * (i);
+                            bodyPath += "L" + (x0) + " " + (coilTop) + "L" + (x1) + " " + (coilBottom);
+                            bodyEdgePath += "M" + (x0) + " " + (coilBottom) + "L" + (x1) + " " + (coilTop);
+                        }
+                        bodyPath += "L" + (-coilStart) + " " + (coilTop);
+                        bodyGroup.append(Svg.Element.Path.make(bodyPath, "highlight highlightwithfill"), Svg.Element.Path.make(bodyPath, "body"), Svg.Element.Path.make(bodyEdgePath, "bodyEdge"));
+                        return [
+                            Svg.Element.Path.make([start, end], "lead"),
+                            bodyGroup.translate(centre).rotate(rotation)
+                        ];
+                    }
+                    Layout.make = make;
+                })(Layout = Inductor.Layout || (Inductor.Layout = {}));
+            })(Inductor = Group.Inductor || (Group.Inductor = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var Inductor;
+            (function (Inductor) {
+                var Schematic;
+                (function (Schematic) {
+                    function make(inductance, end1, end2, classes = "") {
+                        const bodyGroup = Group.make(classes);
+                        let centre = vector(end1, end2).centre().vector;
+                        let rotation = vector(end1).getAngleTo(end2);
+                        let [start1, start2] = vector({ x: -20, y: 0 }, { x: 20, y: 0 }).rotate(-rotation).sumWith(centre).vectors;
+                        let text = Utility.getStandardForm(inductance, 'H');
+                        bodyGroup.append(Svg.Element.Rect.make({ x: 0, y: -2 }, { width: 40, height: 12 }, vector(2), "highlight highlightwithfill extrathick"), Svg.Element.Path.make('M-20 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0', "line medium"));
+                        let textEl = Svg.Element.Text.make(text, { x: 0, y: -13 }, "text");
+                        return [
+                            Svg.Element.Path.make([[start1, end1], [start2, end2]], "line thin"),
+                            bodyGroup.translate(centre).rotate(rotation),
+                            textEl.translate(centre).rotatePosition(rotation),
+                        ];
+                    }
+                    Schematic.make = make;
+                })(Schematic = Inductor.Schematic || (Inductor.Schematic = {}));
+            })(Inductor = Group.Inductor || (Group.Inductor = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var OpAmp;
+            (function (OpAmp) {
+                var Layout;
+                (function (Layout) {
+                    function make(isDual, classes = "") {
+                        if (isDual) {
+                            return Svg.Element.Group.Dip.make(4, "", "TL072", "");
+                        }
+                        else {
+                            return Svg.Element.Group.Dip.make(4, "", "TL071", "");
+                        }
+                    }
+                    Layout.make = make;
+                })(Layout = OpAmp.Layout || (OpAmp.Layout = {}));
+            })(OpAmp = Group.OpAmp || (Group.OpAmp = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var OpAmp;
+            (function (OpAmp) {
+                var Schematic;
+                (function (Schematic) {
+                    function make(inPEnd, inNEnd, outEnd, powPEnd, powNEnd, classes = "") {
+                        const bodyGroup = Group.make(classes);
+                        let bodyJoints = [{ x: -25, y: -25 }, { x: 25, y: 0 }, { x: -25, y: 25 }, { x: -25, y: -25 }];
+                        bodyGroup.append(Svg.Element.Path.make(bodyJoints, "highlight highlightwithfill extrathick"), Svg.Element.Path.make(bodyJoints, "body white"), Svg.Element.Line.make({ x: -22, y: -10 }, { x: -14, y: -10 }, "line thin"), Svg.Element.Line.make({ x: -18, y: -6 }, { x: -18, y: -14 }, "line thin"), Svg.Element.Line.make({ x: -22, y: +10 }, { x: -14, y: +10 }, "line thin"));
+                        let centre = vector(powPEnd, powNEnd).centre().vector;
+                        let angleCentreBase = vector(centre).getAngleTo(outEnd);
+                        let angleInPInN = vector(powPEnd).getAngleTo(powNEnd);
+                        let rotation = angleInPInN - 90;
+                        let scale = (((angleInPInN - angleCentreBase + 360) % 360) > 180)
+                            ? { x: -1 }
+                            : { x: 1 };
+                        let [inPStart, inNStart, outStart, powPStart, powNStart] = vector({ x: -25, y: -10 }, { x: -25, y: 10 }, { x: 25, y: 0 }, { x: 0, y: -13 }, { x: 0, y: 13 }).scaleWith(scale).rotate(-rotation).sumWith(centre).vectors;
+                        let joints = [
+                            [inPStart, inPEnd],
+                            [inNStart, inNEnd],
+                            [outStart, outEnd],
+                            [powPStart, powPEnd],
+                            [powNStart, powNEnd],
+                        ];
+                        return [
+                            bodyGroup.translate(centre).rotate(rotation).scale(scale, false),
+                            Svg.Element.Path.make(joints, "line thin"),
+                        ];
+                    }
+                    Schematic.make = make;
+                })(Schematic = OpAmp.Schematic || (OpAmp.Schematic = {}));
+            })(OpAmp = Group.OpAmp || (Group.OpAmp = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var Power;
+            (function (Power) {
+                var Layout;
+                (function (Layout) {
+                    function make(voltage, connection, classes = "") {
+                        const bodyGroup = Group.make(classes);
+                        let text = voltage.toFixed(1);
+                        bodyGroup.append(Svg.Element.Rect.make({ x: 0, y: -35 }, { width: 180, height: 95 }, { x: 10, y: 10 }, "body highlight"), Svg.Element.Rect.make({ x: 0, y: -45 }, { width: 160, height: 65 }, { x: 10, y: 10 }, "screen"), Svg.Element.Text.make("8".repeat(text.length - 1), { x: 0, y: -20 }, "screentext off"), Svg.Element.Text.make(text, { x: 0, y: -20 }, "screentext on"), Svg.Element.Circle.make({ x: 0, y: 0 }, 5, "hole"));
+                        return [
+                            bodyGroup.translate(connection)
+                        ];
+                    }
+                    Layout.make = make;
+                })(Layout = Power.Layout || (Power.Layout = {}));
+            })(Power = Group.Power || (Group.Power = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var Power;
+            (function (Power) {
+                var Schematic;
+                (function (Schematic) {
+                    function make(voltage, connection, classes = "") {
+                        const bodyGroup = Group.make(classes);
+                        if (voltage < 0) {
+                            bodyGroup.append(powerNegativeGraphics(voltage));
+                        }
+                        else if (voltage > 0) {
+                            bodyGroup.append(powerPositiveGraphics(voltage));
+                        }
+                        else {
+                            bodyGroup.append(powerGroundGraphics());
+                        }
+                        return [
+                            bodyGroup.translate(connection)
+                        ];
+                    }
+                    Schematic.make = make;
+                })(Schematic = Power.Schematic || (Power.Schematic = {}));
+            })(Power = Group.Power || (Group.Power = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
+})(Svg || (Svg = {}));
+function powerNegativeGraphics(voltage) {
+    let text = Utility.getStandardForm(voltage, "V");
+    return [
+        Svg.Element.Rect.make({ x: 0, y: 8 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
+        Svg.Element.Line.make({ x: -12, y: 5 }, { x: 12, y: 5 }, "line medium"),
+        Svg.Element.Text.make(text, { x: 0, y: 17 }, "text bold"),
+        Svg.Element.Line.make({ x: 0, y: 5 }, { x: 0, y: -10 }, "line thin")
+    ];
+}
+function powerPositiveGraphics(voltage) {
+    let text = Utility.getStandardForm(voltage, "V");
+    return [
+        Svg.Element.Rect.make({ x: 0, y: -8 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
+        Svg.Element.Line.make({ x: -12, y: -5 }, { x: 12, y: -5 }, "line medium"),
+        Svg.Element.Text.make(text, { x: 0, y: -7 }, "text bold"),
+        Svg.Element.Line.make({ x: 0, y: -5 }, { x: 0, y: 10 }, "line thin")
+    ];
+}
+function powerGroundGraphics() {
+    return [
+        Svg.Element.Rect.make({ x: 0, y: 5 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
+        Svg.Element.Line.make({ x: -18, y: 0 }, { x: 18, y: 0 }, "line medium"),
+        Svg.Element.Line.make({ x: -12, y: 5 }, { x: 12, y: 5 }, "line medium"),
+        Svg.Element.Line.make({ x: -6, y: 10 }, { x: 6, y: 10 }, "line medium"),
+        Svg.Element.Line.make({ x: 0, y: 0 }, { x: 0, y: -10 }, "line thin")
+    ];
+}
+var Svg;
+(function (Svg) {
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var Resistor;
+            (function (Resistor) {
+                var Layout;
+                (function (Layout) {
+                    function make(value, start, end, classes = "") {
+                        const bodyGroup = Group.make(classes);
+                        let centre = vector(start, end).centre().vector;
+                        let rotation = vector(start).getAngleTo(end);
+                        let bodyPath = "m-12.5 -6" + "h25" + "c15 -8 15 20 0 12" + "h-25" + "c-15 +8 -15 -20 0 -12" + "Z";
+                        bodyGroup.append(Svg.Element.Path.make(bodyPath, "body"), getBands(value), Svg.Element.Path.make(bodyPath, "highlight nofill"));
+                        return [
+                            Svg.Element.Path.make([start, end], "lead"),
+                            bodyGroup.translate(centre).rotate(rotation)
+                        ];
+                    }
+                    Layout.make = make;
+                    function getBands(num) {
+                        let exp = num.toExponential(1);
+                        let sigFig1 = exp.slice(exp.indexOf(".") - 1)[0];
+                        let sigFig2 = exp.slice(exp.indexOf(".") + 1)[0];
+                        let multiplier = (parseInt(exp.slice(exp.indexOf("e") + 1), 10) - 1).toString();
+                        let colours = {
+                            "-3": "pink",
+                            "-2": "silver",
+                            "-1": "gold",
+                            "0": "black",
+                            "1": "brown",
+                            "2": "red",
+                            "3": "#FF7F26",
+                            "4": "yellow",
+                            "5": "green",
+                            "6": "blue",
+                            "7": "violet",
+                            "8": "grey",
+                            "9": "white"
+                        };
+                        let b1 = Svg.Element.Rect.make({ x: -17.5, y: 0 }, { width: 3, height: 18 }, undefined, "band1");
+                        let b2 = Svg.Element.Rect.make({ x: -11, y: 0 }, { width: 3, height: 12 }, undefined, "band2");
+                        let b3 = Svg.Element.Rect.make({ x: -4, y: 0 }, { width: 3, height: 12 }, undefined, "band3");
+                        let b4 = Svg.Element.Rect.make({ x: 3.5, y: 0 }, { width: 4, height: 12 }, undefined, "band4");
+                        $(b1.element).css("fill", colours[sigFig1]);
+                        $(b2.element).css("fill", colours[sigFig2]);
+                        $(b3.element).css("fill", colours[multiplier]);
+                        $(b4.element).css("fill", "transparent");
+                        return [b1, b2, b3, b4];
+                    }
+                })(Layout = Resistor.Layout || (Resistor.Layout = {}));
+            })(Resistor = Group.Resistor || (Group.Resistor = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var Resistor;
+            (function (Resistor) {
+                var Schematic;
+                (function (Schematic) {
+                    function make(resistance, end1, end2, classes = "") {
+                        const bodyGroup = Group.make(classes);
+                        let centre = vector(end1, end2).centre().vector;
+                        let rotation = vector(end1).getAngleTo(end2);
+                        let [start1, start2] = vector({ x: -24, y: 0 }, { x: 24, y: 0 }).rotate(-rotation).sumWith(centre).vectors;
+                        let text = Utility.getStandardForm(resistance, 'Ω');
+                        bodyGroup.append(Svg.Element.Rect.make(vector(0), { width: 46, height: 18 }, vector(2), "highlight highlightwithfill extrathick"), Svg.Element.Rect.make(vector(0), { width: 46, height: 18 }, vector(2), "body white"));
+                        let textEl = Svg.Element.Text.make(text, { x: 0, y: -15 }, "text");
+                        return [
+                            Svg.Element.Path.make([[start1, end1], [start2, end2]], "line thin"),
+                            bodyGroup.translate(centre).rotate(rotation),
+                            textEl.translate(centre).rotatePosition(rotation),
+                        ];
+                    }
+                    Schematic.make = make;
+                })(Schematic = Resistor.Schematic || (Resistor.Schematic = {}));
+            })(Resistor = Group.Resistor || (Group.Resistor = {}));
         })(Group = Element.Group || (Element.Group = {}));
     })(Element = Svg.Element || (Svg.Element = {}));
 })(Svg || (Svg = {}));

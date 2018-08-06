@@ -1,19 +1,25 @@
 namespace _vector {
-   export function standardise<T extends AnyVector>(vectors: T): Vector;
-   export function standardise<T extends AnyVector>(vectors: T[]): Vector[];
-   export function standardise<T extends AnyVector>(vectors: T, ...moreVectors: T[]): Vector[];
-   export function standardise<T extends AnyVector, A extends T | T[], B extends T[]>(
-      inVectors: A, moreVectors?: B
-   ): Vector | Vector[] {
+   export function standardise(inVector: AnyVector): Vector;
+   export function standardise(inVector: number): Vector;
+   export function standardise(inVectors: AnyVector[]): Vector[];
+   export function standardise(inVector: AnyVector, ...moreVectors: AnyVector[]): Vector[];
+   export function standardise(inVectors: AnyVector | AnyVector[] | number, ...moreVectors: AnyVector[]): Vector | Vector[];
+   export function standardise(inVectors: AnyVector | AnyVector[] | number, ...moreVectors: AnyVector[]): Vector | Vector[] {
 
-      const vectorsAsArray = ((inVectors instanceof Array) ? inVectors : [inVectors]) as Array<T>;
-      const moreVectorsAsArray = (moreVectors !== undefined) ? moreVectors : [];
+      if (typeof inVectors === "number") {
+         return { x: inVectors, y: inVectors };
+      }
+
+      const vectorsAsArray = ((isVectorArray(inVectors)) ? inVectors : [inVectors]) as Array<AnyVector>;
+      const moreVectorsAsArray = ((moreVectors !== undefined) ? moreVectors : []) as Array<AnyVector>;
 
       const standardised = (vectorsAsArray.concat(moreVectorsAsArray)).map(inVector => {
          if (isLVector(inVector)) {
-            return { x: inVector.x, y: inVector.y }
+            return { x: inVector.x, y: inVector.y };
          } else if (isUVector(inVector)) {
-            return { x: inVector.X, y: inVector.Y }
+            return { x: inVector.X, y: inVector.Y };
+         } else if (inVector instanceof Array && (typeof inVector[0] === "number") && (typeof inVector[1] === "number")) {
+            return { x: inVector[0], y: inVector[1] };
          } else {
             //TODO 
             console.error("IS NOT A VECTOR")
@@ -21,6 +27,20 @@ namespace _vector {
          }
       });
 
-      return (standardised.length === 1 && !(inVectors instanceof Array)) ? standardised[0] : standardised;
+      if (standardised.length > 1 || isVectorArray(inVectors)) {
+         return standardised;
+      } else {
+         return standardised[0]
+      }
+   }
+
+   function isVectorArray(inVectors: AnyVector | AnyVector[]) {
+      return (
+         inVectors instanceof Array &&
+         !(
+            typeof inVectors[0] === "number" &&
+            typeof inVectors[1] === "number"
+         )
+      )
    }
 }

@@ -15,8 +15,6 @@ namespace Circuit.Component.Addins.Extendable {
       component.group.clearChildren(":not(.handle)");
       component.makeConnectors();
       component.draw();
-      // $(component.group.element).trigger("deselect");
-      $(component.group.element).trigger(Events.select);
    };
 
    const initHandles = (component: extendableComponent) => {

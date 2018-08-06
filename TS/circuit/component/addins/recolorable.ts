@@ -24,23 +24,23 @@ namespace Circuit.Component.Addins.Recolorable {
    }
 
    const refreshComponent = (component: recolorableComponent) => {
-      component.group.clearChildren(":not(.handle)");
+      component.group.clearChildren(":not(.handle,.connectivityhighlight)");
       component.makeConnectors();
       component.draw();
    };
 
    const createRecolorHandle = (component: recolorableComponent, position: Vector, recolorSelector: string, colorPalette: colorPalette) => {
+
       let recolorSegmentGroup = Svg.Element.Group.make("recolorSegmentGroup");
       let recolorHandle = Svg.Element.Circle.make(position, 7, "handle recolorHandle");
-      Svg.Addins.Draggable.init(recolorHandle.element, { disableMovement: true });
 
       //Segments
       let segment1 = Svg.Element.Rect.make(
          position, { width: 10, height: 20 }, undefined, "recolorHandleSegment"
-      ).translate({ x: -4, y: -4 }).rotate(45, position);
+      ).rotate(45, position).translate({ x: -4, y: -4 });
       let segment2 = Svg.Element.Rect.make(
          position, { width: 10, height: 20 }, undefined, "recolorHandleSegment"
-      ).translate({ x: 4, y: 4 }).rotate(45, position);
+      ).rotate(45, position).translate({ x: 4, y: 4 });
 
       $(segment1.element).css("fill", "#4fd56b");
       $(segment2.element).css("fill", "#d54f6b");
@@ -60,7 +60,6 @@ namespace Circuit.Component.Addins.Recolorable {
          };
          component.color = color;
          refreshComponent(component);
-         $(component.group.element).trigger("select");
       })
    }
 

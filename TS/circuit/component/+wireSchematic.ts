@@ -48,11 +48,7 @@ namespace Circuit.Component {
          }
 
          draw() {
-            let pathString = "M " + this.joints[0].x + " " + this.joints[0].y;
-            for (let j = 1; j < this.joints.length; j++) {
-               pathString += " L " + this.joints[j].x + " " + +this.joints[j].y;
-            }
-            this.group.append(Svg.Element.Path.make(pathString, "line thin"));
+            this.group.prepend(Svg.Element.Path.make(this.joints, "line thin"));
          }
 
          /** Builds and draws the components connectors */
@@ -108,6 +104,9 @@ namespace Circuit.Component {
          (component: Instance) => {
             $(component.group.element).addClass("component " + component.name);
             Addins.Junctions.init(component);
+            Addins.Selectable.init(component);
+            Addins.Draggable.init(component);
+            Addins.Extendable.init(component, true, true);
          }
       );
    }

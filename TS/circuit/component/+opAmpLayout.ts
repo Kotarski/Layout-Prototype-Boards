@@ -55,11 +55,7 @@ namespace Circuit.Component {
          }
 
          draw() {
-            if (this.isDual) {
-               this.group.append(Svg.Element.Group.Dip.make(4, "", "TL072", ""));
-            } else {
-               this.group.append(Svg.Element.Group.Dip.make(4, "", "TL071", ""));
-            }
+            this.group.prepend(Svg.Element.Group.OpAmp.Layout.make(this.isDual, "body"))
          }
 
          makeConnectors() {
@@ -68,28 +64,28 @@ namespace Circuit.Component {
                let gridSpacing = Constants.gridSpacing;
                // Note that the power selectors physically occupy the same space.
                this.connectorSets = [[
-                  Component.Generics.makeConnector(this, "vcc+", "pin", { x: 0 * gridSpacing, y: 0 * gridSpacing }),//8
-                  Component.Generics.makeConnector(this, "out", "pin", { x: 1 * gridSpacing, y: 0 * gridSpacing }),//7
-                  Component.Generics.makeConnector(this, "in-", "pin", { x: 2 * gridSpacing, y: 0 * gridSpacing }),//6
-                  Component.Generics.makeConnector(this, "in+", "pin", { x: 3 * gridSpacing, y: 0 * gridSpacing }),//5
-                  Component.Generics.makeConnector(this, "vcc-", "pin", { x: 3 * gridSpacing, y: 3 * gridSpacing }),//4
+                  Component.Generics.makeConnector(this, "vcc+", "pin", { x: 0 * gridSpacing, y: 0 * gridSpacing }, "v+"),//8
+                  Component.Generics.makeConnector(this, "out", "pin", { x: 1 * gridSpacing, y: 0 * gridSpacing }, "1o"),//7
+                  Component.Generics.makeConnector(this, "in-", "pin", { x: 2 * gridSpacing, y: 0 * gridSpacing }, "1i-"),//6
+                  Component.Generics.makeConnector(this, "in+", "pin", { x: 3 * gridSpacing, y: 0 * gridSpacing }, "1i+"),//5
+                  Component.Generics.makeConnector(this, "vcc-", "pin", { x: 3 * gridSpacing, y: 3 * gridSpacing }, "v-"),//4
                ], [
-                  Component.Generics.makeConnector(this, "vcc+", "pin", { x: 0 * gridSpacing, y: 0 * gridSpacing }),//8
-                  Component.Generics.makeConnector(this, "out", "pin", { x: 0 * gridSpacing, y: 3 * gridSpacing }),//1
-                  Component.Generics.makeConnector(this, "in-", "pin", { x: 1 * gridSpacing, y: 3 * gridSpacing }),//2
-                  Component.Generics.makeConnector(this, "in+", "pin", { x: 2 * gridSpacing, y: 3 * gridSpacing }),//3
-                  Component.Generics.makeConnector(this, "vcc-", "pin", { x: 3 * gridSpacing, y: 3 * gridSpacing }),//4
+                  Component.Generics.makeConnector(this, "vcc+", "pin", { x: 0 * gridSpacing, y: 0 * gridSpacing }, "v+"),//8
+                  Component.Generics.makeConnector(this, "out", "pin", { x: 0 * gridSpacing, y: 3 * gridSpacing }, "2o"),//1
+                  Component.Generics.makeConnector(this, "in-", "pin", { x: 1 * gridSpacing, y: 3 * gridSpacing }, "2i-"),//2
+                  Component.Generics.makeConnector(this, "in+", "pin", { x: 2 * gridSpacing, y: 3 * gridSpacing }, "2i+"),//3
+                  Component.Generics.makeConnector(this, "vcc-", "pin", { x: 3 * gridSpacing, y: 3 * gridSpacing }, "v-"),//4
                ]];
             } else {
                this.connectorSets = [[
                   //Component.Generics.makeConnector(this, "nc", "pin", { x: 0 * gridSpacing, y: 0 * gridSpacing }),//8
-                  Component.Generics.makeConnector(this, "vcc+", "pin", { x: 1 * gridSpacing, y: 0 * gridSpacing }),//7
-                  Component.Generics.makeConnector(this, "out", "pin", { x: 2 * gridSpacing, y: 0 * gridSpacing }),//6
+                  Component.Generics.makeConnector(this, "vcc+", "pin", { x: 1 * gridSpacing, y: 0 * gridSpacing }, "v+"),//7
+                  Component.Generics.makeConnector(this, "out", "pin", { x: 2 * gridSpacing, y: 0 * gridSpacing }, "o"),//6
                   //Component.Generics.makeConnector(this, "offset n1", "pin", { x: 3 * gridSpacing, y: 0 * gridSpacing }),//5
                   //Component.Generics.makeConnector(this, "offset n2", "pin", { x: 0 * gridSpacing, y: 3 * gridSpacing }),//1
-                  Component.Generics.makeConnector(this, "in-", "pin", { x: 1 * gridSpacing, y: 3 * gridSpacing }),//2
-                  Component.Generics.makeConnector(this, "in+", "pin", { x: 2 * gridSpacing, y: 3 * gridSpacing }),//3
-                  Component.Generics.makeConnector(this, "vcc-", "pin", { x: 3 * gridSpacing, y: 3 * gridSpacing }),//4
+                  Component.Generics.makeConnector(this, "in-", "pin", { x: 1 * gridSpacing, y: 3 * gridSpacing }, "i-"),//2
+                  Component.Generics.makeConnector(this, "in+", "pin", { x: 2 * gridSpacing, y: 3 * gridSpacing }, "i+"),//3
+                  Component.Generics.makeConnector(this, "vcc-", "pin", { x: 3 * gridSpacing, y: 3 * gridSpacing }, "v-"),//4
                ]];
             }
 

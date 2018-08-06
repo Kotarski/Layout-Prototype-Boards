@@ -33,9 +33,9 @@ namespace Svg.Element {
       }
 
       export function scale<T extends SVGGraphicsElement>(element: T) {
-         return (scale: (Vector | number), insertBefore: boolean = true) => {
+         return (scale: (Partial<Vector> | number), insertBefore: boolean = true) => {
             let scaleV = (typeof scale === "number") ? { x: scale, y: scale } : scale;
-            addTransform(element, t => t.setScale(scaleV.x, scaleV.y), insertBefore)
+            addTransform(element, t => t.setScale((scaleV.x || 1), (scaleV.y || 1)), insertBefore)
             return svg(element);
          }
       }

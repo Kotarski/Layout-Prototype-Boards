@@ -193,10 +193,10 @@ namespace Circuit.Component.Addins.Board {
       export const init = (component: reversibleBoard) => {
          let element = component.group;
 
-         $(element.element).on("select", () => {
+         $(element.element).on(Events.select, () => {
             createGhost(component)
          });
-         $(element.element).on("deselect", () => {
+         $(element.element).on(Events.deselect, () => {
             clearGhost(component)
          });
 

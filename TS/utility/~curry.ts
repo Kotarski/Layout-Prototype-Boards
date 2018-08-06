@@ -1,8 +1,5 @@
 namespace Utility.Curry {
-
-   export function makeOptional<AT, BT, RT>(
-      fn: (A: AT, B: BT) => RT
-   ) {
+   export function makeOptional<AT, BT, RT>(fn: (A: AT, B: BT) => RT) {
       function curried(A: AT): (B: BT) => RT;
       function curried(A: AT, B: BT): RT;
       function curried(A: AT, B?: BT) {
@@ -14,6 +11,4 @@ namespace Utility.Curry {
       }
       return curried;
    }
-
 }
-

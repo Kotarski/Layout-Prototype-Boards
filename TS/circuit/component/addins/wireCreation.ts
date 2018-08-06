@@ -18,8 +18,7 @@ namespace Circuit.Component.Addins.WireCreation {
             // Create the wire, select it, and grab a handle (any is fine)
             $(mOE.target).on(Events.dragStart, (e, ui, drag: Vector) => {
                //TODO 
-               const position = { x: e.clientX, y: e.clientY };
-               //const position = Active.layout.root.convertVector({ x: e.clientX, y: e.clientY }, "DomToSvg", "relToGroup");
+               const position = Active.layout.group.convertVector({ x: e.clientX, y: e.clientY }, "DomToSvg", "relToGroup");
                const gridPosition = vector(position).snapToGrid().vector;
                const wire = createWireAtPoint(gridPosition);
                dragHandle = $(wire.group.element).find(".dragHandle")[0] as any;

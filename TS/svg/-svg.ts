@@ -21,6 +21,7 @@ function svg<T extends SVGElement>(element: T) {
 
    let textExtension = (element instanceof SVGTextElement) ? {
       followPath: Svg.Element.Text.Functions.followPath(element),
+      rotatePosition: Svg.Element.Text.Functions.rotatePosition(element),
    } : null;
 
    return Object.assign({}, extension, elementExtension, groupExtension, textExtension) as (

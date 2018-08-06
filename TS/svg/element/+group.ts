@@ -1,4 +1,5 @@
 namespace Svg.Element.Group {
+   export type type = ReturnType<typeof make>;
    export function make(classes: string = "") {
       return svg(Element.make<SVGGElement>("g", classes));
    }
