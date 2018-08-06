@@ -163,7 +163,7 @@ namespace Circuit.Component {
 
       function getRecolorPosition(component: Instance): Vector {
          const angle = vector(component.joints[0]).getAngleTo(component.joints[1]);
-         const offset = Utility.Polar.toVector(12, angle);
+         const offset = Utility.Polar.toVector(12, angle + 45);
          return vector(component.joints[0]).sumWith(offset).vector;
       }
 

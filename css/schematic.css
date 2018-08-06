@@ -83,6 +83,8 @@
 
 .schematic .selected .highlight {
    stroke: rgb(170, 170, 255);
+   stroke-linecap: round;
+   stroke-linejoin: round;
 }
 
 .schematic .highlightwithfill {
@@ -102,5 +104,11 @@
 }
 
 .schematic .connectivityhighlight {
+   fill: black;
+   font-weight: bold;
+   text-anchor: middle;
    pointer-events: none;
+   font-family: consolas;
+   font-size: 4px;
+   dominant-baseline: central;
 }

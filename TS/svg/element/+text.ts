@@ -36,7 +36,34 @@ namespace Svg.Element.Text {
             return svg(element);
          }
       }
+
+      export function rotatePosition<T extends SVGTextElement>(element: T) {
+         return (rotation: number) => {
+            const position = {
+               x: Number(element.getAttribute("x")),
+               y: Number(element.getAttribute("y"))
+            }
+            svg(element).rotate(rotation).rotate(-rotation, position);
+
+            if (25 < rotation && rotation < 155) {
+               $(element).css("text-anchor", "start");
+            } else if (-155 < rotation && rotation < -25) {
+               $(element).css("text-anchor", "end");
+            } else {
+               $(element).css("text-anchor", "middle");
+            }
+
+            if (135 < rotation || rotation < -135) {
+               $(element).css("alignment-baseline", "hanging");
+            } else if (-55 < rotation && rotation < 45) {
+               $(element).css("alignment-baseline", "baseline");
+            } else {
+               $(element).css("alignment-baseline", "middle");
+            }
+
+            return svg(element);
+         }
+      }
+
    }
-
 }
-

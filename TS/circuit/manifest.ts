@@ -77,6 +77,10 @@ namespace Circuit {
          let layComponents = manifest.layout.filter(mappings.isCorresponder);
          let schComponents = manifest.schematic.filter(mappings.isCorresponder);
 
+         //TOFIX 
+         //Copy the schconnectorsets (deeplyish)  outside of the loop
+         //When a match is found with a laycomponent, filter the match
+
          // Split the layout components by whether they pass the test
          let split = Utility.split(layComponents, (layComponent) => {
             // Find the layout components connector sets
@@ -90,6 +94,8 @@ namespace Circuit {
             if (mappings.isUnique(layComponent)) {
                schConnectorSets = [mergeConnectorsSets(schConnectorSets)];
             }
+
+            console.log(layComponent, schConnectorSets)
 
             // Check if there is any match between connector sets
             return schConnectorSets.some(connectorSetsHaveMatch(layConnectorSets));

@@ -5,7 +5,9 @@ namespace Circuit.Component {
       export namespace Types {
          export type properties = PowerSchematic.Types.properties;
 
-         export interface state extends Component.Types.state { }
+         export interface state extends Component.Types.state {
+            joints: [Vector];
+         }
 
          export interface loadFunction extends Component.Types.loadFunction {
             (raw: any): Instance;
@@ -20,6 +22,7 @@ namespace Circuit.Component {
 
       export const defaultState: Types.state = {
          location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
+         joints: [{ x: 0, y: 40 }]
       }
       export const defaultProperties: Types.properties = {
          name: "power",
@@ -29,10 +32,13 @@ namespace Circuit.Component {
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          voltage: number;
          connectorSets: Component.Types.hole[][] = [];
+         joints: [Vector];
 
          constructor(properties: Types.properties, state: Types.state) {
             super(properties, state);
+            $(this.group.element).addClass("component " + this.name);
             this.voltage = properties.voltage;
+            this.joints = state.joints;
          }
 
          getProperties(): Types.properties {
@@ -44,7 +50,8 @@ namespace Circuit.Component {
 
          getState(): Types.state {
             return {
-               location: this.location
+               location: this.location,
+               joints: this.joints
             }
          }
 
@@ -55,22 +62,13 @@ namespace Circuit.Component {
 
 
          draw() {
-            $(this.group.element).addClass(this.name);
-            let text = this.voltage.toFixed(1);
-
-            this.group.append(
-               Svg.Element.Rect.make({ x: 0, y: 5 }, { width: 180, height: 95 }, { x: 10, y: 10 }, "body highlight"),
-               Svg.Element.Rect.make({ x: 0, y: -5 }, { width: 160, height: 65 }, { x: 10, y: 10 }, "screen"),
-               Svg.Element.Text.make("8".repeat(text.length - 1), { x: 0, y: 20 }, "screentext off"),
-               Svg.Element.Text.make(text, { x: 0, y: 20 }, "screentext on"),
-               Svg.Element.Circle.make({ x: 0, y: 40 }, 5, "hole")
-            );
+            this.group.prepend(Svg.Element.Group.Power.Layout.make(this.voltage, this.joints[0], "body"))
          }
 
          /** Builds and draws the components connectors */
          makeConnectors() {
             this.connectorSets = [[
-               Component.Generics.makeConnector(this, "", "hole", { x: 0, y: 40 })
+               Component.Generics.makeConnector(this, "", "hole", this.joints[0])
             ]]
          }
 
@@ -79,21 +77,20 @@ namespace Circuit.Component {
       }
 
       export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
-         // Set default state
-         let state = Object.assign({}, defaultState);
-         // Set default properties
-         let properties = Object.assign({}, defaultProperties);
-         // If from a layout
-         if (raw.state) {
-            if (raw.state.location) {
-               state.location = raw.state.location;
-            }
-         }
-         if (raw.properties) {
-            if (raw.properties.voltage) {
-               properties.voltage = Number(raw.properties.voltage) || 0;
-            }
-         }
+
+         let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
+            {
+               location: raw.state.location,
+               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 1)
+                  ? vector.standardise(raw.state.joints as AnyVector[])
+                  : undefined
+            } : {};
+
+         let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
+            {
+               name: raw.properties.name,
+               voltage: raw.properties.voltage,
+            } : {};
 
          return makeInstance(properties, state, true);
       }

@@ -6,7 +6,9 @@ namespace Circuit.Component {
             voltage: number;
          }
 
-         export interface state extends Component.Types.state { }
+         export interface state extends Component.Types.state {
+            joints: [Vector];
+         }
 
          export interface loadFunction extends Component.Types.loadFunction {
             (raw: any): Instance;
@@ -21,6 +23,7 @@ namespace Circuit.Component {
 
       export const defaultState: Types.state = {
          location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
+         joints: [{ x: 0, y: 0 }]
       }
       export const defaultProperties: Types.properties = {
          name: "power",
@@ -29,11 +32,13 @@ namespace Circuit.Component {
 
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          voltage: number;
+         joints: [Vector];
 
          constructor(properties: Types.properties, state: Types.state) {
             super(properties, state);
             $(this.group.element).addClass("component " + this.name);
             this.voltage = properties.voltage;
+            this.joints = state.joints;
          }
 
          getProperties(): Types.properties {
@@ -45,18 +50,12 @@ namespace Circuit.Component {
 
          getState(): Types.state {
             return {
-               location: this.location
+               location: this.location,
+               joints: this.joints
             }
          }
-
          draw() {
-            if (this.voltage < 0) {
-               drawPowerNegative(this);
-            } else if (this.voltage > 0) {
-               drawPowerPositive(this);
-            } else {
-               drawPowerGround(this);
-            }
+            this.group.prepend(Svg.Element.Group.Power.Schematic.make(this.voltage, this.joints[0]))
          }
 
          /** Builds and draws the components connectors */
@@ -78,72 +77,30 @@ namespace Circuit.Component {
       }
 
       export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
-         // Set default state
-         let state = Object.assign({}, defaultState);
-         // Set default properties
-         let properties = Object.assign({}, defaultProperties);
-         // If from a dasim
-         if (raw.where) {
-            state.location.e = Number(raw.where.X) || 0;
-            state.location.f = Number(raw.where.Y) || 0;
-         }
-         properties.voltage = raw.value || 0;
-         // If from a layout
-         if (raw.state) {
-            if (raw.state.location) {
-               state.location = raw.state.location;
-            }
-         }
-         if (raw.properties) {
-            if (raw.properties.voltage) {
-               properties.voltage = Number(raw.properties.voltage) || 0;
-            }
-         }
+
+         let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
+            {
+               location: raw.state.location,
+               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 1)
+                  ? vector.standardise(raw.state.joints as AnyVector[])
+                  : undefined
+            } : {
+               location: (raw.where) ? {
+                  e: raw.where.X,
+                  f: raw.where.Y
+               } : undefined,
+               joints: undefined,
+            };
+
+         let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
+            {
+               name: raw.properties.name,
+               voltage: raw.properties.voltage,
+            } : {
+               voltage: raw.value,
+            };
 
          return makeInstance(properties, state, true);
-      }
-
-      function drawPowerPositive(component: Instance) {
-         let text = Utility.getStandardForm(component.voltage, "V")
-         component.group.append(
-            Svg.Element.Rect.make(
-               { x: 0, y: -8 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
-            Svg.Element.Line.make(
-               { x: -12, y: -5 }, { x: 12, y: -5 }, "line medium"),
-            Svg.Element.Text.make(
-               text, { x: 0, y: -9 }, "text bold"),
-            Svg.Element.Line.make(
-               { x: 0, y: -5 }, { x: 0, y: 10 }, "line thin")
-         );
-      }
-
-      function drawPowerNegative(component: Instance) {
-         let text = Utility.getStandardForm(component.voltage, "V")
-         component.group.append(
-            Svg.Element.Rect.make(
-               { x: 0, y: 8 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
-            Svg.Element.Line.make(
-               { x: -12, y: 5 }, { x: 12, y: 5 }, "line medium"),
-            Svg.Element.Text.make(
-               text, { x: 0, y: 19 }, "text bold"),
-            Svg.Element.Line.make(
-               { x: 0, y: 5 }, { x: 0, y: -10 }, "line thin")
-         );
-      }
-
-      function drawPowerGround(component: Instance) {
-         component.group.append(
-            Svg.Element.Rect.make(
-               { x: 0, y: 5 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
-            Svg.Element.Line.make(
-               { x: -18, y: 0 }, { x: 18, y: 0 }, "line medium"),
-            Svg.Element.Line.make(
-               { x: -12, y: 5 }, { x: 12, y: 5 }, "line medium"),
-            Svg.Element.Line.make(
-               { x: -6, y: 10 }, { x: 6, y: 10 }, "line medium"),
-            Svg.Element.Line.make(
-               { x: 0, y: 0 }, { x: 0, y: -10 }, "line thin")
-         );
       }
 
       export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
@@ -151,6 +108,7 @@ namespace Circuit.Component {
             $(component.group.element).addClass("component " + component.name);
             Addins.Selectable.init(component);
             Addins.ConnectionHighlights.init(component, false);
+            Addins.Draggable.init(component);
          }
       );
    }

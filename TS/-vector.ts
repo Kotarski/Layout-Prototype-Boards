@@ -18,17 +18,21 @@
 type Vector = { x: number, y: number };
 type LVector = Vector;
 type UVector = { X: number, Y: number };
-type AnyVector = LVector | UVector;
+type AVector = [number, number];
+type AnyVector = LVector | UVector | AVector;
 
 namespace _vector {
    const singleExtension = (inVector: Vector) => {
       return {
          vector: inVector,
+         x: inVector.x,
+         y: inVector.y,
          getAngleTo: _vector.getAngleTo(inVector),
          asPolar: _vector.asPolar(inVector),
          isCloseTo: _vector.isCloseTo(inVector),
 
          sumWith: _vector.sumWithS(inVector),
+         scaleWith: _vector.scaleWithS(inVector),
          centreWith: _vector.centreWith(inVector),
          rotate: _vector.rotateS(inVector),
          snapToGrid: _vector.snapToGrid(inVector)
@@ -40,6 +44,7 @@ namespace _vector {
          vectors: inVectors,
          sum: _vector.sum(inVectors),
          sumWith: _vector.sumWithM(inVectors),
+         scaleWith: _vector.scaleWithM(inVectors),
          rotate: _vector.rotateM(inVectors),
          centre: _vector.centre(inVectors),
       }
@@ -48,32 +53,31 @@ namespace _vector {
    type SingleVectorInterface = ReturnType<typeof singleExtension>;
    type MultiVectorInterface = ReturnType<typeof multiExtension>;
 
-   function vectorFunction<T extends AnyVector>(inVectors: T): SingleVectorInterface;
-   function vectorFunction<T extends AnyVector>(inVectors: T[]): MultiVectorInterface;
-   function vectorFunction<T extends AnyVector>(inVectors: T, ...moreVectors: T[]): MultiVectorInterface;
-   function vectorFunction<T extends AnyVector, A extends T | T[]>(
-      inVectors: A, ...moreVectors: T[]
+   function vectorFunction(inVectors: AnyVector): SingleVectorInterface;
+   function vectorFunction(inVectors: number): SingleVectorInterface;
+   function vectorFunction(inVectors: AnyVector[]): MultiVectorInterface;
+   function vectorFunction(inVectors: AnyVector, ...moreVectors: AnyVector[]): MultiVectorInterface;
+   function vectorFunction<A extends AnyVector | AnyVector[] | number>(inVectors: A, ...moreVectors: AnyVector[]
    ): SingleVectorInterface | MultiVectorInterface {
-      const vectorsAsArray = ((inVectors instanceof Array) ? inVectors : [inVectors]) as Array<T>;
-      const moreVectorsAsArray = (moreVectors !== undefined) ? moreVectors : [];
+      // const vectorsAsArray = ((inVectors instanceof Array) ? inVectors : [inVectors]) as Array<T>;
+      // const moreVectorsAsArray = (moreVectors !== undefined) ? moreVectors : [];
 
-      const vCopy = _vector.standardise(vectorsAsArray.concat(moreVectorsAsArray));
+      const vCopy = _vector.standardise(inVectors, ...moreVectors);
 
-      const isSingle = (vCopy.length === 1 && !(inVectors instanceof Array));
-      const ismulti = vCopy.length > 1;
-
-      const single = (isSingle) ? singleExtension(vCopy[0]) : null;
-      const array = (ismulti) ? multiExtension(vCopy) : null;
+      const ext = (vCopy instanceof Array)
+         ? multiExtension(vCopy)
+         : singleExtension(vCopy);
 
 
-      return Object.assign({}, single, array) as (
-         ((A & typeof moreVectors) extends Array<T> ?
+      return Object.assign({}, ext) as (
+         ((A & typeof moreVectors) extends Array<AnyVector> ?
             MultiVectorInterface :
             SingleVectorInterface)
       );
    }
    const vectorObject = {
       sumWith: _vector.sumWithS,
+      scaleWith: _vector.scaleWithS,
       getAngleTo: _vector.getAngleTo,
       isCloseTo: _vector.isCloseTo,
       centreWith: _vector.centreWith,

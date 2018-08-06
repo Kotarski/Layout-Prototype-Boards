@@ -5,7 +5,7 @@ namespace Circuit.Component {
          export type properties = BipolarSchematic.Types.properties;
 
          export interface state extends Component.Types.state {
-            joints: Vector[];
+            joints: [Vector, Vector, Vector];
          }
 
          export interface loadFunction extends Component.Types.loadFunction {
@@ -30,7 +30,7 @@ namespace Circuit.Component {
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          currentGain: number;
          type: "NPN" | "PNP"
-         joints: Vector[];
+         joints: [Vector, Vector, Vector];
 
          constructor(properties: Types.properties, state: Types.state) {
             super(properties, state);
@@ -56,48 +56,24 @@ namespace Circuit.Component {
          }
 
          draw() {
-            let emitterEnd = this.joints[0];
-            let collectorEnd = this.joints[1];
-            let baseEnd = this.joints[2];
-
-            let centre = vector(emitterEnd, collectorEnd, baseEnd).centre().vector;
-
-            let rotation = vector(emitterEnd).getAngleTo(baseEnd);
-
-            let [emitterStart, collectorStart, baseStart]: Vector[] = vector(
-               { x: - 12, y: 3 }, { x: 0, y: 3 }, { x: 12, y: 3 }
-            ).rotate(-rotation).sumWith(centre).vectors;
-
-            let joints = [
-               [emitterStart, emitterEnd],
-               [collectorStart, collectorEnd],
-               [baseStart, baseEnd],
-            ]
-
             //Style and add lead and highlight
             //(Prepend so handles appear on top)
-            this.group.prepend(
-               Svg.Element.Path.make(joints, "lead"),
-               Svg.Element.Group.BipolarBody.make(this.type, centre, rotation, "body")
-            );
-
+            this.group.prepend(Svg.Element.Group.Bipolar.Layout.make(
+               this.type,
+               this.joints[0],
+               this.joints[1],
+               this.joints[2],
+               "body"
+            ));
          }
 
          /** Builds the components connectors */
          makeConnectors() {
-            if (this.type === "PNP") {
-               this.connectorSets = [[
-                  Component.Generics.makeConnector(this, "base", "pin", this.joints[2]),
-                  Component.Generics.makeConnector(this, "emitter", "pin", this.joints[0]),
-                  Component.Generics.makeConnector(this, "collector", "pin", this.joints[1])
-               ]];
-            } else {
-               this.connectorSets = [[
-                  Component.Generics.makeConnector(this, "base", "pin", this.joints[2]),
-                  Component.Generics.makeConnector(this, "collector", "pin", this.joints[1]),
-                  Component.Generics.makeConnector(this, "emitter", "pin", this.joints[0])
-               ]];
-            }
+            this.connectorSets = [[
+               Component.Generics.makeConnector(this, "emitter", "pin", this.joints[0], "e"),
+               Component.Generics.makeConnector(this, "collector", "pin", this.joints[1], "c"),
+               Component.Generics.makeConnector(this, "base", "pin", this.joints[2], "b")
+            ]];
          }
 
          transferFunction() { return [] };

@@ -146,12 +146,12 @@
    --holeEdgeColour: #DFE2E5;
 }
 
-.layout .power>.body {
+.layout .power .body {
    fill: #E0E0E0;
    stroke-width: 2;
 }
 
-.layout .power>.screen {
+.layout .power .screen {
    fill: #C3D2E6;
 }
 
@@ -160,17 +160,17 @@
    src: url('fonts/Segment7Standard.otf') format('opentype');
 }
 
-.layout .power>.screentext {
+.layout .power .screentext {
    font-family: 'Segment7Standard';
    font-size: 60px;
    text-anchor: middle;
 }
 
-.layout .power>.screentext.on {
+.layout .power .screentext.on {
    fill: #545454;
 }
 
-.layout .power>.screentext.off {
+.layout .power .screentext.off {
    fill: #B0BFD3;
 }
 
@@ -300,4 +300,14 @@
 
 .layout .selected .recolorSegmentGroup {
    visibility: visible;
+}
+
+.layout .connectivityhighlight {
+   fill: black;
+   font-weight: bold;
+   text-anchor: middle;
+   pointer-events: none;
+   font-family: consolas;
+   font-size: 4px;
+   dominant-baseline: central;
 }

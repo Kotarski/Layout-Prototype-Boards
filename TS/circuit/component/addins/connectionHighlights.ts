@@ -18,14 +18,18 @@ namespace Circuit.Component.Addins.ConnectionHighlights {
 
    }
 
-   const createConnectorHighlights = (component: Component.Instance, connection: Component.Types.connector, color: string) => {
+   const createConnectorHighlights = (component: Component.Instance, connection: Component.Types.connector, color: string, symbol?: string) => {
       let ctm = component.group.element.getCTM();
       let point = (ctm) ? connection.point.matrixTransform(ctm.inverse()) : connection.point;
-      let highlight = Svg.Element.Circle.make(
-         point, 4, "highlight highlightwithfill connectivityhighlight"
-      );
+      let highlight = Svg.Element.Circle.make(point, 4, "highlight highlightwithfill connectivityhighlight");
+
       $(highlight.element).css({ "fill": color, "stroke": color })
       component.group.append(highlight);
+
+      if (connection.symbol !== "") {
+         let symbol = Svg.Element.Text.make(connection.symbol, point, "text connectivityhighlight");
+         component.group.append(symbol);
+      }
    }
 
    const createConnectionsHighlights = (component: Component.Instance, propogate: boolean, colorPalette: colorPalette) => {
@@ -37,9 +41,8 @@ namespace Circuit.Component.Addins.ConnectionHighlights {
                connectorConnections.slice(1).forEach(connector => {
                   createConnectorHighlights(component, connector, color)
                })
-            } else {
-               createConnectorHighlights(component, connectorConnections[0], color)
             }
+            createConnectorHighlights(component, connectorConnections[0], color);
          })
       })
 
@@ -52,7 +55,7 @@ namespace Circuit.Component.Addins.ConnectionHighlights {
 
    const defaultColorPalette: colorPalette = [
       "red",
-      "green",
+      "#8bc34a",
       "pink",
       "yellow",
       "cyan",

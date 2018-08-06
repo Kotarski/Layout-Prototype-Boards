@@ -6,7 +6,7 @@ namespace Circuit.Component {
          export type properties = InductorSchematic.Types.properties;
 
          export interface state extends Component.Types.state {
-            joints: Vector[];
+            joints: [Vector, Vector];
          }
 
          export interface loadFunction extends Component.Types.loadFunction {
@@ -29,7 +29,7 @@ namespace Circuit.Component {
 
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          inductance: number;
-         joints: Vector[];
+         joints: [Vector, Vector];
 
          constructor(properties: Types.properties, state: Types.state) {
             super(properties, state);
@@ -53,13 +53,11 @@ namespace Circuit.Component {
          }
 
          draw() {
-            const first = this.joints[0];
-            const last = this.joints[this.joints.length - 1];
+            const [start, end]: Vector[] = this.joints;
             //Style and add lead and highlight
             //(Prepend so handles appear on top)
             this.group.prepend(
-               Svg.Element.Path.make(this.joints, "lead"),
-               Svg.Element.Group.InductorBody.make(this.inductance, first, last, "body")
+               Svg.Element.Group.Inductor.Layout.make(this.inductance, start, end, "body")
             );
          }
 

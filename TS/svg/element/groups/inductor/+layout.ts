@@ -1,9 +1,9 @@
-namespace Svg.Element.Group.InductorBody {
+namespace Svg.Element.Group.Inductor.Layout {
    export type type = ReturnType<typeof make>;
    export function make(value: number, start: Vector, end: Vector, classes: string = "") {
-      const element = Group.make(classes);
+      const bodyGroup = Group.make(classes);
 
-      let centre = { x: (start.x + end.x) / 2, y: (start.y + end.y) / 2 };
+      let centre = vector(start, end).centre().vector;
       let rotation = vector(start).getAngleTo(end);
 
       const nCoils = 4;
@@ -22,14 +22,15 @@ namespace Svg.Element.Group.InductorBody {
       }
       bodyPath += "L" + (-coilStart) + " " + (coilTop);
 
-      element.append(
+      bodyGroup.append(
          Svg.Element.Path.make(bodyPath, "highlight highlightwithfill"),
          Svg.Element.Path.make(bodyPath, "body"),
          Svg.Element.Path.make(bodyEdgePath, "bodyEdge")
       );
 
-      element.translate({ x: centre.x, y: centre.y }).rotate(rotation);
-
-      return element;
+      return [
+         Svg.Element.Path.make([start, end], "lead"),
+         bodyGroup.translate(centre).rotate(rotation)
+      ];
    }
 }

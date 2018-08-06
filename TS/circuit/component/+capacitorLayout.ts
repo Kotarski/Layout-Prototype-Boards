@@ -6,7 +6,7 @@ namespace Circuit.Component {
          export type properties = CapacitorSchematic.Types.properties;
 
          export interface state extends Component.Types.state {
-            joints: Vector[];
+            joints: [Vector, Vector];
          }
 
          export interface loadFunction extends Component.Types.loadFunction {
@@ -30,7 +30,7 @@ namespace Circuit.Component {
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          capacitance: number;
          isPolarised: boolean;
-         joints: Vector[];
+         joints: [Vector, Vector];
 
          constructor(properties: Types.properties, state: Types.state) {
             super(properties, state);
@@ -56,16 +56,14 @@ namespace Circuit.Component {
          }
 
          draw() {
-            const first = this.joints[0];
-            const last = this.joints[this.joints.length - 1];
+            const [start, end]: Vector[] = this.joints;
             //Style and add lead and highlight
             //(Prepend so handles appear on top)
             let capacitorBody = (this.isPolarised)
-               ? Svg.Element.Group.CapacitorBodyElectrolytic.make(this.capacitance, first, last, "bodyelectrolytic")
-               : Svg.Element.Group.CapacitorBodyCeramic.make(this.capacitance, first, last, "bodyceramic")
+               ? Svg.Element.Group.Capacitor.Layout.Electrolytic.make(this.capacitance, start, end, "bodyelectrolytic")
+               : Svg.Element.Group.Capacitor.Layout.Ceramic.make(this.capacitance, start, end, "bodyceramic")
 
             this.group.prepend(
-               Svg.Element.Path.make(this.joints, "lead"),
                capacitorBody
             );
          }

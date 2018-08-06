@@ -9,7 +9,7 @@ namespace Circuit.Component {
          }
 
          export interface state extends Component.Types.state {
-            orientation: "LR" | "RL";
+            joints: [Vector, Vector, Vector];
          }
 
          export interface loadFunction extends Component.Types.loadFunction {
@@ -23,7 +23,7 @@ namespace Circuit.Component {
 
       export const defaultState: Types.state = {
          location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
-         orientation: "LR"
+         joints: [{ x: -50, y: 0 }, { x: +10, y: -50 }, { x: +10, y: +50 }]
       }
       export const defaultProperties: Types.properties = {
          name: "bipolar",
@@ -35,12 +35,12 @@ namespace Circuit.Component {
          name: string = "bipolar";
          currentGain: number;
          type: "PNP" | "NPN";
-         orientation: "LR" | "RL";
+         joints: [Vector, Vector, Vector];
 
          constructor(properties: Types.properties, state: Types.state) {
             super(properties, state);
             $(this.group.element).addClass("component " + this.name);
-            this.orientation = state.orientation;
+            this.joints = state.joints;
             this.type = properties.type;
             this.currentGain = properties.currentGain;
          }
@@ -56,83 +56,33 @@ namespace Circuit.Component {
          getState(): Types.state {
             return {
                location: this.location,
-               orientation: this.orientation
+               joints: this.joints
             }
          }
 
          draw() {
-            const scale = (this.orientation === "LR") ? { x: 1, y: 1 } : { x: -1, y: 1 };
-
-            // Highlight
-            this.group.append(
-               Svg.Element.Circle.make({ x: 0, y: 0 }, 30, "extrathick highlight").scale(scale, true)
-            );
-
-            // Body lines
-            this.group.append(
-               //stubBase
-               Svg.Element.Line.make({ x: -15, y: 0 }, { x: -50, y: 0 }, "line thin").scale(scale),
-               //stubCollector
-               Svg.Element.Line.make({ x: +10, y: -20 }, { x: +10, y: -50 }, "line thin").scale(scale),
-               //stubEmitter
-               Svg.Element.Line.make({ x: +10, y: +20 }, { x: +10, y: +50 }, "line thin").scale(scale),
-               //lineBase
-               Svg.Element.Line.make({ x: -15, y: -15 }, { x: -15, y: +15 }, "line medium-thick nocap").scale(scale),
-               //lineCollector
-               Svg.Element.Line.make({ x: -15, y: -5 }, { x: +10, y: -20 }, "line thin").scale(scale),
-               //lineEmitter
-               Svg.Element.Line.make({ x: -15, y: 5 }, { x: 10, y: 20 }, "line thin").scale(scale)
-            );
-
-            // Body Triangle
-            if (this.type === "PNP") {
-               this.group.append(Svg.Element.Path.make(
-                  'M -7 0 L 7 6 L 7 -6 L -7 0 Z', "body black thin"
-               ).translate({ x: -8, y: -9.2 }).rotate(-31).scale(scale, true));
-            } else {
-               this.group.append(Svg.Element.Path.make(
-                  'M 7 0 L -7 6 L -7 -6 L 7 0 Z', "body black thin"
-               ).translate({ x: 4, y: 16.4 }).rotate(31).scale(scale, true));
-            }
-
-            // Body Circle
-            this.group.append(Svg.Element.Circle.make(
-               { x: 0, y: 0 }, 30, "line medium nofill"
-            ).scale(scale, true));
-
-            //Text
-            let textPosition = (this.orientation === "LR") ? { x: 32, y: 4 } : { x: -32, y: 4 }
-            let text = Utility.getStandardForm(this.currentGain, '')
-            let anchorClass = (this.orientation === "LR") ? "anchorstart" : "anchorend";
-            this.group.append(
-               Svg.Element.Text.make(text, textPosition, "text " + anchorClass)
-            );
+            //Style and add lead and highlight
+            //(Prepend so handles appear on top)
+            this.group.prepend(Svg.Element.Group.Bipolar.Schematic.make(
+               this.type,
+               this.currentGain,
+               this.joints[0],
+               this.joints[1],
+               this.joints[2],
+               "body"
+            ));
          }
 
 
          /** Builds and draws the components connectors */
          makeConnectors() {
-
-            let con1Pos, con2Pos, con3Pos;
-            [con1Pos, con2Pos, con3Pos] = (this.orientation === "LR")
-               ? [{ x: -50, y: 0 }, { x: +10, y: -50 }, { x: +10, y: +50 }]
-               : [{ x: +50, y: 0 }, { x: -10, y: -50 }, { x: -10, y: +50 }];
-
-
-            if (this.type === "PNP") {
-               this.connectorSets = [[
-                  Component.Generics.makeConnector(this, "base", "node", con1Pos),
-                  Component.Generics.makeConnector(this, "emitter", "node", con2Pos),
-                  Component.Generics.makeConnector(this, "collector", "node", con3Pos)
-               ]];
-            } else {
-               this.connectorSets = [[
-                  Component.Generics.makeConnector(this, "base", "node", con1Pos),
-                  Component.Generics.makeConnector(this, "collector", "node", con2Pos),
-                  Component.Generics.makeConnector(this, "emitter", "node", con3Pos)
-               ]];
-            }
+            this.connectorSets = [[
+               Component.Generics.makeConnector(this, "emitter", "node", this.joints[0], "e"),
+               Component.Generics.makeConnector(this, "collector", "node", this.joints[1], "c"),
+               Component.Generics.makeConnector(this, "base", "node", this.joints[2], "b"),
+            ]];
          }
+
 
          transferFunction() { return [] };
       }
@@ -141,14 +91,24 @@ namespace Circuit.Component {
 
          let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
             {
-               orientation: (["LR", "RL"].includes(raw.state.orientation)) ? raw.state.orientation : undefined,
-               location: raw.state.location
+               location: raw.state.location,
+               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 3)
+                  ? vector.standardise(raw.state.joints as AnyVector[])
+                  : undefined
             } : {
-               orientation: (["LR", "RL"].includes(raw.orientation)) ? raw.orientation : undefined,
-               location: (raw.where) ? {
-                  e: raw.where.X,
+               location: (raw.where && ["LR", "RL"].includes(raw.orientation)) ? {
+                  e: raw.where.X + ((raw.orientation === "LR") ? 10 : -10),
                   f: raw.where.Y
                } : undefined,
+               joints: (["LR", "RL"].includes(raw.orientation) && ["NPN", "PNP"].includes(raw.type))
+                  ? ({
+                     //   Emitter             Collector           Base
+                     LRPNP: [{ x: 0, y: -50 }, { x: 0, y: +50 }, { x: -60, y: 0 }],
+                     RLPNP: [{ x: 0, y: -50 }, { x: 0, y: +50 }, { x: +60, y: 0 }],
+                     LRNPN: [{ x: 0, y: +50 }, { x: 0, y: -50 }, { x: -60, y: 0 }],
+                     RLNPN: [{ x: 0, y: +50 }, { x: 0, y: -50 }, { x: +60, y: 0 }],
+                  } as { [key: string]: [Vector, Vector, Vector] })[raw.orientation + raw.type]
+                  : undefined,
             };
          let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
             {
@@ -168,6 +128,8 @@ namespace Circuit.Component {
             $(component.group.element).addClass("component " + component.name);
             Addins.Selectable.init(component);
             Addins.ConnectionHighlights.init(component, false);
+            Addins.Draggable.init(component);
+            Addins.Extendable.init(component);
          }
       );
    }

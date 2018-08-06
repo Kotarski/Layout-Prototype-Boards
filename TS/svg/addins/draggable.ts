@@ -64,7 +64,7 @@ namespace Svg.Addins.Draggable {
 
                //Call on drag functions (via a custom event listener
                //so we can keep the svg drag values
-               $(eventTarget).trigger("dragSVG", [ui, dragChangeSvg]);
+               $(eventTarget).trigger(Events.drag, [ui, dragChangeSvg]);
 
             },
             //On drag stop
