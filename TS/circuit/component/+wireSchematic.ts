@@ -14,7 +14,6 @@ namespace Circuit.Component {
       import Types = WireSchematic.Types;
 
       export const defaultState: Types.state = {
-         location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
          joints: [{ x: 0, y: 0 }, { x: 10, y: 10 }]
       }
 
@@ -42,7 +41,6 @@ namespace Circuit.Component {
 
          getState(): Types.state {
             return {
-               location: this.location,
                joints: this.joints
             }
          }
@@ -79,18 +77,21 @@ namespace Circuit.Component {
       export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
          let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
             {
-               location: raw.state.location,
                joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length > 1)
                   ? vector.standardise(raw.state.joints as AnyVector[])
                   : undefined
             } : {
-               location: (raw.where) ? {
-                  e: raw.where.X,
-                  f: raw.where.Y
-               } : undefined,
-               joints: (vector.isVectorArray(raw.joints) && raw.joints.length > 1)
-                  ? vector.standardise(raw.joints as AnyVector[])
-                  : undefined
+               joints: (() => {
+                  if (vector.isVectorArray(raw.joints) && raw.joints.length > 1) {
+                     let baseJoints = vector.standardise(raw.joints as AnyVector[]);
+                     let offset: Vector = (raw.where && vector.isVector(raw.where))
+                        ? vector(raw.where as AnyVector).vector
+                        : { x: 0, y: 0 }
+                     return vector(baseJoints).sumWith(offset).vectors
+                  } else {
+                     return undefined;
+                  }
+               })()
             };
          let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
             {
@@ -105,8 +106,11 @@ namespace Circuit.Component {
             $(component.group.element).addClass("component " + component.name);
             Addins.Junctions.init(component);
             Addins.Selectable.init(component);
-            Addins.Draggable.init(component);
-            Addins.Extendable.init(component, true, true);
+            Addins.Graphical.init(component);
+            if (Constants.schematicManipulationEnabled) {
+               Addins.Draggable.init(component);
+               Addins.Extendable.init(component, true, true);
+            }
          }
       );
    }

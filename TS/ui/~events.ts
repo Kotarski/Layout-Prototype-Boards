@@ -79,9 +79,20 @@ namespace Ui.Events {
    }
 
    export function rotateBoard() {
-      if (Circuit.manifest.activeBoard) {
-         const bbox = Circuit.manifest.activeBoard.group.element.getBBox();
-         Circuit.manifest.activeBoard.group.rotate(90, { x: bbox.x + bbox.width / 2, y: bbox.y + bbox.height / 2 }, false);
+      let board = Circuit.manifest.activeBoard as Circuit.Component.Instance & {
+         joints: [Vector, Vector, ...Vector[]]
+      };
+      if (board) {
+         console.log(board)
+         let centre = board.joints[0];
+
+         board.joints = vector(board.joints)
+            .sumWith(vector(centre).scaleWith(-1))
+            .rotate(90)
+            .sumWith(centre)
+            .vectors as [Vector, Vector, ...Vector[]]
+
+         $(board.group.element).trigger(Circuit.Events.draw);
       }
    }
 

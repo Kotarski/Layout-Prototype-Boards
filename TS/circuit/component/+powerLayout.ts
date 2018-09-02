@@ -21,7 +21,6 @@ namespace Circuit.Component {
       import Types = PowerLayout.Types;
 
       export const defaultState: Types.state = {
-         location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
          joints: [{ x: 0, y: 40 }]
       }
       export const defaultProperties: Types.properties = {
@@ -50,7 +49,6 @@ namespace Circuit.Component {
 
          getState(): Types.state {
             return {
-               location: this.location,
                joints: this.joints
             }
          }
@@ -80,7 +78,6 @@ namespace Circuit.Component {
 
          let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
             {
-               location: raw.state.location,
                joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 1)
                   ? vector.standardise(raw.state.joints as AnyVector[])
                   : undefined
@@ -98,7 +95,7 @@ namespace Circuit.Component {
       export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
             $(component.group.element).addClass(component.name);
-            Addins.Draggable.init(component);
+            Addins.Graphical.init(component); Addins.Draggable.init(component);
             Addins.Selectable.init(component);
             Addins.ConnectionHighlights.init(component, true, getHighlightColor(component));
             Addins.WireCreation.init(component);

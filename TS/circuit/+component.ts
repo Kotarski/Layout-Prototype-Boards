@@ -6,7 +6,6 @@ namespace Circuit.Component {
       };
 
       export interface state {
-         location: Svg.Types.transformMatrix;
       }
 
       export interface insertionFunction {
@@ -25,9 +24,9 @@ namespace Circuit.Component {
       export interface connector {
          name: string;
          type: connectorTypes;
-         point: SVGPoint;
+         point: Vector;
          component: Instance;
-         symbol: string;
+         symbol?: string;
       }
 
       export interface hole extends connector {
@@ -44,15 +43,8 @@ namespace Circuit.Component {
       name: string;
       group = Svg.Element.Group.make();
       connectorSets: Types.connector[][] = [];
-      get location() {
-         return this.group.getTransforms();
-      }
-      set location(location: Svg.Types.transformMatrix) {
-         this.group.setTransforms(location);
-      }
 
       constructor(properties: Types.properties, state: Types.state) {
-         this.location = state.location;
          this.name = properties.name;
       }
 

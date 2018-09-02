@@ -5,7 +5,9 @@ namespace Circuit.Component {
       export namespace Types {
          export type properties = Component.Types.properties;
 
-         export interface state extends Component.Types.state { }
+         export interface state extends Component.Types.state {
+            joints: [Vector, Vector];
+         }
 
          export interface loadFunction extends Component.Types.loadFunction {
             (raw: any): Instance;
@@ -17,7 +19,7 @@ namespace Circuit.Component {
       import Types = BreadboardSmall.Types;
 
       export const defaultState: Types.state = {
-         location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
+         joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }]
       }
       export const defaultProperties: Types.properties = {
          name: "breadboardsmall"
@@ -26,9 +28,11 @@ namespace Circuit.Component {
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          tracks: Addins.Board.Track.Instance[] = [];
          connectorSets: Component.Types.hole[][] = [];
+         joints: [Vector, Vector];
 
          constructor(properties: Types.properties, state: Types.state) {
             super(properties, state);
+            this.joints = state.joints
          }
 
          getProperties(): Types.properties {
@@ -39,86 +43,17 @@ namespace Circuit.Component {
 
          getState(): Types.state {
             return {
-               location: this.location
+               joints: this.joints
             }
          }
 
          makeConnectors() { }
 
          draw() {
-            const gS = Constants.gridSpacing;
+            this.tracks = makeTracks(this)
 
-            // Power Rails strings:
-            const railPairPathString = [
-               "M" + (gS * 1.3) + " " + (0),
-               "H" + (gS * 29.7),
-               "M" + (gS * 1.3) + " " + (gS * 18),
-               "H" + (gS * 29.7)
-            ].join();
-
-            const plussesPathString = [
-               "M" + (gS * 0.5 - 5) + " " + (gS * 0.5),
-               "h" + (10),
-               "m" + (gS * 30 - 10) + " " + (0),
-               "h" + (10),
-               "m" + (-5) + " " + (-5),
-               "v" + (10),
-               "m" + (0) + " " + (gS * 18 - 10),
-               "v" + (10),
-               "m" + (5) + " " + (-5),
-               "h" + (-10),
-               "m" + (gS * -30 + 10) + " " + (0),
-               "h" + (-10),
-               "m" + (5) + " " + (5),
-               "v" + (-10),
-               "m" + (0) + " " + (gS * -18 + 10),
-               "v" + (-10)
-            ].join();
-
-            const minusesPathString = [
-               "M " + (gS * 0.5) + " " + (gS * -0.5 - 5),
-               "v" + (10),
-               "m" + (0) + " " + (gS * 18 - 10),
-               "v" + (10),
-               "m" + (gS * 30) + " " + (0),
-               "v" + (-10),
-               "m" + (0) + " " + (gS * -18 + 10),
-               "v" + (-10)
-            ].join();
-
-            const size = {
-               width: 32 * gS,
-               height: 22 * gS
-            };
-            const centre = {
-               x: 15.5 * gS,
-               y: 10.5 * gS
-            };
-
-            this.group.append(
-               //Body
-               Svg.Element.Rect.make(centre, size, { x: 4, y: 4 }, "body"),
-               //Centre rut
-               Svg.Element.Rect.make(centre, { width: size.width, height: gS * 0.75, }, { x: 0, y: 0 }, "rut"),
-               //Body Highlights
-               Svg.Element.Rect.make(centre, size, { x: 4, y: 4 }, "body highlight"),
-               //Power rail positives
-               Svg.Element.Path.make(railPairPathString + plussesPathString, "rail positive"),
-               //Power rail negatives
-               Svg.Element.Path.make(railPairPathString + minusesPathString, "rail negative").translate({ x: 0, y: gS * 3 }),
-               //Text Left (portrait)
-               Svg.Element.Group.TextSequence.make({ x: 30 * gS - gS / 6, y: 4 * gS }, { x: 0, y: gS }, { start: 1, length: 30 }).rotate(90),
-               //Text Right (portrait)
-               Svg.Element.Group.TextSequence.make({ x: 30 * gS - gS / 6, y: 17 * gS }, { x: 0, y: gS }, { start: 1, length: 30 }).rotate(90),
-               //Text Top Left (portrait)
-               Svg.Element.Group.TextSequence.make({ x: 31 * gS - gS / 4, y: 5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90),
-               //Text Bottom Left (portrait)
-               Svg.Element.Group.TextSequence.make({ x: 0 * gS, y: 5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90),
-               //Text Top Right (portrait)
-               Svg.Element.Group.TextSequence.make({ x: 31 * gS - gS / 4, y: 12 * gS }, { x: gS, y: 0 }, "fghij").rotate(90),
-               //Text Bottom Right (portrait)
-               Svg.Element.Group.TextSequence.make({ x: 0 * gS, y: 12 * gS }, { x: gS, y: 0 }, "fghij").rotate(90),
-               //Tracks
+            this.group.prepend(
+               Svg.Element.Group.Breadboard.SmallLayout.make(this.joints[0], this.joints[1], "body"),
                this.tracks.map(t => t.group)
             )
          }
@@ -133,26 +68,45 @@ namespace Circuit.Component {
 
       const makeTracks: (parent: Instance) => Addins.Board.Track.Instance[] = (parent: Instance) => {
          let tracks: Addins.Board.Track.Instance[] = [];
+
          let gS = Constants.gridSpacing;
 
-         let powerTrackYPositions = [1, 2, 19, 20].map(y => y * gS);
+         let rotation = vector(parent.joints[0]).getAngleTo(parent.joints[1]);
+
+         let powerTrackYPositions = [-9.5, -8.5, 8.5, 9.5];
          for (let y of powerTrackYPositions) {
+
+            const start = vector({ x: gS * -14, y: y * gS })
+               .rotate(rotation)
+               .sumWith(parent.joints[0]);
+
+            const step = vector({ x: gS, y: 0 }).rotate(rotation);
+
             let track = Addins.Board.Track.makeInstance({
-               holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1].map(offset => offset * gS)
-            }, {});
-            track.group.translate({ x: gS * 1.5, y: y }).rotate(0);
+               holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1]
+            }, {
+                  joints: [start, step]
+               });
             tracks.push(track);
          }
 
-         let mainGridTrackXPositions = [...Array(30).keys()].map(x => (x + 1) * gS);
-         let mainGridTrackYPositions = [5, 12].map(y => y * gS);
+         let mainGridTrackXPositions = [...Array(30).keys()];
+         let mainGridTrackYPositions = [-5.5, +1.5];
 
          for (let x of mainGridTrackXPositions) {
             for (let y of mainGridTrackYPositions) {
+
+               const start = vector({ x: (x - 14.5) * gS, y: y * gS })
+                  .rotate(rotation)
+                  .sumWith(parent.joints[0]);
+
+               const step = vector({ x: 0, y: gS }).rotate(rotation);
+
                let track = Addins.Board.Track.makeInstance({
-                  holeSpacings: [0, 1, 1, 1, 1].map(offset => offset * gS)
-               }, {});
-               track.group.translate({ x: x, y: y }).rotate(90);
+                  holeSpacings: [0, 1, 1, 1, 1]
+               }, {
+                     joints: [start, step]
+                  });
                tracks.push(track);
             }
          }
@@ -161,26 +115,29 @@ namespace Circuit.Component {
       }
 
       export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
-         // Set default state
-         let state = Object.assign({}, defaultState);
-         // Set default properties
-         let properties = Object.assign({}, defaultProperties);
 
-         // If from a layout
-         if (raw.state) {
-            if (raw.state.location) {
-               state.location = raw.state.location;
-            }
-         }
+         let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
+            {
+               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
+                  ? vector.standardise(raw.state.joints as AnyVector[])
+                  : undefined
+            } : {};
+
+         let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
+            {} : {};
+
          return makeInstance(properties, state, true);
       }
 
       export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
             $(component.group.element).addClass("breadboard " + component.name);
-            Addins.Board.init(component, makeTracks);
+            Addins.Graphical.init(component);
+            Addins.Board.init(component);
             Addins.Selectable.init(component);
             Addins.WireCreation.init(component);
+            Addins.Draggable.init(component);
+            Addins.Rotatable.init(component);
          }
       );
    }

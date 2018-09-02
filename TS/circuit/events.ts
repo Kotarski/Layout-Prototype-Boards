@@ -1,4 +1,4 @@
-namespace Events {
+namespace Circuit.Events {
    export const rotate: string = "rotate";
    export const drag: string = "dragSVG";
    export const dragStart: string = "dragstart";
@@ -9,4 +9,6 @@ namespace Events {
 
    export const select: string = "select";
    export const deselect: string = "deselect";
+
+   export const draw: string = "draw";
 }

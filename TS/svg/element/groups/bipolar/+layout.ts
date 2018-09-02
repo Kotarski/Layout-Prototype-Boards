@@ -14,7 +14,7 @@ namespace Svg.Element.Group.Bipolar.Layout {
 
       let [emitterStart, collectorStart, baseStart]: Vector[] = vector(
          { x: - 12, y: 3 }, { x: 0, y: 3 }, { x: 12, y: 3 }
-      ).rotate(-rotation).sumWith(centre).vectors;
+      ).rotate(rotation).sumWith(centre).vectors;
 
       let joints = [
          [emitterStart, emitterEnd],

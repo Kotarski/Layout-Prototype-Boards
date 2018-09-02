@@ -17,8 +17,8 @@ namespace _vector {
       const sin = Math.sin(radians);
       return (inVector: Vector): Vector => {
          return {
-            x: (cos * inVector.x) + (sin * inVector.y),
-            y: (cos * inVector.y) - (sin * inVector.x)
+            x: (cos * inVector.x) - (sin * inVector.y),
+            y: (cos * inVector.y) + (sin * inVector.x)
          };
       }
    }

@@ -9,16 +9,16 @@ namespace Circuit.Component.Addins.Recolorable {
       recolorSelector: string = "*",
       colorPalette: colorPalette = defaultColorPalette
    ) => {
-      let element = component.group;
+      const element = component.group.element;
 
-      $(element.element).on(Events.select, () => {
+      $(element).on(Events.select, () => {
          createRecolorHandle(component, where(), recolorSelector, colorPalette);
       });
-      $(element.element).on(Events.moved, () => {
+      $(element).on(Events.draw, () => {
          clearRecolorHandle(component);
          createRecolorHandle(component, where(), recolorSelector, colorPalette);
       });
-      $(element.element).on(Events.deselect, () => {
+      $(element).on(Events.deselect, () => {
          clearRecolorHandle(component);
       });
    }
@@ -26,7 +26,7 @@ namespace Circuit.Component.Addins.Recolorable {
    const refreshComponent = (component: recolorableComponent) => {
       component.group.clearChildren(":not(.handle,.connectivityhighlight)");
       component.makeConnectors();
-      component.draw();
+      $(component.group.element).trigger(Events.draw);
    };
 
    const createRecolorHandle = (component: recolorableComponent, position: Vector, recolorSelector: string, colorPalette: colorPalette) => {

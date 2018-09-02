@@ -10,12 +10,12 @@
    --railNegativeColour: #8BE3F4;
 }
 
-.breadboard>.body {
+.breadboard>.body>.body {
    fill: var(--bodyColour);
    stroke-width: 2;
 }
 
-.breadboard>.body.highlight {
+.breadboard>.body>.body.highlight {
    fill: none;
    stroke-width: 2;
 }

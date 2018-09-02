@@ -9,6 +9,7 @@ namespace Svg.Element {
 
    export namespace Functions {
 
+      /** FROM EAST, COUNTER-CLOCKWISE */
       export function rotate<T extends SVGGraphicsElement>(element: T) {
          return (rotation: number, centre?: Vector, insertBefore: boolean = false) => {
             let centreV: Vector;

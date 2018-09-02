@@ -45,6 +45,7 @@ namespace Circuit.Component.Addins.Selectable {
 
    const setDisplayHandlers = (component: Component.Instance) => {
       $(component.group.element).on(Events.select, () => {
+         console.log(component)
          $(component.group.element).addClass("selected");
          component.insertInto(component.group.element);
       });

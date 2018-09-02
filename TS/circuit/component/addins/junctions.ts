@@ -25,8 +25,8 @@ namespace Circuit.Component.Addins.Junctions {
             return vector(point).isCloseTo(other.point)
          });
          if (attachedConnectors.length === 3) {
-            let ctm = Active.schematic.root.group.element.getCTM();
-            point = (ctm) ? point.matrixTransform(ctm.inverse()) : point;
+            //let ctm = Active.schematic.root.group.element.getCTM();
+            //point = (ctm) ? point.matrixTransform(ctm.inverse()) : point;
             component.group.prepend(
                Svg.Element.Circle.make(point, 5, "junction black")
             );

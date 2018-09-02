@@ -34,7 +34,7 @@ namespace FileIO.Load {
       // Event called if read completed successfully
       reader.onload = function (event) {
          console.info("Read of %o successfully complete with %o", [this.result], [event]);
-         let fileString: string = reader.result;
+         let fileString: string = reader.result as string; //TODO
          if (files && files[0]) {
             deferred.resolve(files[0], fileString)
          } else {

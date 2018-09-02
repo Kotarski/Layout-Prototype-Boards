@@ -95,6 +95,10 @@
    fill: rgb(170, 170, 255);
 }
 
+.schematic .selected .connectivityhighlight~.dragHandle {
+   fill: transparent;
+}
+
 .schematic .nofill {
    fill: transparent;
 }
@@ -111,4 +115,5 @@
    font-family: consolas;
    font-size: 4px;
    dominant-baseline: central;
+   opacity: 0.9;
 }

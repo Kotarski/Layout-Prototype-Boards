@@ -59,7 +59,7 @@ namespace Svg.Element.Group.OpAmp.Schematic {
       // (Hence using vector transforms, not svg transforms)
       let [inPStart, inNStart, outStart, powPStart, powNStart]: Vector[] = vector(
          { x: -25, y: -10 }, { x: -25, y: 10 }, { x: 25, y: 0 }, { x: 0, y: -13 }, { x: 0, y: 13 }
-      ).scaleWith(scale).rotate(-rotation).sumWith(centre).vectors;
+      ).scaleWith(scale).rotate(rotation).sumWith(centre).vectors;
 
 
       let joints = [

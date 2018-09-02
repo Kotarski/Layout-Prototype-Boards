@@ -1,4 +1,5 @@
 namespace _vector {
+   // TODO, THERE IS SOMETHING WRONG HERE
    export function centreWith<T extends Vector>(inVector: T) {
       return (...vectors: (Vector | Vector[])[]) => {
          let sum: Vector = { x: 0, y: 0 };

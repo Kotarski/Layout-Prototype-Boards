@@ -241,7 +241,7 @@ namespace Circuit {
 
    const getMinConnections = (component: Component.Instance): connectorSetGroup => {
       return (component.getConnections().map(connectorSet => {
-         return connectorSet.map(connections => {
+         return (connectorSet.map(connections => {
             let connectorName = connections[0].name;
             connections.shift();
             let blackHole = connections.find(connection => mappings.isUnique(connection.component))
@@ -253,7 +253,7 @@ namespace Circuit {
                   mappings.isCorresponder(connection.component)
                )
             }
-         })
+         })).filter((c) => c.connections.length !== 0);
       }));
    }
 

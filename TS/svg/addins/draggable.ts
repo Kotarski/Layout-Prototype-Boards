@@ -47,8 +47,21 @@ namespace Svg.Addins.Draggable {
                   x: ui.position.left - lastPosition.x,
                   y: ui.position.top - lastPosition.y
                };
+
                // Convert amount dragged this step to the coordinate system of the svg element
                let dragChangeSvg = svg(element).convertVector(dragChangeDom, "DomToSvg", "absToDoc");
+
+               // only do the interesting things when the draggable actually moves.
+               if (!vector(dragChangeSvg).isCloseTo({ x: 0, y: 0 })) {
+                  //Call on drag functions (via a custom event listener
+                  //so we can keep the svg drag values
+                  $(eventTarget).trigger(Circuit.Events.drag, [ui, dragChangeSvg]);
+
+                  lastPosition = {
+                     x: ui.position.left,
+                     y: ui.position.top
+                  };
+               }
 
                //Call constraint functions (via a custom event listener
                // $(eventTarget).triggerHandler("dragSVGConstraintCheck", [
@@ -57,14 +70,6 @@ namespace Svg.Addins.Draggable {
                //    dragChangeDom
                // ]);
 
-               lastPosition = {
-                  x: ui.position.left,
-                  y: ui.position.top
-               };
-
-               //Call on drag functions (via a custom event listener
-               //so we can keep the svg drag values
-               $(eventTarget).trigger(Events.drag, [ui, dragChangeSvg]);
 
             },
             //On drag stop
@@ -77,14 +82,16 @@ namespace Svg.Addins.Draggable {
       }
 
       if (options.onDrag !== undefined) {
-         $(eventTarget).on("dragSVG", (e, ui, drag) => {
-            if (options.onDrag) options.onDrag(drag, e);
+         $(eventTarget).on(Circuit.Events.drag, (e, ui, drag) => {
+            if ($(e.target).closest(".ui-draggable").is(eventTarget)) {
+               if (options.onDrag) options.onDrag(drag, e);
+            }
          });
       };
 
       // Translate by dragged amount if movement not disabled
       if (options.disableMovement !== true) {
-         $(eventTarget).on("dragSVG", (e, ui, drag) => {
+         $(eventTarget).on(Circuit.Events.drag, (e, ui, drag) => {
             if ($(e.target).closest(".ui-draggable").is(eventTarget)) {
                svg(element).translate(drag, true);
             }
@@ -107,13 +114,13 @@ namespace Svg.Addins.Draggable {
          );
       }
       if (options.onStart !== undefined) {
-         $(eventTarget).on("dragstart", (e, ui) => {
+         $(eventTarget).on(Circuit.Events.dragStart, (e, ui) => {
             if (options.onStart) options.onStart(e);
          });
       }
 
       if (options.onStop !== undefined) {
-         $(eventTarget).on("dragstop", (e, ui) => {
+         $(eventTarget).on(Circuit.Events.dragStop, (e, ui) => {
             if (options.onStop) options.onStop(e);
          });
       }

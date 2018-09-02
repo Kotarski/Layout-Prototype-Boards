@@ -22,7 +22,6 @@ namespace Circuit.Component {
       import Types = BipolarSchematic.Types;
 
       export const defaultState: Types.state = {
-         location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
          joints: [{ x: -50, y: 0 }, { x: +10, y: -50 }, { x: +10, y: +50 }]
       }
       export const defaultProperties: Types.properties = {
@@ -55,7 +54,6 @@ namespace Circuit.Component {
 
          getState(): Types.state {
             return {
-               location: this.location,
                joints: this.joints
             }
          }
@@ -91,24 +89,30 @@ namespace Circuit.Component {
 
          let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
             {
-               location: raw.state.location,
                joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 3)
                   ? vector.standardise(raw.state.joints as AnyVector[])
                   : undefined
             } : {
-               location: (raw.where && ["LR", "RL"].includes(raw.orientation)) ? {
-                  e: raw.where.X + ((raw.orientation === "LR") ? 10 : -10),
-                  f: raw.where.Y
-               } : undefined,
-               joints: (["LR", "RL"].includes(raw.orientation) && ["NPN", "PNP"].includes(raw.type))
-                  ? ({
-                     //   Emitter             Collector           Base
-                     LRPNP: [{ x: 0, y: -50 }, { x: 0, y: +50 }, { x: -60, y: 0 }],
-                     RLPNP: [{ x: 0, y: -50 }, { x: 0, y: +50 }, { x: +60, y: 0 }],
-                     LRNPN: [{ x: 0, y: +50 }, { x: 0, y: -50 }, { x: -60, y: 0 }],
-                     RLNPN: [{ x: 0, y: +50 }, { x: 0, y: -50 }, { x: +60, y: 0 }],
-                  } as { [key: string]: [Vector, Vector, Vector] })[raw.orientation + raw.type]
-                  : undefined,
+               joints: (() => {
+                  if (["LR", "RL"].includes(raw.orientation) && ["NPN", "PNP"].includes(raw.type)) {
+                     let baseJoints = ({
+                        //   Emitter             Collector           Base
+                        LRPNP: [{ x: 0, y: -50 }, { x: 0, y: +50 }, { x: -60, y: 0 }],
+                        RLPNP: [{ x: 0, y: -50 }, { x: 0, y: +50 }, { x: +60, y: 0 }],
+                        LRNPN: [{ x: 0, y: +50 }, { x: 0, y: -50 }, { x: -60, y: 0 }],
+                        RLNPN: [{ x: 0, y: +50 }, { x: 0, y: -50 }, { x: +60, y: 0 }],
+                     } as { [key: string]: [Vector, Vector, Vector] })[raw.orientation + raw.type];
+
+                     let offset: Vector = (raw.where && vector.isVector(raw.where))
+                        ? vector(raw.where as AnyVector).sumWith({ x: (raw.orientation === "LR") ? 10 : -10 }).vector
+                        : { x: 0, y: 0 }
+
+                     return vector(baseJoints).sumWith(offset).vectors
+
+                  } else {
+                     return undefined;
+                  }
+               })()
             };
          let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
             {
@@ -128,8 +132,11 @@ namespace Circuit.Component {
             $(component.group.element).addClass("component " + component.name);
             Addins.Selectable.init(component);
             Addins.ConnectionHighlights.init(component, false);
-            Addins.Draggable.init(component);
-            Addins.Extendable.init(component);
+            Addins.Graphical.init(component);
+            if (Constants.schematicManipulationEnabled) {
+               Addins.Draggable.init(component);
+               Addins.Extendable.init(component);
+            }
          }
       );
    }

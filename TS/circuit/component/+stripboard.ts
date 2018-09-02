@@ -10,7 +10,9 @@ namespace Circuit.Component {
             columns: number;
             trackBreaks: trackBreak[];
          }
-         export interface state extends Component.Types.state { }
+         export interface state extends Component.Types.state {
+            joints: [Vector, Vector];
+         }
 
          export interface loadFunction extends Component.Types.loadFunction {
             (raw: any): Instance;
@@ -23,7 +25,7 @@ namespace Circuit.Component {
       import Types = Stripboard.Types;
 
       export const defaultState: Types.state = {
-         location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
+         joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }]
       }
       export const defaultProperties: Types.properties = {
          name: "stripboard",
@@ -38,12 +40,14 @@ namespace Circuit.Component {
          trackBreaks: Types.trackBreak[];
          rows: number;
          columns: number;
+         joints: [Vector, Vector];
 
          constructor(properties: Types.properties, state: Types.state) {
             super(properties, state);
             this.rows = properties.rows;
             this.columns = properties.columns;
             this.trackBreaks = properties.trackBreaks;
+            this.joints = state.joints;
          }
 
          getProperties(): Types.properties {
@@ -57,21 +61,40 @@ namespace Circuit.Component {
 
          getState(): Types.state {
             return {
-               location: this.location
+               joints: this.joints
             }
          }
 
-         makeConnectors() { }
+         makeConnectors() {
+            this.tracks.forEach(track => track.makeConnectors());
+            this.tracks.forEach((track, trackIdx) => {
+               let trackBreaks = this.trackBreaks.filter(
+                  trackBreak => trackBreak.track === trackIdx
+               );
+               track.connectorSets[0].forEach((hole, holeIdx) => {
+                  if (trackBreaks.some(trackBreak => trackBreak.hole === holeIdx)) {
+                     hole.type = "brokenhole";
+                  }
+               });
+            })
+         }
 
          draw() {
+
+            let rotation = vector(this.joints[0]).getAngleTo(this.joints[1]);
+            this.tracks = makeTracks(this)
+
+
             const gS = Constants.gridSpacing;
-            const centre = { x: (this.columns - 1) * gS / 2, y: (this.rows - 1) * gS / 2 };
+            //const centre = { x: (this.columns - 1) * gS / 2, y: (this.rows - 1) * gS / 2 };
             const size = { width: (this.columns + 0.5) * gS, height: (this.rows + 0.5) * gS };
             const cornerRounding = { x: 3, y: 3 };
+
             this.group.append(
-               Svg.Element.Rect.make(centre, size, cornerRounding, "body highlight"),
+               Svg.Element.Rect.make(vector(0), size, cornerRounding, "body highlight").translate(this.joints[0]).rotate(rotation),
                this.tracks.map(t => t.group)
             );
+
          }
 
          insertInto(element: SVGGraphicsElement) {
@@ -82,16 +105,35 @@ namespace Circuit.Component {
       }
 
       const makeTracks = (parent: Instance): Addins.Board.Track.Instance[] => {
-         let tracks: Addins.Board.Track.Instance[] = [];
          let gS = Constants.gridSpacing;
 
+         let rotation = vector(parent.joints[0]).getAngleTo(parent.joints[1]);
+
+         let start = vector({
+            x: -((parent.columns - 1) * gS / 2),
+            y: -((parent.rows - 1) * gS / 2)
+         }).rotate(rotation).sumWith(parent.joints[0]);
+
+
+         let step = vector({ x: gS, y: 0 }).rotate(rotation);
+
+
+         let tracks: Addins.Board.Track.Instance[] = [];
+
          for (let row = 0; row < parent.rows; row++) {
-            let holeSpacings: number[] = [0].concat(Array(parent.columns - 1).fill(gS));
+
+            let rowStart = start.sumWith(
+               vector({ x: 0, y: row * gS }).rotate(rotation)).vector;
+
+
+            let holeSpacings: number[] = [0].concat(Array(parent.columns - 1).fill(1));
             let track = Addins.Board.Track.makeInstance({
                holeSpacings: holeSpacings,
                style: "stripboard"
-            }, {});
-            track.group.translate({ x: 0, y: row * gS }).rotate(0);
+            }, {
+                  joints: [rowStart, step]
+               });
+            //track.group.translate({ x: 0, y: row * gS }).rotate(0);
             tracks.push(track);
          }
 
@@ -99,38 +141,35 @@ namespace Circuit.Component {
       }
 
       export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
-         // Set default state
-         let state = Object.assign({}, defaultState);
-         // Set default properties
-         let properties = Object.assign({}, defaultProperties);
 
-         // If from a layout
-         if (raw.state) {
-            if (raw.state.location) {
-               state.location = raw.state.location;
-            }
-         }
+         let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
+            {
+               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
+                  ? vector.standardise(raw.state.joints as AnyVector[])
+                  : undefined
+            } : {};
 
-         if (raw.properties) {
-            properties.rows = raw.properties.rows || 0;
-            properties.columns = raw.properties.columns || 0;
-            if (raw.properties.trackBreaks) {
-               if ((raw.properties.trackBreaks.every((tB: Types.trackBreak) => {
+         let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
+            {
+               rows: raw.properties.rows,
+               columns: raw.properties.columns,
+               trackBreaks: ((raw.properties.trackBreaks.every((tB: Types.trackBreak) => {
                   return (('track' in tB) && ('hole' in tB) && (typeof tB.track === 'number') && (typeof tB.hole === 'number'));
-               }))) {
-                  properties.trackBreaks = raw.properties.trackBreaks;
-               }
-            }
-         }
+               }))) ? raw.properties.trackBreaks : undefined
+            } : {};
+
          return makeInstance(properties, state, true);
       }
 
       export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
          (component: Instance) => {
             $(component.group.element).addClass(component.name);
-            Addins.Board.init(component, makeTracks, true);
+            Addins.Graphical.init(component);
+            Addins.Board.init(component, true);
             Addins.Selectable.init(component);
             Addins.WireCreation.init(component);
+            Addins.Draggable.init(component);
+            Addins.Rotatable.init(component);
          }
       );
    }

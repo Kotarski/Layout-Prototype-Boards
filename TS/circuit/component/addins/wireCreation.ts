@@ -21,6 +21,7 @@ namespace Circuit.Component.Addins.WireCreation {
                const position = Active.layout.group.convertVector({ x: e.clientX, y: e.clientY }, "DomToSvg", "relToGroup");
                const gridPosition = vector(position).snapToGrid().vector;
                const wire = createWireAtPoint(gridPosition);
+               $(wire.group.element).trigger(Events.draw);
                dragHandle = $(wire.group.element).find(".dragHandle")[0] as any;
                $(dragHandle).trigger("mousedown");
                $(dragHandle).trigger(Events.dragStart);
