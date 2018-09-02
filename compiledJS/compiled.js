@@ -3577,7 +3577,7 @@ var FileIO;
                 let deferred = $.Deferred();
                 try {
                     let circuitObjectStrings = [];
-                    circuitObjectStrings = JSON.parse(fileString);
+                    circuitObjectStrings = JSON.parse(fileString.replace("\n", ""));
                     deferred.resolve(circuitObjectStrings);
                 }
                 catch (e) {
@@ -3667,7 +3667,7 @@ var FileIO;
                         properties: component.getProperties(),
                         state: component.getState()
                     };
-                    componentStrings.push(JSON.stringify(componentObject, undefined, 2));
+                    componentStrings.push(JSON.stringify(componentObject));
                 }
                 catch (e) {
                     console.error("Item %o cannot be saved (check mappings) with error %o", component, e);

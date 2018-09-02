@@ -8,13 +8,13 @@ namespace FileIO.Save {
                properties: component.getProperties(),
                state: component.getState()
             }
-            componentStrings.push(JSON.stringify(componentObject, undefined, 2));
+            componentStrings.push(JSON.stringify(componentObject));
          } catch (e) {
             console.error("Item %o cannot be saved (check mappings) with error %o", component, e);
          }
 
       });
 
-      return JSON.stringify(componentStrings, undefined, 2)
+      return JSON.stringify(componentStrings, undefined, 2);
    }
 }

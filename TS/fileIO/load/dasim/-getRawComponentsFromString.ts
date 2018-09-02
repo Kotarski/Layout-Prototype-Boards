@@ -33,7 +33,7 @@ namespace FileIO.Load.Dasim {
       // catching them prevents failure of the program.
       try {
          let circuitObjectStrings: string[] = [];
-         circuitObjectStrings = JSON.parse(fileString);
+         circuitObjectStrings = JSON.parse(fileString.replace("\n", ""));
 
          // Function complete, return array of strings
          deferred.resolve(circuitObjectStrings)
