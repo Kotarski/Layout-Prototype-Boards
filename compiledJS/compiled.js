@@ -55,8 +55,8 @@ var _vector;
     _vector.sumWithM = sumWithM;
     function add(a, b) {
         return {
-            x: a.x + b.x,
-            y: a.y + b.y
+            x: (a.x || 0) + (b.x || 0),
+            y: (a.y || 0) + (b.y || 0)
         };
     }
     function sum(inVectors) {
@@ -110,8 +110,8 @@ var _vector;
         const sin = Math.sin(radians);
         return (inVector) => {
             return {
-                x: (cos * inVector.x) + (sin * inVector.y),
-                y: (cos * inVector.y) - (sin * inVector.x)
+                x: (cos * inVector.x) - (sin * inVector.y),
+                y: (cos * inVector.y) + (sin * inVector.x)
             };
         };
     }
@@ -140,10 +140,10 @@ var _vector;
 var _vector;
 (function (_vector) {
     function asPolar(inVector) {
-        return (compareVector, boundary = 5) => {
+        return () => {
             return {
                 radius: Math.sqrt(Math.pow(inVector.x, 2) + Math.pow(inVector.y, 2)),
-                angle: Math.atan(inVector.y / inVector.x)
+                angle: Utility.radiansToDegrees(Math.atan2(inVector.y, inVector.x))
             };
         };
     }
@@ -287,6 +287,7 @@ var Constants;
 (function (Constants) {
     Constants.gridSpacing = 20;
     Constants.svgURI = "http://www.w3.org/2000/svg";
+    Constants.schematicManipulationEnabled = false;
 })(Constants || (Constants = {}));
 var NodeElements;
 (function (NodeElements) {
@@ -305,6 +306,35 @@ var NodeElements;
     }
     NodeElements.init = init;
 })(NodeElements || (NodeElements = {}));
+var _vector;
+(function (_vector) {
+    function scaleWithS(inVector) {
+        return (scaleIn) => {
+            const scaleVector = (typeof scaleIn === "number") ? { x: scaleIn, y: scaleIn } : scaleIn;
+            return _vector.vector(scale(inVector, scaleVector));
+        };
+    }
+    _vector.scaleWithS = scaleWithS;
+    function scaleWithM(inVectors) {
+        return (scaleIn) => {
+            const scaleVector = (typeof scaleIn === "number") ? { x: scaleIn, y: scaleIn } : scaleIn;
+            return _vector.vector(inVectors.map(a => {
+                return scale(a, scaleVector);
+            }));
+        };
+    }
+    _vector.scaleWithM = scaleWithM;
+    function scale(a, b) {
+        let bV = {
+            x: ((b.x !== undefined) ? b.x : 1),
+            y: ((b.y !== undefined) ? b.y : 1)
+        };
+        return {
+            x: a.x * bV.x,
+            y: a.y * bV.y
+        };
+    }
+})(_vector || (_vector = {}));
 var Circuit;
 (function (Circuit) {
     var Component;
@@ -319,14 +349,7 @@ var Circuit;
             constructor(properties, state) {
                 this.group = Svg.Element.Group.make();
                 this.connectorSets = [];
-                this.location = state.location;
                 this.name = properties.name;
-            }
-            get location() {
-                return this.group.getTransforms();
-            }
-            set location(location) {
-                this.group.setTransforms(location);
             }
             insertInto(element) {
                 Utility.Insert.last(this.group.element, element);
@@ -382,17 +405,21 @@ var Circuit;
         }
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
-var Events;
-(function (Events) {
-    Events.rotate = "rotate";
-    Events.drag = "dragSVG";
-    Events.dragStart = "dragstart";
-    Events.dragStop = "dragstop";
-    Events.moved = [Events.rotate, Events.drag, Events.dragStart, Events.dragStop].join(" ");
-    Events.place = "place";
-    Events.select = "select";
-    Events.deselect = "deselect";
-})(Events || (Events = {}));
+var Circuit;
+(function (Circuit) {
+    var Events;
+    (function (Events) {
+        Events.rotate = "rotate";
+        Events.drag = "dragSVG";
+        Events.dragStart = "dragstart";
+        Events.dragStop = "dragstop";
+        Events.moved = [Events.rotate, Events.drag, Events.dragStart, Events.dragStop].join(" ");
+        Events.place = "place";
+        Events.select = "select";
+        Events.deselect = "deselect";
+        Events.draw = "draw";
+    })(Events = Circuit.Events || (Circuit.Events = {}));
+})(Circuit || (Circuit = {}));
 var Utility;
 (function (Utility) {
     var Curry;
@@ -454,7 +481,7 @@ var Circuit;
         };
         const placeComponent = (component, diagram) => {
             component.insertInto(diagram.root.group.element);
-            $(component.group.element).trigger(Events.place);
+            $(component.group.element).trigger(Circuit.Events.place);
         };
         const draw = () => {
             Circuit.manifest.schematic.forEach(component => placeComponent(component, Active.schematic));
@@ -591,7 +618,7 @@ var Circuit;
     };
     const getMinConnections = (component) => {
         return (component.getConnections().map(connectorSet => {
-            return connectorSet.map(connections => {
+            return (connectorSet.map(connections => {
                 let connectorName = connections[0].name;
                 connections.shift();
                 let blackHole = connections.find(connection => Circuit.mappings.isUnique(connection.component));
@@ -601,7 +628,7 @@ var Circuit;
                     name: connectorName,
                     connections: connections.filter((connection) => Circuit.mappings.isCorresponder(connection.component))
                 };
-            });
+            })).filter((c) => c.connections.length !== 0);
         }));
     };
     const connectorSetsHaveMatch = Utility.Curry.makeOptional((connectorSetsA, connectorSetsB) => {
@@ -730,545 +757,6 @@ var Circuit;
         Mappings.init = init;
     })(Mappings = Circuit.Mappings || (Circuit.Mappings = {}));
 })(Circuit || (Circuit = {}));
-var Svg;
-(function (Svg) {
-    var Element;
-    (function (Element) {
-        function make(type, classes = "") {
-            const element = document.createElementNS(Constants.svgURI, type);
-            $(element).addClass(classes);
-            return element;
-        }
-        Element.make = make;
-        let Functions;
-        (function (Functions) {
-            function rotate(element) {
-                return (rotation, centre, insertBefore = false) => {
-                    let centreV;
-                    if (centre) {
-                        centreV = centre;
-                    }
-                    else {
-                        let bounds = element.getBBox();
-                        centreV = { x: bounds.width / 2 + bounds.x, y: bounds.height / 2 + bounds.y };
-                    }
-                    Svg.addTransform(element, t => t.setRotate(rotation, centreV.x, centreV.y), insertBefore);
-                    return svg(element);
-                };
-            }
-            Functions.rotate = rotate;
-            function translate(element) {
-                return (translation, insertBefore = true) => {
-                    Svg.addTransform(element, t => t.setTranslate(translation.x, translation.y), insertBefore);
-                    return svg(element);
-                };
-            }
-            Functions.translate = translate;
-            function scale(element) {
-                return (scale, insertBefore = true) => {
-                    let scaleV = (typeof scale === "number") ? { x: scale, y: scale } : scale;
-                    Svg.addTransform(element, t => t.setScale((scaleV.x || 1), (scaleV.y || 1)), insertBefore);
-                    return svg(element);
-                };
-            }
-            Functions.scale = scale;
-            function getTransforms(element) {
-                return () => {
-                    let transform = element.transform.baseVal.consolidate();
-                    return (transform === null) ? Svg.makeMatrix() : {
-                        a: transform.matrix.a, b: transform.matrix.b, c: transform.matrix.c,
-                        d: transform.matrix.d, e: transform.matrix.e, f: transform.matrix.f
-                    };
-                };
-            }
-            Functions.getTransforms = getTransforms;
-            function setTransforms(element) {
-                return (transformMatrix) => {
-                    element.transform.baseVal.clear();
-                    element.removeAttribute('transform');
-                    let matrix = Svg.makeMatrix();
-                    matrix.a = transformMatrix.a;
-                    matrix.b = transformMatrix.b;
-                    matrix.c = transformMatrix.c;
-                    matrix.d = transformMatrix.d;
-                    matrix.e = transformMatrix.e;
-                    matrix.f = transformMatrix.f;
-                    let transform = element.transform.baseVal.createSVGTransformFromMatrix(matrix);
-                    element.transform.baseVal.appendItem(transform);
-                    return svg(element);
-                };
-            }
-            Functions.setTransforms = setTransforms;
-            function convertVector(element) {
-                return (vector, direction, type) => {
-                    let conversionMatrix = element.getScreenCTM() || Svg.makeMatrix();
-                    if (direction === "DomToSvg")
-                        conversionMatrix = conversionMatrix.inverse();
-                    if (type === "absToDoc" && element.transform.baseVal.numberOfItems > 0) {
-                        element.transform.baseVal.consolidate();
-                        let groupMatrix = element.transform.baseVal.getItem(0).matrix;
-                        conversionMatrix = conversionMatrix.multiply(groupMatrix);
-                    }
-                    let convertedVector = {
-                        x: vector.x * conversionMatrix.a + vector.y * conversionMatrix.c,
-                        y: vector.y * conversionMatrix.d + vector.x * conversionMatrix.b
-                    };
-                    if (type === "relToGroup") {
-                        convertedVector.x += conversionMatrix.e;
-                        convertedVector.y += conversionMatrix.f;
-                    }
-                    return convertedVector;
-                };
-            }
-            Functions.convertVector = convertVector;
-        })(Functions = Element.Functions || (Element.Functions = {}));
-    })(Element = Svg.Element || (Svg.Element = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    class Root {
-        constructor(classes = "") {
-            this.element = Svg.Element.SVG.make();
-            this.group = Svg.Element.Group.make();
-            $(this.element.element).addClass(classes);
-        }
-        draw(node) {
-            this.element.append(this.group);
-            node.appendChild(this.element.element);
-            Svg.Addins.Draggable.init(this.group.element, {
-                grid: "off",
-                eventTarget: this.element.element,
-                useHelper: true,
-            });
-            Svg.Addins.Scaleable.init(this.group.element, {
-                eventTarget: this.element.element,
-            });
-        }
-    }
-    Svg.Root = Root;
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    function addTransform(element, transformationFunction, insertBefore = true) {
-        let transform = makeTransform();
-        transformationFunction(transform);
-        let transforms = element.transform.baseVal;
-        if (insertBefore) {
-            transforms.insertItemBefore(transform, 0);
-        }
-        else {
-            transforms.appendItem(transform);
-        }
-        transforms.consolidate();
-    }
-    Svg.addTransform = addTransform;
-    function makeTransform() {
-        return Svg.Element.make("svg").createSVGTransform();
-    }
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    function makeMatrix() {
-        return Svg.Element.make("svg").createSVGMatrix();
-    }
-    Svg.makeMatrix = makeMatrix;
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    function makePoint(vector) {
-        const point = Svg.Element.make("svg").createSVGPoint();
-        point.x = vector.x;
-        point.y = vector.y;
-        return point;
-    }
-    Svg.makePoint = makePoint;
-})(Svg || (Svg = {}));
-function svg(element) {
-    let extension = {
-        element: element
-    };
-    let elementExtension = (element instanceof SVGGraphicsElement) ? {
-        rotate: Svg.Element.Functions.rotate(element),
-        translate: Svg.Element.Functions.translate(element),
-        scale: Svg.Element.Functions.scale(element),
-        getTransforms: Svg.Element.Functions.getTransforms(element),
-        setTransforms: Svg.Element.Functions.setTransforms(element),
-        convertVector: Svg.Element.Functions.convertVector(element),
-    } : null;
-    let groupExtension = (element instanceof SVGGElement || element instanceof SVGSVGElement) ? {
-        append: Svg.Element.Group.Functions.append(element),
-        prepend: Svg.Element.Group.Functions.prepend(element),
-        clearChildren: Svg.Element.Group.Functions.clearChildren(element)
-    } : null;
-    let textExtension = (element instanceof SVGTextElement) ? {
-        followPath: Svg.Element.Text.Functions.followPath(element),
-        rotatePosition: Svg.Element.Text.Functions.rotatePosition(element),
-    } : null;
-    return Object.assign({}, extension, elementExtension, groupExtension, textExtension);
-}
-var Ui;
-(function (Ui) {
-    function init() {
-        $("body").layout({
-            center: {
-                size: "35%",
-                spacing_open: 10,
-                spacing_closed: 10,
-            },
-            west: {
-                onresize_end: () => {
-                    Ui.Events.layoutPaneResize();
-                },
-                onclose: () => {
-                    Ui.Events.layoutPaneResize();
-                },
-                onopen: () => {
-                    Ui.Events.layoutPaneResize();
-                },
-                size: "30%",
-                minSize: "256",
-                spacing_open: 10,
-                spacing_closed: 10,
-                slidable: false,
-            },
-            east: {
-                onresize_end: () => {
-                    Ui.Events.schematicPaneResize();
-                    Ui.Events.layoutPaneResize();
-                },
-                onclose: () => {
-                    Ui.Events.schematicPaneResize();
-                    Ui.Events.layoutPaneResize();
-                },
-                onopen: () => {
-                    Ui.Events.schematicPaneResize();
-                    Ui.Events.layoutPaneResize();
-                },
-                size: "35%",
-                minSize: "5%",
-                spacing_open: 10,
-                spacing_closed: 10,
-                slidable: false,
-            }
-        });
-        $("#welcomeAccordion").accordion({
-            collapsible: true,
-            heightStyle: "content"
-        });
-        NodeElements.fileInput.addEventListener('change', (event) => {
-            Ui.Events.fileInput(event);
-        });
-        NodeElements.fileSave.addEventListener('click', (event) => {
-            Ui.Events.fileSave(event);
-        });
-        NodeElements.checkCircuitButton.addEventListener('click', (event) => {
-            Ui.Events.checkCircuit();
-        });
-    }
-    Ui.init = init;
-})(Ui || (Ui = {}));
-var Ui;
-(function (Ui) {
-    var Events;
-    (function (Events) {
-        function fitDiagramContents(diagram) {
-            let rootEl = diagram.root.element.element;
-            let group = diagram.group;
-            let margin = 3;
-            let groupBBox = group.element.getBBox();
-            let groupWidth = groupBBox.width + margin * 2;
-            let groupHeight = groupBBox.height + margin * 2;
-            let scaleX = (groupWidth) ? (rootEl.width.baseVal.value / groupWidth) : 0;
-            let scaleY = (groupHeight) ? (rootEl.height.baseVal.value / groupHeight) : 0;
-            let scaleMin = Math.min(scaleX, scaleY);
-            let offsetX = -groupBBox.x * scaleMin + (rootEl.width.baseVal.value - groupWidth * scaleMin) / 2 + margin;
-            let offsetY = (-groupBBox.y * scaleMin) + (rootEl.height.baseVal.value - groupHeight * scaleMin) / 2 + margin;
-            let transformString = "translate(" + offsetX + " " + offsetY + ")" + "scale(" + scaleMin + ")";
-            group.element.setAttribute('transform', transformString);
-        }
-        function schematicPaneResize() {
-            window.setTimeout(() => {
-                fitDiagramContents(Active.schematic);
-            }, 5);
-        }
-        Events.schematicPaneResize = schematicPaneResize;
-        function layoutPaneResize() {
-            window.setTimeout(() => {
-                fitDiagramContents(Active.layout);
-            }, 5);
-        }
-        Events.layoutPaneResize = layoutPaneResize;
-        function fileInput(event) {
-            FileIO.Load.handleFileInputEvent(event);
-        }
-        Events.fileInput = fileInput;
-        function fileSave(event) {
-            FileIO.Save.handleFileSaveEvent(event);
-        }
-        Events.fileSave = fileSave;
-        function makeStripBoardButtonPress() {
-            let rowElement = NodeElements.stripboardRows;
-            let columnElement = NodeElements.stripboardColumns;
-            let rows = parseInt(rowElement.value);
-            let columns = parseInt(columnElement.value);
-            if (rows && columns &&
-                rows >= parseInt(rowElement.min) && columns >= parseInt(columnElement.min) &&
-                rows <= parseInt(rowElement.max) && columns <= parseInt(columnElement.max)) {
-                if (Circuit.manifest.activeBoard)
-                    Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
-                let stripboard = Circuit.Component.Stripboard.makeInstance({
-                    rows: rows,
-                    columns: columns,
-                }, {});
-                Circuit.manifest.addComponent(stripboard, Circuit.manifest.layout);
-                Circuit.manifest.activeBoard = stripboard;
-            }
-        }
-        Events.makeStripBoardButtonPress = makeStripBoardButtonPress;
-        function makeBreadBoardSmallButtonPress() {
-            if (Circuit.manifest.activeBoard)
-                Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
-            let breadboard = Circuit.Component.BreadboardSmall.makeInstance({}, {});
-            Circuit.manifest.addComponent(breadboard, Circuit.manifest.layout);
-            Circuit.manifest.activeBoard = breadboard;
-        }
-        Events.makeBreadBoardSmallButtonPress = makeBreadBoardSmallButtonPress;
-        function makeBreadBoardLargeButtonPress() {
-            if (Circuit.manifest.activeBoard)
-                Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
-            let breadboard = Circuit.Component.BreadboardLarge.makeInstance({}, {});
-            Circuit.manifest.addComponent(breadboard, Circuit.manifest.layout);
-            Circuit.manifest.activeBoard = breadboard;
-        }
-        Events.makeBreadBoardLargeButtonPress = makeBreadBoardLargeButtonPress;
-        function rotateBoard() {
-            if (Circuit.manifest.activeBoard) {
-                const bbox = Circuit.manifest.activeBoard.group.element.getBBox();
-                Circuit.manifest.activeBoard.group.rotate(90, { x: bbox.x + bbox.width / 2, y: bbox.y + bbox.height / 2 }, false);
-            }
-        }
-        Events.rotateBoard = rotateBoard;
-        function makeWire() {
-            let wire = Circuit.Component.WireLayout.makeInstance({}, {});
-            Circuit.manifest.addComponent(wire, Circuit.manifest.layout);
-        }
-        Events.makeWire = makeWire;
-        function checkCircuit() {
-            let circuitStatus = Circuit.manifest.checkAll();
-            let doHighlightCorrect = NodeElements.checkShowCorrect.checked;
-            let doHighlightIncorrect = NodeElements.checkShowIncorrect.checked;
-            const highlightCheck = () => {
-                if (doHighlightIncorrect) {
-                    circuitStatus.incorrects.forEach(incorrect => {
-                        $(incorrect.group.element).find(".highlight").css("stroke", "red");
-                        $(incorrect.group.element).find(".highlightwithfill").css("fill", "red");
-                        ;
-                    });
-                }
-                if (doHighlightCorrect) {
-                    circuitStatus.corrects.forEach(correct => {
-                        $(correct.group.element).find(".highlight").css("stroke", "green");
-                        $(correct.group.element).find(".highlightwithfill").css("fill", "green");
-                        ;
-                    });
-                }
-            };
-            const clearHighlightCheck = () => {
-                if (doHighlightIncorrect) {
-                    circuitStatus.incorrects.forEach(incorrect => {
-                        $(incorrect.group.element).find(".highlight").css("stroke", "");
-                        $(incorrect.group.element).find(".highlightwithfill").css("fill", "");
-                    });
-                }
-                if (doHighlightCorrect) {
-                    circuitStatus.corrects.forEach(correct => {
-                        $(correct.group.element).find(".highlight").css("stroke", "");
-                        $(correct.group.element).find(".highlightwithfill").css("fill", "");
-                        ;
-                    });
-                }
-            };
-            highlightCheck();
-            window.setTimeout(() => {
-                clearHighlightCheck();
-                window.setTimeout(() => {
-                    highlightCheck();
-                    window.setTimeout(() => {
-                        clearHighlightCheck();
-                        window.setTimeout(() => {
-                            highlightCheck();
-                            window.setTimeout(() => {
-                                clearHighlightCheck();
-                            }, 400);
-                        }, 200);
-                    }, 400);
-                }, 200);
-            }, 400);
-            let completion = (circuitStatus.corrects.length / (circuitStatus.corrects.length + circuitStatus.incorrects.length) * 100).toFixed(1);
-            NodeElements.checkStatusText.innerText = "Correct: " + completion + "%";
-        }
-        Events.checkCircuit = checkCircuit;
-    })(Events = Ui.Events || (Ui.Events = {}));
-})(Ui || (Ui = {}));
-var Utility;
-(function (Utility) {
-    function degreesToRadians(angle) {
-        return angle * Math.PI / 180;
-    }
-    Utility.degreesToRadians = degreesToRadians;
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    function flatten2d(array) {
-        return [].concat.apply([], array);
-    }
-    Utility.flatten2d = flatten2d;
-    function flatten3d(array) {
-        return [].concat.apply([], [].concat.apply([], array));
-    }
-    Utility.flatten3d = flatten3d;
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    function getStandardForm(value, unit = "") {
-        let exponentialParts = value.toExponential().split("e");
-        let coefficient = parseFloat(exponentialParts[0]);
-        let exponent = parseInt(exponentialParts[1]);
-        for (let i = 0; i < 3; i++) {
-            if (exponent in prefixes)
-                break;
-            coefficient *= 10;
-            exponent--;
-        }
-        const numeric = parseFloat(coefficient.toPrecision(2));
-        const prefix = prefixes[exponent] || "";
-        return numeric + prefix + unit;
-    }
-    Utility.getStandardForm = getStandardForm;
-    const prefixes = {
-        '-24': 'y',
-        '-21': 'z',
-        '-18': 'a',
-        '-15': 'f',
-        '-12': 'p',
-        '-9': 'n',
-        '-6': 'µ',
-        '-3': 'm',
-        '0': '',
-        '3': 'k',
-        '6': 'M',
-        '9': 'G',
-        '12': 'T',
-        '15': 'P',
-        '18': 'E',
-        '21': 'Z',
-        '24': 'Y'
-    };
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    function isUnaryMap(A, B, predicate) {
-        const isPredicateMatchForAllA = A.every(elA => {
-            let match = B.find(elB => predicate(elA, elB));
-            B = B.filter(elB => elB !== match);
-            return (match !== undefined);
-        });
-        const allBMatched = (B.length === 0);
-        return (isPredicateMatchForAllA && allBMatched);
-    }
-    Utility.isUnaryMap = isUnaryMap;
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    function radiansToDegrees(angle) {
-        return angle * 180 / Math.PI;
-    }
-    Utility.radiansToDegrees = radiansToDegrees;
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    function split(A, predicate) {
-        let passes = [];
-        let fails = [];
-        A.forEach(elA => {
-            if (predicate(elA)) {
-                passes.push(elA);
-            }
-            else {
-                fails.push(elA);
-            }
-        });
-        return { passes: passes, fails: fails };
-    }
-    Utility.split = split;
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    var Insert;
-    (function (Insert) {
-        function last(element, target) {
-            if (element === target || target === undefined) {
-                $(element).insertAfter($(element).siblings().last());
-            }
-            else if ($(target).children().length) {
-                $(element).insertAfter($(target).children().last());
-            }
-            else {
-                $(element).appendTo($(target));
-            }
-        }
-        Insert.last = last;
-        function first(element, target) {
-            if (element === target || target === undefined) {
-                $(element).insertBefore($(element).siblings().first());
-            }
-            else if ($(target).children().length) {
-                $(element).insertBefore($(target).children().first());
-            }
-            else {
-                $(element).prependTo($(target));
-            }
-        }
-        Insert.first = first;
-        function before(element, targetOrRef, referenceSelector = "*") {
-            let target = (typeof targetOrRef === "string") ? undefined : targetOrRef;
-            referenceSelector = (typeof targetOrRef === "string") ? targetOrRef : referenceSelector;
-            if (element === target || target === undefined) {
-                $(element).insertBefore($(element).siblings(referenceSelector).first());
-            }
-            else if ($(target).children(referenceSelector).length) {
-                $(element).insertBefore($(target).children(referenceSelector).first());
-            }
-            else {
-                $(element).prependTo($(target));
-            }
-        }
-        Insert.before = before;
-    })(Insert = Utility.Insert || (Utility.Insert = {}));
-})(Utility || (Utility = {}));
-var _vector;
-(function (_vector) {
-    function scaleWithS(inVector) {
-        return (scaleVector) => {
-            return _vector.vector(scale(inVector, scaleVector));
-        };
-    }
-    _vector.scaleWithS = scaleWithS;
-    function scaleWithM(inVectors) {
-        return (scaleVector) => {
-            return _vector.vector(inVectors.map(a => {
-                return scale(a, scaleVector);
-            }));
-        };
-    }
-    _vector.scaleWithM = scaleWithM;
-    function scale(a, b) {
-        return {
-            x: a.x * (b.x || 1),
-            y: a.y * (b.y || 1)
-        };
-    }
-})(_vector || (_vector = {}));
 var Circuit;
 (function (Circuit) {
     var Component;
@@ -1276,7 +764,6 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
                 joints: [{ x: 0, y: 0 }, { x: 20, y: -20 }, { x: 40, y: 0 }]
             };
             Local.defaultProperties = {
@@ -1301,7 +788,6 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.location,
                         joints: this.joints
                     };
                 }
@@ -1322,7 +808,6 @@ var Circuit;
             Local.loadInstance = (raw) => {
                 let state = (raw.state) ?
                     {
-                        location: raw.state.location,
                         joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 3)
                             ? vector.standardise(raw.state.joints)
                             : undefined
@@ -1337,6 +822,7 @@ var Circuit;
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 $(component.group.element).addClass("component " + component.name);
+                Component.Addins.Graphical.init(component);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.Extendable.init(component);
@@ -1359,7 +845,6 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
                 joints: [{ x: -50, y: 0 }, { x: +10, y: -50 }, { x: +10, y: +50 }]
             };
             Local.defaultProperties = {
@@ -1385,7 +870,6 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.location,
                         joints: this.joints
                     };
                 }
@@ -1406,23 +890,27 @@ var Circuit;
             Local.loadInstance = (raw) => {
                 let state = (raw.state) ?
                     {
-                        location: raw.state.location,
                         joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 3)
                             ? vector.standardise(raw.state.joints)
                             : undefined
                     } : {
-                    location: (raw.where && ["LR", "RL"].includes(raw.orientation)) ? {
-                        e: raw.where.X + ((raw.orientation === "LR") ? 10 : -10),
-                        f: raw.where.Y
-                    } : undefined,
-                    joints: (["LR", "RL"].includes(raw.orientation) && ["NPN", "PNP"].includes(raw.type))
-                        ? {
-                            LRPNP: [{ x: 0, y: -50 }, { x: 0, y: +50 }, { x: -60, y: 0 }],
-                            RLPNP: [{ x: 0, y: -50 }, { x: 0, y: +50 }, { x: +60, y: 0 }],
-                            LRNPN: [{ x: 0, y: +50 }, { x: 0, y: -50 }, { x: -60, y: 0 }],
-                            RLNPN: [{ x: 0, y: +50 }, { x: 0, y: -50 }, { x: +60, y: 0 }],
-                        }[raw.orientation + raw.type]
-                        : undefined,
+                    joints: (() => {
+                        if (["LR", "RL"].includes(raw.orientation) && ["NPN", "PNP"].includes(raw.type)) {
+                            let baseJoints = {
+                                LRPNP: [{ x: 0, y: -50 }, { x: 0, y: +50 }, { x: -60, y: 0 }],
+                                RLPNP: [{ x: 0, y: -50 }, { x: 0, y: +50 }, { x: +60, y: 0 }],
+                                LRNPN: [{ x: 0, y: +50 }, { x: 0, y: -50 }, { x: -60, y: 0 }],
+                                RLNPN: [{ x: 0, y: +50 }, { x: 0, y: -50 }, { x: +60, y: 0 }],
+                            }[raw.orientation + raw.type];
+                            let offset = (raw.where && vector.isVector(raw.where))
+                                ? vector(raw.where).sumWith({ x: (raw.orientation === "LR") ? 10 : -10 }).vector
+                                : { x: 0, y: 0 };
+                            return vector(baseJoints).sumWith(offset).vectors;
+                        }
+                        else {
+                            return undefined;
+                        }
+                    })()
                 };
                 let properties = (raw.properties) ?
                     {
@@ -1439,8 +927,11 @@ var Circuit;
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
-                Component.Addins.Draggable.init(component);
-                Component.Addins.Extendable.init(component);
+                Component.Addins.Graphical.init(component);
+                if (Constants.schematicManipulationEnabled) {
+                    Component.Addins.Draggable.init(component);
+                    Component.Addins.Extendable.init(component);
+                }
             });
         })(Local || (Local = {}));
         Component.BipolarSchematic = {
@@ -1459,7 +950,7 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
+                joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }]
             };
             Local.defaultProperties = {
                 name: "breadboardlarge"
@@ -1469,6 +960,7 @@ var Circuit;
                     super(properties, state);
                     this.tracks = [];
                     this.connectorSets = [];
+                    this.joints = state.joints;
                 }
                 getProperties() {
                     return {
@@ -1477,59 +969,13 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.location
+                        joints: this.joints
                     };
                 }
                 makeConnectors() { }
                 draw() {
-                    const gS = Constants.gridSpacing;
-                    const railPairPathString = [
-                        "M" + gS * (2.8) + " " + (0),
-                        "h" + gS * (28.4),
-                        "M" + gS * (2.8) + " " + (gS * 18),
-                        "h" + gS * (28.4),
-                        "M" + gS * (33.8) + " " + (0),
-                        "h" + gS * (28.4),
-                        "M" + gS * (33.8) + " " + (gS * 18),
-                        "h" + gS * (28.4)
-                    ].join();
-                    const plussesPathString = [
-                        "M" + (gS * 2 - 5) + " " + (gS * 0.5),
-                        "h" + (10),
-                        "m" + (gS * 61 - 10) + " " + (0),
-                        "h" + (10),
-                        "m" + (-5) + " " + (-5),
-                        "v" + (10),
-                        "m" + (0) + " " + (gS * 18 - 10),
-                        "v" + (10),
-                        "m" + (5) + " " + (-5),
-                        "h" + (-10),
-                        "m" + (gS * -61 + 10) + " " + (0),
-                        "h" + (-10),
-                        "m" + (5) + " " + (5),
-                        "v" + (-10),
-                        "m" + (0) + " " + (gS * -18 + 10),
-                        "v" + (-10)
-                    ].join();
-                    const minusesPathString = [
-                        "M" + (gS * 2) + " " + (gS * -0.5 - 5),
-                        "v" + (10),
-                        "m" + (0) + " " + (gS * 18 - 10),
-                        "v" + (10),
-                        "m" + (gS * 61) + " " + (0),
-                        "v" + (-10),
-                        "m" + (0) + " " + (gS * -18 + 10),
-                        "v" + (-10)
-                    ].join();
-                    const size = {
-                        width: 67 * gS,
-                        height: 22 * gS
-                    };
-                    const centre = {
-                        x: 32.5 * gS,
-                        y: 10.5 * gS
-                    };
-                    this.group.append(Svg.Element.Rect.make(centre, size, { x: 4, y: 4 }, "body"), Svg.Element.Rect.make(centre, { width: size.width, height: gS * 0.75, }, { x: 0, y: 0 }, "rut"), Svg.Element.Rect.make(centre, size, { x: 4, y: 4 }, "body highlight"), Svg.Element.Path.make(railPairPathString + plussesPathString, "rail positive"), Svg.Element.Path.make(railPairPathString + minusesPathString, "rail negative").translate({ x: 0, y: gS * 3 }), Svg.Element.Group.TextSequence.make({ x: 64 * gS - gS / 6, y: 4 * gS }, { x: 0, y: gS }, { start: 1, length: 64 }).rotate(90), Svg.Element.Group.TextSequence.make({ x: 64 * gS - gS / 6, y: 17 * gS }, { x: 0, y: gS }, { start: 1, length: 64 }).rotate(90), Svg.Element.Group.TextSequence.make({ x: 65 * gS - gS / 4, y: 5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90), Svg.Element.Group.TextSequence.make({ x: 0 * gS, y: 5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90), Svg.Element.Group.TextSequence.make({ x: 65 * gS - gS / 4, y: 12 * gS }, { x: gS, y: 0 }, "fghij").rotate(90), Svg.Element.Group.TextSequence.make({ x: 0 * gS, y: 12 * gS }, { x: gS, y: 0 }, "fghij").rotate(90), this.tracks.map(t => t.group));
+                    this.tracks = makeTracks(this);
+                    this.group.prepend(Svg.Element.Group.Breadboard.LargeLayout.make(this.joints[0], this.joints[1], "body"), this.tracks.map(t => t.group));
                 }
                 insertInto(element) {
                     Utility.Insert.first(this.group.element, element);
@@ -1541,45 +987,59 @@ var Circuit;
             const makeTracks = (parent) => {
                 let tracks = [];
                 let gS = Constants.gridSpacing;
-                let powerTrackYPositions = [1, 2, 19, 20].map(y => y * gS);
-                let powerTrackXPositions = [3, 34].map(x => x * gS);
+                let rotation = vector(parent.joints[0]).getAngleTo(parent.joints[1]);
+                let powerTrackYPositions = [-9.5, -8.5, 8.5, 9.5];
+                let powerTrackXPositions = [-29.5, 1.5];
                 for (let x of powerTrackXPositions) {
                     for (let y of powerTrackYPositions) {
+                        const start = vector({ x: x * gS, y: y * gS })
+                            .rotate(rotation)
+                            .sumWith(parent.joints[0]);
+                        const step = vector({ x: gS, y: 0 }).rotate(rotation);
                         let track = Component.Addins.Board.Track.makeInstance({
-                            holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1].map(offset => offset * gS)
-                        }, {});
-                        track.group.translate({ x: x, y: y }).rotate(0);
+                            holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1]
+                        }, {
+                            joints: [start, step]
+                        });
                         tracks.push(track);
                     }
                 }
-                let mainGridTrackXPositions = [...Array(64).keys()].map(x => (x + 1) * gS);
-                let mainGridTrackYPositions = [5, 12].map(y => y * gS);
+                let mainGridTrackXPositions = [...Array(64).keys()];
+                let mainGridTrackYPositions = [-5.5, +1.5];
                 for (let x of mainGridTrackXPositions) {
                     for (let y of mainGridTrackYPositions) {
+                        const start = vector({ x: (x - 31.5) * gS, y: y * gS })
+                            .rotate(rotation)
+                            .sumWith(parent.joints[0]);
+                        const step = vector({ x: 0, y: gS }).rotate(rotation);
                         let track = Component.Addins.Board.Track.makeInstance({
-                            holeSpacings: [0, 1, 1, 1, 1].map(offset => offset * gS)
-                        }, {});
-                        track.group.translate({ x: x, y: y }).rotate(90);
+                            holeSpacings: [0, 1, 1, 1, 1]
+                        }, {
+                            joints: [start, step]
+                        });
                         tracks.push(track);
                     }
                 }
                 return tracks;
             };
             Local.loadInstance = (raw) => {
-                let state = Object.assign({}, Local.defaultState);
-                let properties = Object.assign({}, Local.defaultProperties);
-                if (raw.state) {
-                    if (raw.state.location) {
-                        state.location = raw.state.location;
-                    }
-                }
+                let state = (raw.state) ?
+                    {
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
+                            ? vector.standardise(raw.state.joints)
+                            : undefined
+                    } : {};
+                let properties = (raw.properties) ?
+                    {} : {};
                 return Local.makeInstance(properties, state, true);
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 $(component.group.element).addClass("breadboard " + component.name);
-                Component.Addins.Board.init(component, makeTracks);
+                Component.Addins.Graphical.init(component);
+                Component.Addins.Board.init(component);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.WireCreation.init(component);
+                Component.Addins.Draggable.init(component);
             });
         })(Local || (Local = {}));
         Component.BreadboardLarge = {
@@ -1598,7 +1058,7 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
+                joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }]
             };
             Local.defaultProperties = {
                 name: "breadboardsmall"
@@ -1608,6 +1068,7 @@ var Circuit;
                     super(properties, state);
                     this.tracks = [];
                     this.connectorSets = [];
+                    this.joints = state.joints;
                 }
                 getProperties() {
                     return {
@@ -1616,55 +1077,13 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.location
+                        joints: this.joints
                     };
                 }
                 makeConnectors() { }
                 draw() {
-                    const gS = Constants.gridSpacing;
-                    const railPairPathString = [
-                        "M" + (gS * 1.3) + " " + (0),
-                        "H" + (gS * 29.7),
-                        "M" + (gS * 1.3) + " " + (gS * 18),
-                        "H" + (gS * 29.7)
-                    ].join();
-                    const plussesPathString = [
-                        "M" + (gS * 0.5 - 5) + " " + (gS * 0.5),
-                        "h" + (10),
-                        "m" + (gS * 30 - 10) + " " + (0),
-                        "h" + (10),
-                        "m" + (-5) + " " + (-5),
-                        "v" + (10),
-                        "m" + (0) + " " + (gS * 18 - 10),
-                        "v" + (10),
-                        "m" + (5) + " " + (-5),
-                        "h" + (-10),
-                        "m" + (gS * -30 + 10) + " " + (0),
-                        "h" + (-10),
-                        "m" + (5) + " " + (5),
-                        "v" + (-10),
-                        "m" + (0) + " " + (gS * -18 + 10),
-                        "v" + (-10)
-                    ].join();
-                    const minusesPathString = [
-                        "M " + (gS * 0.5) + " " + (gS * -0.5 - 5),
-                        "v" + (10),
-                        "m" + (0) + " " + (gS * 18 - 10),
-                        "v" + (10),
-                        "m" + (gS * 30) + " " + (0),
-                        "v" + (-10),
-                        "m" + (0) + " " + (gS * -18 + 10),
-                        "v" + (-10)
-                    ].join();
-                    const size = {
-                        width: 32 * gS,
-                        height: 22 * gS
-                    };
-                    const centre = {
-                        x: 15.5 * gS,
-                        y: 10.5 * gS
-                    };
-                    this.group.append(Svg.Element.Rect.make(centre, size, { x: 4, y: 4 }, "body"), Svg.Element.Rect.make(centre, { width: size.width, height: gS * 0.75, }, { x: 0, y: 0 }, "rut"), Svg.Element.Rect.make(centre, size, { x: 4, y: 4 }, "body highlight"), Svg.Element.Path.make(railPairPathString + plussesPathString, "rail positive"), Svg.Element.Path.make(railPairPathString + minusesPathString, "rail negative").translate({ x: 0, y: gS * 3 }), Svg.Element.Group.TextSequence.make({ x: 30 * gS - gS / 6, y: 4 * gS }, { x: 0, y: gS }, { start: 1, length: 30 }).rotate(90), Svg.Element.Group.TextSequence.make({ x: 30 * gS - gS / 6, y: 17 * gS }, { x: 0, y: gS }, { start: 1, length: 30 }).rotate(90), Svg.Element.Group.TextSequence.make({ x: 31 * gS - gS / 4, y: 5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90), Svg.Element.Group.TextSequence.make({ x: 0 * gS, y: 5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90), Svg.Element.Group.TextSequence.make({ x: 31 * gS - gS / 4, y: 12 * gS }, { x: gS, y: 0 }, "fghij").rotate(90), Svg.Element.Group.TextSequence.make({ x: 0 * gS, y: 12 * gS }, { x: gS, y: 0 }, "fghij").rotate(90), this.tracks.map(t => t.group));
+                    this.tracks = makeTracks(this);
+                    this.group.prepend(Svg.Element.Group.Breadboard.SmallLayout.make(this.joints[0], this.joints[1], "body"), this.tracks.map(t => t.group));
                 }
                 insertInto(element) {
                     Utility.Insert.first(this.group.element, element);
@@ -1676,42 +1095,57 @@ var Circuit;
             const makeTracks = (parent) => {
                 let tracks = [];
                 let gS = Constants.gridSpacing;
-                let powerTrackYPositions = [1, 2, 19, 20].map(y => y * gS);
+                let rotation = vector(parent.joints[0]).getAngleTo(parent.joints[1]);
+                let powerTrackYPositions = [-9.5, -8.5, 8.5, 9.5];
                 for (let y of powerTrackYPositions) {
+                    const start = vector({ x: gS * -14, y: y * gS })
+                        .rotate(rotation)
+                        .sumWith(parent.joints[0]);
+                    const step = vector({ x: gS, y: 0 }).rotate(rotation);
                     let track = Component.Addins.Board.Track.makeInstance({
-                        holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1].map(offset => offset * gS)
-                    }, {});
-                    track.group.translate({ x: gS * 1.5, y: y }).rotate(0);
+                        holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1]
+                    }, {
+                        joints: [start, step]
+                    });
                     tracks.push(track);
                 }
-                let mainGridTrackXPositions = [...Array(30).keys()].map(x => (x + 1) * gS);
-                let mainGridTrackYPositions = [5, 12].map(y => y * gS);
+                let mainGridTrackXPositions = [...Array(30).keys()];
+                let mainGridTrackYPositions = [-5.5, +1.5];
                 for (let x of mainGridTrackXPositions) {
                     for (let y of mainGridTrackYPositions) {
+                        const start = vector({ x: (x - 14.5) * gS, y: y * gS })
+                            .rotate(rotation)
+                            .sumWith(parent.joints[0]);
+                        const step = vector({ x: 0, y: gS }).rotate(rotation);
                         let track = Component.Addins.Board.Track.makeInstance({
-                            holeSpacings: [0, 1, 1, 1, 1].map(offset => offset * gS)
-                        }, {});
-                        track.group.translate({ x: x, y: y }).rotate(90);
+                            holeSpacings: [0, 1, 1, 1, 1]
+                        }, {
+                            joints: [start, step]
+                        });
                         tracks.push(track);
                     }
                 }
                 return tracks;
             };
             Local.loadInstance = (raw) => {
-                let state = Object.assign({}, Local.defaultState);
-                let properties = Object.assign({}, Local.defaultProperties);
-                if (raw.state) {
-                    if (raw.state.location) {
-                        state.location = raw.state.location;
-                    }
-                }
+                let state = (raw.state) ?
+                    {
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
+                            ? vector.standardise(raw.state.joints)
+                            : undefined
+                    } : {};
+                let properties = (raw.properties) ?
+                    {} : {};
                 return Local.makeInstance(properties, state, true);
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 $(component.group.element).addClass("breadboard " + component.name);
-                Component.Addins.Board.init(component, makeTracks);
+                Component.Addins.Graphical.init(component);
+                Component.Addins.Board.init(component);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.WireCreation.init(component);
+                Component.Addins.Draggable.init(component);
+                Component.Addins.Rotatable.init(component);
             });
         })(Local || (Local = {}));
         Component.BreadboardSmall = {
@@ -1730,7 +1164,6 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
                 joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }]
             };
             Local.defaultProperties = {
@@ -1755,7 +1188,6 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.location,
                         joints: this.joints
                     };
                 }
@@ -1784,7 +1216,6 @@ var Circuit;
             Local.loadInstance = (raw) => {
                 let state = (raw.state) ?
                     {
-                        location: raw.state.location,
                         joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
                             ? vector.standardise(raw.state.joints)
                             : undefined
@@ -1799,6 +1230,7 @@ var Circuit;
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 $(component.group.element).addClass("component " + component.name);
+                Component.Addins.Graphical.init(component);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.Extendable.init(component);
@@ -1821,7 +1253,6 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
                 joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }]
             };
             Local.defaultProperties = {
@@ -1846,7 +1277,6 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.location,
                         joints: this.joints
                     };
                 }
@@ -1867,23 +1297,27 @@ var Circuit;
             Local.loadInstance = (raw) => {
                 let state = (raw.state) ?
                     {
-                        location: raw.state.location,
                         joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
                             ? vector.standardise(raw.state.joints)
                             : undefined
                     } : {
-                    location: (raw.where) ? {
-                        e: raw.where.X,
-                        f: raw.where.Y
-                    } : {},
-                    joints: (["LR", "UD", "RL", "DU"].includes(raw.orientation))
-                        ? {
-                            LR: [{ x: -20, y: 0 }, { x: 20, y: 0 }],
-                            UD: [{ x: 0, y: -20 }, { x: 0, y: 20 }],
-                            RL: [{ x: 20, y: 0 }, { x: -20, y: 0 }],
-                            DU: [{ x: 0, y: 20 }, { x: 0, y: -20 }]
-                        }[raw.orientation]
-                        : undefined,
+                    joints: (() => {
+                        if (["LR", "UD", "RL", "DU"].includes(raw.orientation)) {
+                            let baseJoints = {
+                                LR: [{ x: -20, y: 0 }, { x: 20, y: 0 }],
+                                UD: [{ x: 0, y: -20 }, { x: 0, y: 20 }],
+                                RL: [{ x: 20, y: 0 }, { x: -20, y: 0 }],
+                                DU: [{ x: 0, y: 20 }, { x: 0, y: -20 }]
+                            }[raw.orientation];
+                            let offset = (raw.where && vector.isVector(raw.where))
+                                ? vector(raw.where).vector
+                                : { x: 0, y: 0 };
+                            return vector(baseJoints).sumWith(offset).vectors;
+                        }
+                        else {
+                            return undefined;
+                        }
+                    })()
                 };
                 let properties = (raw.properties) ?
                     {
@@ -1900,8 +1334,11 @@ var Circuit;
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
-                Component.Addins.Extendable.init(component);
-                Component.Addins.Draggable.init(component);
+                Component.Addins.Graphical.init(component);
+                if (Constants.schematicManipulationEnabled) {
+                    Component.Addins.Draggable.init(component);
+                    Component.Addins.Extendable.init(component);
+                }
             });
         })(Local || (Local = {}));
         Component.CapacitorSchematic = {
@@ -1920,7 +1357,6 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
                 joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }]
             };
             Local.defaultProperties = {
@@ -1945,7 +1381,6 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.location,
                         joints: this.joints
                     };
                 }
@@ -1966,7 +1401,6 @@ var Circuit;
             Local.loadInstance = (raw) => {
                 let state = (raw.state) ?
                     {
-                        location: raw.state.location,
                         joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
                             ? vector.standardise(raw.state.joints)
                             : undefined
@@ -1981,6 +1415,7 @@ var Circuit;
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 $(component.group.element).addClass("component " + component.name);
+                Component.Addins.Graphical.init(component);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.Extendable.init(component);
@@ -2003,7 +1438,6 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
                 joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }]
             };
             Local.defaultProperties = {
@@ -2030,7 +1464,6 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.location,
                         joints: this.joints
                     };
                 }
@@ -2050,23 +1483,27 @@ var Circuit;
             Local.loadInstance = (raw) => {
                 let state = (raw.state) ?
                     {
-                        location: raw.state.location,
                         joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
                             ? vector.standardise(raw.state.joints)
                             : undefined
                     } : {
-                    location: (raw.where) ? {
-                        e: raw.where.X,
-                        f: raw.where.Y
-                    } : undefined,
-                    joints: (["LR", "UD", "RL", "DU"].includes(raw.orientation))
-                        ? {
-                            LR: [{ x: -20, y: 0 }, { x: 20, y: 0 }],
-                            UD: [{ x: 0, y: -20 }, { x: 0, y: 20 }],
-                            RL: [{ x: 20, y: 0 }, { x: -20, y: 0 }],
-                            DU: [{ x: 0, y: 20 }, { x: 0, y: -20 }]
-                        }[raw.orientation]
-                        : undefined,
+                    joints: (() => {
+                        if (["LR", "UD", "RL", "DU"].includes(raw.orientation)) {
+                            let baseJoints = {
+                                LR: [{ x: -20, y: 0 }, { x: 20, y: 0 }],
+                                UD: [{ x: 0, y: -20 }, { x: 0, y: 20 }],
+                                RL: [{ x: 20, y: 0 }, { x: -20, y: 0 }],
+                                DU: [{ x: 0, y: 20 }, { x: 0, y: -20 }]
+                            }[raw.orientation];
+                            let offset = (raw.where && vector.isVector(raw.where))
+                                ? vector(raw.where).vector
+                                : { x: 0, y: 0 };
+                            return vector(baseJoints).sumWith(offset).vectors;
+                        }
+                        else {
+                            return undefined;
+                        }
+                    })()
                 };
                 let properties = (raw.properties) ?
                     {
@@ -2083,8 +1520,11 @@ var Circuit;
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
-                Component.Addins.Extendable.init(component);
-                Component.Addins.Draggable.init(component);
+                Component.Addins.Graphical.init(component);
+                if (Constants.schematicManipulationEnabled) {
+                    Component.Addins.Draggable.init(component);
+                    Component.Addins.Extendable.init(component);
+                }
             });
         })(Local || (Local = {}));
         Component.DiodeSchematic = {
@@ -2103,7 +1543,6 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
                 joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }]
             };
             Local.defaultProperties = {
@@ -2125,7 +1564,6 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.location,
                         joints: this.joints
                     };
                 }
@@ -2146,7 +1584,6 @@ var Circuit;
             Local.loadInstance = (raw) => {
                 let state = (raw.state) ?
                     {
-                        location: raw.state.location,
                         joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
                             ? vector.standardise(raw.state.joints)
                             : undefined
@@ -2160,6 +1597,7 @@ var Circuit;
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 $(component.group.element).addClass("component " + component.name);
+                Component.Addins.Graphical.init(component);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.Extendable.init(component);
@@ -2182,7 +1620,6 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
                 joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }]
             };
             Local.defaultProperties = {
@@ -2204,7 +1641,6 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.location,
                         joints: this.joints
                     };
                 }
@@ -2224,23 +1660,27 @@ var Circuit;
             Local.loadInstance = (raw) => {
                 let state = (raw.state) ?
                     {
-                        location: raw.state.location,
                         joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
                             ? vector.standardise(raw.state.joints)
                             : undefined
                     } : {
-                    location: (raw.where) ? {
-                        e: raw.where.X,
-                        f: raw.where.Y
-                    } : undefined,
-                    joints: (["LR", "UD", "RL", "DU"].includes(raw.orientation))
-                        ? {
-                            LR: [{ x: -30, y: 0 }, { x: 30, y: 0 }],
-                            UD: [{ x: 0, y: -30 }, { x: 0, y: 30 }],
-                            RL: [{ x: 30, y: 0 }, { x: -30, y: 0 }],
-                            DU: [{ x: 0, y: 30 }, { x: 0, y: -30 }]
-                        }[raw.orientation]
-                        : undefined,
+                    joints: (() => {
+                        if (["LR", "UD", "RL", "DU"].includes(raw.orientation)) {
+                            let baseJoints = {
+                                LR: [{ x: -30, y: 0 }, { x: 30, y: 0 }],
+                                UD: [{ x: 0, y: -30 }, { x: 0, y: 30 }],
+                                RL: [{ x: 30, y: 0 }, { x: -30, y: 0 }],
+                                DU: [{ x: 0, y: 30 }, { x: 0, y: -30 }]
+                            }[raw.orientation];
+                            let offset = (raw.where && vector.isVector(raw.where))
+                                ? vector(raw.where).vector
+                                : { x: 0, y: 0 };
+                            return vector(baseJoints).sumWith(offset).vectors;
+                        }
+                        else {
+                            return undefined;
+                        }
+                    })()
                 };
                 let properties = (raw.properties) ?
                     {
@@ -2255,8 +1695,11 @@ var Circuit;
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
-                Component.Addins.Extendable.init(component);
-                Component.Addins.Draggable.init(component);
+                Component.Addins.Graphical.init(component);
+                if (Constants.schematicManipulationEnabled) {
+                    Component.Addins.Draggable.init(component);
+                    Component.Addins.Extendable.init(component);
+                }
             });
         })(Local || (Local = {}));
         Component.InductorSchematic = {
@@ -2275,8 +1718,8 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
-                isDual: false
+                isDual: false,
+                joints: [{ x: 30, y: 30 }, { x: 40, y: 30 }]
             };
             Local.defaultProperties = {
                 name: "opAmp",
@@ -2287,6 +1730,7 @@ var Circuit;
                     super(properties, state);
                     $(this.group.element).addClass("component " + this.name);
                     this.isDual = state.isDual;
+                    this.joints = state.joints;
                     this.offsetVoltage = properties.offsetVoltage;
                 }
                 getProperties() {
@@ -2297,38 +1741,52 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.location,
-                        isDual: this.isDual
+                        isDual: this.isDual,
+                        joints: this.joints
                     };
                 }
                 draw() {
-                    this.group.prepend(Svg.Element.Group.OpAmp.Layout.make(this.isDual, "body"));
+                    this.group.prepend(Svg.Element.Group.OpAmp.Layout.make(this.isDual, this.joints[0], this.joints[1], "body"));
                 }
                 makeConnectors() {
-                    let gridSpacing = Constants.gridSpacing;
+                    let gs = Constants.gridSpacing;
+                    let c = this.joints[0];
+                    let r = vector(this.joints[0]).getAngleTo(this.joints[1]);
+                    let connectorPoints = vector([
+                        { x: 0 * gs, y: 3 * gs },
+                        { x: 1 * gs, y: 3 * gs },
+                        { x: 2 * gs, y: 3 * gs },
+                        { x: 3 * gs, y: 3 * gs },
+                        { x: 3 * gs, y: 0 * gs },
+                        { x: 2 * gs, y: 0 * gs },
+                        { x: 1 * gs, y: 0 * gs },
+                        { x: 0 * gs, y: 0 * gs }
+                    ]).sumWith(vector(-30)).rotate(r).sumWith(c).vectors;
                     if (this.isDual) {
-                        let gridSpacing = Constants.gridSpacing;
                         this.connectorSets = [[
-                                Component.Generics.makeConnector(this, "vcc+", "pin", { x: 0 * gridSpacing, y: 0 * gridSpacing }, "v+"),
-                                Component.Generics.makeConnector(this, "out", "pin", { x: 1 * gridSpacing, y: 0 * gridSpacing }, "1o"),
-                                Component.Generics.makeConnector(this, "in-", "pin", { x: 2 * gridSpacing, y: 0 * gridSpacing }, "1i-"),
-                                Component.Generics.makeConnector(this, "in+", "pin", { x: 3 * gridSpacing, y: 0 * gridSpacing }, "1i+"),
-                                Component.Generics.makeConnector(this, "vcc-", "pin", { x: 3 * gridSpacing, y: 3 * gridSpacing }, "v-"),
+                                Component.Generics.makeConnector(this, "vcc+", "pin", connectorPoints[7], "v+"),
+                                Component.Generics.makeConnector(this, "out", "pin", connectorPoints[6], "1o"),
+                                Component.Generics.makeConnector(this, "in-", "pin", connectorPoints[5], "1i-"),
+                                Component.Generics.makeConnector(this, "in+", "pin", connectorPoints[4], "1i+"),
+                                Component.Generics.makeConnector(this, "vcc-", "pin", connectorPoints[3], "v-"),
                             ], [
-                                Component.Generics.makeConnector(this, "vcc+", "pin", { x: 0 * gridSpacing, y: 0 * gridSpacing }, "v+"),
-                                Component.Generics.makeConnector(this, "out", "pin", { x: 0 * gridSpacing, y: 3 * gridSpacing }, "2o"),
-                                Component.Generics.makeConnector(this, "in-", "pin", { x: 1 * gridSpacing, y: 3 * gridSpacing }, "2i-"),
-                                Component.Generics.makeConnector(this, "in+", "pin", { x: 2 * gridSpacing, y: 3 * gridSpacing }, "2i+"),
-                                Component.Generics.makeConnector(this, "vcc-", "pin", { x: 3 * gridSpacing, y: 3 * gridSpacing }, "v-"),
+                                Component.Generics.makeConnector(this, "vcc+", "pin", connectorPoints[7], "v+"),
+                                Component.Generics.makeConnector(this, "out", "pin", connectorPoints[0], "2o"),
+                                Component.Generics.makeConnector(this, "in-", "pin", connectorPoints[1], "2i-"),
+                                Component.Generics.makeConnector(this, "in+", "pin", connectorPoints[2], "2i+"),
+                                Component.Generics.makeConnector(this, "vcc-", "pin", connectorPoints[3], "v-"),
                             ]];
                     }
                     else {
                         this.connectorSets = [[
-                                Component.Generics.makeConnector(this, "vcc+", "pin", { x: 1 * gridSpacing, y: 0 * gridSpacing }, "v+"),
-                                Component.Generics.makeConnector(this, "out", "pin", { x: 2 * gridSpacing, y: 0 * gridSpacing }, "o"),
-                                Component.Generics.makeConnector(this, "in-", "pin", { x: 1 * gridSpacing, y: 3 * gridSpacing }, "i-"),
-                                Component.Generics.makeConnector(this, "in+", "pin", { x: 2 * gridSpacing, y: 3 * gridSpacing }, "i+"),
-                                Component.Generics.makeConnector(this, "vcc-", "pin", { x: 3 * gridSpacing, y: 3 * gridSpacing }, "v-"),
+                                Component.Generics.makeConnector(this, "nc", "pin", connectorPoints[7], "nc"),
+                                Component.Generics.makeConnector(this, "vcc+", "pin", connectorPoints[6], "v+"),
+                                Component.Generics.makeConnector(this, "out", "pin", connectorPoints[5], "o"),
+                                Component.Generics.makeConnector(this, "offset n1", "pin", connectorPoints[4], "nc"),
+                                Component.Generics.makeConnector(this, "offset n2", "pin", connectorPoints[0], "nc"),
+                                Component.Generics.makeConnector(this, "in-", "pin", connectorPoints[1], "i-"),
+                                Component.Generics.makeConnector(this, "in+", "pin", connectorPoints[2], "i+"),
+                                Component.Generics.makeConnector(this, "vcc-", "pin", connectorPoints[3], "v-"),
                             ]];
                     }
                 }
@@ -2345,8 +1803,10 @@ var Circuit;
             Local.loadInstance = (raw) => {
                 let state = (raw.state) ?
                     {
-                        location: raw.state.location,
-                        isDual: raw.state.isDual
+                        isDual: raw.state.isDual,
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
+                            ? vector.standardise(raw.state.joints)
+                            : undefined
                     } : {};
                 let properties = (raw.properties) ?
                     {
@@ -2357,8 +1817,9 @@ var Circuit;
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 $(component.group.element).addClass("component " + component.name);
+                Component.Addins.Graphical.init(component);
                 Component.Addins.Draggable.init(component);
-                Component.Addins.Rotatable.init(component, { x: Constants.gridSpacing * 1.5, y: Constants.gridSpacing * 1.5 });
+                Component.Addins.Rotatable.init(component);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component);
             });
@@ -2379,8 +1840,6 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
-                whichInputAtTop: "non-inverting",
                 joints: [{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: 40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: 20 }]
             };
             Local.defaultProperties = {
@@ -2392,7 +1851,6 @@ var Circuit;
                     super(properties, state);
                     $(this.group.element).addClass("component " + this.name);
                     this.joints = state.joints;
-                    this.whichInputAtTop = state.whichInputAtTop;
                     this.offsetVoltage = properties.offsetVoltage;
                 }
                 getProperties() {
@@ -2403,13 +1861,11 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.location,
                         joints: this.joints,
-                        whichInputAtTop: this.whichInputAtTop
                     };
                 }
                 draw() {
-                    this.group.prepend(Svg.Element.Group.OpAmp.Schematic.make(this.joints[0], this.joints[1], this.joints[2], this.joints[3], this.joints[4]));
+                    this.group.prepend(Svg.Element.Group.OpAmp.Schematic.make(this.joints[0], this.joints[1], this.joints[2], this.joints[3], this.joints[4], "body"));
                 }
                 makeConnectors() {
                     let [posPower, negPower] = (this.joints[3].y < this.joints[4].y)
@@ -2432,25 +1888,27 @@ var Circuit;
             Local.loadInstance = (raw) => {
                 let state = (raw.state) ?
                     {
-                        whichInputAtTop: (["inverting", "non-inverting"].includes(raw.state.whichInputAtTop)) ? raw.state.whichInputAtTop : undefined,
-                        location: raw.state.location,
-                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 3)
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 5)
                             ? vector.standardise(raw.state.joints)
                             : undefined
                     } : {
-                    whichInputAtTop: (["inverting", "non-inverting"].includes(raw.whichInputAtTop)) ? raw.whichInputAtTop : undefined,
-                    location: (raw.where) ? {
-                        e: raw.where.X,
-                        f: raw.where.Y
-                    } : undefined,
-                    joints: (["LR", "RL"].includes(raw.orientation) && ["inverting", "non-inverting"].includes(raw.whichInputAtTop))
-                        ? {
-                            "LRinverting": [{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: +40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: +20 }],
-                            "RLinverting": [{ x: +30, y: -10 }, { x: +30, y: +10 }, { x: -40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: +20 }],
-                            "LRnon-inverting": [{ x: -30, y: +10 }, { x: -30, y: -10 }, { x: +40, y: 0 }, { x: 0, y: +20 }, { x: 0, y: -20 }],
-                            "RLnon-inverting": [{ x: +30, y: +10 }, { x: +30, y: -10 }, { x: -40, y: 0 }, { x: 0, y: +20 }, { x: 0, y: -20 }],
-                        }[raw.orientation + raw.whichInputAtTop]
-                        : undefined,
+                    joints: (() => {
+                        if (["LR", "RL"].includes(raw.orientation) && ["inverting", "non-inverting"].includes(raw.whichInputAtTop)) {
+                            let baseJoints = {
+                                "LRinverting": [{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: +40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: +20 }],
+                                "RLinverting": [{ x: +30, y: -10 }, { x: +30, y: +10 }, { x: -40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: +20 }],
+                                "LRnon-inverting": [{ x: -30, y: +10 }, { x: -30, y: -10 }, { x: +40, y: 0 }, { x: 0, y: +20 }, { x: 0, y: -20 }],
+                                "RLnon-inverting": [{ x: +30, y: +10 }, { x: +30, y: -10 }, { x: -40, y: 0 }, { x: 0, y: +20 }, { x: 0, y: -20 }],
+                            }[raw.orientation + raw.whichInputAtTop];
+                            let offset = (raw.where && vector.isVector(raw.where))
+                                ? vector(raw.where).vector
+                                : { x: 0, y: 0 };
+                            return vector(baseJoints).sumWith(offset).vectors;
+                        }
+                        else {
+                            return undefined;
+                        }
+                    })()
                 };
                 let properties = (raw.properties) ?
                     {
@@ -2460,10 +1918,15 @@ var Circuit;
                     offsetVoltage: raw.offsetVoltage,
                 };
                 if ((raw.minOutput) && (raw.maxOutput)) {
-                    let topPower = Component.PowerSchematic.makeInstance({ voltage: raw.maxOutput || 5 }, { location: state.location }, true);
-                    topPower.group.translate({ x: 0, y: -30 });
-                    let bottomPower = Component.PowerSchematic.makeInstance({ voltage: raw.minOutput || -5 }, { location: state.location }, true);
-                    bottomPower.group.translate({ x: 0, y: 30 });
+                    let offset = (raw.where && vector.isVector(raw.where))
+                        ? vector(raw.where).vector
+                        : { x: 0, y: 0 };
+                    let topPower = Component.PowerSchematic.makeInstance({ voltage: raw.maxOutput || 5 }, {
+                        joints: vector([{ x: 0, y: -20 }]).sumWith(offset).vectors
+                    }, true);
+                    let bottomPower = Component.PowerSchematic.makeInstance({ voltage: raw.minOutput || -5 }, {
+                        joints: vector([{ x: 0, y: 20 }]).sumWith(offset).vectors
+                    }, true);
                     let opAmp = Local.makeInstance(properties, state, true);
                     let instances = [
                         topPower,
@@ -2480,8 +1943,11 @@ var Circuit;
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
-                Component.Addins.Draggable.init(component);
-                Component.Addins.Extendable.init(component);
+                Component.Addins.Graphical.init(component);
+                if (Constants.schematicManipulationEnabled) {
+                    Component.Addins.Draggable.init(component);
+                    Component.Addins.Extendable.init(component);
+                }
             });
         })(Local || (Local = {}));
         Component.OpAmpSchematic = {
@@ -2500,7 +1966,6 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
                 joints: [{ x: 0, y: 40 }]
             };
             Local.defaultProperties = {
@@ -2523,7 +1988,6 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.location,
                         joints: this.joints
                     };
                 }
@@ -2545,7 +2009,6 @@ var Circuit;
             Local.loadInstance = (raw) => {
                 let state = (raw.state) ?
                     {
-                        location: raw.state.location,
                         joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 1)
                             ? vector.standardise(raw.state.joints)
                             : undefined
@@ -2559,6 +2022,7 @@ var Circuit;
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 $(component.group.element).addClass(component.name);
+                Component.Addins.Graphical.init(component);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, true, getHighlightColor(component));
@@ -2589,7 +2053,6 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
                 joints: [{ x: 0, y: 0 }]
             };
             Local.defaultProperties = {
@@ -2611,7 +2074,6 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.location,
                         joints: this.joints
                     };
                 }
@@ -2619,14 +2081,8 @@ var Circuit;
                     this.group.prepend(Svg.Element.Group.Power.Schematic.make(this.voltage, this.joints[0]));
                 }
                 makeConnectors() {
-                    let lead1End;
-                    lead1End = (this.voltage < 0)
-                        ? { x: 0, y: -10 }
-                        : (this.voltage > 0)
-                            ? { x: 0, y: 10 }
-                            : { x: 0, y: -10 };
                     this.connectorSets = [
-                        [Component.Generics.makeConnector(this, "", "node", lead1End)]
+                        [Component.Generics.makeConnector(this, "", "node", this.joints[0])]
                     ];
                 }
                 transferFunction() { return []; }
@@ -2636,16 +2092,28 @@ var Circuit;
             Local.loadInstance = (raw) => {
                 let state = (raw.state) ?
                     {
-                        location: raw.state.location,
                         joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 1)
                             ? vector.standardise(raw.state.joints)
                             : undefined
                     } : {
-                    location: (raw.where) ? {
-                        e: raw.where.X,
-                        f: raw.where.Y
-                    } : undefined,
-                    joints: undefined,
+                    joints: (() => {
+                        if (raw.where && vector.isVector(raw.where)) {
+                            if (raw.value !== undefined && typeof raw.value === "number") {
+                                let offset = (raw.value < 0)
+                                    ? { x: 0, y: -10 }
+                                    : (raw.value > 0)
+                                        ? { x: 0, y: 10 }
+                                        : { x: 0, y: -10 };
+                                return [vector(raw.where).sumWith(offset).vector];
+                            }
+                            else {
+                                return [vector(raw.where).vector];
+                            }
+                        }
+                        else {
+                            return undefined;
+                        }
+                    })()
                 };
                 let properties = (raw.properties) ?
                     {
@@ -2660,7 +2128,10 @@ var Circuit;
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
-                Component.Addins.Draggable.init(component);
+                Component.Addins.Graphical.init(component);
+                if (Constants.schematicManipulationEnabled) {
+                    Component.Addins.Draggable.init(component);
+                }
             });
         })(Local || (Local = {}));
         Component.PowerSchematic = {
@@ -2679,7 +2150,6 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
                 joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }]
             };
             Local.defaultProperties = {
@@ -2701,7 +2171,6 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.location,
                         joints: this.joints
                     };
                 }
@@ -2722,7 +2191,6 @@ var Circuit;
             Local.loadInstance = (raw) => {
                 let state = (raw.state) ?
                     {
-                        location: raw.state.location,
                         joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
                             ? vector.standardise(raw.state.joints)
                             : undefined
@@ -2736,6 +2204,7 @@ var Circuit;
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 $(component.group.element).addClass("component " + component.name);
+                Component.Addins.Graphical.init(component);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.Extendable.init(component);
@@ -2758,7 +2227,6 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
                 joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }]
             };
             Local.defaultProperties = {
@@ -2780,7 +2248,6 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.location,
                         joints: this.joints
                     };
                 }
@@ -2800,23 +2267,27 @@ var Circuit;
             Local.loadInstance = (raw) => {
                 let state = (raw.state) ?
                     {
-                        location: raw.state.location,
                         joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
                             ? vector.standardise(raw.state.joints)
                             : undefined
                     } : {
-                    location: (raw.where) ? {
-                        e: raw.where.X,
-                        f: raw.where.Y
-                    } : undefined,
-                    joints: (["LR", "UD", "RL", "DU"].includes(raw.orientation))
-                        ? {
-                            LR: [{ x: -30, y: 0 }, { x: 30, y: 0 }],
-                            UD: [{ x: 0, y: -30 }, { x: 0, y: 30 }],
-                            RL: [{ x: 30, y: 0 }, { x: -30, y: 0 }],
-                            DU: [{ x: 0, y: 30 }, { x: 0, y: -30 }]
-                        }[raw.orientation]
-                        : undefined,
+                    joints: (() => {
+                        if (["LR", "UD", "RL", "DU"].includes(raw.orientation)) {
+                            let baseJoints = {
+                                LR: [{ x: -30, y: 0 }, { x: 30, y: 0 }],
+                                UD: [{ x: 0, y: -30 }, { x: 0, y: 30 }],
+                                RL: [{ x: 30, y: 0 }, { x: -30, y: 0 }],
+                                DU: [{ x: 0, y: 30 }, { x: 0, y: -30 }]
+                            }[raw.orientation];
+                            let offset = (raw.where && vector.isVector(raw.where))
+                                ? vector(raw.where).vector
+                                : { x: 0, y: 0 };
+                            return vector(baseJoints).sumWith(offset).vectors;
+                        }
+                        else {
+                            return undefined;
+                        }
+                    })()
                 };
                 let properties = (raw.properties) ?
                     {
@@ -2831,8 +2302,11 @@ var Circuit;
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
-                Component.Addins.Extendable.init(component);
-                Component.Addins.Draggable.init(component);
+                Component.Addins.Graphical.init(component);
+                if (Constants.schematicManipulationEnabled) {
+                    Component.Addins.Draggable.init(component);
+                    Component.Addins.Extendable.init(component);
+                }
             });
         })(Local || (Local = {}));
         Component.ResistorSchematic = {
@@ -2851,7 +2325,7 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
+                joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }]
             };
             Local.defaultProperties = {
                 name: "stripboard",
@@ -2867,6 +2341,7 @@ var Circuit;
                     this.rows = properties.rows;
                     this.columns = properties.columns;
                     this.trackBreaks = properties.trackBreaks;
+                    this.joints = state.joints;
                 }
                 getProperties() {
                     return {
@@ -2878,16 +2353,27 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.location
+                        joints: this.joints
                     };
                 }
-                makeConnectors() { }
+                makeConnectors() {
+                    this.tracks.forEach(track => track.makeConnectors());
+                    this.tracks.forEach((track, trackIdx) => {
+                        let trackBreaks = this.trackBreaks.filter(trackBreak => trackBreak.track === trackIdx);
+                        track.connectorSets[0].forEach((hole, holeIdx) => {
+                            if (trackBreaks.some(trackBreak => trackBreak.hole === holeIdx)) {
+                                hole.type = "brokenhole";
+                            }
+                        });
+                    });
+                }
                 draw() {
+                    let rotation = vector(this.joints[0]).getAngleTo(this.joints[1]);
+                    this.tracks = makeTracks(this);
                     const gS = Constants.gridSpacing;
-                    const centre = { x: (this.columns - 1) * gS / 2, y: (this.rows - 1) * gS / 2 };
                     const size = { width: (this.columns + 0.5) * gS, height: (this.rows + 0.5) * gS };
                     const cornerRounding = { x: 3, y: 3 };
-                    this.group.append(Svg.Element.Rect.make(centre, size, cornerRounding, "body highlight"), this.tracks.map(t => t.group));
+                    this.group.append(Svg.Element.Rect.make(vector(0), size, cornerRounding, "body highlight").translate(this.joints[0]).rotate(rotation), this.tracks.map(t => t.group));
                 }
                 insertInto(element) {
                     Utility.Insert.first(this.group.element, element);
@@ -2897,45 +2383,52 @@ var Circuit;
             }
             Local.Instance = Instance;
             const makeTracks = (parent) => {
-                let tracks = [];
                 let gS = Constants.gridSpacing;
+                let rotation = vector(parent.joints[0]).getAngleTo(parent.joints[1]);
+                let start = vector({
+                    x: -((parent.columns - 1) * gS / 2),
+                    y: -((parent.rows - 1) * gS / 2)
+                }).rotate(rotation).sumWith(parent.joints[0]);
+                let step = vector({ x: gS, y: 0 }).rotate(rotation);
+                let tracks = [];
                 for (let row = 0; row < parent.rows; row++) {
-                    let holeSpacings = [0].concat(Array(parent.columns - 1).fill(gS));
+                    let rowStart = start.sumWith(vector({ x: 0, y: row * gS }).rotate(rotation)).vector;
+                    let holeSpacings = [0].concat(Array(parent.columns - 1).fill(1));
                     let track = Component.Addins.Board.Track.makeInstance({
                         holeSpacings: holeSpacings,
                         style: "stripboard"
-                    }, {});
-                    track.group.translate({ x: 0, y: row * gS }).rotate(0);
+                    }, {
+                        joints: [rowStart, step]
+                    });
                     tracks.push(track);
                 }
                 return tracks;
             };
             Local.loadInstance = (raw) => {
-                let state = Object.assign({}, Local.defaultState);
-                let properties = Object.assign({}, Local.defaultProperties);
-                if (raw.state) {
-                    if (raw.state.location) {
-                        state.location = raw.state.location;
-                    }
-                }
-                if (raw.properties) {
-                    properties.rows = raw.properties.rows || 0;
-                    properties.columns = raw.properties.columns || 0;
-                    if (raw.properties.trackBreaks) {
-                        if ((raw.properties.trackBreaks.every((tB) => {
+                let state = (raw.state) ?
+                    {
+                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
+                            ? vector.standardise(raw.state.joints)
+                            : undefined
+                    } : {};
+                let properties = (raw.properties) ?
+                    {
+                        rows: raw.properties.rows,
+                        columns: raw.properties.columns,
+                        trackBreaks: ((raw.properties.trackBreaks.every((tB) => {
                             return (('track' in tB) && ('hole' in tB) && (typeof tB.track === 'number') && (typeof tB.hole === 'number'));
-                        }))) {
-                            properties.trackBreaks = raw.properties.trackBreaks;
-                        }
-                    }
-                }
+                        }))) ? raw.properties.trackBreaks : undefined
+                    } : {};
                 return Local.makeInstance(properties, state, true);
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 $(component.group.element).addClass(component.name);
-                Component.Addins.Board.init(component, makeTracks, true);
+                Component.Addins.Graphical.init(component);
+                Component.Addins.Board.init(component, true);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.WireCreation.init(component);
+                Component.Addins.Draggable.init(component);
+                Component.Addins.Rotatable.init(component);
             });
         })(Local || (Local = {}));
         Component.Stripboard = {
@@ -2954,7 +2447,6 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
                 joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
                 color: "#545454"
             };
@@ -2975,7 +2467,6 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.location,
                         joints: this.joints,
                         color: this.color
                     };
@@ -3014,7 +2505,6 @@ var Circuit;
             Local.loadInstance = (raw) => {
                 let state = (raw.state) ?
                     {
-                        location: raw.state.location,
                         joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length > 1)
                             ? vector.standardise(raw.state.joints)
                             : undefined,
@@ -3060,6 +2550,7 @@ var Circuit;
             }
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 $(component.group.element).addClass("component " + component.name);
+                Component.Addins.Graphical.init(component);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.Extendable.init(component, true, true, true);
@@ -3083,7 +2574,6 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
                 joints: [{ x: 0, y: 0 }, { x: 10, y: 10 }]
             };
             Local.defaultProperties = {
@@ -3103,7 +2593,6 @@ var Circuit;
                 }
                 getState() {
                     return {
-                        location: this.location,
                         joints: this.joints
                     };
                 }
@@ -3129,18 +2618,22 @@ var Circuit;
             Local.loadInstance = (raw) => {
                 let state = (raw.state) ?
                     {
-                        location: raw.state.location,
                         joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length > 1)
                             ? vector.standardise(raw.state.joints)
                             : undefined
                     } : {
-                    location: (raw.where) ? {
-                        e: raw.where.X,
-                        f: raw.where.Y
-                    } : undefined,
-                    joints: (vector.isVectorArray(raw.joints) && raw.joints.length > 1)
-                        ? vector.standardise(raw.joints)
-                        : undefined
+                    joints: (() => {
+                        if (vector.isVectorArray(raw.joints) && raw.joints.length > 1) {
+                            let baseJoints = vector.standardise(raw.joints);
+                            let offset = (raw.where && vector.isVector(raw.where))
+                                ? vector(raw.where).vector
+                                : { x: 0, y: 0 };
+                            return vector(baseJoints).sumWith(offset).vectors;
+                        }
+                        else {
+                            return undefined;
+                        }
+                    })()
                 };
                 let properties = (raw.properties) ?
                     {
@@ -3152,8 +2645,11 @@ var Circuit;
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Junctions.init(component);
                 Component.Addins.Selectable.init(component);
-                Component.Addins.Draggable.init(component);
-                Component.Addins.Extendable.init(component, true, true);
+                Component.Addins.Graphical.init(component);
+                if (Constants.schematicManipulationEnabled) {
+                    Component.Addins.Draggable.init(component);
+                    Component.Addins.Extendable.init(component, true, true);
+                }
             });
         })(Local || (Local = {}));
         Component.WireSchematic = {
@@ -3163,6 +2659,680 @@ var Circuit;
             loadInstance: Local.loadInstance,
             Instance: Local.Instance
         };
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var Addins;
+        (function (Addins) {
+            var Board;
+            (function (Board) {
+                function init(component, isReversible) {
+                    $(component.group.element).addClass("board");
+                    Object.defineProperty(component, 'connectorSets', {
+                        get: () => Utility.flatten2d(component.tracks.map(track => track.connectorSets))
+                    });
+                    if (isReversible) {
+                        Reversible.init(component);
+                    }
+                }
+                Board.init = init;
+                let Local;
+                (function (Local) {
+                    Local.defaultState = {
+                        joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }]
+                    };
+                    Local.defaultProperties = {
+                        name: "track",
+                        style: "breadboard",
+                        holeSpacings: [0]
+                    };
+                    class Instance extends Component.Instance {
+                        constructor(properties, state) {
+                            super(properties, state);
+                            this.connectorSets = [];
+                            this.name = properties.name;
+                            this.holeSpacings = properties.holeSpacings;
+                            this.style = properties.style;
+                            this.joints = state.joints;
+                        }
+                        getProperties() {
+                            return {
+                                name: this.name,
+                                holeSpacings: this.holeSpacings,
+                                style: this.style
+                            };
+                        }
+                        getState() {
+                            return {
+                                joints: this.joints
+                            };
+                        }
+                        draw() {
+                            if (this.style === "breadboard") {
+                                drawBreadboard(this);
+                            }
+                            else if (this.style === "stripboard") {
+                                drawStripboard(this);
+                            }
+                            else {
+                                console.error("Style \"%s\" is invalid", this.style);
+                            }
+                        }
+                        makeConnectors() {
+                            const start = this.joints[0];
+                            const step = this.joints[1];
+                            this.connectorSets = [[]];
+                            let accHs = 0;
+                            this.holeSpacings.forEach((hS) => {
+                                accHs += hS;
+                                let holePos = vector(step)
+                                    .scaleWith(accHs)
+                                    .sumWith(start)
+                                    .vector;
+                                this.connectorSets[0].push(Component.Generics.makeConnector(this, "", "hole", holePos));
+                            });
+                        }
+                        transferFunction(from) {
+                            let fromIdx = this.connectorSets[0].indexOf(from);
+                            let connected = [];
+                            for (let i = fromIdx + 1; i < this.connectorSets[0].length; i++) {
+                                if (this.connectorSets[0][i].type === "brokenhole")
+                                    break;
+                                connected.push(this.connectorSets[0][i]);
+                            }
+                            for (let i = fromIdx - 1; i >= 0; i--) {
+                                if (this.connectorSets[0][i].type === "brokenhole")
+                                    break;
+                                connected.push(this.connectorSets[0][i]);
+                            }
+                            return connected;
+                        }
+                    }
+                    Local.Instance = Instance;
+                    const drawStripboard = (component) => {
+                        const start = component.joints[0];
+                        const step = component.joints[1];
+                        let accHs = 0;
+                        component.holeSpacings.forEach((hS) => {
+                            accHs += hS;
+                            let holePos = vector(step)
+                                .scaleWith(accHs)
+                                .sumWith(start)
+                                .vector;
+                            component.group.append(Svg.Element.Circle.make(holePos, 4, "hole"));
+                        });
+                        let relativeEnd = vector(step).scaleWith(accHs).vector;
+                        let { radius, angle } = vector(relativeEnd).asPolar();
+                        let centre = vector(start, start, relativeEnd).sum().scaleWith(0.5).vector;
+                        let size = {
+                            width: radius + Constants.gridSpacing,
+                            height: Constants.gridSpacing * 14 / 16
+                        };
+                        component.group.prepend(Svg.Element.Rect.make(centre, size, vector(0), 'body').rotate(angle, centre));
+                    };
+                    const drawBreadboard = (component) => {
+                        const start = component.joints[0];
+                        const step = component.joints[1];
+                        let accHs = 0;
+                        component.holeSpacings.forEach((hS) => {
+                            accHs += hS;
+                            let holePos = vector(step)
+                                .scaleWith(accHs)
+                                .sumWith(start)
+                                .vector;
+                            component.group.append(Svg.Element.Rect.make(holePos, { width: 8, height: 8 }, vector(0.5), "hole"));
+                        });
+                        let relativeEnd = vector(step).scaleWith(accHs).vector;
+                        let { radius, angle } = vector(relativeEnd).asPolar();
+                        let centre = vector(start, start, relativeEnd).sum().scaleWith(0.5).vector;
+                        let size = {
+                            width: radius + Constants.gridSpacing * 0.8,
+                            height: Constants.gridSpacing * 14 / 16
+                        };
+                        component.group.prepend(Svg.Element.Rect.make(centre, size, vector(0), 'body').rotate(angle, centre));
+                    };
+                    Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+                        $(component.group.element).addClass(component.name);
+                    });
+                })(Local || (Local = {}));
+                Board.Track = {
+                    defaultState: Local.defaultState,
+                    defaultProperties: Local.defaultProperties,
+                    Instance: Local.Instance,
+                    makeInstance: Local.makeInstance,
+                };
+                let Reversible;
+                (function (Reversible) {
+                    Reversible.init = (component) => {
+                        let element = component.group;
+                        $(element.element).on(Circuit.Events.select, () => {
+                            createGhost(component);
+                        });
+                        $(element.element).on(Circuit.Events.dragStart, () => {
+                            clearGhost(component);
+                        });
+                        $(element.element).on(Circuit.Events.rotate, () => {
+                            clearGhost(component);
+                            createGhost(component);
+                        });
+                        $(element.element).on(Circuit.Events.dragStop, () => {
+                            createGhost(component);
+                        });
+                        $(element.element).on(Circuit.Events.deselect, () => {
+                            clearGhost(component);
+                        });
+                    };
+                    const createGhost = (component) => {
+                        let ghostGroup = component.group.element.cloneNode();
+                        let bbox = component.group.element.getBBox();
+                        Svg.addTransform(ghostGroup, t => t.setScale(-1, 1), false);
+                        Svg.addTransform(ghostGroup, t => t.setTranslate(-(bbox.width + bbox.x) * 2 - 1, 0), false);
+                        ghostGroup.appendChild($(component.group.element).children(".body").clone()[0]);
+                        $(ghostGroup).addClass("reverseghost");
+                        $(ghostGroup).data("selects", component);
+                        let parent = (component.group.element.parentElement);
+                        if (parent)
+                            parent.appendChild(ghostGroup);
+                        let allValidConnectors = Utility.flatten2d(Circuit.manifest.layout.map(el => Utility.flatten2d(el.connectorSets.map(connectorSet => connectorSet.filter(connector => connector.type === "pin")))));
+                        component.tracks.forEach((track, trackIdx) => {
+                            let trackGhostGroup = $(track.group.element).clone()[0];
+                            ghostGroup.appendChild(trackGhostGroup);
+                            track.connectorSets[0].forEach((hole, holeIdx) => {
+                                let point = hole.point;
+                                let breaker = Svg.Element.Circle.make(point, 6, "breaker");
+                                if (hole.type === "brokenhole") {
+                                    $(breaker.element).addClass("broken");
+                                }
+                                if (getPinsAtHole(hole, allValidConnectors).length) {
+                                    $(breaker.element).addClass("withPin");
+                                }
+                                ;
+                                trackGhostGroup.appendChild(breaker.element);
+                                let holePosition = { track: trackIdx, hole: holeIdx };
+                                $(breaker.element).click(() => {
+                                    if (hole.type === "hole") {
+                                        $(breaker.element).addClass("broken");
+                                        hole.type = "brokenhole";
+                                        component.trackBreaks.push(holePosition);
+                                    }
+                                    else if (hole.type === "brokenhole") {
+                                        $(breaker.element).removeClass("broken");
+                                        hole.type = "hole";
+                                        component.trackBreaks = component.trackBreaks.filter(trackBreak => (trackBreak.hole !== holePosition.hole || trackBreak.track !== holePosition.track));
+                                    }
+                                });
+                            });
+                        });
+                    };
+                    const clearGhost = (component) => {
+                        let parent = (component.group.element.parentElement);
+                        if (parent)
+                            $(parent).children(".reverseghost").remove();
+                    };
+                    function getPinsAtHole(connector, allConnectors) {
+                        let acceptedTypes = ["pin"];
+                        let point = connector.point;
+                        let attachedConnectors = allConnectors.filter(other => {
+                            return (acceptedTypes.includes(other.type)
+                                && vector(point).isCloseTo(other.point));
+                        });
+                        return attachedConnectors;
+                    }
+                })(Reversible || (Reversible = {}));
+            })(Board = Addins.Board || (Addins.Board = {}));
+        })(Addins = Component.Addins || (Component.Addins = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var Addins;
+        (function (Addins) {
+            var ConnectionHighlights;
+            (function (ConnectionHighlights) {
+                ConnectionHighlights.init = (component, propogate = true, colorPalette = defaultColorPalette) => {
+                    let element = component.group.element;
+                    $(element).on(Circuit.Events.select, () => {
+                        createConnectionsHighlights(component, propogate, colorPalette);
+                    });
+                    $(element).on(Circuit.Events.draw, () => {
+                        clearConnectionsHighlights(component);
+                        createConnectionsHighlights(component, propogate, colorPalette);
+                    });
+                    $(element).on(Circuit.Events.deselect, () => {
+                        clearConnectionsHighlights(component);
+                    });
+                };
+                const createConnectorHighlights = (component, connection, color, symbol) => {
+                    let highlight = Svg.Element.Circle.make(connection.point, 4, "highlight highlightwithfill connectivityhighlight");
+                    $(highlight.element).css({ "fill": color, "stroke": color });
+                    component.group.append(highlight);
+                    if (connection.symbol !== undefined) {
+                        let symbol = Svg.Element.Text.make(connection.symbol, connection.point, "text connectivityhighlight");
+                        component.group.append(symbol);
+                    }
+                };
+                const createConnectionsHighlights = (component, propogate, colorPalette) => {
+                    let connectionSets = component.getConnections();
+                    connectionSets.forEach(connectionSet => {
+                        connectionSet.forEach((connectorConnections, i) => {
+                            let color = colorPalette[i % colorPalette.length];
+                            if (connectorConnections.length > 1 && propogate) {
+                                connectorConnections.slice(1).forEach(connector => {
+                                    createConnectorHighlights(component, connector, color);
+                                });
+                            }
+                            createConnectorHighlights(component, connectorConnections[0], color);
+                        });
+                    });
+                };
+                const clearConnectionsHighlights = (component) => {
+                    $(component.group.element).find(".connectivityhighlight").remove();
+                };
+                const defaultColorPalette = [
+                    "red",
+                    "#8bc34a",
+                    "pink",
+                    "yellow",
+                    "cyan",
+                    "orange",
+                    "purple",
+                    "magenta"
+                ];
+            })(ConnectionHighlights = Addins.ConnectionHighlights || (Addins.ConnectionHighlights = {}));
+        })(Addins = Component.Addins || (Component.Addins = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var Addins;
+        (function (Addins) {
+            var Draggable;
+            (function (Draggable) {
+                Draggable.init = (component) => {
+                    Svg.Addins.Draggable.init(component.group.element, {
+                        disableMovement: true,
+                        onStart: () => {
+                            component.insertInto(component.group.element);
+                        },
+                        onDrag: (drag) => {
+                            component.joints.forEach(joint => {
+                                joint.x += drag.x;
+                                joint.y += drag.y;
+                            });
+                            $(component.group.element).trigger(Circuit.Events.draw);
+                        }
+                    });
+                };
+            })(Draggable = Addins.Draggable || (Addins.Draggable = {}));
+        })(Addins = Component.Addins || (Component.Addins = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var Addins;
+        (function (Addins) {
+            var Extendable;
+            (function (Extendable) {
+                Extendable.init = (component, canAddJoints = false, canRemoveJoints = false, canRemoveComponent = false) => {
+                    let element = component.group.element;
+                    $(element).on(Circuit.Events.select, () => {
+                        createHandles(component);
+                    });
+                    $(element).on(Circuit.Events.draw, (e, eOrigin) => {
+                        if (!(eOrigin !== undefined && $(eOrigin.target).hasClass("dragHandle"))) {
+                            clearHandles(component);
+                            createHandles(component);
+                        }
+                    });
+                    $(element).on(Circuit.Events.deselect, () => {
+                        clearHandles(component);
+                    });
+                    if (canAddJoints)
+                        initHandleInsertion(component);
+                    if (canRemoveJoints)
+                        initJointRemoval(component);
+                    if (canRemoveComponent)
+                        initComponentRemoval(component);
+                };
+                const createHandles = (component) => {
+                    initHandles(component);
+                };
+                const clearHandles = (component) => {
+                    $(component.group.element).find(".dragHandle").remove();
+                };
+                const initHandles = (component) => {
+                    component.joints.forEach(joint => {
+                        addHandle(component, joint);
+                    });
+                };
+                const initHandleInsertion = (component) => {
+                    $(component.group.element).dblclick(e => {
+                        if ($(e.target).closest(".handle").length < 1) {
+                            const position = vector(component.group.convertVector({ x: e.clientX, y: e.clientY }, "DomToSvg", "relToGroup")).snapToGrid().vector;
+                            const jointIdx = getJointInsertionIdx(component, position);
+                            component.joints.splice(jointIdx, 0, position);
+                            addHandle(component, position);
+                            $(component.group.element).trigger(Circuit.Events.draw, [e]);
+                        }
+                    });
+                };
+                const initJointRemoval = (component) => {
+                    $(component.group.element).on(Circuit.Events.drag, ".dragHandle", (e) => {
+                        removeExcessJoints(component, $(e.target).data("point"));
+                        $(component.group.element).trigger(Circuit.Events.draw, [e]);
+                    });
+                    $(component.group.element).on("dblclick", ".dragHandle", (e) => {
+                        if (component.joints.length > 2) {
+                            component.joints = component.joints.filter((joint, idx) => {
+                                return joint !== $(e.target).data("point");
+                            });
+                            e.target.remove();
+                            $(component.group.element).trigger(Circuit.Events.draw, [e]);
+                        }
+                    });
+                };
+                const initComponentRemoval = (component) => {
+                    $(component.group.element).on(Circuit.Events.dragStop, ".dragHandle", (e) => {
+                        if (component.joints.length === 2 && vector(component.joints[0]).isCloseTo(component.joints[1])) {
+                            Circuit.manifest.removeComponent(component);
+                        }
+                    });
+                };
+                const addHandle = (component, point) => {
+                    let dragHandle = Svg.Element.Circle.make(point, 5, "handle dragHandle highlight highlightwithfill");
+                    $(dragHandle.element).data('point', point);
+                    component.group.append(dragHandle);
+                    Svg.Addins.Draggable.init(dragHandle.element);
+                    $(dragHandle.element).on(Circuit.Events.drag, (e, ui, drag) => {
+                        point.x += drag.x;
+                        point.y += drag.y;
+                        $(component.group.element).trigger(Circuit.Events.draw, [e]);
+                    });
+                    return dragHandle;
+                };
+                const removeExcessJoints = (component, point) => {
+                    if (component.joints.length > 2) {
+                        component.joints = component.joints.filter((joint, idx) => {
+                            if ((joint !== point) && vector(point).isCloseTo(joint)) {
+                                $(component.group.element).children(".dragHandle").filter((i, el) => $(el).data('point') === joint).remove();
+                                return false;
+                            }
+                            return true;
+                        });
+                    }
+                    ;
+                };
+                const getJointInsertionIdx = (component, point) => {
+                    let jointAngles = component.joints.map((j) => Math.atan2(point.y - j.y, point.x - j.x) * 180 / Math.PI);
+                    let bestAnglePair = 180;
+                    let bestJointIdx = 0;
+                    for (let i = 1; i < jointAngles.length; i++) {
+                        let anglePair = Math.abs(Math.abs((jointAngles[i - 1] - jointAngles[i])) - 180);
+                        if (anglePair < bestAnglePair) {
+                            bestAnglePair = anglePair;
+                            bestJointIdx = i;
+                        }
+                    }
+                    return bestJointIdx;
+                };
+            })(Extendable = Addins.Extendable || (Addins.Extendable = {}));
+        })(Addins = Component.Addins || (Component.Addins = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var Addins;
+        (function (Addins) {
+            var Graphical;
+            (function (Graphical) {
+                Graphical.init = (component) => {
+                    let element = component.group.element;
+                    $(element).on(Circuit.Events.draw, () => {
+                        component.group.clearChildren(":not(.handle,.connectivityhighlight)");
+                        component.draw();
+                        component.makeConnectors();
+                    });
+                };
+            })(Graphical = Addins.Graphical || (Addins.Graphical = {}));
+        })(Addins = Component.Addins || (Component.Addins = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var Addins;
+        (function (Addins) {
+            var Junctions;
+            (function (Junctions) {
+                Junctions.init = (component) => {
+                    let element = component.group;
+                    $(element.element).on(Circuit.Events.moved + " " + Circuit.Events.place, () => {
+                        clearJunctions(component);
+                        createJunctions(component);
+                    });
+                };
+                const createJunctions = (component) => {
+                    let otherConnectors = Utility.flatten2d(Circuit.manifest.schematic.map(component => Utility.flatten2d(component.connectorSets).filter(connector => (connector.type === "node"))));
+                    component.connectorSets.forEach(connectorSet => connectorSet.forEach(connector => {
+                        let point = connector.point;
+                        let attachedConnectors = otherConnectors.filter(other => {
+                            return vector(point).isCloseTo(other.point);
+                        });
+                        if (attachedConnectors.length === 3) {
+                            component.group.prepend(Svg.Element.Circle.make(point, 5, "junction black"));
+                        }
+                    }));
+                };
+                const clearJunctions = (component) => {
+                    $(component.group.element).find(".junction").remove();
+                };
+            })(Junctions = Addins.Junctions || (Addins.Junctions = {}));
+        })(Addins = Component.Addins || (Component.Addins = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var Addins;
+        (function (Addins) {
+            var Recolorable;
+            (function (Recolorable) {
+                Recolorable.init = (component, where, recolorSelector = "*", colorPalette = defaultColorPalette) => {
+                    const element = component.group.element;
+                    $(element).on(Circuit.Events.select, () => {
+                        createRecolorHandle(component, where(), recolorSelector, colorPalette);
+                    });
+                    $(element).on(Circuit.Events.draw, () => {
+                        clearRecolorHandle(component);
+                        createRecolorHandle(component, where(), recolorSelector, colorPalette);
+                    });
+                    $(element).on(Circuit.Events.deselect, () => {
+                        clearRecolorHandle(component);
+                    });
+                };
+                const refreshComponent = (component) => {
+                    component.group.clearChildren(":not(.handle,.connectivityhighlight)");
+                    component.makeConnectors();
+                    $(component.group.element).trigger(Circuit.Events.draw);
+                };
+                const createRecolorHandle = (component, position, recolorSelector, colorPalette) => {
+                    let recolorSegmentGroup = Svg.Element.Group.make("recolorSegmentGroup");
+                    let recolorHandle = Svg.Element.Circle.make(position, 7, "handle recolorHandle");
+                    let segment1 = Svg.Element.Rect.make(position, { width: 10, height: 20 }, undefined, "recolorHandleSegment").rotate(45, position).translate({ x: -4, y: -4 });
+                    let segment2 = Svg.Element.Rect.make(position, { width: 10, height: 20 }, undefined, "recolorHandleSegment").rotate(45, position).translate({ x: 4, y: 4 });
+                    $(segment1.element).css("fill", "#4fd56b");
+                    $(segment2.element).css("fill", "#d54f6b");
+                    recolorSegmentGroup.append(segment1, segment2);
+                    component.group.append(recolorHandle, recolorSegmentGroup);
+                    $(recolorHandle.element).on("click", () => {
+                        let colorIndex = colorPalette.indexOf(component.color);
+                        let color;
+                        if (colorIndex >= 0) {
+                            color = colorPalette[(colorIndex + 1) % colorPalette.length];
+                        }
+                        else {
+                            color = colorPalette[0];
+                        }
+                        ;
+                        component.color = color;
+                        refreshComponent(component);
+                    });
+                };
+                const clearRecolorHandle = (component) => {
+                    $(component.group.element).find(".recolorHandle").remove();
+                    $(component.group.element).find(".recolorSegmentGroup").remove();
+                };
+                const defaultColorPalette = [
+                    "#545454",
+                    "red",
+                    "#7575FF",
+                    "#946857",
+                    "#55DD55",
+                    "#FFEF00",
+                    "pink"
+                ];
+            })(Recolorable = Addins.Recolorable || (Addins.Recolorable = {}));
+        })(Addins = Component.Addins || (Component.Addins = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var Addins;
+        (function (Addins) {
+            var Rotatable;
+            (function (Rotatable) {
+                Rotatable.init = (component) => {
+                    $(component.group.element).dblclick(() => {
+                        let centre = component.joints[0];
+                        component.joints = vector(component.joints)
+                            .sumWith(vector(centre).scaleWith(-1))
+                            .rotate(90)
+                            .sumWith(centre)
+                            .vectors;
+                        $(component.group.element).trigger(Circuit.Events.draw);
+                        $(component.group.element).trigger(Circuit.Events.rotate);
+                    });
+                };
+            })(Rotatable = Addins.Rotatable || (Addins.Rotatable = {}));
+        })(Addins = Component.Addins || (Component.Addins = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var Addins;
+        (function (Addins) {
+            var Selectable;
+            (function (Selectable) {
+                Selectable.init = (component) => {
+                    setSelectTrigger(component);
+                    setDisplayHandlers(component);
+                };
+                const findSelectionElements = (component) => {
+                    return Circuit.manifest.findCorresponding(component).concat(component).map(el => el.group.element);
+                };
+                const elementSelectsComponent = (element, component) => {
+                    const selectionElements = findSelectionElements(component);
+                    const selectionElementIsSelected = $(element).closest(selectionElements).length > 0;
+                    const elementSelectsComponent = $(element).parents().is((i, el) => ($(el).data("selects") === component));
+                    return (selectionElementIsSelected || elementSelectsComponent);
+                };
+                const setSelectTrigger = (component) => {
+                    $(document).one("mousedown", e => {
+                        if (elementSelectsComponent(e.target, component)) {
+                            $(component.group.element).trigger(Circuit.Events.select);
+                            setDeselectTrigger(component);
+                        }
+                        else {
+                            setSelectTrigger(component);
+                        }
+                    });
+                };
+                const setDeselectTrigger = (component) => {
+                    $(document).one("mousedown", e => {
+                        if (elementSelectsComponent(e.target, component)) {
+                            setDeselectTrigger(component);
+                        }
+                        else {
+                            $(component.group.element).trigger(Circuit.Events.deselect);
+                            setSelectTrigger(component);
+                        }
+                    });
+                };
+                const setDisplayHandlers = (component) => {
+                    $(component.group.element).on(Circuit.Events.select, () => {
+                        console.log(component);
+                        $(component.group.element).addClass("selected");
+                        component.insertInto(component.group.element);
+                    });
+                    $(component.group.element).on(Circuit.Events.deselect, () => {
+                        $(component.group.element).removeClass("selected");
+                    });
+                };
+            })(Selectable = Addins.Selectable || (Addins.Selectable = {}));
+        })(Addins = Component.Addins || (Component.Addins = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var Addins;
+        (function (Addins) {
+            var WireCreation;
+            (function (WireCreation) {
+                WireCreation.init = (component) => {
+                    $(component.group.element).on("mouseenter", ".hole", (mOE) => {
+                        if (!$(mOE.target).draggable('instance')) {
+                            Svg.Addins.Draggable.init(component.group.element, {
+                                eventTarget: mOE.target,
+                                disableMovement: true,
+                                styleClass: ""
+                            });
+                            let dragHandle;
+                            $(mOE.target).on(Circuit.Events.dragStart, (e, ui, drag) => {
+                                const position = Active.layout.group.convertVector({ x: e.clientX, y: e.clientY }, "DomToSvg", "relToGroup");
+                                const gridPosition = vector(position).snapToGrid().vector;
+                                const wire = createWireAtPoint(gridPosition);
+                                $(wire.group.element).trigger(Circuit.Events.draw);
+                                dragHandle = $(wire.group.element).find(".dragHandle")[0];
+                                $(dragHandle).trigger("mousedown");
+                                $(dragHandle).trigger(Circuit.Events.dragStart);
+                            });
+                            $(mOE.target).on(Circuit.Events.drag, (e, ui, drag) => {
+                                $(dragHandle).trigger(Circuit.Events.drag, [ui, drag]);
+                            });
+                            $(mOE.target).on(Circuit.Events.dragStop, (e, ui) => {
+                                $(dragHandle).trigger(Circuit.Events.dragStop, ui);
+                            });
+                        }
+                    });
+                };
+                const createWireAtPoint = (vector) => {
+                    const wire = Component.WireLayout.makeInstance({}, {
+                        joints: [{ x: vector.x, y: vector.y }, { x: vector.x, y: vector.y }]
+                    });
+                    Circuit.manifest.addComponent(wire, Circuit.manifest.layout);
+                    return wire;
+                };
+            })(WireCreation = Addins.WireCreation || (Addins.WireCreation = {}));
+        })(Addins = Component.Addins || (Component.Addins = {}));
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
 var Circuit;
@@ -3228,16 +3398,13 @@ var Circuit;
     (function (Component) {
         var Generics;
         (function (Generics) {
-            function makeConnector(component, name, type, position, symbol = "") {
+            function makeConnector(component, name, type, position, symbol) {
                 let connector = {
                     name: name,
                     symbol: symbol,
                     type: type,
                     component: component,
-                    get point() {
-                        let ctm = connector.component.group.element.getCTM();
-                        return (ctm) ? Svg.makePoint(position).matrixTransform(ctm) : Svg.makePoint(position);
-                    }
+                    point: position,
                 };
                 return connector;
             }
@@ -3314,6 +3481,181 @@ var FileIO;
 })(FileIO || (FileIO = {}));
 var FileIO;
 (function (FileIO) {
+    var Load;
+    (function (Load) {
+        var Dasim;
+        (function (Dasim) {
+            function buildComponents(rawComponents) {
+                let manifest = {
+                    schematic: [],
+                    layout: []
+                };
+                for (let rawComponent of rawComponents) {
+                    const sectionName = Circuit.mappings.sortComponentByName(rawComponent.func);
+                    if (sectionName === "none") {
+                        console.log("I don't know how to build %o yet!", rawComponent);
+                        continue;
+                    }
+                    let manifestSection = (sectionName === "schematic") ? manifest.schematic : manifest.layout;
+                    let componentLoadFunction = Circuit.mappings.getComponentLoader(rawComponent.func);
+                    let newComponents = componentLoadFunction(rawComponent);
+                    if (Array.isArray(newComponents)) {
+                        manifestSection.push(...newComponents);
+                    }
+                    else {
+                        manifestSection.push(newComponents);
+                    }
+                }
+                return manifest;
+            }
+            Dasim.buildComponents = buildComponents;
+        })(Dasim = Load.Dasim || (Load.Dasim = {}));
+    })(Load = FileIO.Load || (FileIO.Load = {}));
+})(FileIO || (FileIO = {}));
+var FileIO;
+(function (FileIO) {
+    var Load;
+    (function (Load) {
+        var Dasim;
+        (function (Dasim) {
+            function filterInvalidComponents(circuitObjects) {
+                let deferred = $.Deferred();
+                let validComponents = [];
+                let knownInvalidComponents = [];
+                let unknownInvalidComponents = [];
+                for (let circuitObject of circuitObjects) {
+                    if (!("func" in circuitObject)) {
+                        console.error("Object %o format is incorrect", [circuitObject]);
+                        deferred.reject("Object format is incorrect");
+                    }
+                    if (Circuit.mappings.sortComponentByName(circuitObject.func) !== "none") {
+                        validComponents.push(circuitObject);
+                    }
+                    else if (discardableObjects.some(dO => dO === circuitObject.func)) {
+                        knownInvalidComponents.push(circuitObject);
+                    }
+                    else {
+                        unknownInvalidComponents.push(circuitObject);
+                    }
+                }
+                if (knownInvalidComponents.length) {
+                    console.debug("Sim objects %o have been safely removed", [knownInvalidComponents]);
+                }
+                if (unknownInvalidComponents.length) {
+                    console.warn("Components %o are either not supported or not valid", [unknownInvalidComponents]);
+                }
+                console.info("Components %o successfully retrieved", [validComponents]);
+                deferred.resolve(validComponents);
+                return deferred.promise();
+            }
+            Dasim.filterInvalidComponents = filterInvalidComponents;
+            const discardableObjects = [
+                "setSimMode",
+                "setGraphicsControls",
+                "setDrawingControls",
+            ];
+        })(Dasim = Load.Dasim || (Load.Dasim = {}));
+    })(Load = FileIO.Load || (FileIO.Load = {}));
+})(FileIO || (FileIO = {}));
+var FileIO;
+(function (FileIO) {
+    var Load;
+    (function (Load) {
+        var Dasim;
+        (function (Dasim) {
+            function getRawComponentsFromString(fileString) {
+                let deferred = $.Deferred();
+                $.Deferred().resolve(fileString)
+                    .then(() => getComponentStrings(fileString))
+                    .then((strings) => getCircuitObjects(strings))
+                    .then(deferred.resolve)
+                    .fail((failText) => deferred.reject(failText));
+                return deferred.promise();
+            }
+            Dasim.getRawComponentsFromString = getRawComponentsFromString;
+            function getComponentStrings(fileString) {
+                let deferred = $.Deferred();
+                try {
+                    let circuitObjectStrings = [];
+                    circuitObjectStrings = JSON.parse(fileString.replace("\n", ""));
+                    deferred.resolve(circuitObjectStrings);
+                }
+                catch (e) {
+                    if (e instanceof SyntaxError)
+                        console.error("Error in file list format: %o ", [e]);
+                    deferred.reject("Error in file list format");
+                }
+                return deferred.promise();
+            }
+            function getCircuitObjects(circuitObjectStrings) {
+                let deferred = $.Deferred();
+                try {
+                    let circuitObjects = [];
+                    for (let circuitObjectString of circuitObjectStrings) {
+                        let circuitObject = JSON.parse(circuitObjectString);
+                        circuitObjects.push(circuitObject);
+                    }
+                    console.info("Circuit objects %o successfully parsed", [circuitObjects]);
+                    deferred.resolve(circuitObjects);
+                }
+                catch (e) {
+                    if (e instanceof SyntaxError)
+                        console.error("Error in file object format: %o", [e]);
+                    deferred.reject("Error in file object format");
+                }
+                return deferred.promise();
+            }
+        })(Dasim = Load.Dasim || (Load.Dasim = {}));
+    })(Load = FileIO.Load || (FileIO.Load = {}));
+})(FileIO || (FileIO = {}));
+var FileIO;
+(function (FileIO) {
+    var Load;
+    (function (Load) {
+        function getStringFromFileInput(fileInput) {
+            let deferred = $.Deferred();
+            let reader = new FileReader;
+            let files = fileInput.files;
+            reader.onloadstart = function (event) {
+                console.debug("Read of %o started with %o", [this.result], [event]);
+            };
+            reader.onabort = function (event) {
+                console.error("Read of %o aborted with %o", [this.result], [event]);
+                deferred.reject("File read aborted");
+            };
+            reader.onerror = function (event) {
+                console.error("Read of %o failed with %o", [this.result], [event]);
+                deferred.reject("File could not be read");
+            };
+            reader.onload = function (event) {
+                console.info("Read of %o successfully complete with %o", [this.result], [event]);
+                let fileString = reader.result;
+                if (files && files[0]) {
+                    deferred.resolve(files[0], fileString);
+                }
+                else {
+                    deferred.reject("File undefined");
+                }
+            };
+            if (files && files[0]) {
+                try {
+                    reader.readAsText(files[0]);
+                }
+                catch (e) {
+                    console.error("Read of %o failed with %o", [files[0]], [e]);
+                    deferred.reject("File could not be read as string");
+                }
+            }
+            else {
+                deferred.reject("File undefined");
+            }
+            return deferred.promise();
+        }
+        Load.getStringFromFileInput = getStringFromFileInput;
+    })(Load = FileIO.Load || (FileIO.Load = {}));
+})(FileIO || (FileIO = {}));
+var FileIO;
+(function (FileIO) {
     var Save;
     (function (Save) {
         function createFile() {
@@ -3331,7 +3673,7 @@ var FileIO;
                     console.error("Item %o cannot be saved (check mappings) with error %o", component, e);
                 }
             });
-            return JSON.stringify(componentStrings);
+            return JSON.stringify(componentStrings, undefined, 2);
         }
         Save.createFile = createFile;
     })(Save = FileIO.Save || (FileIO.Save = {}));
@@ -20100,6 +20442,182 @@ var CircularJSON = (function (JSON, RegExp) {
 })(jQuery);
 var Svg;
 (function (Svg) {
+    var Element;
+    (function (Element) {
+        function make(type, classes = "") {
+            const element = document.createElementNS(Constants.svgURI, type);
+            $(element).addClass(classes);
+            return element;
+        }
+        Element.make = make;
+        let Functions;
+        (function (Functions) {
+            function rotate(element) {
+                return (rotation, centre, insertBefore = false) => {
+                    let centreV;
+                    if (centre) {
+                        centreV = centre;
+                    }
+                    else {
+                        let bounds = element.getBBox();
+                        centreV = { x: bounds.width / 2 + bounds.x, y: bounds.height / 2 + bounds.y };
+                    }
+                    Svg.addTransform(element, t => t.setRotate(rotation, centreV.x, centreV.y), insertBefore);
+                    return svg(element);
+                };
+            }
+            Functions.rotate = rotate;
+            function translate(element) {
+                return (translation, insertBefore = true) => {
+                    Svg.addTransform(element, t => t.setTranslate(translation.x, translation.y), insertBefore);
+                    return svg(element);
+                };
+            }
+            Functions.translate = translate;
+            function scale(element) {
+                return (scale, insertBefore = true) => {
+                    let scaleV = (typeof scale === "number") ? { x: scale, y: scale } : scale;
+                    Svg.addTransform(element, t => t.setScale((scaleV.x || 1), (scaleV.y || 1)), insertBefore);
+                    return svg(element);
+                };
+            }
+            Functions.scale = scale;
+            function getTransforms(element) {
+                return () => {
+                    let transform = element.transform.baseVal.consolidate();
+                    return (transform === null) ? Svg.makeMatrix() : {
+                        a: transform.matrix.a, b: transform.matrix.b, c: transform.matrix.c,
+                        d: transform.matrix.d, e: transform.matrix.e, f: transform.matrix.f
+                    };
+                };
+            }
+            Functions.getTransforms = getTransforms;
+            function setTransforms(element) {
+                return (transformMatrix) => {
+                    element.transform.baseVal.clear();
+                    element.removeAttribute('transform');
+                    let matrix = Svg.makeMatrix();
+                    matrix.a = transformMatrix.a;
+                    matrix.b = transformMatrix.b;
+                    matrix.c = transformMatrix.c;
+                    matrix.d = transformMatrix.d;
+                    matrix.e = transformMatrix.e;
+                    matrix.f = transformMatrix.f;
+                    let transform = element.transform.baseVal.createSVGTransformFromMatrix(matrix);
+                    element.transform.baseVal.appendItem(transform);
+                    return svg(element);
+                };
+            }
+            Functions.setTransforms = setTransforms;
+            function convertVector(element) {
+                return (vector, direction, type) => {
+                    let conversionMatrix = element.getScreenCTM() || Svg.makeMatrix();
+                    if (direction === "DomToSvg")
+                        conversionMatrix = conversionMatrix.inverse();
+                    if (type === "absToDoc" && element.transform.baseVal.numberOfItems > 0) {
+                        element.transform.baseVal.consolidate();
+                        let groupMatrix = element.transform.baseVal.getItem(0).matrix;
+                        conversionMatrix = conversionMatrix.multiply(groupMatrix);
+                    }
+                    let convertedVector = {
+                        x: vector.x * conversionMatrix.a + vector.y * conversionMatrix.c,
+                        y: vector.y * conversionMatrix.d + vector.x * conversionMatrix.b
+                    };
+                    if (type === "relToGroup") {
+                        convertedVector.x += conversionMatrix.e;
+                        convertedVector.y += conversionMatrix.f;
+                    }
+                    return convertedVector;
+                };
+            }
+            Functions.convertVector = convertVector;
+        })(Functions = Element.Functions || (Element.Functions = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    class Root {
+        constructor(classes = "") {
+            this.element = Svg.Element.SVG.make();
+            this.group = Svg.Element.Group.make();
+            $(this.element.element).addClass(classes);
+        }
+        draw(node) {
+            this.element.append(this.group);
+            node.appendChild(this.element.element);
+            Svg.Addins.Draggable.init(this.group.element, {
+                grid: "off",
+                eventTarget: this.element.element,
+                useHelper: true,
+            });
+            Svg.Addins.Scaleable.init(this.group.element, {
+                eventTarget: this.element.element,
+            });
+        }
+    }
+    Svg.Root = Root;
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    function addTransform(element, transformationFunction, insertBefore = true) {
+        let transform = makeTransform();
+        transformationFunction(transform);
+        let transforms = element.transform.baseVal;
+        if (insertBefore) {
+            transforms.insertItemBefore(transform, 0);
+        }
+        else {
+            transforms.appendItem(transform);
+        }
+        transforms.consolidate();
+    }
+    Svg.addTransform = addTransform;
+    function makeTransform() {
+        return Svg.Element.make("svg").createSVGTransform();
+    }
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    function makeMatrix() {
+        return Svg.Element.make("svg").createSVGMatrix();
+    }
+    Svg.makeMatrix = makeMatrix;
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    function makePoint(vector) {
+        const point = Svg.Element.make("svg").createSVGPoint();
+        point.x = vector.x;
+        point.y = vector.y;
+        return point;
+    }
+    Svg.makePoint = makePoint;
+})(Svg || (Svg = {}));
+function svg(element) {
+    let extension = {
+        element: element
+    };
+    let elementExtension = (element instanceof SVGGraphicsElement) ? {
+        rotate: Svg.Element.Functions.rotate(element),
+        translate: Svg.Element.Functions.translate(element),
+        scale: Svg.Element.Functions.scale(element),
+        getTransforms: Svg.Element.Functions.getTransforms(element),
+        setTransforms: Svg.Element.Functions.setTransforms(element),
+        convertVector: Svg.Element.Functions.convertVector(element),
+    } : null;
+    let groupExtension = (element instanceof SVGGElement || element instanceof SVGSVGElement) ? {
+        append: Svg.Element.Group.Functions.append(element),
+        prepend: Svg.Element.Group.Functions.prepend(element),
+        clearChildren: Svg.Element.Group.Functions.clearChildren(element)
+    } : null;
+    let textExtension = (element instanceof SVGTextElement) ? {
+        followPath: Svg.Element.Text.Functions.followPath(element),
+        rotatePosition: Svg.Element.Text.Functions.rotatePosition(element),
+    } : null;
+    return Object.assign({}, extension, elementExtension, groupExtension, textExtension);
+}
+var Svg;
+(function (Svg) {
     var Addins;
     (function (Addins) {
         var Draggable;
@@ -20131,11 +20649,13 @@ var Svg;
                                 y: ui.position.top - lastPosition.y
                             };
                             let dragChangeSvg = svg(element).convertVector(dragChangeDom, "DomToSvg", "absToDoc");
-                            lastPosition = {
-                                x: ui.position.left,
-                                y: ui.position.top
-                            };
-                            $(eventTarget).trigger(Events.drag, [ui, dragChangeSvg]);
+                            if (!vector(dragChangeSvg).isCloseTo({ x: 0, y: 0 })) {
+                                $(eventTarget).trigger(Circuit.Events.drag, [ui, dragChangeSvg]);
+                                lastPosition = {
+                                    x: ui.position.left,
+                                    y: ui.position.top
+                                };
+                            }
                         },
                         stop: (event, ui) => {
                             $(element).removeClass(styleClass);
@@ -20144,14 +20664,16 @@ var Svg;
                     });
                 }
                 if (options.onDrag !== undefined) {
-                    $(eventTarget).on("dragSVG", (e, ui, drag) => {
-                        if (options.onDrag)
-                            options.onDrag(drag, e);
+                    $(eventTarget).on(Circuit.Events.drag, (e, ui, drag) => {
+                        if ($(e.target).closest(".ui-draggable").is(eventTarget)) {
+                            if (options.onDrag)
+                                options.onDrag(drag, e);
+                        }
                     });
                 }
                 ;
                 if (options.disableMovement !== true) {
-                    $(eventTarget).on("dragSVG", (e, ui, drag) => {
+                    $(eventTarget).on(Circuit.Events.drag, (e, ui, drag) => {
                         if ($(e.target).closest(".ui-draggable").is(eventTarget)) {
                             svg(element).translate(drag, true);
                         }
@@ -20169,13 +20691,13 @@ var Svg;
                     });
                 }
                 if (options.onStart !== undefined) {
-                    $(eventTarget).on("dragstart", (e, ui) => {
+                    $(eventTarget).on(Circuit.Events.dragStart, (e, ui) => {
                         if (options.onStart)
                             options.onStart(e);
                     });
                 }
                 if (options.onStop !== undefined) {
-                    $(eventTarget).on("dragstop", (e, ui) => {
+                    $(eventTarget).on(Circuit.Events.dragStop, (e, ui) => {
                         if (options.onStop)
                             options.onStop(e);
                     });
@@ -20486,812 +21008,6 @@ var Svg;
         })(Text = Element.Text || (Element.Text = {}));
     })(Element = Svg.Element || (Svg.Element = {}));
 })(Svg || (Svg = {}));
-var Utility;
-(function (Utility) {
-    var Polar;
-    (function (Polar) {
-        function toVector(radius, angle) {
-            const rads = Utility.degreesToRadians(angle);
-            return {
-                x: radius * Math.cos(rads),
-                y: radius * Math.sin(rads)
-            };
-        }
-        Polar.toVector = toVector;
-    })(Polar = Utility.Polar || (Utility.Polar = {}));
-})(Utility || (Utility = {}));
-var Circuit;
-(function (Circuit) {
-    var Component;
-    (function (Component) {
-        var Addins;
-        (function (Addins) {
-            var Board;
-            (function (Board) {
-                function init(component, trackMaker, isReversible) {
-                    $(component.group.element).addClass("board");
-                    component.tracks = trackMaker(component);
-                    component.tracks.forEach(track => track.makeConnectors());
-                    Object.defineProperty(component, 'connectorSets', {
-                        get: () => Utility.flatten2d(component.tracks.map(track => track.connectorSets))
-                    });
-                    if (isReversible) {
-                        Reversible.init(component);
-                    }
-                }
-                Board.init = init;
-                let Local;
-                (function (Local) {
-                    Local.defaultState = {
-                        location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
-                    };
-                    Local.defaultProperties = {
-                        name: "track",
-                        style: "breadboard",
-                        holeSpacings: [0]
-                    };
-                    class Instance extends Component.Instance {
-                        constructor(properties, state) {
-                            super(properties, state);
-                            this.connectorSets = [];
-                            this.name = properties.name;
-                            this.holeSpacings = properties.holeSpacings;
-                            this.style = properties.style;
-                        }
-                        getProperties() {
-                            return {
-                                name: this.name,
-                                holeSpacings: this.holeSpacings,
-                                style: this.style
-                            };
-                        }
-                        getState() {
-                            return {
-                                location: this.location
-                            };
-                        }
-                        draw() {
-                            if (this.style === "breadboard") {
-                                drawBreadboard(this);
-                            }
-                            else if (this.style === "stripboard") {
-                                drawStripboard(this);
-                            }
-                            else {
-                                console.error("Style \"%s\" is invalid", this.style);
-                            }
-                        }
-                        makeConnectors() {
-                            let holeSpacingRunningSum = 0;
-                            this.connectorSets = [[]];
-                            this.holeSpacings.forEach(hS => {
-                                this.connectorSets[0].push(Component.Generics.makeConnector(this, "", "hole", { x: (holeSpacingRunningSum += hS), y: 0 }));
-                            });
-                        }
-                        transferFunction(from) {
-                            let fromIdx = this.connectorSets[0].indexOf(from);
-                            let connected = [];
-                            for (let i = fromIdx + 1; i < this.connectorSets[0].length; i++) {
-                                if (this.connectorSets[0][i].type === "brokenhole")
-                                    break;
-                                connected.push(this.connectorSets[0][i]);
-                            }
-                            for (let i = fromIdx - 1; i >= 0; i--) {
-                                if (this.connectorSets[0][i].type === "brokenhole")
-                                    break;
-                                connected.push(this.connectorSets[0][i]);
-                            }
-                            return connected;
-                        }
-                    }
-                    Local.Instance = Instance;
-                    const drawStripboard = (component) => {
-                        let height = Constants.gridSpacing * 14 / 16;
-                        let holeSpacingRunningSum = 0;
-                        component.holeSpacings.forEach(hS => {
-                            component.group.append(Svg.Element.Circle.make({ x: (holeSpacingRunningSum += hS), y: 0 }, 4, "hole"));
-                        });
-                        let size = {
-                            width: holeSpacingRunningSum + Constants.gridSpacing * 0.8,
-                            height: height
-                        };
-                        let centre = {
-                            x: holeSpacingRunningSum / 2,
-                            y: 0
-                        };
-                        component.group.prepend(Svg.Element.Rect.make(centre, size, {
-                            x: 0,
-                            y: 0
-                        }, 'body'));
-                    };
-                    const drawBreadboard = (component) => {
-                        let height = Constants.gridSpacing * 14 / 16;
-                        let holeSpacingRunningSum = 0;
-                        component.holeSpacings.forEach(hS => {
-                            component.group.append(Svg.Element.Path.make("M" + (holeSpacingRunningSum += hS) + " " + 0 + "m-4 -4h 8v 8h -8Z", "hole"));
-                        });
-                        let size = {
-                            width: holeSpacingRunningSum + Constants.gridSpacing * 0.8,
-                            height: height
-                        };
-                        let centre = {
-                            x: holeSpacingRunningSum / 2,
-                            y: 0
-                        };
-                        component.group.prepend(Svg.Element.Rect.make(centre, size, {
-                            x: 0,
-                            y: 0
-                        }, 'body'));
-                    };
-                    Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
-                        $(component.group.element).addClass(component.name);
-                    });
-                })(Local || (Local = {}));
-                Board.Track = {
-                    defaultState: Local.defaultState,
-                    defaultProperties: Local.defaultProperties,
-                    Instance: Local.Instance,
-                    makeInstance: Local.makeInstance,
-                };
-                let Reversible;
-                (function (Reversible) {
-                    Reversible.init = (component) => {
-                        let element = component.group;
-                        $(element.element).on(Events.select, () => {
-                            createGhost(component);
-                        });
-                        $(element.element).on(Events.deselect, () => {
-                            clearGhost(component);
-                        });
-                        component.tracks.forEach((track, trackIdx) => {
-                            let trackBreaks = component.trackBreaks.filter(trackBreak => trackBreak.track === trackIdx);
-                            track.connectorSets[0].forEach((hole, holeIdx) => {
-                                if (trackBreaks.some(trackBreak => trackBreak.hole === holeIdx)) {
-                                    hole.type = "brokenhole";
-                                }
-                            });
-                        });
-                    };
-                    const createGhost = (component) => {
-                        let ghostGroup = component.group.element.cloneNode();
-                        let bbox = component.group.element.getBBox();
-                        Svg.addTransform(ghostGroup, t => t.setScale(-1, 1), false);
-                        Svg.addTransform(ghostGroup, t => t.setTranslate(-(bbox.width + bbox.x) * 2 - 1, 0), false);
-                        ghostGroup.appendChild($(component.group.element).children(".body").clone()[0]);
-                        $(ghostGroup).addClass("reverseghost");
-                        $(ghostGroup).data("selects", component);
-                        let parent = (component.group.element.parentElement);
-                        if (parent)
-                            parent.appendChild(ghostGroup);
-                        let allValidConnectors = Utility.flatten2d(Circuit.manifest.layout.map(el => Utility.flatten2d(el.connectorSets.map(connectorSet => connectorSet.filter(connector => connector.type === "pin")))));
-                        component.tracks.forEach((track, trackIdx) => {
-                            let trackGhostGroup = $(track.group.element).clone()[0];
-                            ghostGroup.appendChild(trackGhostGroup);
-                            let ctm = (track.group.element.getCTM() || Svg.makeMatrix()).inverse();
-                            track.connectorSets[0].forEach((hole, holeIdx) => {
-                                let point = (ctm) ? hole.point.matrixTransform(ctm) : hole.point;
-                                let breaker = Svg.Element.Circle.make({ x: point.x, y: point.y }, 6, "breaker");
-                                if (hole.type === "brokenhole")
-                                    $(breaker.element).addClass("broken");
-                                if (getPinsAtHole(hole, allValidConnectors).length) {
-                                    $(breaker.element).addClass("withPin");
-                                }
-                                ;
-                                trackGhostGroup.appendChild(breaker.element);
-                                let holePosition = { track: trackIdx, hole: holeIdx };
-                                $(breaker.element).click(() => {
-                                    if (hole.type === "hole") {
-                                        $(breaker.element).addClass("broken");
-                                        hole.type = "brokenhole";
-                                        component.trackBreaks.push(holePosition);
-                                    }
-                                    else if (hole.type === "brokenhole") {
-                                        $(breaker.element).removeClass("broken");
-                                        hole.type = "hole";
-                                        component.trackBreaks = component.trackBreaks.filter(trackBreak => (trackBreak.hole !== holePosition.hole || trackBreak.track !== holePosition.track));
-                                    }
-                                });
-                            });
-                        });
-                    };
-                    const clearGhost = (component) => {
-                        let parent = (component.group.element.parentElement);
-                        if (parent)
-                            $(parent).children(".reverseghost").remove();
-                    };
-                    function getPinsAtHole(connector, allConnectors) {
-                        let acceptedTypes = ["pin"];
-                        let point = connector.point;
-                        let attachedConnectors = allConnectors.filter(other => {
-                            return (acceptedTypes.includes(other.type)
-                                && vector(point).isCloseTo(other.point));
-                        });
-                        return attachedConnectors;
-                    }
-                })(Reversible || (Reversible = {}));
-            })(Board = Addins.Board || (Addins.Board = {}));
-        })(Addins = Component.Addins || (Component.Addins = {}));
-    })(Component = Circuit.Component || (Circuit.Component = {}));
-})(Circuit || (Circuit = {}));
-var Circuit;
-(function (Circuit) {
-    var Component;
-    (function (Component) {
-        var Addins;
-        (function (Addins) {
-            var ConnectionHighlights;
-            (function (ConnectionHighlights) {
-                ConnectionHighlights.init = (component, propogate = true, colorPalette = defaultColorPalette) => {
-                    let element = component.group;
-                    $(element.element).on(Events.select, () => {
-                        createConnectionsHighlights(component, propogate, colorPalette);
-                    });
-                    $(element.element).on(Events.moved, () => {
-                        clearConnectionsHighlights(component);
-                        createConnectionsHighlights(component, propogate, colorPalette);
-                    });
-                    $(element.element).on(Events.deselect, () => {
-                        clearConnectionsHighlights(component);
-                    });
-                };
-                const createConnectorHighlights = (component, connection, color, symbol) => {
-                    let ctm = component.group.element.getCTM();
-                    let point = (ctm) ? connection.point.matrixTransform(ctm.inverse()) : connection.point;
-                    let highlight = Svg.Element.Circle.make(point, 4, "highlight highlightwithfill connectivityhighlight");
-                    $(highlight.element).css({ "fill": color, "stroke": color });
-                    component.group.append(highlight);
-                    if (connection.symbol !== "") {
-                        let symbol = Svg.Element.Text.make(connection.symbol, point, "text connectivityhighlight");
-                        component.group.append(symbol);
-                    }
-                };
-                const createConnectionsHighlights = (component, propogate, colorPalette) => {
-                    let connectionSets = component.getConnections();
-                    connectionSets.forEach(connectionSet => {
-                        connectionSet.forEach((connectorConnections, i) => {
-                            let color = colorPalette[i % colorPalette.length];
-                            if (connectorConnections.length > 1 && propogate) {
-                                connectorConnections.slice(1).forEach(connector => {
-                                    createConnectorHighlights(component, connector, color);
-                                });
-                            }
-                            createConnectorHighlights(component, connectorConnections[0], color);
-                        });
-                    });
-                };
-                const clearConnectionsHighlights = (component) => {
-                    $(component.group.element).find(".connectivityhighlight").remove();
-                };
-                const defaultColorPalette = [
-                    "red",
-                    "#8bc34a",
-                    "pink",
-                    "yellow",
-                    "cyan",
-                    "orange",
-                    "purple",
-                    "magenta"
-                ];
-            })(ConnectionHighlights = Addins.ConnectionHighlights || (Addins.ConnectionHighlights = {}));
-        })(Addins = Component.Addins || (Component.Addins = {}));
-    })(Component = Circuit.Component || (Circuit.Component = {}));
-})(Circuit || (Circuit = {}));
-var Circuit;
-(function (Circuit) {
-    var Component;
-    (function (Component) {
-        var Addins;
-        (function (Addins) {
-            var Draggable;
-            (function (Draggable) {
-                Draggable.init = (component) => {
-                    Svg.Addins.Draggable.init(component.group.element, {
-                        onStart: () => {
-                            component.insertInto(component.group.element);
-                        }
-                    });
-                };
-            })(Draggable = Addins.Draggable || (Addins.Draggable = {}));
-        })(Addins = Component.Addins || (Component.Addins = {}));
-    })(Component = Circuit.Component || (Circuit.Component = {}));
-})(Circuit || (Circuit = {}));
-var Circuit;
-(function (Circuit) {
-    var Component;
-    (function (Component) {
-        var Addins;
-        (function (Addins) {
-            var Extendable;
-            (function (Extendable) {
-                Extendable.init = (component, canAddJoints = false, canRemoveJoints = false, canRemoveComponent = false) => {
-                    if (canAddJoints)
-                        initHandleInsertion(component);
-                    if (canRemoveJoints)
-                        initJointRemoval(component);
-                    if (canRemoveComponent)
-                        initComponentRemoval(component);
-                    initHandles(component);
-                };
-                const refreshComponent = (component) => {
-                    component.group.clearChildren(":not(.handle)");
-                    component.makeConnectors();
-                    component.draw();
-                };
-                const initHandles = (component) => {
-                    component.joints.forEach(joint => {
-                        addHandle(component, joint);
-                    });
-                };
-                const initHandleInsertion = (component) => {
-                    $(component.group.element).dblclick(e => {
-                        if ($(e.target).closest(".handle").length < 1) {
-                            let position = component.group.convertVector({ x: e.clientX, y: e.clientY }, "DomToSvg", "relToGroup");
-                            position = vector(position).snapToGrid().vector;
-                            component.joints.splice(getJointInsertionIdx(component, position), 0, position);
-                            addHandle(component, position);
-                            refreshComponent(component);
-                        }
-                    });
-                };
-                const initJointRemoval = (component) => {
-                    $(component.group.element).on(Events.drag, ".dragHandle", (e) => {
-                        removeExcessJoints(component, $(e.target).data("point"));
-                        refreshComponent(component);
-                    });
-                    $(component.group.element).on("dblclick", ".dragHandle", (e) => {
-                        if (component.joints.length > 2) {
-                            component.joints = component.joints.filter((joint, idx) => {
-                                return joint !== $(e.target).data("point");
-                            });
-                            e.target.remove();
-                            refreshComponent(component);
-                        }
-                    });
-                };
-                const initComponentRemoval = (component) => {
-                    $(component.group.element).on(Events.dragStop, ".dragHandle", (e) => {
-                        if (component.joints.length === 2 && vector(component.joints[0]).isCloseTo(component.joints[1])) {
-                            Circuit.manifest.removeComponent(component);
-                        }
-                    });
-                };
-                const addHandle = (component, point) => {
-                    let dragHandle = Svg.Element.Circle.make(point, 5, "handle dragHandle highlight highlightwithfill");
-                    $(dragHandle.element).data('point', point);
-                    component.group.append(dragHandle);
-                    Svg.Addins.Draggable.init(dragHandle.element);
-                    $(dragHandle.element).on(Events.drag, (e, ui, drag) => {
-                        point.x += drag.x;
-                        point.y += drag.y;
-                        refreshComponent(component);
-                    });
-                    return dragHandle;
-                };
-                const removeExcessJoints = (component, point) => {
-                    if (component.joints.length > 2) {
-                        component.joints = component.joints.filter((joint, idx) => {
-                            if ((joint !== point) && vector(point).isCloseTo(joint)) {
-                                $(component.group.element).children(".dragHandle").filter((i, el) => $(el).data('point') === joint).remove();
-                                return false;
-                            }
-                            return true;
-                        });
-                    }
-                    ;
-                };
-                const getJointInsertionIdx = (component, point) => {
-                    let jointAngles = component.joints.map((j) => Math.atan2(point.y - j.y, point.x - j.x) * 180 / Math.PI);
-                    let bestAnglePair = 180;
-                    let bestJointIdx = 0;
-                    for (let i = 1; i < jointAngles.length; i++) {
-                        let anglePair = Math.abs(Math.abs((jointAngles[i - 1] - jointAngles[i])) - 180);
-                        if (anglePair < bestAnglePair) {
-                            bestAnglePair = anglePair;
-                            bestJointIdx = i;
-                        }
-                    }
-                    return bestJointIdx;
-                };
-            })(Extendable = Addins.Extendable || (Addins.Extendable = {}));
-        })(Addins = Component.Addins || (Component.Addins = {}));
-    })(Component = Circuit.Component || (Circuit.Component = {}));
-})(Circuit || (Circuit = {}));
-var Circuit;
-(function (Circuit) {
-    var Component;
-    (function (Component) {
-        var Addins;
-        (function (Addins) {
-            var Junctions;
-            (function (Junctions) {
-                Junctions.init = (component) => {
-                    let element = component.group;
-                    $(element.element).on(Events.moved + " " + Events.place, () => {
-                        clearJunctions(component);
-                        createJunctions(component);
-                    });
-                };
-                const createJunctions = (component) => {
-                    let otherConnectors = Utility.flatten2d(Circuit.manifest.schematic.map(component => Utility.flatten2d(component.connectorSets).filter(connector => (connector.type === "node"))));
-                    component.connectorSets.forEach(connectorSet => connectorSet.forEach(connector => {
-                        let point = connector.point;
-                        let attachedConnectors = otherConnectors.filter(other => {
-                            return vector(point).isCloseTo(other.point);
-                        });
-                        if (attachedConnectors.length === 3) {
-                            let ctm = Active.schematic.root.group.element.getCTM();
-                            point = (ctm) ? point.matrixTransform(ctm.inverse()) : point;
-                            component.group.prepend(Svg.Element.Circle.make(point, 5, "junction black"));
-                        }
-                    }));
-                };
-                const clearJunctions = (component) => {
-                    $(component.group.element).find(".junction").remove();
-                };
-            })(Junctions = Addins.Junctions || (Addins.Junctions = {}));
-        })(Addins = Component.Addins || (Component.Addins = {}));
-    })(Component = Circuit.Component || (Circuit.Component = {}));
-})(Circuit || (Circuit = {}));
-var Circuit;
-(function (Circuit) {
-    var Component;
-    (function (Component) {
-        var Addins;
-        (function (Addins) {
-            var Recolorable;
-            (function (Recolorable) {
-                Recolorable.init = (component, where, recolorSelector = "*", colorPalette = defaultColorPalette) => {
-                    let element = component.group;
-                    $(element.element).on(Events.select, () => {
-                        createRecolorHandle(component, where(), recolorSelector, colorPalette);
-                    });
-                    $(element.element).on(Events.moved, () => {
-                        clearRecolorHandle(component);
-                        createRecolorHandle(component, where(), recolorSelector, colorPalette);
-                    });
-                    $(element.element).on(Events.deselect, () => {
-                        clearRecolorHandle(component);
-                    });
-                };
-                const refreshComponent = (component) => {
-                    component.group.clearChildren(":not(.handle,.connectivityhighlight)");
-                    component.makeConnectors();
-                    component.draw();
-                };
-                const createRecolorHandle = (component, position, recolorSelector, colorPalette) => {
-                    let recolorSegmentGroup = Svg.Element.Group.make("recolorSegmentGroup");
-                    let recolorHandle = Svg.Element.Circle.make(position, 7, "handle recolorHandle");
-                    let segment1 = Svg.Element.Rect.make(position, { width: 10, height: 20 }, undefined, "recolorHandleSegment").rotate(45, position).translate({ x: -4, y: -4 });
-                    let segment2 = Svg.Element.Rect.make(position, { width: 10, height: 20 }, undefined, "recolorHandleSegment").rotate(45, position).translate({ x: 4, y: 4 });
-                    $(segment1.element).css("fill", "#4fd56b");
-                    $(segment2.element).css("fill", "#d54f6b");
-                    recolorSegmentGroup.append(segment1, segment2);
-                    component.group.append(recolorHandle, recolorSegmentGroup);
-                    $(recolorHandle.element).on("click", () => {
-                        let colorIndex = colorPalette.indexOf(component.color);
-                        let color;
-                        if (colorIndex >= 0) {
-                            color = colorPalette[(colorIndex + 1) % colorPalette.length];
-                        }
-                        else {
-                            color = colorPalette[0];
-                        }
-                        ;
-                        component.color = color;
-                        refreshComponent(component);
-                    });
-                };
-                const clearRecolorHandle = (component) => {
-                    $(component.group.element).find(".recolorHandle").remove();
-                    $(component.group.element).find(".recolorSegmentGroup").remove();
-                };
-                const defaultColorPalette = [
-                    "#545454",
-                    "red",
-                    "#7575FF",
-                    "#946857",
-                    "#55DD55",
-                    "#FFEF00",
-                    "pink"
-                ];
-            })(Recolorable = Addins.Recolorable || (Addins.Recolorable = {}));
-        })(Addins = Component.Addins || (Component.Addins = {}));
-    })(Component = Circuit.Component || (Circuit.Component = {}));
-})(Circuit || (Circuit = {}));
-var Circuit;
-(function (Circuit) {
-    var Component;
-    (function (Component) {
-        var Addins;
-        (function (Addins) {
-            var Rotatable;
-            (function (Rotatable) {
-                Rotatable.init = (component, rotationCentre = { x: 0, y: 0 }) => {
-                    $(component.group.element).dblclick(() => {
-                        component.group.rotate(90, rotationCentre);
-                        $(component.group.element).trigger(Events.rotate);
-                    });
-                };
-            })(Rotatable = Addins.Rotatable || (Addins.Rotatable = {}));
-        })(Addins = Component.Addins || (Component.Addins = {}));
-    })(Component = Circuit.Component || (Circuit.Component = {}));
-})(Circuit || (Circuit = {}));
-var Circuit;
-(function (Circuit) {
-    var Component;
-    (function (Component) {
-        var Addins;
-        (function (Addins) {
-            var Selectable;
-            (function (Selectable) {
-                Selectable.init = (component) => {
-                    setSelectTrigger(component);
-                    setDisplayHandlers(component);
-                };
-                const findSelectionElements = (component) => {
-                    return Circuit.manifest.findCorresponding(component).concat(component).map(el => el.group.element);
-                };
-                const elementSelectsComponent = (element, component) => {
-                    const selectionElements = findSelectionElements(component);
-                    const selectionElementIsSelected = $(element).closest(selectionElements).length > 0;
-                    const elementSelectsComponent = $(element).parents().is((i, el) => ($(el).data("selects") === component));
-                    return (selectionElementIsSelected || elementSelectsComponent);
-                };
-                const setSelectTrigger = (component) => {
-                    $(document).one("mousedown", e => {
-                        if (elementSelectsComponent(e.target, component)) {
-                            $(component.group.element).trigger(Events.select);
-                            setDeselectTrigger(component);
-                        }
-                        else {
-                            setSelectTrigger(component);
-                        }
-                    });
-                };
-                const setDeselectTrigger = (component) => {
-                    $(document).one("mousedown", e => {
-                        if (elementSelectsComponent(e.target, component)) {
-                            setDeselectTrigger(component);
-                        }
-                        else {
-                            $(component.group.element).trigger(Events.deselect);
-                            setSelectTrigger(component);
-                        }
-                    });
-                };
-                const setDisplayHandlers = (component) => {
-                    $(component.group.element).on(Events.select, () => {
-                        $(component.group.element).addClass("selected");
-                        component.insertInto(component.group.element);
-                    });
-                    $(component.group.element).on(Events.deselect, () => {
-                        $(component.group.element).removeClass("selected");
-                    });
-                };
-            })(Selectable = Addins.Selectable || (Addins.Selectable = {}));
-        })(Addins = Component.Addins || (Component.Addins = {}));
-    })(Component = Circuit.Component || (Circuit.Component = {}));
-})(Circuit || (Circuit = {}));
-var Circuit;
-(function (Circuit) {
-    var Component;
-    (function (Component) {
-        var Addins;
-        (function (Addins) {
-            var WireCreation;
-            (function (WireCreation) {
-                WireCreation.init = (component) => {
-                    $(component.group.element).on("mouseenter", ".hole", (mOE) => {
-                        if (!$(mOE.target).draggable('instance')) {
-                            Svg.Addins.Draggable.init(component.group.element, {
-                                eventTarget: mOE.target,
-                                disableMovement: true,
-                                styleClass: ""
-                            });
-                            let dragHandle;
-                            $(mOE.target).on(Events.dragStart, (e, ui, drag) => {
-                                const position = Active.layout.group.convertVector({ x: e.clientX, y: e.clientY }, "DomToSvg", "relToGroup");
-                                const gridPosition = vector(position).snapToGrid().vector;
-                                const wire = createWireAtPoint(gridPosition);
-                                dragHandle = $(wire.group.element).find(".dragHandle")[0];
-                                $(dragHandle).trigger("mousedown");
-                                $(dragHandle).trigger(Events.dragStart);
-                            });
-                            $(mOE.target).on(Events.drag, (e, ui, drag) => {
-                                $(dragHandle).trigger(Events.drag, [ui, drag]);
-                            });
-                            $(mOE.target).on(Events.dragStop, (e, ui) => {
-                                $(dragHandle).trigger(Events.dragStop, ui);
-                            });
-                        }
-                    });
-                };
-                const createWireAtPoint = (vector) => {
-                    const wire = Component.WireLayout.makeInstance({}, {
-                        joints: [{ x: vector.x, y: vector.y }, { x: vector.x, y: vector.y }]
-                    });
-                    Circuit.manifest.addComponent(wire, Circuit.manifest.layout);
-                    return wire;
-                };
-            })(WireCreation = Addins.WireCreation || (Addins.WireCreation = {}));
-        })(Addins = Component.Addins || (Component.Addins = {}));
-    })(Component = Circuit.Component || (Circuit.Component = {}));
-})(Circuit || (Circuit = {}));
-var FileIO;
-(function (FileIO) {
-    var Load;
-    (function (Load) {
-        var Dasim;
-        (function (Dasim) {
-            function buildComponents(rawComponents) {
-                let manifest = {
-                    schematic: [],
-                    layout: []
-                };
-                for (let rawComponent of rawComponents) {
-                    const sectionName = Circuit.mappings.sortComponentByName(rawComponent.func);
-                    if (sectionName === "none") {
-                        console.log("I don't know how to build %o yet!", rawComponent);
-                        continue;
-                    }
-                    let manifestSection = (sectionName === "schematic") ? manifest.schematic : manifest.layout;
-                    let componentLoadFunction = Circuit.mappings.getComponentLoader(rawComponent.func);
-                    let newComponents = componentLoadFunction(rawComponent);
-                    if (Array.isArray(newComponents)) {
-                        manifestSection.push(...newComponents);
-                    }
-                    else {
-                        manifestSection.push(newComponents);
-                    }
-                }
-                return manifest;
-            }
-            Dasim.buildComponents = buildComponents;
-        })(Dasim = Load.Dasim || (Load.Dasim = {}));
-    })(Load = FileIO.Load || (FileIO.Load = {}));
-})(FileIO || (FileIO = {}));
-var FileIO;
-(function (FileIO) {
-    var Load;
-    (function (Load) {
-        var Dasim;
-        (function (Dasim) {
-            function filterInvalidComponents(circuitObjects) {
-                let deferred = $.Deferred();
-                let validComponents = [];
-                let knownInvalidComponents = [];
-                let unknownInvalidComponents = [];
-                for (let circuitObject of circuitObjects) {
-                    if (!("func" in circuitObject)) {
-                        console.error("Object %o format is incorrect", [circuitObject]);
-                        deferred.reject("Object format is incorrect");
-                    }
-                    if (Circuit.mappings.sortComponentByName(circuitObject.func) !== "none") {
-                        validComponents.push(circuitObject);
-                    }
-                    else if (discardableObjects.some(dO => dO === circuitObject.func)) {
-                        knownInvalidComponents.push(circuitObject);
-                    }
-                    else {
-                        unknownInvalidComponents.push(circuitObject);
-                    }
-                }
-                if (knownInvalidComponents.length) {
-                    console.debug("Sim objects %o have been safely removed", [knownInvalidComponents]);
-                }
-                if (unknownInvalidComponents.length) {
-                    console.warn("Components %o are either not supported or not valid", [unknownInvalidComponents]);
-                }
-                console.info("Components %o successfully retrieved", [validComponents]);
-                deferred.resolve(validComponents);
-                return deferred.promise();
-            }
-            Dasim.filterInvalidComponents = filterInvalidComponents;
-            const discardableObjects = [
-                "setSimMode",
-                "setGraphicsControls",
-                "setDrawingControls",
-            ];
-        })(Dasim = Load.Dasim || (Load.Dasim = {}));
-    })(Load = FileIO.Load || (FileIO.Load = {}));
-})(FileIO || (FileIO = {}));
-var FileIO;
-(function (FileIO) {
-    var Load;
-    (function (Load) {
-        var Dasim;
-        (function (Dasim) {
-            function getRawComponentsFromString(fileString) {
-                let deferred = $.Deferred();
-                $.Deferred().resolve(fileString)
-                    .then(() => getComponentStrings(fileString))
-                    .then((strings) => getCircuitObjects(strings))
-                    .then(deferred.resolve)
-                    .fail((failText) => deferred.reject(failText));
-                return deferred.promise();
-            }
-            Dasim.getRawComponentsFromString = getRawComponentsFromString;
-            function getComponentStrings(fileString) {
-                let deferred = $.Deferred();
-                try {
-                    let circuitObjectStrings = [];
-                    circuitObjectStrings = JSON.parse(fileString);
-                    deferred.resolve(circuitObjectStrings);
-                }
-                catch (e) {
-                    if (e instanceof SyntaxError)
-                        console.error("Error in file list format: %o ", [e]);
-                    deferred.reject("Error in file list format");
-                }
-                return deferred.promise();
-            }
-            function getCircuitObjects(circuitObjectStrings) {
-                let deferred = $.Deferred();
-                try {
-                    let circuitObjects = [];
-                    for (let circuitObjectString of circuitObjectStrings) {
-                        let circuitObject = JSON.parse(circuitObjectString);
-                        circuitObjects.push(circuitObject);
-                    }
-                    console.info("Circuit objects %o successfully parsed", [circuitObjects]);
-                    deferred.resolve(circuitObjects);
-                }
-                catch (e) {
-                    if (e instanceof SyntaxError)
-                        console.error("Error in file object format: %o", [e]);
-                    deferred.reject("Error in file object format");
-                }
-                return deferred.promise();
-            }
-        })(Dasim = Load.Dasim || (Load.Dasim = {}));
-    })(Load = FileIO.Load || (FileIO.Load = {}));
-})(FileIO || (FileIO = {}));
-var FileIO;
-(function (FileIO) {
-    var Load;
-    (function (Load) {
-        function getStringFromFileInput(fileInput) {
-            let deferred = $.Deferred();
-            let reader = new FileReader;
-            let files = fileInput.files;
-            reader.onloadstart = function (event) {
-                console.debug("Read of %o started with %o", [this.result], [event]);
-            };
-            reader.onabort = function (event) {
-                console.error("Read of %o aborted with %o", [this.result], [event]);
-                deferred.reject("File read aborted");
-            };
-            reader.onerror = function (event) {
-                console.error("Read of %o failed with %o", [this.result], [event]);
-                deferred.reject("File could not be read");
-            };
-            reader.onload = function (event) {
-                console.info("Read of %o successfully complete with %o", [this.result], [event]);
-                let fileString = reader.result;
-                if (files && files[0]) {
-                    deferred.resolve(files[0], fileString);
-                }
-                else {
-                    deferred.reject("File undefined");
-                }
-            };
-            if (files && files[0]) {
-                try {
-                    reader.readAsText(files[0]);
-                }
-                catch (e) {
-                    console.error("Read of %o failed with %o", [files[0]], [e]);
-                    deferred.reject("File could not be read as string");
-                }
-            }
-            else {
-                deferred.reject("File undefined");
-            }
-            return deferred.promise();
-        }
-        Load.getStringFromFileInput = getStringFromFileInput;
-    })(Load = FileIO.Load || (FileIO.Load = {}));
-})(FileIO || (FileIO = {}));
 var Svg;
 (function (Svg) {
     var Element;
@@ -21378,7 +21094,7 @@ var Svg;
                         const bodyGroup = Group.make(classes);
                         let centre = vector(emitterEnd, collectorEnd, baseEnd).centre().vector;
                         let rotation = vector(emitterEnd).getAngleTo(baseEnd);
-                        let [emitterStart, collectorStart, baseStart] = vector({ x: -12, y: 3 }, { x: 0, y: 3 }, { x: 12, y: 3 }).rotate(-rotation).sumWith(centre).vectors;
+                        let [emitterStart, collectorStart, baseStart] = vector({ x: -12, y: 3 }, { x: 0, y: 3 }, { x: 12, y: 3 }).rotate(rotation).sumWith(centre).vectors;
                         let joints = [
                             [emitterStart, emitterEnd],
                             [collectorStart, collectorEnd],
@@ -21425,7 +21141,7 @@ var Svg;
                         let scale = (((angleEmitterCollector - angleCentreBase + 360) % 360) > 180)
                             ? { x: -1 }
                             : { x: 1 };
-                        let [emitterStart, collectorStart, baseStart] = vector({ x: 0, y: -28 }, { x: 0, y: 28 }, { x: 40, y: 0 }).scaleWith(scale).rotate(-rotation).sumWith(centre).vectors;
+                        let [emitterStart, collectorStart, baseStart] = vector({ x: 0, y: -28 }, { x: 0, y: 28 }, { x: 40, y: 0 }).scaleWith(scale).rotate(rotation).sumWith(centre).vectors;
                         let joints = [
                             [emitterStart, emitterEnd],
                             [collectorStart, collectorEnd],
@@ -21442,6 +21158,136 @@ var Svg;
                     Schematic.make = make;
                 })(Schematic = Bipolar.Schematic || (Bipolar.Schematic = {}));
             })(Bipolar = Group.Bipolar || (Group.Bipolar = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var Breadboard;
+            (function (Breadboard) {
+                var LargeLayout;
+                (function (LargeLayout) {
+                    function make(centre, rotationJoint, classes = "") {
+                        const bodyGroup = Group.make(classes);
+                        let rotation = vector(centre).getAngleTo(rotationJoint);
+                        const gS = Constants.gridSpacing;
+                        const railPairPathString = [
+                            "M" + (gS * -29.7) + " " + (gS * -10.5),
+                            "H" + (gS * -1),
+                            "M" + (gS * +29.7) + " " + (gS * -10.5),
+                            "H" + (gS * 1),
+                            "M" + (gS * -29.7) + " " + (gS * 7.5),
+                            "H" + (gS * -1),
+                            "M" + (gS * +29.7) + " " + (gS * 7.5),
+                            "H" + (gS * 1)
+                        ].join();
+                        const plus = "m-5 0 h10 m-5 -5 v10 m0 -5";
+                        const plussesPathString = [
+                            "M" + (gS * -30.5) + " " + (gS * -10),
+                            "M" + (gS * 30.5) + " " + (gS * -10),
+                            "M" + (gS * -30.5) + " " + (gS * 8),
+                            "M" + (gS * 30.5) + " " + (gS * 8),
+                            ""
+                        ].join(plus);
+                        const minus = "m0 -5 v10 m0 -5";
+                        const minusesPathString = [
+                            "M" + (gS * -30.5) + " " + (gS * -11),
+                            "M" + (gS * 30.5) + " " + (gS * -11),
+                            "M" + (gS * -30.5) + " " + (gS * 7),
+                            "M" + (gS * 30.5) + " " + (gS * 7),
+                            ""
+                        ].join(minus);
+                        const size = {
+                            width: 67 * gS,
+                            height: 22 * gS
+                        };
+                        bodyGroup.append([
+                            Svg.Element.Rect.make({ x: 0, y: 0 }, size, { x: 4, y: 4 }, "body"),
+                            Svg.Element.Rect.make({ x: 0, y: 0 }, { width: size.width, height: gS * 0.75, }, { x: 0, y: 0 }, "rut"),
+                            Svg.Element.Rect.make({ x: 0, y: 0 }, size, { x: 4, y: 4 }, "body highlight"),
+                            Svg.Element.Path.make(railPairPathString + plussesPathString, "rail positive"),
+                            Svg.Element.Path.make(railPairPathString + minusesPathString, "rail negative").translate({ x: 0, y: gS * 3 }),
+                            Svg.Element.Group.TextSequence.make({ x: 31.5 * gS - gS / 6, y: -6.5 * gS }, { x: 0, y: gS }, { start: 1, length: 64 }).rotate(90),
+                            Svg.Element.Group.TextSequence.make({ x: 31.5 * gS - gS / 6, y: 6.5 * gS }, { x: 0, y: gS }, { start: 1, length: 64 }).rotate(90),
+                            Svg.Element.Group.TextSequence.make({ x: 32.5 * gS - gS / 4, y: -5.5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90),
+                            Svg.Element.Group.TextSequence.make({ x: -32.5 * gS, y: -5.5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90),
+                            Svg.Element.Group.TextSequence.make({ x: 32.5 * gS - gS / 4, y: 5.5 * gS }, { x: -gS, y: 0 }, "jihgf").rotate(90),
+                            Svg.Element.Group.TextSequence.make({ x: -32.5 * gS, y: 5.5 * gS }, { x: -gS, y: 0 }, "jihgf").rotate(90),
+                        ]);
+                        return [
+                            bodyGroup.translate(centre).rotate(rotation)
+                        ];
+                    }
+                    LargeLayout.make = make;
+                })(LargeLayout = Breadboard.LargeLayout || (Breadboard.LargeLayout = {}));
+            })(Breadboard = Group.Breadboard || (Group.Breadboard = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var Breadboard;
+            (function (Breadboard) {
+                var SmallLayout;
+                (function (SmallLayout) {
+                    function make(centre, rotationJoint, classes = "") {
+                        const bodyGroup = Group.make(classes);
+                        let rotation = vector(centre).getAngleTo(rotationJoint);
+                        const gS = Constants.gridSpacing;
+                        const railPairPathString = [
+                            "M" + (gS * -14.2) + " " + (gS * -10.5),
+                            "H" + (gS * 14.2),
+                            "M" + (gS * -14.2) + " " + (gS * 7.5),
+                            "H" + (gS * 14.2)
+                        ].join();
+                        const plus = "m-5 0 h10 m-5 -5 v10 m0 -5";
+                        const plussesPathString = [
+                            "M" + (gS * -15) + " " + (gS * -10),
+                            "M" + (gS * 15) + " " + (gS * -10),
+                            "M" + (gS * -15) + " " + (gS * 8),
+                            "M" + (gS * 15) + " " + (gS * 8),
+                            ""
+                        ].join(plus);
+                        const minus = "m0 -5 v10 m0 -5";
+                        const minusesPathString = [
+                            "M" + (gS * -15) + " " + (gS * -11),
+                            "M" + (gS * 15) + " " + (gS * -11),
+                            "M" + (gS * -15) + " " + (gS * 7),
+                            "M" + (gS * 15) + " " + (gS * 7),
+                            ""
+                        ].join(minus);
+                        const size = {
+                            width: 32 * gS,
+                            height: 22 * gS
+                        };
+                        bodyGroup.append([
+                            Svg.Element.Rect.make({ x: 0, y: 0 }, size, { x: 4, y: 4 }, "body"),
+                            Svg.Element.Rect.make({ x: 0, y: 0 }, { width: size.width, height: gS * 0.75, }, { x: 0, y: 0 }, "rut"),
+                            Svg.Element.Rect.make({ x: 0, y: 0 }, size, { x: 4, y: 4 }, "body highlight"),
+                            Svg.Element.Path.make(railPairPathString + plussesPathString, "rail positive"),
+                            Svg.Element.Path.make(railPairPathString + minusesPathString, "rail negative").translate({ x: 0, y: gS * 3 }),
+                            Svg.Element.Group.TextSequence.make({ x: 14.5 * gS - gS / 6, y: -6.5 * gS }, { x: 0, y: gS }, { start: 1, length: 30 }).rotate(90),
+                            Svg.Element.Group.TextSequence.make({ x: 14.5 * gS - gS / 6, y: 6.5 * gS }, { x: 0, y: gS }, { start: 1, length: 30 }).rotate(90),
+                            Svg.Element.Group.TextSequence.make({ x: 15.5 * gS - gS / 4, y: -5.5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90),
+                            Svg.Element.Group.TextSequence.make({ x: -15.5 * gS, y: -5.5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90),
+                            Svg.Element.Group.TextSequence.make({ x: 15.5 * gS - gS / 4, y: 5.5 * gS }, { x: -gS, y: 0 }, "jihgf").rotate(90),
+                            Svg.Element.Group.TextSequence.make({ x: -15.5 * gS, y: 5.5 * gS }, { x: -gS, y: 0 }, "jihgf").rotate(90),
+                        ]);
+                        return [
+                            bodyGroup.translate(centre).rotate(rotation)
+                        ];
+                    }
+                    SmallLayout.make = make;
+                })(SmallLayout = Breadboard.SmallLayout || (Breadboard.SmallLayout = {}));
+            })(Breadboard = Group.Breadboard || (Group.Breadboard = {}));
         })(Group = Element.Group || (Element.Group = {}));
     })(Element = Svg.Element || (Svg.Element = {}));
 })(Svg || (Svg = {}));
@@ -21509,7 +21355,7 @@ var Svg;
                         const bodyGroup = Group.make(classes);
                         let centre = vector(end1, end2).centre().vector;
                         let rotation = vector(end1).getAngleTo(end2);
-                        let [start1, start2] = vector({ x: -6, y: 0 }, { x: 6, y: 0 }).rotate(-rotation).sumWith(centre).vectors;
+                        let [start1, start2] = vector({ x: -6, y: 0 }, { x: 6, y: 0 }).rotate(rotation).sumWith(centre).vectors;
                         let text = Utility.getStandardForm(capacitance, 'F');
                         bodyGroup.append(Svg.Element.Rect.make(vector(0), { width: 15, height: 30 }, vector(2), "highlight highlightwithfill extrathick"), Svg.Element.Line.make({ x: -4, y: -15 }, { x: -4, y: +15 }, "line thick nocap"), Svg.Element.Line.make({ x: +4, y: -15 }, { x: +4, y: +15 }, "line thick nocap"));
                         if (isPolarised) {
@@ -21571,7 +21417,7 @@ var Svg;
                         const bodyGroup = Group.make(classes);
                         let centre = vector(end1, end2).centre().vector;
                         let rotation = vector(end1).getAngleTo(end2);
-                        let [start1, start2] = vector({ x: -12, y: 0 }, { x: 12, y: 0 }).rotate(-rotation).sumWith(centre).vectors;
+                        let [start1, start2] = vector({ x: -12, y: 0 }, { x: 12, y: 0 }).rotate(rotation).sumWith(centre).vectors;
                         let text = (breakdownVoltage < 51)
                             ? Utility.getStandardForm(breakdownVoltage, 'V')
                             : Utility.getStandardForm(saturationCurrent, 'A');
@@ -21650,7 +21496,7 @@ var Svg;
                         const bodyGroup = Group.make(classes);
                         let centre = vector(end1, end2).centre().vector;
                         let rotation = vector(end1).getAngleTo(end2);
-                        let [start1, start2] = vector({ x: -20, y: 0 }, { x: 20, y: 0 }).rotate(-rotation).sumWith(centre).vectors;
+                        let [start1, start2] = vector({ x: -20, y: 0 }, { x: 20, y: 0 }).rotate(rotation).sumWith(centre).vectors;
                         let text = Utility.getStandardForm(inductance, 'H');
                         bodyGroup.append(Svg.Element.Rect.make({ x: 0, y: -2 }, { width: 40, height: 12 }, vector(2), "highlight highlightwithfill extrathick"), Svg.Element.Path.make('M-20 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0', "line medium"));
                         let textEl = Svg.Element.Text.make(text, { x: 0, y: -13 }, "text");
@@ -21676,12 +21522,13 @@ var Svg;
             (function (OpAmp) {
                 var Layout;
                 (function (Layout) {
-                    function make(isDual, classes = "") {
+                    function make(isDual, centre, rotationPoint, classes = "") {
+                        let rotation = vector(centre).getAngleTo(rotationPoint);
                         if (isDual) {
-                            return Svg.Element.Group.Dip.make(4, "", "TL072", "");
+                            return Svg.Element.Group.Dip.make(4, "", "TL072", "").translate(vector(-30)).rotate(rotation, vector(30)).translate(centre);
                         }
                         else {
-                            return Svg.Element.Group.Dip.make(4, "", "TL071", "");
+                            return Svg.Element.Group.Dip.make(4, "", "TL071", "").translate(vector(-30)).rotate(rotation, vector(30)).translate(centre);
                         }
                     }
                     Layout.make = make;
@@ -21711,7 +21558,7 @@ var Svg;
                         let scale = (((angleInPInN - angleCentreBase + 360) % 360) > 180)
                             ? { x: -1 }
                             : { x: 1 };
-                        let [inPStart, inNStart, outStart, powPStart, powNStart] = vector({ x: -25, y: -10 }, { x: -25, y: 10 }, { x: 25, y: 0 }, { x: 0, y: -13 }, { x: 0, y: 13 }).scaleWith(scale).rotate(-rotation).sumWith(centre).vectors;
+                        let [inPStart, inNStart, outStart, powPStart, powNStart] = vector({ x: -25, y: -10 }, { x: -25, y: 10 }, { x: 25, y: 0 }, { x: 0, y: -13 }, { x: 0, y: 13 }).scaleWith(scale).rotate(rotation).sumWith(centre).vectors;
                         let joints = [
                             [inPStart, inPEnd],
                             [inNStart, inNEnd],
@@ -21788,28 +21635,28 @@ var Svg;
 function powerNegativeGraphics(voltage) {
     let text = Utility.getStandardForm(voltage, "V");
     return [
-        Svg.Element.Rect.make({ x: 0, y: 8 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
-        Svg.Element.Line.make({ x: -12, y: 5 }, { x: 12, y: 5 }, "line medium"),
-        Svg.Element.Text.make(text, { x: 0, y: 17 }, "text bold"),
-        Svg.Element.Line.make({ x: 0, y: 5 }, { x: 0, y: -10 }, "line thin")
+        Svg.Element.Rect.make({ x: 0, y: 18 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
+        Svg.Element.Line.make({ x: -12, y: 15 }, { x: 12, y: 15 }, "line medium"),
+        Svg.Element.Text.make(text, { x: 0, y: 27 }, "text bold"),
+        Svg.Element.Line.make({ x: 0, y: 15 }, { x: 0, y: 0 }, "line thin")
     ];
 }
 function powerPositiveGraphics(voltage) {
     let text = Utility.getStandardForm(voltage, "V");
     return [
-        Svg.Element.Rect.make({ x: 0, y: -8 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
-        Svg.Element.Line.make({ x: -12, y: -5 }, { x: 12, y: -5 }, "line medium"),
-        Svg.Element.Text.make(text, { x: 0, y: -7 }, "text bold"),
-        Svg.Element.Line.make({ x: 0, y: -5 }, { x: 0, y: 10 }, "line thin")
+        Svg.Element.Rect.make({ x: 0, y: -18 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
+        Svg.Element.Line.make({ x: -12, y: -15 }, { x: 12, y: -15 }, "line medium"),
+        Svg.Element.Text.make(text, { x: 0, y: -17 }, "text bold"),
+        Svg.Element.Line.make({ x: 0, y: -15 }, { x: 0, y: 0 }, "line thin")
     ];
 }
 function powerGroundGraphics() {
     return [
-        Svg.Element.Rect.make({ x: 0, y: 5 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
-        Svg.Element.Line.make({ x: -18, y: 0 }, { x: 18, y: 0 }, "line medium"),
-        Svg.Element.Line.make({ x: -12, y: 5 }, { x: 12, y: 5 }, "line medium"),
-        Svg.Element.Line.make({ x: -6, y: 10 }, { x: 6, y: 10 }, "line medium"),
-        Svg.Element.Line.make({ x: 0, y: 0 }, { x: 0, y: -10 }, "line thin")
+        Svg.Element.Rect.make({ x: 0, y: 15 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
+        Svg.Element.Line.make({ x: -18, y: 10 }, { x: 18, y: 10 }, "line medium"),
+        Svg.Element.Line.make({ x: -12, y: 15 }, { x: 12, y: 15 }, "line medium"),
+        Svg.Element.Line.make({ x: -6, y: 20 }, { x: 6, y: 20 }, "line medium"),
+        Svg.Element.Line.make({ x: 0, y: 10 }, { x: 0, y: 0 }, "line thin")
     ];
 }
 var Svg;
@@ -21883,7 +21730,7 @@ var Svg;
                         const bodyGroup = Group.make(classes);
                         let centre = vector(end1, end2).centre().vector;
                         let rotation = vector(end1).getAngleTo(end2);
-                        let [start1, start2] = vector({ x: -24, y: 0 }, { x: 24, y: 0 }).rotate(-rotation).sumWith(centre).vectors;
+                        let [start1, start2] = vector({ x: -24, y: 0 }, { x: 24, y: 0 }).rotate(rotation).sumWith(centre).vectors;
                         let text = Utility.getStandardForm(resistance, 'Ω');
                         bodyGroup.append(Svg.Element.Rect.make(vector(0), { width: 46, height: 18 }, vector(2), "highlight highlightwithfill extrathick"), Svg.Element.Rect.make(vector(0), { width: 46, height: 18 }, vector(2), "body white"));
                         let textEl = Svg.Element.Text.make(text, { x: 0, y: -15 }, "text");
@@ -21899,3 +21746,364 @@ var Svg;
         })(Group = Element.Group || (Element.Group = {}));
     })(Element = Svg.Element || (Svg.Element = {}));
 })(Svg || (Svg = {}));
+var Ui;
+(function (Ui) {
+    function init() {
+        $("body").layout({
+            center: {
+                size: "35%",
+                spacing_open: 10,
+                spacing_closed: 10,
+            },
+            west: {
+                onresize_end: () => {
+                    Ui.Events.layoutPaneResize();
+                },
+                onclose: () => {
+                    Ui.Events.layoutPaneResize();
+                },
+                onopen: () => {
+                    Ui.Events.layoutPaneResize();
+                },
+                size: "30%",
+                minSize: "256",
+                spacing_open: 10,
+                spacing_closed: 10,
+                slidable: false,
+            },
+            east: {
+                onresize_end: () => {
+                    Ui.Events.schematicPaneResize();
+                    Ui.Events.layoutPaneResize();
+                },
+                onclose: () => {
+                    Ui.Events.schematicPaneResize();
+                    Ui.Events.layoutPaneResize();
+                },
+                onopen: () => {
+                    Ui.Events.schematicPaneResize();
+                    Ui.Events.layoutPaneResize();
+                },
+                size: "35%",
+                minSize: "5%",
+                spacing_open: 10,
+                spacing_closed: 10,
+                slidable: false,
+            }
+        });
+        $("#welcomeAccordion").accordion({
+            collapsible: true,
+            heightStyle: "content"
+        });
+        NodeElements.fileInput.addEventListener('change', (event) => {
+            Ui.Events.fileInput(event);
+        });
+        NodeElements.fileSave.addEventListener('click', (event) => {
+            Ui.Events.fileSave(event);
+        });
+        NodeElements.checkCircuitButton.addEventListener('click', (event) => {
+            Ui.Events.checkCircuit();
+        });
+    }
+    Ui.init = init;
+})(Ui || (Ui = {}));
+var Ui;
+(function (Ui) {
+    var Events;
+    (function (Events) {
+        function fitDiagramContents(diagram) {
+            let rootEl = diagram.root.element.element;
+            let group = diagram.group;
+            let margin = 3;
+            let groupBBox = group.element.getBBox();
+            let groupWidth = groupBBox.width + margin * 2;
+            let groupHeight = groupBBox.height + margin * 2;
+            let scaleX = (groupWidth) ? (rootEl.width.baseVal.value / groupWidth) : 0;
+            let scaleY = (groupHeight) ? (rootEl.height.baseVal.value / groupHeight) : 0;
+            let scaleMin = Math.min(scaleX, scaleY);
+            let offsetX = -groupBBox.x * scaleMin + (rootEl.width.baseVal.value - groupWidth * scaleMin) / 2 + margin;
+            let offsetY = (-groupBBox.y * scaleMin) + (rootEl.height.baseVal.value - groupHeight * scaleMin) / 2 + margin;
+            let transformString = "translate(" + offsetX + " " + offsetY + ")" + "scale(" + scaleMin + ")";
+            group.element.setAttribute('transform', transformString);
+        }
+        function schematicPaneResize() {
+            window.setTimeout(() => {
+                fitDiagramContents(Active.schematic);
+            }, 5);
+        }
+        Events.schematicPaneResize = schematicPaneResize;
+        function layoutPaneResize() {
+            window.setTimeout(() => {
+                fitDiagramContents(Active.layout);
+            }, 5);
+        }
+        Events.layoutPaneResize = layoutPaneResize;
+        function fileInput(event) {
+            FileIO.Load.handleFileInputEvent(event);
+        }
+        Events.fileInput = fileInput;
+        function fileSave(event) {
+            FileIO.Save.handleFileSaveEvent(event);
+        }
+        Events.fileSave = fileSave;
+        function makeStripBoardButtonPress() {
+            let rowElement = NodeElements.stripboardRows;
+            let columnElement = NodeElements.stripboardColumns;
+            let rows = parseInt(rowElement.value);
+            let columns = parseInt(columnElement.value);
+            if (rows && columns &&
+                rows >= parseInt(rowElement.min) && columns >= parseInt(columnElement.min) &&
+                rows <= parseInt(rowElement.max) && columns <= parseInt(columnElement.max)) {
+                if (Circuit.manifest.activeBoard)
+                    Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
+                let stripboard = Circuit.Component.Stripboard.makeInstance({
+                    rows: rows,
+                    columns: columns,
+                }, {});
+                Circuit.manifest.addComponent(stripboard, Circuit.manifest.layout);
+                Circuit.manifest.activeBoard = stripboard;
+            }
+        }
+        Events.makeStripBoardButtonPress = makeStripBoardButtonPress;
+        function makeBreadBoardSmallButtonPress() {
+            if (Circuit.manifest.activeBoard)
+                Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
+            let breadboard = Circuit.Component.BreadboardSmall.makeInstance({}, {});
+            Circuit.manifest.addComponent(breadboard, Circuit.manifest.layout);
+            Circuit.manifest.activeBoard = breadboard;
+        }
+        Events.makeBreadBoardSmallButtonPress = makeBreadBoardSmallButtonPress;
+        function makeBreadBoardLargeButtonPress() {
+            if (Circuit.manifest.activeBoard)
+                Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
+            let breadboard = Circuit.Component.BreadboardLarge.makeInstance({}, {});
+            Circuit.manifest.addComponent(breadboard, Circuit.manifest.layout);
+            Circuit.manifest.activeBoard = breadboard;
+        }
+        Events.makeBreadBoardLargeButtonPress = makeBreadBoardLargeButtonPress;
+        function rotateBoard() {
+            let board = Circuit.manifest.activeBoard;
+            if (board) {
+                console.log(board);
+                let centre = board.joints[0];
+                board.joints = vector(board.joints)
+                    .sumWith(vector(centre).scaleWith(-1))
+                    .rotate(90)
+                    .sumWith(centre)
+                    .vectors;
+                $(board.group.element).trigger(Circuit.Events.draw);
+            }
+        }
+        Events.rotateBoard = rotateBoard;
+        function makeWire() {
+            let wire = Circuit.Component.WireLayout.makeInstance({}, {});
+            Circuit.manifest.addComponent(wire, Circuit.manifest.layout);
+        }
+        Events.makeWire = makeWire;
+        function checkCircuit() {
+            let circuitStatus = Circuit.manifest.checkAll();
+            let doHighlightCorrect = NodeElements.checkShowCorrect.checked;
+            let doHighlightIncorrect = NodeElements.checkShowIncorrect.checked;
+            const highlightCheck = () => {
+                if (doHighlightIncorrect) {
+                    circuitStatus.incorrects.forEach(incorrect => {
+                        $(incorrect.group.element).find(".highlight").css("stroke", "red");
+                        $(incorrect.group.element).find(".highlightwithfill").css("fill", "red");
+                        ;
+                    });
+                }
+                if (doHighlightCorrect) {
+                    circuitStatus.corrects.forEach(correct => {
+                        $(correct.group.element).find(".highlight").css("stroke", "green");
+                        $(correct.group.element).find(".highlightwithfill").css("fill", "green");
+                        ;
+                    });
+                }
+            };
+            const clearHighlightCheck = () => {
+                if (doHighlightIncorrect) {
+                    circuitStatus.incorrects.forEach(incorrect => {
+                        $(incorrect.group.element).find(".highlight").css("stroke", "");
+                        $(incorrect.group.element).find(".highlightwithfill").css("fill", "");
+                    });
+                }
+                if (doHighlightCorrect) {
+                    circuitStatus.corrects.forEach(correct => {
+                        $(correct.group.element).find(".highlight").css("stroke", "");
+                        $(correct.group.element).find(".highlightwithfill").css("fill", "");
+                        ;
+                    });
+                }
+            };
+            highlightCheck();
+            window.setTimeout(() => {
+                clearHighlightCheck();
+                window.setTimeout(() => {
+                    highlightCheck();
+                    window.setTimeout(() => {
+                        clearHighlightCheck();
+                        window.setTimeout(() => {
+                            highlightCheck();
+                            window.setTimeout(() => {
+                                clearHighlightCheck();
+                            }, 400);
+                        }, 200);
+                    }, 400);
+                }, 200);
+            }, 400);
+            let completion = (circuitStatus.corrects.length / (circuitStatus.corrects.length + circuitStatus.incorrects.length) * 100).toFixed(1);
+            NodeElements.checkStatusText.innerText = "Correct: " + completion + "%";
+        }
+        Events.checkCircuit = checkCircuit;
+    })(Events = Ui.Events || (Ui.Events = {}));
+})(Ui || (Ui = {}));
+var Utility;
+(function (Utility) {
+    function degreesToRadians(angle) {
+        return angle * Math.PI / 180;
+    }
+    Utility.degreesToRadians = degreesToRadians;
+})(Utility || (Utility = {}));
+var Utility;
+(function (Utility) {
+    function flatten2d(array) {
+        return [].concat.apply([], array);
+    }
+    Utility.flatten2d = flatten2d;
+    function flatten3d(array) {
+        return [].concat.apply([], [].concat.apply([], array));
+    }
+    Utility.flatten3d = flatten3d;
+})(Utility || (Utility = {}));
+var Utility;
+(function (Utility) {
+    function getStandardForm(value, unit = "") {
+        let exponentialParts = value.toExponential().split("e");
+        let coefficient = parseFloat(exponentialParts[0]);
+        let exponent = parseInt(exponentialParts[1]);
+        for (let i = 0; i < 3; i++) {
+            if (exponent in prefixes)
+                break;
+            coefficient *= 10;
+            exponent--;
+        }
+        const numeric = parseFloat(coefficient.toPrecision(2));
+        const prefix = prefixes[exponent] || "";
+        return numeric + prefix + unit;
+    }
+    Utility.getStandardForm = getStandardForm;
+    const prefixes = {
+        '-24': 'y',
+        '-21': 'z',
+        '-18': 'a',
+        '-15': 'f',
+        '-12': 'p',
+        '-9': 'n',
+        '-6': 'µ',
+        '-3': 'm',
+        '0': '',
+        '3': 'k',
+        '6': 'M',
+        '9': 'G',
+        '12': 'T',
+        '15': 'P',
+        '18': 'E',
+        '21': 'Z',
+        '24': 'Y'
+    };
+})(Utility || (Utility = {}));
+var Utility;
+(function (Utility) {
+    function isUnaryMap(A, B, predicate) {
+        const isPredicateMatchForAllA = A.every(elA => {
+            let match = B.find(elB => predicate(elA, elB));
+            B = B.filter(elB => elB !== match);
+            return (match !== undefined);
+        });
+        const allBMatched = (B.length === 0);
+        return (isPredicateMatchForAllA && allBMatched);
+    }
+    Utility.isUnaryMap = isUnaryMap;
+})(Utility || (Utility = {}));
+var Utility;
+(function (Utility) {
+    function radiansToDegrees(angle) {
+        return angle * 180 / Math.PI;
+    }
+    Utility.radiansToDegrees = radiansToDegrees;
+})(Utility || (Utility = {}));
+var Utility;
+(function (Utility) {
+    function split(A, predicate) {
+        let passes = [];
+        let fails = [];
+        A.forEach(elA => {
+            if (predicate(elA)) {
+                passes.push(elA);
+            }
+            else {
+                fails.push(elA);
+            }
+        });
+        return { passes: passes, fails: fails };
+    }
+    Utility.split = split;
+})(Utility || (Utility = {}));
+var Utility;
+(function (Utility) {
+    var Insert;
+    (function (Insert) {
+        function last(element, target) {
+            if (element === target || target === undefined) {
+                $(element).insertAfter($(element).siblings().last());
+            }
+            else if ($(target).children().length) {
+                $(element).insertAfter($(target).children().last());
+            }
+            else {
+                $(element).appendTo($(target));
+            }
+        }
+        Insert.last = last;
+        function first(element, target) {
+            if (element === target || target === undefined) {
+                $(element).insertBefore($(element).siblings().first());
+            }
+            else if ($(target).children().length) {
+                $(element).insertBefore($(target).children().first());
+            }
+            else {
+                $(element).prependTo($(target));
+            }
+        }
+        Insert.first = first;
+        function before(element, targetOrRef, referenceSelector = "*") {
+            let target = (typeof targetOrRef === "string") ? undefined : targetOrRef;
+            referenceSelector = (typeof targetOrRef === "string") ? targetOrRef : referenceSelector;
+            if (element === target || target === undefined) {
+                $(element).insertBefore($(element).siblings(referenceSelector).first());
+            }
+            else if ($(target).children(referenceSelector).length) {
+                $(element).insertBefore($(target).children(referenceSelector).first());
+            }
+            else {
+                $(element).prependTo($(target));
+            }
+        }
+        Insert.before = before;
+    })(Insert = Utility.Insert || (Utility.Insert = {}));
+})(Utility || (Utility = {}));
+var Utility;
+(function (Utility) {
+    var Polar;
+    (function (Polar) {
+        function toVector(radius, angle) {
+            const rads = Utility.degreesToRadians(angle);
+            return {
+                x: radius * Math.cos(rads),
+                y: radius * Math.sin(rads)
+            };
+        }
+        Polar.toVector = toVector;
+    })(Polar = Utility.Polar || (Utility.Polar = {}));
+})(Utility || (Utility = {}));

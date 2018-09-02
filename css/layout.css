@@ -211,8 +211,13 @@
    fill: transparent;
 }
 
-.layout .connectivityhighlight {
-   pointer-events: none;
+.layout .dragHandle {
+   stroke: transparent;
+   fill: transparent;
+}
+
+.layout .selected .connectivityhighlight~.dragHandle {
+   fill: transparent;
 }
 
 .layout .diode {
@@ -310,4 +315,5 @@
    font-family: consolas;
    font-size: 4px;
    dominant-baseline: central;
+   opacity: 0.9;
 }

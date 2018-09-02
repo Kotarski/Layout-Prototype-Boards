@@ -4,7 +4,7 @@ namespace Circuit.Component.Generics {
       name: string,
       type: T,
       position: Vector,
-      symbol: string = ""
+      symbol?: string
    ): Types.connector & { type: T } {
 
       let connector = {
@@ -12,10 +12,7 @@ namespace Circuit.Component.Generics {
          symbol: symbol,
          type: type,
          component: component,
-         get point() {
-            let ctm = connector.component.group.element.getCTM();
-            return (ctm) ? Svg.makePoint(position).matrixTransform(ctm) : Svg.makePoint(position);
-         }
+         point: position,
       }
 
       return connector;

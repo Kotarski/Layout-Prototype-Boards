@@ -3,13 +3,15 @@ namespace _vector {
    type PartialVector = Partial<Vector>;
 
    export function scaleWithS(inVector: Vector) {
-      return (scaleVector: PartialVector) => {
+      return (scaleIn: PartialVector | number) => {
+         const scaleVector = (typeof scaleIn === "number") ? { x: scaleIn, y: scaleIn } : scaleIn;
          return vector(scale(inVector, scaleVector));
       };
    }
 
    export function scaleWithM(inVectors: Vector[]) {
-      return (scaleVector: PartialVector) => {
+      return (scaleIn: PartialVector | number) => {
+         const scaleVector = (typeof scaleIn === "number") ? { x: scaleIn, y: scaleIn } : scaleIn;
          return vector(inVectors.map(a => {
             return scale(a, scaleVector);
          }));
@@ -17,9 +19,13 @@ namespace _vector {
    }
 
    function scale(a: Vector, b: PartialVector) {
+      let bV: Vector = {
+         x: ((b.x !== undefined) ? b.x : 1),
+         y: ((b.y !== undefined) ? b.y : 1)
+      }
       return {
-         x: a.x * (b.x || 1),
-         y: a.y * (b.y || 1)
+         x: a.x * bV.x,
+         y: a.y * bV.y
       }
    }
 }

@@ -8,7 +8,8 @@
       "express": "^4.15.3"
    },
    "devDependencies": {
-      "@types/jquery": "^3.2.8"
+      "@types/jquery": "^3.2.8",
+      "typescript": "^3.0.1"
    },
    "scripts": {
       "test": "echo \"Error: no test specified\" && exit 1"

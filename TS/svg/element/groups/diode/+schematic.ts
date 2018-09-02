@@ -8,7 +8,7 @@ namespace Svg.Element.Group.Diode.Schematic {
 
       let [start1, start2]: Vector[] = vector(
          { x: -12, y: 0 }, { x: 12, y: 0 }
-      ).rotate(-rotation).sumWith(centre).vectors;
+      ).rotate(rotation).sumWith(centre).vectors;
 
       //Text
       let text = (breakdownVoltage < 51)

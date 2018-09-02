@@ -7,13 +7,11 @@ namespace Circuit.Component.Addins.Board {
       trackBreaks: { track: number, hole: number }[];
    }
 
-   export function init<B extends board>(component: B, trackMaker: (component: B) => Track.Instance[]): void
-   export function init<B extends reversibleBoard>(component: B, trackMaker: (component: B) => Track.Instance[], isReversible: boolean): void
-   export function init<B extends board | reversibleBoard>(component: B, trackMaker: (component: B) => Track.Instance[], isReversible?: boolean): void {
+   export function init<B extends board>(component: B): void
+   export function init<B extends reversibleBoard>(component: B, isReversible: boolean): void
+   export function init<B extends board | reversibleBoard>(component: B, isReversible?: boolean): void {
       $(component.group.element).addClass("board");
 
-      component.tracks = trackMaker(component);
-      component.tracks.forEach(track => track.makeConnectors());
 
       Object.defineProperty(component, 'connectorSets', {
          get: () => Utility.flatten2d(component.tracks.map(track => track.connectorSets))
@@ -33,7 +31,7 @@ namespace Circuit.Component.Addins.Board {
          }
 
          export interface state {
-            location: Svg.Types.transformMatrix;
+            joints: [Vector, Vector];
          }
       }
    }
@@ -42,7 +40,7 @@ namespace Circuit.Component.Addins.Board {
       import Types = Track.Types
 
       export const defaultState: Types.state = {
-         location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
+         joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }]
       }
       export const defaultProperties: Types.properties = {
          name: "track",
@@ -55,12 +53,14 @@ namespace Circuit.Component.Addins.Board {
          holeSpacings: number[];
          connectorSets: Component.Types.hole[][] = [];
          style: "breadboard" | "stripboard";
+         joints: [Vector, Vector];
 
          constructor(properties: Types.properties, state: Types.state) {
             super(properties, state);
             this.name = properties.name;
             this.holeSpacings = properties.holeSpacings;
             this.style = properties.style;
+            this.joints = state.joints;
          }
 
          getProperties(): Types.properties {
@@ -73,7 +73,7 @@ namespace Circuit.Component.Addins.Board {
 
          getState(): Types.state {
             return {
-               location: this.location
+               joints: this.joints
             }
          }
 
@@ -91,13 +91,26 @@ namespace Circuit.Component.Addins.Board {
 
          /** Builds and draws the components connectors */
          makeConnectors() {
-            let holeSpacingRunningSum = 0;
+
+            const start = this.joints[0];
+            const step = this.joints[1];
+
+
             this.connectorSets = [[]];
-            this.holeSpacings.forEach(hS => {
-               this.connectorSets[0].push(Component.Generics.makeConnector(
-                  this, "", "hole", { x: (holeSpacingRunningSum += hS), y: 0 }
-               ));
-            });
+            // Create the holes
+            let accHs = 0;
+            this.holeSpacings.forEach((hS) => {
+               accHs += hS;
+
+               let holePos = vector(step)
+                  .scaleWith(accHs)
+                  .sumWith(start)
+                  .vector;
+
+               this.connectorSets[0].push(
+                  Component.Generics.makeConnector(this, "", "hole", holePos)
+               );
+            })
          }
 
          /** ...
@@ -120,58 +133,69 @@ namespace Circuit.Component.Addins.Board {
       }
 
       const drawStripboard = (component: Instance) => {
-         let height = Constants.gridSpacing * 14 / 16;
+
+         const start = component.joints[0];
+         const step = component.joints[1];
 
          // Create the holes
-         let holeSpacingRunningSum = 0;
+         let accHs = 0;
+         component.holeSpacings.forEach((hS) => {
+            accHs += hS;
 
-         component.holeSpacings.forEach(hS => {
-            component.group.append(Svg.Element.Circle.make(
-               { x: (holeSpacingRunningSum += hS), y: 0 }, 4, "hole"
-            ));
+            let holePos = vector(step)
+               .scaleWith(accHs)
+               .sumWith(start)
+               .vector;
+
+            component.group.append(Svg.Element.Circle.make(holePos, 4, "hole"));
          })
+
+         // Create the track
+         let relativeEnd = vector(step).scaleWith(accHs).vector;
+
+         let { radius, angle } = vector(relativeEnd).asPolar();
+
+         let centre = vector(start, start, relativeEnd).sum().scaleWith(0.5).vector;
+
          let size = {
-            width: holeSpacingRunningSum + Constants.gridSpacing * 0.8,
-            height: height
-         };
+            width: radius + Constants.gridSpacing,
+            height: Constants.gridSpacing * 14 / 16
+         }
 
-         let centre = {
-            x: holeSpacingRunningSum / 2,
-            y: 0
-         };
-
-         component.group.prepend(Svg.Element.Rect.make(centre, size, {
-            x: 0,
-            y: 0
-         }, 'body'));
-
+         component.group.prepend(Svg.Element.Rect.make(centre, size, vector(0), 'body').rotate(angle, centre));
       }
 
       const drawBreadboard = (component: Instance) => {
-         let height = Constants.gridSpacing * 14 / 16;
+
+         const start = component.joints[0];
+         const step = component.joints[1];
 
          // Create the holes
-         let holeSpacingRunningSum = 0;
+         let accHs = 0;
+         component.holeSpacings.forEach((hS) => {
+            accHs += hS;
 
-         component.holeSpacings.forEach(hS => {
-            component.group.append(Svg.Element.Path.make(
-               "M" + (holeSpacingRunningSum += hS) + " " + 0 + "m-4 -4h 8v 8h -8Z", "hole"
-            ));
+            let holePos = vector(step)
+               .scaleWith(accHs)
+               .sumWith(start)
+               .vector;
+
+            component.group.append(Svg.Element.Rect.make(holePos, { width: 8, height: 8 }, vector(0.5), "hole"));
          })
+
+         // Create the track
+         let relativeEnd = vector(step).scaleWith(accHs).vector;
+
+         let { radius, angle } = vector(relativeEnd).asPolar();
+
+         let centre = vector(start, start, relativeEnd).sum().scaleWith(0.5).vector;
+
          let size = {
-            width: holeSpacingRunningSum + Constants.gridSpacing * 0.8,
-            height: height
-         };
+            width: radius + Constants.gridSpacing * 0.8,
+            height: Constants.gridSpacing * 14 / 16
+         }
 
-         let centre = {
-            x: holeSpacingRunningSum / 2,
-            y: 0
-         };
-
-         component.group.prepend(Svg.Element.Rect.make(centre, size, {
-            x: 0,
-            y: 0
-         }, 'body'));
+         component.group.prepend(Svg.Element.Rect.make(centre, size, vector(0), 'body').rotate(angle, centre));
       }
 
       export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
@@ -194,22 +218,27 @@ namespace Circuit.Component.Addins.Board {
          let element = component.group;
 
          $(element.element).on(Events.select, () => {
-            createGhost(component)
-         });
-         $(element.element).on(Events.deselect, () => {
-            clearGhost(component)
+            createGhost(component);
          });
 
-         component.tracks.forEach((track, trackIdx) => {
-            let trackBreaks = component.trackBreaks.filter(
-               trackBreak => trackBreak.track === trackIdx
-            );
-            track.connectorSets[0].forEach((hole, holeIdx) => {
-               if (trackBreaks.some(trackBreak => trackBreak.hole === holeIdx)) {
-                  hole.type = "brokenhole";
-               }
-            });
-         })
+         $(element.element).on(Events.dragStart, () => {
+            clearGhost(component);
+         });
+
+         $(element.element).on(Events.rotate, () => {
+            clearGhost(component);
+            createGhost(component);
+         });
+
+         $(element.element).on(Events.dragStop, () => {
+            createGhost(component);
+         });
+
+         $(element.element).on(Events.deselect, () => {
+            clearGhost(component);
+         });
+
+
 
       }
 
@@ -245,15 +274,16 @@ namespace Circuit.Component.Addins.Board {
             ghostGroup.appendChild(trackGhostGroup);
 
             // Add the holes
-            let ctm = (track.group.element.getCTM() || Svg.makeMatrix()).inverse()
+            //let ctm = (track.group.element.getCTM() || Svg.makeMatrix()).inverse()
             track.connectorSets[0].forEach((hole, holeIdx) => {
 
-               let point = (ctm) ? hole.point.matrixTransform(ctm) : hole.point;
+               let point = hole.point;//(ctm) ? hole.point.matrixTransform(ctm) : hole.point;
 
-               let breaker = Svg.Element.Circle.make(
-                  { x: point.x, y: point.y }, 6, "breaker"
-               );
-               if (hole.type === "brokenhole") $(breaker.element).addClass("broken");
+               let breaker = Svg.Element.Circle.make(point, 6, "breaker");
+
+               if (hole.type === "brokenhole") {
+                  $(breaker.element).addClass("broken");
+               }
 
 
                if (getPinsAtHole(hole, allValidConnectors).length) {

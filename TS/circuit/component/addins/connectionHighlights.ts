@@ -3,31 +3,29 @@ namespace Circuit.Component.Addins.ConnectionHighlights {
    type colorPalette = string[];
 
    export const init = (component: Component.Instance, propogate: boolean = true, colorPalette: colorPalette = defaultColorPalette) => {
-      let element = component.group;
+      let element = component.group.element;
 
-      $(element.element).on(Events.select, () => {
+      $(element).on(Events.select, () => {
          createConnectionsHighlights(component, propogate, colorPalette);
       });
-      $(element.element).on(Events.moved, () => {
+      $(element).on(Events.draw, () => {
          clearConnectionsHighlights(component);
          createConnectionsHighlights(component, propogate, colorPalette);
       });
-      $(element.element).on(Events.deselect, () => {
+      $(element).on(Events.deselect, () => {
          clearConnectionsHighlights(component);
       });
 
    }
 
    const createConnectorHighlights = (component: Component.Instance, connection: Component.Types.connector, color: string, symbol?: string) => {
-      let ctm = component.group.element.getCTM();
-      let point = (ctm) ? connection.point.matrixTransform(ctm.inverse()) : connection.point;
-      let highlight = Svg.Element.Circle.make(point, 4, "highlight highlightwithfill connectivityhighlight");
+      let highlight = Svg.Element.Circle.make(connection.point, 4, "highlight highlightwithfill connectivityhighlight");
 
       $(highlight.element).css({ "fill": color, "stroke": color })
       component.group.append(highlight);
 
-      if (connection.symbol !== "") {
-         let symbol = Svg.Element.Text.make(connection.symbol, point, "text connectivityhighlight");
+      if (connection.symbol !== undefined) {
+         let symbol = Svg.Element.Text.make(connection.symbol, connection.point, "text connectivityhighlight");
          component.group.append(symbol);
       }
    }

@@ -80,7 +80,7 @@ namespace Circuit {
             P extends ReturnType<C["getProperties"]>,
             S extends ReturnType<C["getState"]>,
             V extends (p: P, s: {}) => Component.Instance>(key: { new(properties: P, state: S): C }) => V;
-      } = new Map();
+      } = new Map() as any; //TODO
       schematicToLayoutMap
          .set(Component.ResistorSchematic.Instance, Component.ResistorLayout.makeInstance)
          .set(Component.CapacitorSchematic.Instance, Component.CapacitorLayout.makeInstance)

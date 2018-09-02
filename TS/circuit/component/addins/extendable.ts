@@ -5,17 +5,37 @@ namespace Circuit.Component.Addins.Extendable {
       canAddJoints: boolean = false,
       canRemoveJoints: boolean = false,
       canRemoveComponent: boolean = false) => {
+
+
+      let element = component.group.element;
+
+      $(element).on(Events.select, () => {
+         createHandles(component);
+      });
+      $(element).on(Events.draw, (e, eOrigin) => {
+         if (!(eOrigin !== undefined && $(eOrigin.target).hasClass("dragHandle"))) {
+            clearHandles(component);
+            createHandles(component);
+         }
+      });
+      $(element).on(Events.deselect, () => {
+         clearHandles(component);
+      });
+
       if (canAddJoints) initHandleInsertion(component);
       if (canRemoveJoints) initJointRemoval(component);
       if (canRemoveComponent) initComponentRemoval(component);
+   }
+
+
+   const createHandles = (component: extendableComponent) => {
       initHandles(component);
    }
 
-   const refreshComponent = (component: extendableComponent) => {
-      component.group.clearChildren(":not(.handle)");
-      component.makeConnectors();
-      component.draw();
-   };
+
+   const clearHandles = (component: extendableComponent) => {
+      $(component.group.element).find(".dragHandle").remove();
+   }
 
    const initHandles = (component: extendableComponent) => {
       component.joints.forEach(joint => {
@@ -27,13 +47,17 @@ namespace Circuit.Component.Addins.Extendable {
       $(component.group.element).dblclick(e => {
          if ($(e.target).closest(".handle").length < 1) {
             // Get position in svg coordinates, rounded to grid
-            let position = component.group.convertVector({ x: e.clientX, y: e.clientY }, "DomToSvg", "relToGroup");
-            position = vector(position).snapToGrid().vector;
+            const position = vector(
+               component.group.convertVector({ x: e.clientX, y: e.clientY }, "DomToSvg", "relToGroup")
+            ).snapToGrid().vector;
+
+            // Get index for insertion into joint array
+            const jointIdx = getJointInsertionIdx(component, position);
 
             //insert joint at position
-            component.joints.splice(getJointInsertionIdx(component, position), 0, position);
+            component.joints.splice(jointIdx, 0, position);
             addHandle(component, position);
-            refreshComponent(component);
+            $(component.group.element).trigger(Events.draw, [e]);
          }
       });
    };
@@ -41,7 +65,7 @@ namespace Circuit.Component.Addins.Extendable {
    const initJointRemoval = (component: extendableComponent) => {
       $(component.group.element).on(Events.drag, ".dragHandle", (e) => {
          removeExcessJoints(component, $(e.target).data("point"));
-         refreshComponent(component);
+         $(component.group.element).trigger(Events.draw, [e]);
       });
 
       $(component.group.element).on("dblclick", ".dragHandle", (e) => {
@@ -50,7 +74,7 @@ namespace Circuit.Component.Addins.Extendable {
                return joint !== $(e.target).data("point")
             });
             e.target.remove();
-            refreshComponent(component);
+            $(component.group.element).trigger(Events.draw, [e]);
          }
       });
    }
@@ -72,7 +96,7 @@ namespace Circuit.Component.Addins.Extendable {
       $(dragHandle.element).on(Events.drag, (e, ui, drag: Vector) => {
          point.x += drag.x;
          point.y += drag.y;
-         refreshComponent(component);
+         $(component.group.element).trigger(Events.draw, [e]);
       });
 
 

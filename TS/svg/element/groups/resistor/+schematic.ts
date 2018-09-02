@@ -8,7 +8,7 @@ namespace Svg.Element.Group.Resistor.Schematic {
 
       let [start1, start2]: Vector[] = vector(
          { x: -24, y: 0 }, { x: 24, y: 0 }
-      ).rotate(-rotation).sumWith(centre).vectors;
+      ).rotate(rotation).sumWith(centre).vectors;
 
       //Text
       let text = Utility.getStandardForm(resistance, 'Ω')

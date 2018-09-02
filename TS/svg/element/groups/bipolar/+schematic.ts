@@ -63,7 +63,7 @@ namespace Svg.Element.Group.Bipolar.Schematic {
       // (Hence using vector transforms, not svg transforms)
       let [emitterStart, collectorStart, baseStart]: Vector[] = vector(
          { x: 0, y: -28 }, { x: 0, y: 28 }, { x: 40, y: 0 }
-      ).scaleWith(scale).rotate(-rotation).sumWith(centre).vectors;
+      ).scaleWith(scale).rotate(rotation).sumWith(centre).vectors;
 
 
       let joints = [

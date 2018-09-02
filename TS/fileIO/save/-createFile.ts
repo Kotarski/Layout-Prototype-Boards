@@ -15,6 +15,6 @@ namespace FileIO.Save {
 
       });
 
-      return JSON.stringify(componentStrings)
+      return JSON.stringify(componentStrings, undefined, 2);
    }
 }

@@ -22,7 +22,6 @@ namespace Circuit.Component {
       import Types = PowerSchematic.Types;
 
       export const defaultState: Types.state = {
-         location: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
          joints: [{ x: 0, y: 0 }]
       }
       export const defaultProperties: Types.properties = {
@@ -50,7 +49,6 @@ namespace Circuit.Component {
 
          getState(): Types.state {
             return {
-               location: this.location,
                joints: this.joints
             }
          }
@@ -60,15 +58,8 @@ namespace Circuit.Component {
 
          /** Builds and draws the components connectors */
          makeConnectors() {
-            // Leads 
-            let lead1End;
-            lead1End = (this.voltage < 0)
-               ? { x: 0, y: -10 } // negative
-               : (this.voltage > 0)
-                  ? { x: 0, y: 10 } // positive
-                  : { x: 0, y: -10 }; // zero (ground)
             this.connectorSets = [
-               [Component.Generics.makeConnector(this, "", "node", lead1End)]
+               [Component.Generics.makeConnector(this, "", "node", this.joints[0])]
             ]
          }
 
@@ -80,16 +71,37 @@ namespace Circuit.Component {
 
          let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
             {
-               location: raw.state.location,
                joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 1)
                   ? vector.standardise(raw.state.joints as AnyVector[])
                   : undefined
             } : {
-               location: (raw.where) ? {
-                  e: raw.where.X,
-                  f: raw.where.Y
-               } : undefined,
-               joints: undefined,
+               joints: (() => {
+                  if (raw.where && vector.isVector(raw.where)) {
+
+                     if (raw.value !== undefined && typeof raw.value === "number") {
+
+                        let offset = (raw.value < 0)
+                           ? { x: 0, y: -10 } // negative
+                           : (raw.value > 0)
+                              ? { x: 0, y: 10 } // positive
+                              : { x: 0, y: -10 }; // zero (ground)
+
+                        return [vector(raw.where as AnyVector).sumWith(offset).vector]
+
+                     } else {
+                        return [vector(raw.where as AnyVector).vector]
+                     }
+
+
+
+
+
+
+                  } else {
+                     return undefined;
+                  }
+
+               })()
             };
 
          let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
@@ -108,7 +120,10 @@ namespace Circuit.Component {
             $(component.group.element).addClass("component " + component.name);
             Addins.Selectable.init(component);
             Addins.ConnectionHighlights.init(component, false);
-            Addins.Draggable.init(component);
+            Addins.Graphical.init(component);
+            if (Constants.schematicManipulationEnabled) {
+               Addins.Draggable.init(component);
+            }
          }
       );
    }
