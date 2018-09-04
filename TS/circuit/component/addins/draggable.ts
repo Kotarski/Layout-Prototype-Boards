@@ -13,6 +13,12 @@ namespace Circuit.Component.Addins.Draggable {
                joint.y += drag.y;
             })
             $(component.group.element).trigger(Events.draw);
+         },
+         onStop: () => {
+            component.joints.forEach(joint => {
+               joint.x = Math.round(joint.x);
+               joint.y = Math.round(joint.y);
+            });
          }
       });
    }
