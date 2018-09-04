@@ -2967,6 +2967,12 @@ var Circuit;
                                 joint.y += drag.y;
                             });
                             $(component.group.element).trigger(Circuit.Events.draw);
+                        },
+                        onStop: () => {
+                            component.joints.forEach(joint => {
+                                joint.x = Math.round(joint.x);
+                                joint.y = Math.round(joint.y);
+                            });
                         }
                     });
                 };
@@ -3056,6 +3062,10 @@ var Circuit;
                         point.x += drag.x;
                         point.y += drag.y;
                         $(component.group.element).trigger(Circuit.Events.draw, [e]);
+                    });
+                    $(dragHandle.element).on(Circuit.Events.dragStop, (e, ui, drag) => {
+                        point.x = Math.round(point.x);
+                        point.y = Math.round(point.y);
                     });
                     return dragHandle;
                 };

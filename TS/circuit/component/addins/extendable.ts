@@ -99,6 +99,10 @@ namespace Circuit.Component.Addins.Extendable {
          $(component.group.element).trigger(Events.draw, [e]);
       });
 
+      $(dragHandle.element).on(Events.dragStop, (e, ui, drag: Vector) => {
+         point.x = Math.round(point.x);
+         point.y = Math.round(point.y);
+      });
 
       return dragHandle;
    };
