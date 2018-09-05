@@ -112,8 +112,8 @@ namespace Circuit.Component {
             console.log("Given type for \"%s\" does not match fallback, fallback value %o used.", runningLocation.join("."), fallback);
          }
          // if types are object, check object properties match
-      } else if (typeof fallback === "object" && !Array.isArray(fallback)) {
-         for (let key in fallback) {
+      } else if (typeof fallback === "object" && !Array.isArray(fallback) && fallback !== null) {
+         Object.keys(fallback).forEach(key => {
             let newRunningLocation = runningLocation.concat(key);
             if (!given.hasOwnProperty(key)) {
                if (printFallbacks) {
@@ -122,7 +122,7 @@ namespace Circuit.Component {
             } else {
                fallback[key] = loadObjectWithDefaults(fallback[key], given[key], newRunningLocation, printFallbacks)
             }
-         }
+         });
       } else {
          fallback = given;
       }

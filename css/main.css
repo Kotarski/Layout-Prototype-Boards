@@ -58,13 +58,6 @@ svg {
    pointer-events: auto;
 }
 
-.edge {
-   box-shadow: 0 0 0 0.4em var(--colourRgb);
-   /* Required to solve junk pixel issue:
-      https://stackoverflow.com/questions/9983520/webkit-animation-is-leaving-junk-pixels-behind-on-the-screen*/
-   outline: 0.5em solid transparent;
-}
-
 .dragging {
    opacity: 0.6;
 }

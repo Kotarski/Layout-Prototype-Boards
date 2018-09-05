@@ -63,7 +63,7 @@ namespace Ui {
          Ui.Events.fileSave(event);
       });
 
-      NodeElements.checkCircuitButton.addEventListener('click', (event: Event) => {
+      NodeElements.checkCircuitButton.addEventListener('click', () => {
          Ui.Events.checkCircuit()
       });
    }

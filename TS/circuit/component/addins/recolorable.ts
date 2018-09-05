@@ -6,17 +6,16 @@ namespace Circuit.Component.Addins.Recolorable {
    export const init = (
       component: recolorableComponent,
       where: () => Vector,
-      recolorSelector: string = "*",
       colorPalette: colorPalette = defaultColorPalette
    ) => {
       const element = component.group.element;
 
       $(element).on(Events.select, () => {
-         createRecolorHandle(component, where(), recolorSelector, colorPalette);
+         createRecolorHandle(component, where(), colorPalette);
       });
       $(element).on(Events.draw, () => {
          clearRecolorHandle(component);
-         createRecolorHandle(component, where(), recolorSelector, colorPalette);
+         createRecolorHandle(component, where(), colorPalette);
       });
       $(element).on(Events.deselect, () => {
          clearRecolorHandle(component);
@@ -29,7 +28,7 @@ namespace Circuit.Component.Addins.Recolorable {
       $(component.group.element).trigger(Events.draw);
    };
 
-   const createRecolorHandle = (component: recolorableComponent, position: Vector, recolorSelector: string, colorPalette: colorPalette) => {
+   const createRecolorHandle = (component: recolorableComponent, position: Vector, colorPalette: colorPalette) => {
 
       let recolorSegmentGroup = Svg.Element.Group.make("recolorSegmentGroup");
       let recolorHandle = Svg.Element.Circle.make(position, 7, "handle recolorHandle");

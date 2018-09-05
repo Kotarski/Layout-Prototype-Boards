@@ -7,8 +7,8 @@ namespace Circuit.Events {
 
    export const place: string = "place";
 
-   export const select: string = "select";
-   export const deselect: string = "deselect";
+   export const select: string = "svgSelect";
+   export const deselect: string = "svgDeselect";
 
    export const draw: string = "draw";
 }
