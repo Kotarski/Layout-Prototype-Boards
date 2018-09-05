@@ -18,7 +18,7 @@ namespace Circuit.Component.Addins.ConnectionHighlights {
 
    }
 
-   const createConnectorHighlights = (component: Component.Instance, connection: Component.Types.connector, color: string, symbol?: string) => {
+   const createConnectorHighlights = (component: Component.Instance, connection: Component.Types.connector, color: string) => {
       let highlight = Svg.Element.Circle.make(connection.point, 4, "highlight highlightwithfill connectivityhighlight");
 
       $(highlight.element).css({ "fill": color, "stroke": color })

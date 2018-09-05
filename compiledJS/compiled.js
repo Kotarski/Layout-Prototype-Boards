@@ -385,8 +385,8 @@ var Circuit;
                     console.log("Given type for \"%s\" does not match fallback, fallback value %o used.", runningLocation.join("."), fallback);
                 }
             }
-            else if (typeof fallback === "object" && !Array.isArray(fallback)) {
-                for (let key in fallback) {
+            else if (typeof fallback === "object" && !Array.isArray(fallback) && fallback !== null) {
+                Object.keys(fallback).forEach(key => {
                     let newRunningLocation = runningLocation.concat(key);
                     if (!given.hasOwnProperty(key)) {
                         if (printFallbacks) {
@@ -396,7 +396,7 @@ var Circuit;
                     else {
                         fallback[key] = loadObjectWithDefaults(fallback[key], given[key], newRunningLocation, printFallbacks);
                     }
-                }
+                });
             }
             else {
                 fallback = given;
@@ -415,8 +415,8 @@ var Circuit;
         Events.dragStop = "dragstop";
         Events.moved = [Events.rotate, Events.drag, Events.dragStart, Events.dragStop].join(" ");
         Events.place = "place";
-        Events.select = "select";
-        Events.deselect = "deselect";
+        Events.select = "svgSelect";
+        Events.deselect = "svgDeselect";
         Events.draw = "draw";
     })(Events = Circuit.Events || (Circuit.Events = {}));
 })(Circuit || (Circuit = {}));
@@ -1199,15 +1199,18 @@ var Circuit;
                     this.group.prepend(capacitorBody);
                 }
                 makeConnectors() {
-                    let lead1Name = "";
-                    let lead2Name = "";
                     if (this.isPolarised) {
-                        [lead1Name, lead2Name] = ["cathode", "anode"];
+                        this.connectorSets = [[
+                                Component.Generics.makeConnector(this, "cathode", "pin", this.joints[0], "-"),
+                                Component.Generics.makeConnector(this, "anode", "pin", this.joints[1], "+"),
+                            ]];
                     }
-                    this.connectorSets = [[
-                            Component.Generics.makeConnector(this, lead1Name, "pin", this.joints[0]),
-                            Component.Generics.makeConnector(this, lead2Name, "pin", this.joints[this.joints.length - 1]),
-                        ]];
+                    else {
+                        this.connectorSets = [[
+                                Component.Generics.makeConnector(this, "", "pin", this.joints[0]),
+                                Component.Generics.makeConnector(this, "", "pin", this.joints[1]),
+                            ]];
+                    }
                 }
                 transferFunction() { return []; }
                 ;
@@ -1362,7 +1365,8 @@ var Circuit;
             Local.defaultProperties = {
                 name: "diode",
                 breakdownVoltage: 0,
-                saturationCurrent: 0
+                saturationCurrent: 0,
+                color: "N/A"
             };
             class Instance extends Component.Instance {
                 constructor(properties, state) {
@@ -1371,12 +1375,14 @@ var Circuit;
                     this.joints = state.joints;
                     this.saturationCurrent = properties.saturationCurrent;
                     this.breakdownVoltage = properties.breakdownVoltage;
+                    this.color = properties.color;
                 }
                 getProperties() {
                     return {
                         name: this.name,
                         breakdownVoltage: this.breakdownVoltage,
-                        saturationCurrent: this.saturationCurrent
+                        saturationCurrent: this.saturationCurrent,
+                        color: this.color
                     };
                 }
                 getState() {
@@ -1386,12 +1392,15 @@ var Circuit;
                 }
                 draw() {
                     const [start, end] = this.joints;
-                    this.group.prepend(Svg.Element.Group.Diode.Layout.make(this.breakdownVoltage, start, end, "body"));
+                    let diodeBody = (this.color === "N/A")
+                        ? Svg.Element.Group.Diode.Layout.make(this.breakdownVoltage, start, end, "body")
+                        : Svg.Element.Group.Led.Layout.make(this.breakdownVoltage, this.color, start, end, "body led");
+                    this.group.prepend(diodeBody);
                 }
                 makeConnectors() {
                     this.connectorSets = [[
-                            Component.Generics.makeConnector(this, "anode", "pin", this.joints[0]),
-                            Component.Generics.makeConnector(this, "cathode", "pin", this.joints[this.joints.length - 1]),
+                            Component.Generics.makeConnector(this, "anode", "pin", this.joints[0], "+"),
+                            Component.Generics.makeConnector(this, "cathode", "pin", this.joints[this.joints.length - 1], "-"),
                         ]];
                 }
                 transferFunction() { return []; }
@@ -1410,14 +1419,15 @@ var Circuit;
                         name: raw.properties.name,
                         breakdownVoltage: raw.properties.breakdownVoltage,
                         saturationCurrent: raw.properties.saturationCurrent,
+                        color: raw.properties.color
                     } : {};
                 return Local.makeInstance(properties, state, true);
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Graphical.init(component);
-                Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
+                Component.Addins.Draggable.init(component);
                 Component.Addins.Extendable.init(component);
                 Component.Addins.ConnectionHighlights.init(component);
             });
@@ -1443,7 +1453,8 @@ var Circuit;
             Local.defaultProperties = {
                 name: "diode",
                 breakdownVoltage: 0,
-                saturationCurrent: 0
+                saturationCurrent: 0,
+                color: "N/A"
             };
             class Instance extends Component.Instance {
                 constructor(properties, state) {
@@ -1452,6 +1463,7 @@ var Circuit;
                     this.joints = state.joints;
                     this.breakdownVoltage = properties.breakdownVoltage;
                     this.saturationCurrent = properties.saturationCurrent;
+                    this.color = properties.color;
                     Component.Addins.Selectable.init(this);
                     Component.Addins.ConnectionHighlights.init(this, false);
                 }
@@ -1459,7 +1471,8 @@ var Circuit;
                     return {
                         name: this.name,
                         breakdownVoltage: this.breakdownVoltage,
-                        saturationCurrent: this.saturationCurrent
+                        saturationCurrent: this.saturationCurrent,
+                        color: this.color
                     };
                 }
                 getState() {
@@ -1468,12 +1481,16 @@ var Circuit;
                     };
                 }
                 draw() {
-                    this.group.prepend(Svg.Element.Group.Diode.Schematic.make(this.breakdownVoltage, this.saturationCurrent, this.joints[0], this.joints[1], "body"));
+                    const [start, end] = this.joints;
+                    let diodeBody = (this.color === "N/A")
+                        ? Svg.Element.Group.Diode.Schematic.make(this.breakdownVoltage, this.saturationCurrent, start, end, "bodyelectrolytic")
+                        : Svg.Element.Group.Led.Schematic.make(this.breakdownVoltage, this.saturationCurrent, this.color, start, end, "bodyceramic");
+                    this.group.prepend(diodeBody);
                 }
                 makeConnectors() {
                     this.connectorSets = [[
-                            Component.Generics.makeConnector(this, "anode", "node", this.joints[0]),
-                            Component.Generics.makeConnector(this, "cathode", "node", this.joints[1]),
+                            Component.Generics.makeConnector(this, "anode", "node", this.joints[0], "+"),
+                            Component.Generics.makeConnector(this, "cathode", "node", this.joints[1], "-"),
                         ]];
                 }
                 transferFunction() { return []; }
@@ -1510,17 +1527,19 @@ var Circuit;
                         name: raw.properties.name,
                         breakdownVoltage: raw.properties.breakdownVoltage,
                         saturationCurrent: raw.properties.saturationCurrent,
+                        color: raw.properties.color
                     } : {
                     breakdownVoltage: raw.breakdownVoltage,
                     saturationCurrent: raw.saturationCurrent,
+                    color: raw.colour
                 };
                 return Local.makeInstance(properties, state, true);
             };
             Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
                 $(component.group.element).addClass("component " + component.name);
+                Component.Addins.Graphical.init(component);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
-                Component.Addins.Graphical.init(component);
                 if (Constants.schematicManipulationEnabled) {
                     Component.Addins.Draggable.init(component);
                     Component.Addins.Extendable.init(component);
@@ -2555,7 +2574,7 @@ var Circuit;
                 Component.Addins.Selectable.init(component);
                 Component.Addins.Extendable.init(component, true, true, true);
                 Component.Addins.ConnectionHighlights.init(component);
-                Component.Addins.Recolorable.init(component, () => getRecolorPosition(component), ".cover");
+                Component.Addins.Recolorable.init(component, () => getRecolorPosition(component));
             });
         })(Local || (Local = {}));
         Component.WireLayout = {
@@ -2907,7 +2926,7 @@ var Circuit;
                         clearConnectionsHighlights(component);
                     });
                 };
-                const createConnectorHighlights = (component, connection, color, symbol) => {
+                const createConnectorHighlights = (component, connection, color) => {
                     let highlight = Svg.Element.Circle.make(connection.point, 4, "highlight highlightwithfill connectivityhighlight");
                     $(highlight.element).css({ "fill": color, "stroke": color });
                     component.group.append(highlight);
@@ -3160,14 +3179,14 @@ var Circuit;
         (function (Addins) {
             var Recolorable;
             (function (Recolorable) {
-                Recolorable.init = (component, where, recolorSelector = "*", colorPalette = defaultColorPalette) => {
+                Recolorable.init = (component, where, colorPalette = defaultColorPalette) => {
                     const element = component.group.element;
                     $(element).on(Circuit.Events.select, () => {
-                        createRecolorHandle(component, where(), recolorSelector, colorPalette);
+                        createRecolorHandle(component, where(), colorPalette);
                     });
                     $(element).on(Circuit.Events.draw, () => {
                         clearRecolorHandle(component);
-                        createRecolorHandle(component, where(), recolorSelector, colorPalette);
+                        createRecolorHandle(component, where(), colorPalette);
                     });
                     $(element).on(Circuit.Events.deselect, () => {
                         clearRecolorHandle(component);
@@ -3178,7 +3197,7 @@ var Circuit;
                     component.makeConnectors();
                     $(component.group.element).trigger(Circuit.Events.draw);
                 };
-                const createRecolorHandle = (component, position, recolorSelector, colorPalette) => {
+                const createRecolorHandle = (component, position, colorPalette) => {
                     let recolorSegmentGroup = Svg.Element.Group.make("recolorSegmentGroup");
                     let recolorHandle = Svg.Element.Circle.make(position, 7, "handle recolorHandle");
                     let segment1 = Svg.Element.Rect.make(position, { width: 10, height: 20 }, undefined, "recolorHandleSegment").rotate(45, position).translate({ x: -4, y: -4 });
@@ -3287,7 +3306,7 @@ var Circuit;
                 };
                 const setDisplayHandlers = (component) => {
                     $(component.group.element).on(Circuit.Events.select, () => {
-                        console.log(component);
+                        console.log("Selected: %o", component);
                         $(component.group.element).addClass("selected");
                         component.insertInto(component.group.element);
                     });
@@ -21528,6 +21547,87 @@ var Svg;
     (function (Element) {
         var Group;
         (function (Group) {
+            var Led;
+            (function (Led) {
+                var Layout;
+                (function (Layout) {
+                    function make(value, color, start, end, classes = "") {
+                        const bodyGroup = Group.make(classes);
+                        let centre = vector(start, end).centre().vector;
+                        let rotation = vector(start).getAngleTo(end);
+                        let bodyString = "M " + (6) + " " + (10.5) +
+                            "a " + (12) + " " + (12) + " " + (0) + " " + (1) + " " + (0) + " " + (-12) + " " + (0) +
+                            "Z";
+                        let highlightString = "M " + (6) + " " + (11.5) +
+                            "a " + (12.8) + " " + (12.8) + " " + (0) + " " + (1) + " " + (0) + " " + (-12) + " " + (0) +
+                            "Z";
+                        let edge = Svg.Element.Path.make(bodyString, "edge");
+                        let middle = Svg.Element.Circle.make({ x: 0, y: 0 }, 10, "centre");
+                        $([edge.element, middle.element]).css("fill", color);
+                        bodyGroup.append(edge, Svg.Element.Path.make(bodyString, "darkener"), middle, Svg.Element.Circle.make({ x: 0, y: 0 }, 5, "lightener"), Svg.Element.Path.make(highlightString, "nofill highlight"));
+                        return [
+                            Svg.Element.Path.make([start, end], "lead"),
+                            bodyGroup.translate(centre).rotate(rotation - 90)
+                        ];
+                    }
+                    Layout.make = make;
+                })(Layout = Led.Layout || (Led.Layout = {}));
+            })(Led = Group.Led || (Group.Led = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var Led;
+            (function (Led) {
+                var Schematic;
+                (function (Schematic) {
+                    function make(breakdownVoltage, saturationCurrent, color, end1, end2, classes = "") {
+                        const bodyGroup = Group.make(classes);
+                        let centre = vector(end1, end2).centre().vector;
+                        let rotation = vector(end1).getAngleTo(end2);
+                        let [start1, start2] = vector({ x: -12, y: 0 }, { x: 12, y: 0 }).rotate(rotation).sumWith(centre).vectors;
+                        let text = (breakdownVoltage < 51)
+                            ? Utility.getStandardForm(breakdownVoltage, 'V')
+                            : Utility.getStandardForm(saturationCurrent, 'A');
+                        let bodyPath = 'M 12 0 L -12 12 L -12 -12 L 12 0 Z';
+                        let arrowJointsBase = vector([{ x: 0, y: 3 }, { x: -4, y: 0 }, { x: 0, y: -3 }, { x: -4, y: 0 }, { x: 8, y: 0 }]);
+                        let arrowJoints1 = arrowJointsBase.sumWith({ x: -16, y: -10 }).rotate(-116.43).vectors;
+                        let arrowJoints2 = arrowJointsBase.sumWith({ x: -16, y: 0 }).rotate(-116.43).vectors;
+                        let colorCircle = Svg.Element.Circle.make({ x: -4, y: 0 }, 4, "line thin");
+                        $(colorCircle.element).css("fill", color);
+                        $(colorCircle.element).css("stroke", color);
+                        $(colorCircle.element).css("stroke-opacity", "0.7");
+                        bodyGroup.append(Svg.Element.Path.make(bodyPath, "body highlight highlightwithfill extrathick"), Svg.Element.Path.make(bodyPath, "body black"), Svg.Element.Path.make(arrowJoints1, "line black thin"), Svg.Element.Path.make(arrowJoints2, "line black thin"), colorCircle);
+                        if (breakdownVoltage < 51) {
+                            bodyGroup.append(Svg.Element.Path.make('M 18 -12 L 12 -12 L 12 12 L 6 12', "line medium"));
+                        }
+                        else {
+                            bodyGroup.append(Svg.Element.Path.make('M 12 -12 L 12 12', "line medium"));
+                        }
+                        let textEl = Svg.Element.Text.make(text, { x: 0, y: -15 }, "text");
+                        return [
+                            Svg.Element.Path.make([[start1, end1], [start2, end2]], "line thin"),
+                            bodyGroup.translate(centre).rotate(rotation),
+                            textEl.translate(centre).rotatePosition(rotation),
+                        ];
+                    }
+                    Schematic.make = make;
+                })(Schematic = Led.Schematic || (Led.Schematic = {}));
+            })(Led = Group.Led || (Group.Led = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
             var OpAmp;
             (function (OpAmp) {
                 var Layout;
@@ -21811,7 +21911,7 @@ var Ui;
         NodeElements.fileSave.addEventListener('click', (event) => {
             Ui.Events.fileSave(event);
         });
-        NodeElements.checkCircuitButton.addEventListener('click', (event) => {
+        NodeElements.checkCircuitButton.addEventListener('click', () => {
             Ui.Events.checkCircuit();
         });
     }

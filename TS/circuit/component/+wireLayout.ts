@@ -171,7 +171,7 @@ namespace Circuit.Component {
             Addins.Selectable.init(component);
             Addins.Extendable.init(component, true, true, true);
             Addins.ConnectionHighlights.init(component);
-            Addins.Recolorable.init(component, () => getRecolorPosition(component), ".cover");
+            Addins.Recolorable.init(component, () => getRecolorPosition(component));
          }
       );
    }

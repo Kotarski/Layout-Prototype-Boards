@@ -68,16 +68,19 @@ namespace Circuit.Component {
 
          /** Builds the components connectors */
          makeConnectors() {
-            let lead1Name = "";
-            let lead2Name = "";
             if (this.isPolarised) {
-               [lead1Name, lead2Name] = ["cathode", "anode"];
+               this.connectorSets = [[
+                  Component.Generics.makeConnector(this, "cathode", "pin", this.joints[0], "-"),
+                  Component.Generics.makeConnector(this, "anode", "pin", this.joints[1], "+"),
+               ]]
+            } else {
+               this.connectorSets = [[
+                  Component.Generics.makeConnector(this, "", "pin", this.joints[0]),
+                  Component.Generics.makeConnector(this, "", "pin", this.joints[1]),
+               ]]
             }
 
-            this.connectorSets = [[
-               Component.Generics.makeConnector(this, lead1Name, "pin", this.joints[0]),
-               Component.Generics.makeConnector(this, lead2Name, "pin", this.joints[this.joints.length - 1]),
-            ]]
+
          }
 
          transferFunction() { return [] };

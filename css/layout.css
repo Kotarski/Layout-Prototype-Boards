@@ -40,7 +40,7 @@
 
 .layout .resistor>.body>.band1 {
    fill: black;
-   clip-path: ellipse(6px 7.5px at 52.5% 50%);
+   clip-path: ellipse(6px 9.5px at 52.5% 50%);
 }
 
 .layout .resistor>.body>.band2 {
@@ -236,6 +236,31 @@
 }
 
 .layout .diode>.body>.highlight {
+   stroke-width: 2;
+}
+
+.layout .diode>.body.led>.edge {
+   stroke: none;
+}
+
+.layout .diode>.body.led>.darkener {
+   stroke: none;
+   fill: black;
+   opacity: 0.2;
+}
+
+.layout .diode>.body.led>.centre {
+   stroke: none;
+}
+
+.layout .diode>.body.led>.lightener {
+   stroke: none;
+   fill: white;
+   opacity: 0.25;
+   filter: blur(10px);
+}
+
+.layout .diode>.body.led>.highlight {
    stroke-width: 2;
 }
 
