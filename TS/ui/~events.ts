@@ -42,7 +42,7 @@ namespace Ui.Events {
       FileIO.Save.handleFileSaveEvent(event);
    }
 
-   //TODO REMOVE
+   //TODO Not my best work
    export function makeStripBoardButtonPress() {
 
       let rowElement = NodeElements.stripboardRows;
@@ -53,52 +53,60 @@ namespace Ui.Events {
          rows >= parseInt(rowElement.min) && columns >= parseInt(columnElement.min) &&
          rows <= parseInt(rowElement.max) && columns <= parseInt(columnElement.max)
       ) {
-         if (Circuit.manifest.activeBoard) Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
+
          let stripboard = Circuit.Component.Stripboard.makeInstance({
             rows: rows,
             columns: columns,
-         }, {})
+         }, {
+               disabled: true
+            });
+
+         if (Circuit.manifest.activeBoard) {
+            Circuit.history.add(Circuit.manifest, stripboard, Circuit.manifest.activeBoard)
+         } else {
+            Circuit.history.add(Circuit.manifest, stripboard)
+         }
+
          Circuit.manifest.addComponent(stripboard, Circuit.manifest.layout);
+         if (Circuit.manifest.activeBoard) Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
          Circuit.manifest.activeBoard = stripboard;
+         stripboard.disabled = false;
       }
    }
 
-
    export function makeBreadBoardSmallButtonPress() {
-      if (Circuit.manifest.activeBoard) Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
-      let breadboard = Circuit.Component.BreadboardSmall.makeInstance({}, {});
+      let breadboard = Circuit.Component.BreadboardSmall.makeInstance({}, {
+         disabled: true
+      });
+
+      if (Circuit.manifest.activeBoard) {
+         Circuit.history.add(Circuit.manifest, breadboard, Circuit.manifest.activeBoard)
+      } else {
+         Circuit.history.add(Circuit.manifest, breadboard)
+      }
+
       Circuit.manifest.addComponent(breadboard, Circuit.manifest.layout);
+      if (Circuit.manifest.activeBoard) Circuit.manifest.activeBoard.disabled = true;
+      if (Circuit.manifest.activeBoard) Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
       Circuit.manifest.activeBoard = breadboard;
+      breadboard.disabled = false;
    }
 
    export function makeBreadBoardLargeButtonPress() {
-      if (Circuit.manifest.activeBoard) Circuit.manifest.removeComponent(Circuit.manifest.activeBoard)
-      let breadboard = Circuit.Component.BreadboardLarge.makeInstance({}, {});
-      Circuit.manifest.addComponent(breadboard, Circuit.manifest.layout);
-      Circuit.manifest.activeBoard = breadboard;
-   }
+      let breadboard = Circuit.Component.BreadboardLarge.makeInstance({}, {
+         disabled: true
+      });
 
-   export function rotateBoard() {
-      let board = Circuit.manifest.activeBoard as Circuit.Component.Instance & {
-         joints: [Vector, Vector, ...Vector[]]
-      };
-      if (board) {
-         console.log(board)
-         let centre = board.joints[0];
-
-         board.joints = vector(board.joints)
-            .sumWith(vector(centre).scaleWith(-1))
-            .rotate(90)
-            .sumWith(centre)
-            .vectors as [Vector, Vector, ...Vector[]]
-
-         $(board.group.element).trigger(Circuit.Events.draw);
+      if (Circuit.manifest.activeBoard) {
+         Circuit.history.add(Circuit.manifest, breadboard, Circuit.manifest.activeBoard)
+      } else {
+         Circuit.history.add(Circuit.manifest, breadboard)
       }
-   }
 
-   export function makeWire() {
-      let wire = Circuit.Component.WireLayout.makeInstance({}, {});
-      Circuit.manifest.addComponent(wire, Circuit.manifest.layout);
+      Circuit.manifest.addComponent(breadboard, Circuit.manifest.layout);
+      if (Circuit.manifest.activeBoard) Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
+      Circuit.manifest.activeBoard = breadboard;
+      breadboard.disabled = false;
    }
 
    export function checkCircuit() {
@@ -158,5 +166,18 @@ namespace Ui.Events {
       let completion = (circuitStatus.corrects.length / (circuitStatus.corrects.length + circuitStatus.incorrects.length) * 100).toFixed(1);
       NodeElements.checkStatusText.innerText = "Correct: " + completion + "%";
    }
+
+   export function undo() {
+      if (Circuit.history !== undefined) {
+         Circuit.history.undo();
+      }
+   }
+
+   export function redo() {
+      if (Circuit.history !== undefined) {
+         Circuit.history.redo();
+      }
+   }
+
 
 }

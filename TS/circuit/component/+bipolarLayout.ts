@@ -18,7 +18,8 @@ namespace Circuit.Component {
       import Types = BipolarLayout.Types;
 
       export const defaultState: Types.state = {
-         joints: [{ x: 0, y: 0 }, { x: 20, y: -20 }, { x: 40, y: 0 }]
+         joints: [{ x: 0, y: 0 }, { x: 20, y: -20 }, { x: 40, y: 0 }],
+         disabled: false
       }
       export const defaultProperties: Types.properties = {
          name: "bipolar",
@@ -40,17 +41,18 @@ namespace Circuit.Component {
          }
 
          getProperties(): Types.properties {
-            return {
+            return Utility.deepCopy({
                name: this.name,
                currentGain: this.currentGain,
                type: this.type
-            }
+            });
          }
 
          getState(): Types.state {
-            return {
-               joints: this.joints
-            }
+            return Utility.deepCopy({
+               joints: this.joints,
+               disabled: this.disabled
+            });
          }
 
          draw() {

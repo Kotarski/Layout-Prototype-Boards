@@ -19,7 +19,8 @@ namespace Circuit.Component {
       import Types = InductorLayout.Types;
 
       export const defaultState: Types.state = {
-         joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }]
+         joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
+         disabled: false
       }
       export const defaultProperties: Types.properties = {
          name: "inductor",
@@ -38,16 +39,17 @@ namespace Circuit.Component {
          }
 
          getProperties(): Types.properties {
-            return {
+            return Utility.deepCopy({
                name: this.name,
                inductance: this.inductance,
-            }
+            });
          }
 
          getState(): Types.state {
-            return {
-               joints: this.joints
-            }
+            return Utility.deepCopy({
+               joints: this.joints,
+               disabled: this.disabled
+            });
          }
 
          draw() {

@@ -30,7 +30,7 @@ namespace Circuit.Component.Addins.Board {
             style: "breadboard" | "stripboard";
          }
 
-         export interface state {
+         export interface state extends Component.Types.state {
             joints: [Vector, Vector];
          }
       }
@@ -40,7 +40,8 @@ namespace Circuit.Component.Addins.Board {
       import Types = Track.Types
 
       export const defaultState: Types.state = {
-         joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }]
+         joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }],
+         disabled: false
       }
       export const defaultProperties: Types.properties = {
          name: "track",
@@ -64,17 +65,18 @@ namespace Circuit.Component.Addins.Board {
          }
 
          getProperties(): Types.properties {
-            return {
+            return Utility.deepCopy({
                name: this.name,
                holeSpacings: this.holeSpacings,
                style: this.style
-            }
+            });
          }
 
          getState(): Types.state {
-            return {
-               joints: this.joints
-            }
+            return Utility.deepCopy({
+               joints: this.joints,
+               disabled: this.disabled
+            });
          }
 
 
@@ -238,6 +240,13 @@ namespace Circuit.Component.Addins.Board {
             clearGhost(component);
          });
 
+         $(element.element).on(Events.draw, () => {
+            if ($(element.element).hasClass("selected")) {
+               clearGhost(component);
+               createGhost(component);
+            }
+         });
+
 
 
       }
@@ -295,6 +304,7 @@ namespace Circuit.Component.Addins.Board {
                let holePosition = { track: trackIdx, hole: holeIdx };
 
                $(breaker.element).click(() => {
+                  history.add(component);
 
                   if (hole.type === "hole") {
                      $(breaker.element).addClass("broken");

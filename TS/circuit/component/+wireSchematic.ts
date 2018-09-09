@@ -14,7 +14,8 @@ namespace Circuit.Component {
       import Types = WireSchematic.Types;
 
       export const defaultState: Types.state = {
-         joints: [{ x: 0, y: 0 }, { x: 10, y: 10 }]
+         joints: [{ x: 0, y: 0 }, { x: 10, y: 10 }],
+         disabled: false
       }
 
       export const defaultProperties: Types.properties = {
@@ -33,16 +34,17 @@ namespace Circuit.Component {
          }
 
          getProperties(): Types.properties {
-            return {
+            return Utility.deepCopy({
                name: this.name
-            }
+            });
          }
 
 
          getState(): Types.state {
-            return {
-               joints: this.joints
-            }
+            return Utility.deepCopy({
+               joints: this.joints,
+               disabled: this.disabled
+            });
          }
 
          draw() {

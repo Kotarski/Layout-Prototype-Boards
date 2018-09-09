@@ -344,12 +344,14 @@ var Circuit;
             ;
             ;
             ;
+            ;
         })(Types = Component.Types || (Component.Types = {}));
         class Instance {
             constructor(properties, state) {
                 this.group = Svg.Element.Group.make();
                 this.connectorSets = [];
                 this.name = properties.name;
+                this.disabled = state.disabled;
             }
             insertInto(element) {
                 Utility.Insert.last(this.group.element, element);
@@ -419,6 +421,79 @@ var Circuit;
         Events.deselect = "svgDeselect";
         Events.draw = "draw";
     })(Events = Circuit.Events || (Circuit.Events = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    const historyBuilder = ((participants) => {
+        let events = [];
+        let currentIdx = -1;
+        let lastIdx = -1;
+        const addEvent = (...participants) => {
+            if (currentIdx < lastIdx) {
+                events.splice(currentIdx + 1);
+            }
+            events.push(participants.map(participant => {
+                return {
+                    participant: participant,
+                    state: participant.getState()
+                };
+            }));
+            currentIdx += 1;
+            lastIdx = currentIdx;
+        };
+        addEvent(...participants);
+        const undo = () => {
+            if (currentIdx > 0) {
+                let redoEvent = events[currentIdx].map(development => development.participant).map(participant => {
+                    return {
+                        participant: participant,
+                        state: participant.getState()
+                    };
+                });
+                events[currentIdx].forEach(development => {
+                    Object.assign(development.participant, development.state);
+                    if (development.participant.group) {
+                        $(development.participant.group.element).trigger(Circuit.Events.draw);
+                    }
+                });
+                events[currentIdx] = redoEvent;
+                currentIdx -= 1;
+            }
+        };
+        const redo = () => {
+            if (currentIdx < lastIdx) {
+                currentIdx += 1;
+                let undoEvent = events[currentIdx].map(development => development.participant).map(participant => {
+                    return {
+                        participant: participant,
+                        state: participant.getState()
+                    };
+                });
+                events[currentIdx].forEach(development => {
+                    Object.assign(development.participant, development.state);
+                    if (development.participant.group) {
+                        $(development.participant.group.element).trigger(Circuit.Events.draw);
+                    }
+                });
+                events[currentIdx] = undoEvent;
+            }
+        };
+        return {
+            events: () => events,
+            add: addEvent,
+            undo: undo,
+            redo: redo,
+            currentIdx: () => currentIdx,
+            lastIdx: () => lastIdx
+        };
+    });
+    let History;
+    (function (History) {
+        function init(participants) {
+            Circuit.history = historyBuilder(participants);
+        }
+        History.init = init;
+    })(History = Circuit.History || (Circuit.History = {}));
 })(Circuit || (Circuit = {}));
 var Utility;
 (function (Utility) {
@@ -491,7 +566,8 @@ var Circuit;
             Circuit.manifest.layout = Circuit.manifest.layout.filter(el => el !== component);
             Circuit.manifest.schematic = Circuit.manifest.schematic.filter(el => el !== component);
             if (component)
-                component.group.element.remove();
+                $(component.group.element).hide();
+            component.disabled = true;
         };
         const findCorresponding = (component) => {
             if (!Circuit.mappings.isCorresponder(component))
@@ -524,6 +600,13 @@ var Circuit;
                 incorrects: split.fails
             };
         };
+        const getState = () => {
+            return {
+                schematic: [...Circuit.manifest.schematic],
+                layout: [...Circuit.manifest.layout],
+                activeBoard: Circuit.manifest.activeBoard
+            };
+        };
         return {
             schematic: [],
             layout: [],
@@ -532,7 +615,8 @@ var Circuit;
             removeComponent: removeComponent,
             findCorresponding: findCorresponding,
             checkAll: checkAll,
-            activeBoard: activeBoard
+            activeBoard: activeBoard,
+            getState: getState
         };
     })();
     const arePropertiesEqual = Utility.Curry.makeOptional((A, B) => {
@@ -764,7 +848,8 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 20, y: -20 }, { x: 40, y: 0 }]
+                joints: [{ x: 0, y: 0 }, { x: 20, y: -20 }, { x: 40, y: 0 }],
+                disabled: false
             };
             Local.defaultProperties = {
                 name: "bipolar",
@@ -780,16 +865,17 @@ var Circuit;
                     this.currentGain = properties.currentGain;
                 }
                 getProperties() {
-                    return {
+                    return Utility.deepCopy({
                         name: this.name,
                         currentGain: this.currentGain,
                         type: this.type
-                    };
+                    });
                 }
                 getState() {
-                    return {
-                        joints: this.joints
-                    };
+                    return Utility.deepCopy({
+                        joints: this.joints,
+                        disabled: this.disabled
+                    });
                 }
                 draw() {
                     this.group.prepend(Svg.Element.Group.Bipolar.Layout.make(this.type, this.joints[0], this.joints[1], this.joints[2], "body"));
@@ -845,7 +931,8 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                joints: [{ x: -50, y: 0 }, { x: +10, y: -50 }, { x: +10, y: +50 }]
+                joints: [{ x: -50, y: 0 }, { x: +10, y: -50 }, { x: +10, y: +50 }],
+                disabled: false
             };
             Local.defaultProperties = {
                 name: "bipolar",
@@ -862,16 +949,17 @@ var Circuit;
                     this.currentGain = properties.currentGain;
                 }
                 getProperties() {
-                    return {
+                    return Utility.deepCopy({
                         name: this.name,
                         currentGain: this.currentGain,
                         type: this.type
-                    };
+                    });
                 }
                 getState() {
-                    return {
-                        joints: this.joints
-                    };
+                    return Utility.deepCopy({
+                        joints: this.joints,
+                        disabled: this.disabled
+                    });
                 }
                 draw() {
                     this.group.prepend(Svg.Element.Group.Bipolar.Schematic.make(this.type, this.currentGain, this.joints[0], this.joints[1], this.joints[2], "body"));
@@ -950,7 +1038,8 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }]
+                joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }],
+                disabled: false
             };
             Local.defaultProperties = {
                 name: "breadboardlarge"
@@ -963,14 +1052,15 @@ var Circuit;
                     this.joints = state.joints;
                 }
                 getProperties() {
-                    return {
+                    return Utility.deepCopy({
                         name: this.name,
-                    };
+                    });
                 }
                 getState() {
-                    return {
-                        joints: this.joints
-                    };
+                    return Utility.deepCopy({
+                        joints: this.joints,
+                        disabled: this.disabled
+                    });
                 }
                 makeConnectors() { }
                 draw() {
@@ -1058,7 +1148,8 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }]
+                joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }],
+                disabled: false
             };
             Local.defaultProperties = {
                 name: "breadboardsmall"
@@ -1071,14 +1162,15 @@ var Circuit;
                     this.joints = state.joints;
                 }
                 getProperties() {
-                    return {
+                    return Utility.deepCopy({
                         name: this.name,
-                    };
+                    });
                 }
                 getState() {
-                    return {
-                        joints: this.joints
-                    };
+                    return Utility.deepCopy({
+                        joints: this.joints,
+                        disabled: this.disabled
+                    });
                 }
                 makeConnectors() { }
                 draw() {
@@ -1164,7 +1256,8 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }]
+                joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
+                disabled: false
             };
             Local.defaultProperties = {
                 name: "capacitor",
@@ -1180,16 +1273,17 @@ var Circuit;
                     this.isPolarised = properties.isPolarised;
                 }
                 getProperties() {
-                    return {
+                    return Utility.deepCopy({
                         name: this.name,
                         capacitance: this.capacitance,
                         isPolarised: this.isPolarised
-                    };
+                    });
                 }
                 getState() {
-                    return {
-                        joints: this.joints
-                    };
+                    return Utility.deepCopy({
+                        joints: this.joints,
+                        disabled: this.disabled
+                    });
                 }
                 draw() {
                     const [start, end] = this.joints;
@@ -1256,7 +1350,8 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }]
+                joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }],
+                disabled: false
             };
             Local.defaultProperties = {
                 name: "capacitor",
@@ -1272,16 +1367,17 @@ var Circuit;
                     this.isPolarised = properties.isPolarised;
                 }
                 getProperties() {
-                    return {
+                    return Utility.deepCopy({
                         name: this.name,
                         capacitance: this.capacitance,
                         isPolarised: this.isPolarised
-                    };
+                    });
                 }
                 getState() {
-                    return {
-                        joints: this.joints
-                    };
+                    return Utility.deepCopy({
+                        joints: this.joints,
+                        disabled: this.disabled
+                    });
                 }
                 draw() {
                     this.group.prepend(Svg.Element.Group.Capacitor.Schematic.make(this.capacitance, this.isPolarised, this.joints[0], this.joints[1], "body"));
@@ -1360,7 +1456,8 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }]
+                joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
+                disabled: false
             };
             Local.defaultProperties = {
                 name: "diode",
@@ -1378,17 +1475,18 @@ var Circuit;
                     this.color = properties.color;
                 }
                 getProperties() {
-                    return {
+                    return Utility.deepCopy({
                         name: this.name,
                         breakdownVoltage: this.breakdownVoltage,
                         saturationCurrent: this.saturationCurrent,
                         color: this.color
-                    };
+                    });
                 }
                 getState() {
-                    return {
-                        joints: this.joints
-                    };
+                    return Utility.deepCopy({
+                        joints: this.joints,
+                        disabled: this.disabled
+                    });
                 }
                 draw() {
                     const [start, end] = this.joints;
@@ -1448,7 +1546,8 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }]
+                joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }],
+                disabled: false
             };
             Local.defaultProperties = {
                 name: "diode",
@@ -1468,17 +1567,18 @@ var Circuit;
                     Component.Addins.ConnectionHighlights.init(this, false);
                 }
                 getProperties() {
-                    return {
+                    return Utility.deepCopy({
                         name: this.name,
                         breakdownVoltage: this.breakdownVoltage,
                         saturationCurrent: this.saturationCurrent,
                         color: this.color
-                    };
+                    });
                 }
                 getState() {
-                    return {
-                        joints: this.joints
-                    };
+                    return Utility.deepCopy({
+                        joints: this.joints,
+                        disabled: this.disabled
+                    });
                 }
                 draw() {
                     const [start, end] = this.joints;
@@ -1562,7 +1662,8 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }]
+                joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
+                disabled: false
             };
             Local.defaultProperties = {
                 name: "inductor",
@@ -1576,15 +1677,16 @@ var Circuit;
                     this.inductance = properties.inductance;
                 }
                 getProperties() {
-                    return {
+                    return Utility.deepCopy({
                         name: this.name,
                         inductance: this.inductance,
-                    };
+                    });
                 }
                 getState() {
-                    return {
-                        joints: this.joints
-                    };
+                    return Utility.deepCopy({
+                        joints: this.joints,
+                        disabled: this.disabled
+                    });
                 }
                 draw() {
                     const [start, end] = this.joints;
@@ -1639,7 +1741,8 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }]
+                joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }],
+                disabled: false
             };
             Local.defaultProperties = {
                 name: "inductor",
@@ -1653,15 +1756,16 @@ var Circuit;
                     this.inductance = properties.inductance;
                 }
                 getProperties() {
-                    return {
+                    return Utility.deepCopy({
                         name: this.name,
                         inductance: this.inductance,
-                    };
+                    });
                 }
                 getState() {
-                    return {
-                        joints: this.joints
-                    };
+                    return Utility.deepCopy({
+                        joints: this.joints,
+                        disabled: this.disabled
+                    });
                 }
                 draw() {
                     this.group.prepend(Svg.Element.Group.Inductor.Schematic.make(this.inductance, this.joints[0], this.joints[1], "body"));
@@ -1738,7 +1842,8 @@ var Circuit;
         (function (Local) {
             Local.defaultState = {
                 isDual: false,
-                joints: [{ x: 30, y: 30 }, { x: 40, y: 30 }]
+                joints: [{ x: 30, y: 30 }, { x: 40, y: 30 }],
+                disabled: false
             };
             Local.defaultProperties = {
                 name: "opAmp",
@@ -1753,16 +1858,17 @@ var Circuit;
                     this.offsetVoltage = properties.offsetVoltage;
                 }
                 getProperties() {
-                    return {
+                    return Utility.deepCopy({
                         name: this.name,
                         offsetVoltage: this.offsetVoltage
-                    };
+                    });
                 }
                 getState() {
-                    return {
+                    return Utility.deepCopy({
                         isDual: this.isDual,
-                        joints: this.joints
-                    };
+                        joints: this.joints,
+                        disabled: this.disabled
+                    });
                 }
                 draw() {
                     this.group.prepend(Svg.Element.Group.OpAmp.Layout.make(this.isDual, this.joints[0], this.joints[1], "body"));
@@ -1859,7 +1965,8 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                joints: [{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: 40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: 20 }]
+                joints: [{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: 40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: 20 }],
+                disabled: false
             };
             Local.defaultProperties = {
                 name: "opAmp",
@@ -1873,15 +1980,16 @@ var Circuit;
                     this.offsetVoltage = properties.offsetVoltage;
                 }
                 getProperties() {
-                    return {
+                    return Utility.deepCopy({
                         name: this.name,
                         offsetVoltage: this.offsetVoltage
-                    };
+                    });
                 }
                 getState() {
-                    return {
+                    return Utility.deepCopy({
                         joints: this.joints,
-                    };
+                        disabled: this.disabled
+                    });
                 }
                 draw() {
                     this.group.prepend(Svg.Element.Group.OpAmp.Schematic.make(this.joints[0], this.joints[1], this.joints[2], this.joints[3], this.joints[4], "body"));
@@ -1985,7 +2093,8 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                joints: [{ x: 0, y: 40 }]
+                joints: [{ x: 0, y: 40 }],
+                disabled: false
             };
             Local.defaultProperties = {
                 name: "power",
@@ -2000,15 +2109,16 @@ var Circuit;
                     this.joints = state.joints;
                 }
                 getProperties() {
-                    return {
+                    return Utility.deepCopy({
                         name: this.name,
                         voltage: this.voltage
-                    };
+                    });
                 }
                 getState() {
-                    return {
-                        joints: this.joints
-                    };
+                    return Utility.deepCopy({
+                        joints: this.joints,
+                        disabled: this.disabled
+                    });
                 }
                 insertInto(element) {
                     Utility.Insert.before(this.group.element, element, ".component");
@@ -2072,7 +2182,8 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                joints: [{ x: 0, y: 0 }]
+                joints: [{ x: 0, y: 0 }],
+                disabled: false
             };
             Local.defaultProperties = {
                 name: "power",
@@ -2086,15 +2197,16 @@ var Circuit;
                     this.joints = state.joints;
                 }
                 getProperties() {
-                    return {
+                    return Utility.deepCopy({
                         name: this.name,
                         voltage: this.voltage
-                    };
+                    });
                 }
                 getState() {
-                    return {
-                        joints: this.joints
-                    };
+                    return Utility.deepCopy({
+                        joints: this.joints,
+                        disabled: this.disabled
+                    });
                 }
                 draw() {
                     this.group.prepend(Svg.Element.Group.Power.Schematic.make(this.voltage, this.joints[0]));
@@ -2169,7 +2281,8 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }]
+                joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
+                disabled: false
             };
             Local.defaultProperties = {
                 name: "resistor",
@@ -2183,15 +2296,16 @@ var Circuit;
                     this.resistance = properties.resistance;
                 }
                 getProperties() {
-                    return {
+                    return Utility.deepCopy({
                         name: this.name,
                         resistance: this.resistance
-                    };
+                    });
                 }
                 getState() {
-                    return {
-                        joints: this.joints
-                    };
+                    return Utility.deepCopy({
+                        joints: this.joints,
+                        disabled: this.disabled
+                    });
                 }
                 draw() {
                     const [start, end] = this.joints;
@@ -2246,7 +2360,8 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }]
+                joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }],
+                disabled: false
             };
             Local.defaultProperties = {
                 name: "resistor",
@@ -2260,15 +2375,16 @@ var Circuit;
                     this.resistance = properties.resistance;
                 }
                 getProperties() {
-                    return {
+                    return Utility.deepCopy({
                         name: this.name,
                         resistance: this.resistance
-                    };
+                    });
                 }
                 getState() {
-                    return {
-                        joints: this.joints
-                    };
+                    return Utility.deepCopy({
+                        joints: this.joints,
+                        disabled: this.disabled
+                    });
                 }
                 draw() {
                     this.group.prepend(Svg.Element.Group.Resistor.Schematic.make(this.resistance, this.joints[0], this.joints[1], "body"));
@@ -2344,13 +2460,14 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }]
+                joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }],
+                disabled: false,
+                trackBreaks: []
             };
             Local.defaultProperties = {
                 name: "stripboard",
                 rows: 1,
-                columns: 1,
-                trackBreaks: []
+                columns: 1
             };
             class Instance extends Component.Instance {
                 constructor(properties, state) {
@@ -2359,21 +2476,22 @@ var Circuit;
                     this.connectorSets = [];
                     this.rows = properties.rows;
                     this.columns = properties.columns;
-                    this.trackBreaks = properties.trackBreaks;
+                    this.trackBreaks = state.trackBreaks;
                     this.joints = state.joints;
                 }
                 getProperties() {
-                    return {
+                    return Utility.deepCopy({
                         name: this.name,
                         rows: this.rows,
-                        columns: this.columns,
-                        trackBreaks: this.trackBreaks
-                    };
+                        columns: this.columns
+                    });
                 }
                 getState() {
-                    return {
-                        joints: this.joints
-                    };
+                    return Utility.deepCopy({
+                        joints: this.joints,
+                        disabled: this.disabled,
+                        trackBreaks: this.trackBreaks
+                    });
                 }
                 makeConnectors() {
                     this.tracks.forEach(track => track.makeConnectors());
@@ -2428,15 +2546,15 @@ var Circuit;
                     {
                         joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
                             ? vector.standardise(raw.state.joints)
-                            : undefined
+                            : undefined,
+                        trackBreaks: ((raw.state.trackBreaks && raw.state.trackBreaks.every((tB) => {
+                            return (('track' in tB) && ('hole' in tB) && (typeof tB.track === 'number') && (typeof tB.hole === 'number'));
+                        }))) ? raw.state.trackBreaks : undefined
                     } : {};
                 let properties = (raw.properties) ?
                     {
                         rows: raw.properties.rows,
-                        columns: raw.properties.columns,
-                        trackBreaks: ((raw.properties.trackBreaks.every((tB) => {
-                            return (('track' in tB) && ('hole' in tB) && (typeof tB.track === 'number') && (typeof tB.hole === 'number'));
-                        }))) ? raw.properties.trackBreaks : undefined
+                        columns: raw.properties.columns
                     } : {};
                 return Local.makeInstance(properties, state, true);
             };
@@ -2467,7 +2585,8 @@ var Circuit;
         (function (Local) {
             Local.defaultState = {
                 joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
-                color: "#545454"
+                color: "#545454",
+                disabled: false
             };
             Local.defaultProperties = {
                 name: "wire",
@@ -2480,15 +2599,16 @@ var Circuit;
                     this.color = state.color;
                 }
                 getProperties() {
-                    return {
+                    return Utility.deepCopy({
                         name: this.name
-                    };
+                    });
                 }
                 getState() {
-                    return {
+                    return Utility.deepCopy({
                         joints: this.joints,
-                        color: this.color
-                    };
+                        color: this.color,
+                        disabled: this.disabled
+                    });
                 }
                 draw() {
                     let coverPath, leadPath = "";
@@ -2593,7 +2713,8 @@ var Circuit;
         let Local;
         (function (Local) {
             Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 10, y: 10 }]
+                joints: [{ x: 0, y: 0 }, { x: 10, y: 10 }],
+                disabled: false
             };
             Local.defaultProperties = {
                 name: "wire",
@@ -2606,14 +2727,15 @@ var Circuit;
                     this.joints = state.joints;
                 }
                 getProperties() {
-                    return {
+                    return Utility.deepCopy({
                         name: this.name
-                    };
+                    });
                 }
                 getState() {
-                    return {
-                        joints: this.joints
-                    };
+                    return Utility.deepCopy({
+                        joints: this.joints,
+                        disabled: this.disabled
+                    });
                 }
                 draw() {
                     this.group.prepend(Svg.Element.Path.make(this.joints, "line thin"));
@@ -2701,7 +2823,8 @@ var Circuit;
                 let Local;
                 (function (Local) {
                     Local.defaultState = {
-                        joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }]
+                        joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }],
+                        disabled: false
                     };
                     Local.defaultProperties = {
                         name: "track",
@@ -2718,16 +2841,17 @@ var Circuit;
                             this.joints = state.joints;
                         }
                         getProperties() {
-                            return {
+                            return Utility.deepCopy({
                                 name: this.name,
                                 holeSpacings: this.holeSpacings,
                                 style: this.style
-                            };
+                            });
                         }
                         getState() {
-                            return {
-                                joints: this.joints
-                            };
+                            return Utility.deepCopy({
+                                joints: this.joints,
+                                disabled: this.disabled
+                            });
                         }
                         draw() {
                             if (this.style === "breadboard") {
@@ -2843,6 +2967,12 @@ var Circuit;
                         $(element.element).on(Circuit.Events.deselect, () => {
                             clearGhost(component);
                         });
+                        $(element.element).on(Circuit.Events.draw, () => {
+                            if ($(element.element).hasClass("selected")) {
+                                clearGhost(component);
+                                createGhost(component);
+                            }
+                        });
                     };
                     const createGhost = (component) => {
                         let ghostGroup = component.group.element.cloneNode();
@@ -2872,6 +3002,7 @@ var Circuit;
                                 trackGhostGroup.appendChild(breaker.element);
                                 let holePosition = { track: trackIdx, hole: holeIdx };
                                 $(breaker.element).click(() => {
+                                    Circuit.history.add(component);
                                     if (hole.type === "hole") {
                                         $(breaker.element).addClass("broken");
                                         hole.type = "brokenhole";
@@ -2920,7 +3051,9 @@ var Circuit;
                     });
                     $(element).on(Circuit.Events.draw, () => {
                         clearConnectionsHighlights(component);
-                        createConnectionsHighlights(component, propogate, colorPalette);
+                        if ($(component.group.element).hasClass("selected")) {
+                            createConnectionsHighlights(component, propogate, colorPalette);
+                        }
                     });
                     $(element).on(Circuit.Events.deselect, () => {
                         clearConnectionsHighlights(component);
@@ -2978,6 +3111,7 @@ var Circuit;
                     Svg.Addins.Draggable.init(component.group.element, {
                         disableMovement: true,
                         onStart: () => {
+                            Circuit.history.add(component);
                             component.insertInto(component.group.element);
                         },
                         onDrag: (drag) => {
@@ -3077,6 +3211,10 @@ var Circuit;
                     $(dragHandle.element).data('point', point);
                     component.group.append(dragHandle);
                     Svg.Addins.Draggable.init(dragHandle.element);
+                    $(dragHandle.element).on(Circuit.Events.dragStart, (e, ui, drag) => {
+                        e.stopPropagation();
+                        Circuit.history.add(Circuit.manifest, component);
+                    });
                     $(dragHandle.element).on(Circuit.Events.drag, (e, ui, drag) => {
                         point.x += drag.x;
                         point.y += drag.y;
@@ -3128,9 +3266,15 @@ var Circuit;
                 Graphical.init = (component) => {
                     let element = component.group.element;
                     $(element).on(Circuit.Events.draw, () => {
-                        component.group.clearChildren(":not(.handle,.connectivityhighlight)");
-                        component.draw();
-                        component.makeConnectors();
+                        if (component.disabled === false) {
+                            $(component.group.element).show();
+                            component.group.clearChildren(":not(.handle,.connectivityhighlight)");
+                            component.draw();
+                            component.makeConnectors();
+                        }
+                        else {
+                            $(component.group.element).hide();
+                        }
                     });
                 };
             })(Graphical = Addins.Graphical || (Addins.Graphical = {}));
@@ -3247,6 +3391,7 @@ var Circuit;
             (function (Rotatable) {
                 Rotatable.init = (component) => {
                     $(component.group.element).dblclick(() => {
+                        Circuit.history.add(component);
                         let centre = component.joints[0];
                         component.joints = vector(component.joints)
                             .sumWith(vector(centre).scaleWith(-1))
@@ -3336,13 +3481,13 @@ var Circuit;
                             });
                             let dragHandle;
                             $(mOE.target).on(Circuit.Events.dragStart, (e, ui, drag) => {
+                                e.stopPropagation();
                                 const position = Active.layout.group.convertVector({ x: e.clientX, y: e.clientY }, "DomToSvg", "relToGroup");
                                 const gridPosition = vector(position).snapToGrid().vector;
                                 const wire = createWireAtPoint(gridPosition);
                                 $(wire.group.element).trigger(Circuit.Events.draw);
                                 dragHandle = $(wire.group.element).find(".dragHandle")[0];
                                 $(dragHandle).trigger("mousedown");
-                                $(dragHandle).trigger(Circuit.Events.dragStart);
                             });
                             $(mOE.target).on(Circuit.Events.drag, (e, ui, drag) => {
                                 $(dragHandle).trigger(Circuit.Events.drag, [ui, drag]);
@@ -3355,9 +3500,12 @@ var Circuit;
                 };
                 const createWireAtPoint = (vector) => {
                     const wire = Component.WireLayout.makeInstance({}, {
-                        joints: [{ x: vector.x, y: vector.y }, { x: vector.x, y: vector.y }]
+                        joints: [{ x: vector.x, y: vector.y }, { x: vector.x, y: vector.y }],
+                        disabled: true
                     });
+                    Circuit.history.add(Circuit.manifest, wire);
                     Circuit.manifest.addComponent(wire, Circuit.manifest.layout);
+                    wire.disabled = false;
                     return wire;
                 };
             })(WireCreation = Addins.WireCreation || (Addins.WireCreation = {}));
@@ -3479,6 +3627,7 @@ var FileIO;
                             NodeElements.fileStatusText.innerText = "File:\r\n\"" + filename + "\"\r\nLoaded Successfully";
                             if (savedManifest) {
                                 Circuit.manifest.constructFrom(savedManifest);
+                                Circuit.History.init(Circuit.manifest.layout);
                             }
                             else {
                                 console.error("savedManifest is undefined");
@@ -21914,6 +22063,16 @@ var Ui;
         NodeElements.checkCircuitButton.addEventListener('click', () => {
             Ui.Events.checkCircuit();
         });
+        $(document).keydown(function (e) {
+            if (e.keyCode == 90 && e.ctrlKey) {
+                Ui.Events.undo();
+            }
+        });
+        $(document).keydown(function (e) {
+            if (e.keyCode == 89 && e.ctrlKey) {
+                Ui.Events.redo();
+            }
+        });
     }
     Ui.init = init;
 })(Ui || (Ui = {}));
@@ -21964,52 +22123,62 @@ var Ui;
             if (rows && columns &&
                 rows >= parseInt(rowElement.min) && columns >= parseInt(columnElement.min) &&
                 rows <= parseInt(rowElement.max) && columns <= parseInt(columnElement.max)) {
-                if (Circuit.manifest.activeBoard)
-                    Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
                 let stripboard = Circuit.Component.Stripboard.makeInstance({
                     rows: rows,
                     columns: columns,
-                }, {});
+                }, {
+                    disabled: true
+                });
+                if (Circuit.manifest.activeBoard) {
+                    Circuit.history.add(Circuit.manifest, stripboard, Circuit.manifest.activeBoard);
+                }
+                else {
+                    Circuit.history.add(Circuit.manifest, stripboard);
+                }
                 Circuit.manifest.addComponent(stripboard, Circuit.manifest.layout);
+                if (Circuit.manifest.activeBoard)
+                    Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
                 Circuit.manifest.activeBoard = stripboard;
+                stripboard.disabled = false;
             }
         }
         Events.makeStripBoardButtonPress = makeStripBoardButtonPress;
         function makeBreadBoardSmallButtonPress() {
+            let breadboard = Circuit.Component.BreadboardSmall.makeInstance({}, {
+                disabled: true
+            });
+            if (Circuit.manifest.activeBoard) {
+                Circuit.history.add(Circuit.manifest, breadboard, Circuit.manifest.activeBoard);
+            }
+            else {
+                Circuit.history.add(Circuit.manifest, breadboard);
+            }
+            Circuit.manifest.addComponent(breadboard, Circuit.manifest.layout);
+            if (Circuit.manifest.activeBoard)
+                Circuit.manifest.activeBoard.disabled = true;
             if (Circuit.manifest.activeBoard)
                 Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
-            let breadboard = Circuit.Component.BreadboardSmall.makeInstance({}, {});
-            Circuit.manifest.addComponent(breadboard, Circuit.manifest.layout);
             Circuit.manifest.activeBoard = breadboard;
+            breadboard.disabled = false;
         }
         Events.makeBreadBoardSmallButtonPress = makeBreadBoardSmallButtonPress;
         function makeBreadBoardLargeButtonPress() {
+            let breadboard = Circuit.Component.BreadboardLarge.makeInstance({}, {
+                disabled: true
+            });
+            if (Circuit.manifest.activeBoard) {
+                Circuit.history.add(Circuit.manifest, breadboard, Circuit.manifest.activeBoard);
+            }
+            else {
+                Circuit.history.add(Circuit.manifest, breadboard);
+            }
+            Circuit.manifest.addComponent(breadboard, Circuit.manifest.layout);
             if (Circuit.manifest.activeBoard)
                 Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
-            let breadboard = Circuit.Component.BreadboardLarge.makeInstance({}, {});
-            Circuit.manifest.addComponent(breadboard, Circuit.manifest.layout);
             Circuit.manifest.activeBoard = breadboard;
+            breadboard.disabled = false;
         }
         Events.makeBreadBoardLargeButtonPress = makeBreadBoardLargeButtonPress;
-        function rotateBoard() {
-            let board = Circuit.manifest.activeBoard;
-            if (board) {
-                console.log(board);
-                let centre = board.joints[0];
-                board.joints = vector(board.joints)
-                    .sumWith(vector(centre).scaleWith(-1))
-                    .rotate(90)
-                    .sumWith(centre)
-                    .vectors;
-                $(board.group.element).trigger(Circuit.Events.draw);
-            }
-        }
-        Events.rotateBoard = rotateBoard;
-        function makeWire() {
-            let wire = Circuit.Component.WireLayout.makeInstance({}, {});
-            Circuit.manifest.addComponent(wire, Circuit.manifest.layout);
-        }
-        Events.makeWire = makeWire;
         function checkCircuit() {
             let circuitStatus = Circuit.manifest.checkAll();
             let doHighlightCorrect = NodeElements.checkShowCorrect.checked;
@@ -22065,8 +22234,27 @@ var Ui;
             NodeElements.checkStatusText.innerText = "Correct: " + completion + "%";
         }
         Events.checkCircuit = checkCircuit;
+        function undo() {
+            if (Circuit.history !== undefined) {
+                Circuit.history.undo();
+            }
+        }
+        Events.undo = undo;
+        function redo() {
+            if (Circuit.history !== undefined) {
+                Circuit.history.redo();
+            }
+        }
+        Events.redo = redo;
     })(Events = Ui.Events || (Ui.Events = {}));
 })(Ui || (Ui = {}));
+var Utility;
+(function (Utility) {
+    function deepCopy(obj) {
+        return JSON.parse(JSON.stringify(obj));
+    }
+    Utility.deepCopy = deepCopy;
+})(Utility || (Utility = {}));
 var Utility;
 (function (Utility) {
     function degreesToRadians(angle) {

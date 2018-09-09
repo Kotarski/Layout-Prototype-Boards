@@ -1,7 +1,6 @@
 /// <reference path="../Utility/~curry.ts" />
 namespace Circuit {
 
-
    export const manifest = (() => {
 
       const clear = () => {
@@ -57,7 +56,8 @@ namespace Circuit {
       const removeComponent = (component: Component.Instance) => {
          manifest.layout = manifest.layout.filter(el => el !== component);
          manifest.schematic = manifest.schematic.filter(el => el !== component);
-         if (component) component.group.element.remove();
+         if (component) $(component.group.element).hide();
+         component.disabled = true;
       }
 
       const findCorresponding = (component: Component.Instance): Component.Instance[] => {
@@ -77,7 +77,7 @@ namespace Circuit {
          let layComponents = manifest.layout.filter(mappings.isCorresponder);
          let schComponents = manifest.schematic.filter(mappings.isCorresponder);
 
-         //TOFIX 
+         //TODO
          //Copy the schconnectorsets (deeplyish)  outside of the loop
          //When a match is found with a laycomponent, filter the match
 
@@ -107,6 +107,14 @@ namespace Circuit {
          }
       };
 
+      const getState = () => {
+         return {
+            schematic: [...manifest.schematic],
+            layout: [...manifest.layout],
+            activeBoard: manifest.activeBoard
+         }
+      }
+
       return {
          schematic: [] as Component.Instance[],
          layout: [] as Component.Instance[],
@@ -115,7 +123,8 @@ namespace Circuit {
          removeComponent: removeComponent,
          findCorresponding: findCorresponding,
          checkAll: checkAll,
-         activeBoard: activeBoard
+         activeBoard: activeBoard,
+         getState: getState
       }
    })();
 

@@ -22,7 +22,8 @@ namespace Circuit.Component {
       import Types = BipolarSchematic.Types;
 
       export const defaultState: Types.state = {
-         joints: [{ x: -50, y: 0 }, { x: +10, y: -50 }, { x: +10, y: +50 }]
+         joints: [{ x: -50, y: 0 }, { x: +10, y: -50 }, { x: +10, y: +50 }],
+         disabled: false
       }
       export const defaultProperties: Types.properties = {
          name: "bipolar",
@@ -45,17 +46,18 @@ namespace Circuit.Component {
          }
 
          getProperties(): Types.properties {
-            return {
+            return Utility.deepCopy({
                name: this.name,
                currentGain: this.currentGain,
                type: this.type
-            }
+            });
          }
 
          getState(): Types.state {
-            return {
-               joints: this.joints
-            }
+            return Utility.deepCopy({
+               joints: this.joints,
+               disabled: this.disabled
+            });
          }
 
          draw() {

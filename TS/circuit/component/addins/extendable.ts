@@ -93,6 +93,11 @@ namespace Circuit.Component.Addins.Extendable {
       component.group.append(dragHandle);
       Svg.Addins.Draggable.init(dragHandle.element);
 
+      $(dragHandle.element).on(Events.dragStart, (e, ui, drag: Vector) => {
+         e.stopPropagation();
+         history.add(manifest, component);
+      });
+
       $(dragHandle.element).on(Events.drag, (e, ui, drag: Vector) => {
          point.x += drag.x;
          point.y += drag.y;

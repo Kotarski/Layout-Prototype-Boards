@@ -66,5 +66,17 @@ namespace Ui {
       NodeElements.checkCircuitButton.addEventListener('click', () => {
          Ui.Events.checkCircuit()
       });
+
+      $(document).keydown(function (e) {
+         if (e.keyCode == 90 && e.ctrlKey) {
+            Ui.Events.undo();
+         }
+      });
+
+      $(document).keydown(function (e) {
+         if (e.keyCode == 89 && e.ctrlKey) {
+            Ui.Events.redo();
+         }
+      });
    }
 }
