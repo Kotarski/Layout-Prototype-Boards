@@ -83,6 +83,7 @@ namespace Circuit.Component.Addins.Extendable {
       $(component.group.element).on(Events.dragStop, ".dragHandle", (e) => {
          if (component.joints.length === 2 && vector(component.joints[0]).isCloseTo(component.joints[1])) {
             manifest.removeComponent(component);
+            history.mergeLast();
          }
       });
    };
@@ -92,11 +93,6 @@ namespace Circuit.Component.Addins.Extendable {
       $(dragHandle.element).data('point', point);
       component.group.append(dragHandle);
       Svg.Addins.Draggable.init(dragHandle.element);
-
-      $(dragHandle.element).on(Events.dragStart, (e, ui, drag: Vector) => {
-         e.stopPropagation();
-         history.add(manifest, component);
-      });
 
       $(dragHandle.element).on(Events.drag, (e, ui, drag: Vector) => {
          point.x += drag.x;

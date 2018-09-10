@@ -424,7 +424,7 @@ var Circuit;
 })(Circuit || (Circuit = {}));
 var Circuit;
 (function (Circuit) {
-    const historyBuilder = ((participants) => {
+    const historyBuilder = (() => {
         let events = [];
         let currentIdx = -1;
         let lastIdx = -1;
@@ -441,46 +441,64 @@ var Circuit;
             currentIdx += 1;
             lastIdx = currentIdx;
         };
-        addEvent(...participants);
-        const undo = () => {
-            if (currentIdx > 0) {
-                let redoEvent = events[currentIdx].map(development => development.participant).map(participant => {
-                    return {
-                        participant: participant,
-                        state: participant.getState()
-                    };
-                });
-                events[currentIdx].forEach(development => {
-                    Object.assign(development.participant, development.state);
-                    if (development.participant.group) {
-                        $(development.participant.group.element).trigger(Circuit.Events.draw);
+        const mergeLast = (N = 1) => {
+            let mergeStart = Math.max(0, lastIdx - N);
+            console.log(mergeStart);
+            let toMerge = events.slice(mergeStart);
+            let mergedDevelopments = [];
+            toMerge.forEach(event => {
+                event.forEach(dev => {
+                    if (!mergedDevelopments.some(mDev => mDev.participant === dev.participant)) {
+                        mergedDevelopments.push(dev);
                     }
                 });
-                events[currentIdx] = redoEvent;
-                currentIdx -= 1;
-            }
+            });
+            events = events.slice(0, mergeStart);
+            events[mergeStart] = mergedDevelopments;
+            lastIdx = mergeStart;
+            if (currentIdx > lastIdx)
+                currentIdx = lastIdx;
+        };
+        const undo = () => {
+            if (currentIdx <= 0)
+                return;
+            let redoEvent = events[currentIdx].map(development => development.participant).map(participant => {
+                return {
+                    participant: participant,
+                    state: participant.getState()
+                };
+            });
+            events[currentIdx].forEach(development => {
+                Object.assign(development.participant, development.state);
+                if (development.participant.group) {
+                    $(development.participant.group.element).trigger(Circuit.Events.draw);
+                }
+            });
+            events[currentIdx] = redoEvent;
+            currentIdx -= 1;
         };
         const redo = () => {
-            if (currentIdx < lastIdx) {
-                currentIdx += 1;
-                let undoEvent = events[currentIdx].map(development => development.participant).map(participant => {
-                    return {
-                        participant: participant,
-                        state: participant.getState()
-                    };
-                });
-                events[currentIdx].forEach(development => {
-                    Object.assign(development.participant, development.state);
-                    if (development.participant.group) {
-                        $(development.participant.group.element).trigger(Circuit.Events.draw);
-                    }
-                });
-                events[currentIdx] = undoEvent;
-            }
+            if (currentIdx >= lastIdx)
+                return;
+            currentIdx += 1;
+            let undoEvent = events[currentIdx].map(development => development.participant).map(participant => {
+                return {
+                    participant: participant,
+                    state: participant.getState()
+                };
+            });
+            events[currentIdx].forEach(development => {
+                Object.assign(development.participant, development.state);
+                if (development.participant.group) {
+                    $(development.participant.group.element).trigger(Circuit.Events.draw);
+                }
+            });
+            events[currentIdx] = undoEvent;
         };
         return {
             events: () => events,
             add: addEvent,
+            mergeLast: mergeLast,
             undo: undo,
             redo: redo,
             currentIdx: () => currentIdx,
@@ -490,7 +508,8 @@ var Circuit;
     let History;
     (function (History) {
         function init(participants) {
-            Circuit.history = historyBuilder(participants);
+            Circuit.history = historyBuilder();
+            Circuit.history.add(...participants);
         }
         History.init = init;
     })(History = Circuit.History || (Circuit.History = {}));
@@ -530,7 +549,7 @@ var Circuit;
         };
         let activeBoard;
         const constructFrom = (savedManifest) => {
-            clear();
+            Circuit.manifest.clear();
             Circuit.manifest.schematic = savedManifest.schematic;
             Circuit.manifest.layout = savedManifest.layout;
             if (!savedManifest.layout || savedManifest.layout.length === 0)
@@ -539,7 +558,7 @@ var Circuit;
             Circuit.manifest.activeBoard = Circuit.manifest.layout.find(component => Circuit.mappings.isBoard(component));
             draw();
         };
-        const addComponent = (components, manifestSection) => {
+        const addComponent = (manifestSection, ...components) => {
             let diagram;
             if (manifestSection === Circuit.manifest.schematic) {
                 diagram = Active.schematic;
@@ -547,9 +566,10 @@ var Circuit;
             else {
                 diagram = Active.layout;
             }
-            if (!(components instanceof Array))
-                components = [components];
+            components.forEach(component => component.disabled = true);
+            Circuit.history.add(Circuit.manifest, ...components);
             components.forEach(component => {
+                component.disabled = false;
                 manifestSection.push(component);
                 placeComponent(component, diagram);
             });
@@ -562,12 +582,14 @@ var Circuit;
             Circuit.manifest.schematic.forEach(component => placeComponent(component, Active.schematic));
             Circuit.manifest.layout.forEach(component => placeComponent(component, Active.layout));
         };
-        const removeComponent = (component) => {
-            Circuit.manifest.layout = Circuit.manifest.layout.filter(el => el !== component);
-            Circuit.manifest.schematic = Circuit.manifest.schematic.filter(el => el !== component);
-            if (component)
+        const removeComponent = (...components) => {
+            Circuit.history.add(Circuit.manifest, ...components);
+            Circuit.manifest.layout = Circuit.manifest.layout.filter(el => !components.includes(el));
+            Circuit.manifest.schematic = Circuit.manifest.schematic.filter(el => !components.includes(el));
+            components.forEach(component => {
                 $(component.group.element).hide();
-            component.disabled = true;
+                component.disabled = true;
+            });
         };
         const findCorresponding = (component) => {
             if (!Circuit.mappings.isCorresponder(component))
@@ -616,7 +638,8 @@ var Circuit;
             findCorresponding: findCorresponding,
             checkAll: checkAll,
             activeBoard: activeBoard,
-            getState: getState
+            getState: getState,
+            clear: clear
         };
     })();
     const arePropertiesEqual = Utility.Curry.makeOptional((A, B) => {
@@ -3203,6 +3226,7 @@ var Circuit;
                     $(component.group.element).on(Circuit.Events.dragStop, ".dragHandle", (e) => {
                         if (component.joints.length === 2 && vector(component.joints[0]).isCloseTo(component.joints[1])) {
                             Circuit.manifest.removeComponent(component);
+                            Circuit.history.mergeLast();
                         }
                     });
                 };
@@ -3211,10 +3235,6 @@ var Circuit;
                     $(dragHandle.element).data('point', point);
                     component.group.append(dragHandle);
                     Svg.Addins.Draggable.init(dragHandle.element);
-                    $(dragHandle.element).on(Circuit.Events.dragStart, (e, ui, drag) => {
-                        e.stopPropagation();
-                        Circuit.history.add(Circuit.manifest, component);
-                    });
                     $(dragHandle.element).on(Circuit.Events.drag, (e, ui, drag) => {
                         point.x += drag.x;
                         point.y += drag.y;
@@ -3490,9 +3510,11 @@ var Circuit;
                                 $(dragHandle).trigger("mousedown");
                             });
                             $(mOE.target).on(Circuit.Events.drag, (e, ui, drag) => {
+                                e.stopPropagation();
                                 $(dragHandle).trigger(Circuit.Events.drag, [ui, drag]);
                             });
                             $(mOE.target).on(Circuit.Events.dragStop, (e, ui) => {
+                                e.stopPropagation();
                                 $(dragHandle).trigger(Circuit.Events.dragStop, ui);
                             });
                         }
@@ -3501,11 +3523,8 @@ var Circuit;
                 const createWireAtPoint = (vector) => {
                     const wire = Component.WireLayout.makeInstance({}, {
                         joints: [{ x: vector.x, y: vector.y }, { x: vector.x, y: vector.y }],
-                        disabled: true
                     });
-                    Circuit.history.add(Circuit.manifest, wire);
-                    Circuit.manifest.addComponent(wire, Circuit.manifest.layout);
-                    wire.disabled = false;
+                    Circuit.manifest.addComponent(Circuit.manifest.layout, wire);
                     return wire;
                 };
             })(WireCreation = Addins.WireCreation || (Addins.WireCreation = {}));
@@ -3845,7 +3864,10 @@ var FileIO;
                         properties: component.getProperties(),
                         state: component.getState()
                     };
-                    componentStrings.push(JSON.stringify(componentObject));
+                    if (componentObject.state.disabled === false) {
+                        delete componentObject.state.disabled;
+                        componentStrings.push(JSON.stringify(componentObject));
+                    }
                 }
                 catch (e) {
                     console.error("Item %o cannot be saved (check mappings) with error %o", component, e);
@@ -22123,62 +22145,32 @@ var Ui;
             if (rows && columns &&
                 rows >= parseInt(rowElement.min) && columns >= parseInt(columnElement.min) &&
                 rows <= parseInt(rowElement.max) && columns <= parseInt(columnElement.max)) {
-                let stripboard = Circuit.Component.Stripboard.makeInstance({
+                addBoard(Circuit.Component.Stripboard.makeInstance({
                     rows: rows,
                     columns: columns,
-                }, {
-                    disabled: true
-                });
-                if (Circuit.manifest.activeBoard) {
-                    Circuit.history.add(Circuit.manifest, stripboard, Circuit.manifest.activeBoard);
-                }
-                else {
-                    Circuit.history.add(Circuit.manifest, stripboard);
-                }
-                Circuit.manifest.addComponent(stripboard, Circuit.manifest.layout);
-                if (Circuit.manifest.activeBoard)
-                    Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
-                Circuit.manifest.activeBoard = stripboard;
-                stripboard.disabled = false;
+                }, {}));
             }
         }
         Events.makeStripBoardButtonPress = makeStripBoardButtonPress;
         function makeBreadBoardSmallButtonPress() {
-            let breadboard = Circuit.Component.BreadboardSmall.makeInstance({}, {
-                disabled: true
-            });
-            if (Circuit.manifest.activeBoard) {
-                Circuit.history.add(Circuit.manifest, breadboard, Circuit.manifest.activeBoard);
-            }
-            else {
-                Circuit.history.add(Circuit.manifest, breadboard);
-            }
-            Circuit.manifest.addComponent(breadboard, Circuit.manifest.layout);
-            if (Circuit.manifest.activeBoard)
-                Circuit.manifest.activeBoard.disabled = true;
-            if (Circuit.manifest.activeBoard)
-                Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
-            Circuit.manifest.activeBoard = breadboard;
-            breadboard.disabled = false;
+            addBoard(Circuit.Component.BreadboardSmall.makeInstance({}, {}));
         }
         Events.makeBreadBoardSmallButtonPress = makeBreadBoardSmallButtonPress;
         function makeBreadBoardLargeButtonPress() {
-            let breadboard = Circuit.Component.BreadboardLarge.makeInstance({}, {
-                disabled: true
-            });
-            if (Circuit.manifest.activeBoard) {
-                Circuit.history.add(Circuit.manifest, breadboard, Circuit.manifest.activeBoard);
-            }
-            else {
-                Circuit.history.add(Circuit.manifest, breadboard);
-            }
-            Circuit.manifest.addComponent(breadboard, Circuit.manifest.layout);
-            if (Circuit.manifest.activeBoard)
-                Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
-            Circuit.manifest.activeBoard = breadboard;
-            breadboard.disabled = false;
+            addBoard(Circuit.Component.BreadboardLarge.makeInstance({}, {}));
         }
         Events.makeBreadBoardLargeButtonPress = makeBreadBoardLargeButtonPress;
+        function addBoard(board) {
+            if (Circuit.manifest.activeBoard !== undefined) {
+                Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
+                Circuit.manifest.addComponent(Circuit.manifest.layout, board);
+                Circuit.history.mergeLast();
+            }
+            else {
+                Circuit.manifest.addComponent(Circuit.manifest.layout, board);
+            }
+            Circuit.manifest.activeBoard = board;
+        }
         function checkCircuit() {
             let circuitStatus = Circuit.manifest.checkAll();
             let doHighlightCorrect = NodeElements.checkShowCorrect.checked;

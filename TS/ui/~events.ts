@@ -42,71 +42,41 @@ namespace Ui.Events {
       FileIO.Save.handleFileSaveEvent(event);
    }
 
-   //TODO Not my best work
    export function makeStripBoardButtonPress() {
-
       let rowElement = NodeElements.stripboardRows;
       let columnElement = NodeElements.stripboardColumns;
+
       let rows = parseInt(rowElement.value);
       let columns = parseInt(columnElement.value);
+
       if (rows && columns &&
          rows >= parseInt(rowElement.min) && columns >= parseInt(columnElement.min) &&
          rows <= parseInt(rowElement.max) && columns <= parseInt(columnElement.max)
       ) {
-
-         let stripboard = Circuit.Component.Stripboard.makeInstance({
+         addBoard(Circuit.Component.Stripboard.makeInstance({
             rows: rows,
             columns: columns,
-         }, {
-               disabled: true
-            });
-
-         if (Circuit.manifest.activeBoard) {
-            Circuit.history.add(Circuit.manifest, stripboard, Circuit.manifest.activeBoard)
-         } else {
-            Circuit.history.add(Circuit.manifest, stripboard)
-         }
-
-         Circuit.manifest.addComponent(stripboard, Circuit.manifest.layout);
-         if (Circuit.manifest.activeBoard) Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
-         Circuit.manifest.activeBoard = stripboard;
-         stripboard.disabled = false;
+         }, {}));
       }
    }
 
    export function makeBreadBoardSmallButtonPress() {
-      let breadboard = Circuit.Component.BreadboardSmall.makeInstance({}, {
-         disabled: true
-      });
-
-      if (Circuit.manifest.activeBoard) {
-         Circuit.history.add(Circuit.manifest, breadboard, Circuit.manifest.activeBoard)
-      } else {
-         Circuit.history.add(Circuit.manifest, breadboard)
-      }
-
-      Circuit.manifest.addComponent(breadboard, Circuit.manifest.layout);
-      if (Circuit.manifest.activeBoard) Circuit.manifest.activeBoard.disabled = true;
-      if (Circuit.manifest.activeBoard) Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
-      Circuit.manifest.activeBoard = breadboard;
-      breadboard.disabled = false;
+      addBoard(Circuit.Component.BreadboardSmall.makeInstance({}, {}));
    }
 
    export function makeBreadBoardLargeButtonPress() {
-      let breadboard = Circuit.Component.BreadboardLarge.makeInstance({}, {
-         disabled: true
-      });
+      addBoard(Circuit.Component.BreadboardLarge.makeInstance({}, {}));
+   }
 
-      if (Circuit.manifest.activeBoard) {
-         Circuit.history.add(Circuit.manifest, breadboard, Circuit.manifest.activeBoard)
+   function addBoard(board: Circuit.Component.Instance) {
+      if (Circuit.manifest.activeBoard !== undefined) {
+         Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
+         Circuit.manifest.addComponent(Circuit.manifest.layout, board);
+         Circuit.history.mergeLast();
       } else {
-         Circuit.history.add(Circuit.manifest, breadboard)
+         Circuit.manifest.addComponent(Circuit.manifest.layout, board);
       }
-
-      Circuit.manifest.addComponent(breadboard, Circuit.manifest.layout);
-      if (Circuit.manifest.activeBoard) Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
-      Circuit.manifest.activeBoard = breadboard;
-      breadboard.disabled = false;
+      Circuit.manifest.activeBoard = board;
    }
 
    export function checkCircuit() {

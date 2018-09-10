@@ -15,10 +15,12 @@ namespace Circuit.Component.Addins.WireCreation {
             });
             let dragHandle: SVGGraphicsElement;
 
+            // We are hijacking the hole drag events, so it's important the real handlers don't fire
+            // hence: e.stopPropagation();
+
             // Create the wire, select it, and grab a handle (any is fine)
             $(mOE.target).on(Events.dragStart, (e, ui, drag: Vector) => {
                e.stopPropagation();
-               //TODO 
                const position = Active.layout.group.convertVector({ x: e.clientX, y: e.clientY }, "DomToSvg", "relToGroup");
                const gridPosition = vector(position).snapToGrid().vector;
                const wire = createWireAtPoint(gridPosition);
@@ -29,11 +31,13 @@ namespace Circuit.Component.Addins.WireCreation {
 
             // Pass the handlers to the wire
             $(mOE.target).on(Events.drag, (e, ui, drag: Vector) => {
+               e.stopPropagation();
                $(dragHandle).trigger(Events.drag, [ui, drag]);
             });
 
             // Pass the handlers to the wire
             $(mOE.target).on(Events.dragStop, (e, ui) => {
+               e.stopPropagation();
                $(dragHandle).trigger(Events.dragStop, ui);
             });
          }
@@ -44,12 +48,8 @@ namespace Circuit.Component.Addins.WireCreation {
    const createWireAtPoint = (vector: Vector) => {
       const wire = Component.WireLayout.makeInstance({}, {
          joints: [{ x: vector.x, y: vector.y }, { x: vector.x, y: vector.y }],
-         disabled: true
       });
-      history.add(manifest, wire);
-      manifest.addComponent(wire, manifest.layout);
-      wire.disabled = false;
-
+      manifest.addComponent(manifest.layout, wire);
       return wire;
    }
 }
