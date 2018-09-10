@@ -443,7 +443,6 @@ var Circuit;
         };
         const mergeLast = (N = 1) => {
             let mergeStart = Math.max(0, lastIdx - N);
-            console.log(mergeStart);
             let toMerge = events.slice(mergeStart);
             let mergedDevelopments = [];
             toMerge.forEach(event => {
