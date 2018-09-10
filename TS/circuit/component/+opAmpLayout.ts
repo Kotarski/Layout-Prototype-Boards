@@ -23,7 +23,8 @@ namespace Circuit.Component {
 
       export const defaultState: Types.state = {
          isDual: false,
-         joints: [{ x: 30, y: 30 }, { x: 40, y: 30 }]
+         joints: [{ x: 30, y: 30 }, { x: 40, y: 30 }],
+         disabled: false
       }
       export const defaultProperties: Types.properties = {
          name: "opAmp",
@@ -44,17 +45,18 @@ namespace Circuit.Component {
          }
 
          getProperties(): Types.properties {
-            return {
+            return Utility.deepCopy({
                name: this.name,
                offsetVoltage: this.offsetVoltage
-            }
+            });
          }
 
          getState(): Types.state {
-            return {
+            return Utility.deepCopy({
                isDual: this.isDual,
-               joints: this.joints
-            }
+               joints: this.joints,
+               disabled: this.disabled
+            });
          }
 
          draw() {

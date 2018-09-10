@@ -1,7 +1,6 @@
 /// <reference path="../Utility/~curry.ts" />
 namespace Circuit {
 
-
    export const manifest = (() => {
 
       const clear = () => {
@@ -20,7 +19,7 @@ namespace Circuit {
       let activeBoard: (Component.Instance | undefined);
 
       const constructFrom = (savedManifest: { schematic: any, layout: any }) => {
-         clear();
+         manifest.clear();
          manifest.schematic = savedManifest.schematic;
          manifest.layout = savedManifest.layout;
          if (!savedManifest.layout || savedManifest.layout.length === 0) completeManifestLayout();
@@ -30,15 +29,21 @@ namespace Circuit {
          draw();
       }
 
-      const addComponent = (components: (Component.Instance | Component.Instance[]), manifestSection: Component.Instance[]) => {
+      const addComponent = (manifestSection: Component.Instance[], ...components: Component.Instance[]) => {
          let diagram: Circuit.Parts.Diagram;
+
          if (manifestSection === manifest.schematic) {
             diagram = Active.schematic;
          } else {
             diagram = Active.layout;
          }
-         if (!(components instanceof Array)) components = [components];
+
+         components.forEach(component => component.disabled = true);
+
+         history.add(manifest, ...components);
+
          components.forEach(component => {
+            component.disabled = false;
             manifestSection.push(component);
             placeComponent(component, diagram);
          });
@@ -54,10 +59,15 @@ namespace Circuit {
          manifest.layout.forEach(component => placeComponent(component, Active.layout));
       }
 
-      const removeComponent = (component: Component.Instance) => {
-         manifest.layout = manifest.layout.filter(el => el !== component);
-         manifest.schematic = manifest.schematic.filter(el => el !== component);
-         if (component) component.group.element.remove();
+      const removeComponent = (...components: Component.Instance[]) => {
+         history.add(manifest, ...components);
+         manifest.layout = manifest.layout.filter(el => !components.includes(el));
+         manifest.schematic = manifest.schematic.filter(el => !components.includes(el));
+
+         components.forEach(component => {
+            $(component.group.element).hide();
+            component.disabled = true;
+         });
       }
 
       const findCorresponding = (component: Component.Instance): Component.Instance[] => {
@@ -77,7 +87,7 @@ namespace Circuit {
          let layComponents = manifest.layout.filter(mappings.isCorresponder);
          let schComponents = manifest.schematic.filter(mappings.isCorresponder);
 
-         //TOFIX 
+         //TODO
          //Copy the schconnectorsets (deeplyish)  outside of the loop
          //When a match is found with a laycomponent, filter the match
 
@@ -107,6 +117,14 @@ namespace Circuit {
          }
       };
 
+      const getState = () => {
+         return {
+            schematic: [...manifest.schematic],
+            layout: [...manifest.layout],
+            activeBoard: manifest.activeBoard
+         }
+      }
+
       return {
          schematic: [] as Component.Instance[],
          layout: [] as Component.Instance[],
@@ -115,7 +133,9 @@ namespace Circuit {
          removeComponent: removeComponent,
          findCorresponding: findCorresponding,
          checkAll: checkAll,
-         activeBoard: activeBoard
+         activeBoard: activeBoard,
+         getState: getState,
+         clear: clear
       }
    })();
 

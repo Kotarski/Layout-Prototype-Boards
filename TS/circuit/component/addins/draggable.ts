@@ -4,6 +4,7 @@ namespace Circuit.Component.Addins.Draggable {
       Svg.Addins.Draggable.init(component.group.element, {
          disableMovement: true,
          onStart: () => {
+            history.add(component);
             component.insertInto(component.group.element);
          },
          onDrag: (drag: Vector) => {

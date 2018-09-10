@@ -10,7 +10,9 @@ namespace Circuit.Component.Addins.ConnectionHighlights {
       });
       $(element).on(Events.draw, () => {
          clearConnectionsHighlights(component);
-         createConnectionsHighlights(component, propogate, colorPalette);
+         if ($(component.group.element).hasClass("selected")) {
+            createConnectionsHighlights(component, propogate, colorPalette);
+         }
       });
       $(element).on(Events.deselect, () => {
          clearConnectionsHighlights(component);

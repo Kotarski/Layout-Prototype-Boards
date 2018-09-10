@@ -22,7 +22,8 @@ namespace Circuit.Component {
       import Types = CapacitorSchematic.Types;
 
       export const defaultState: Types.state = {
-         joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }]
+         joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }],
+         disabled: false
       }
 
       export const defaultProperties: Types.properties = {
@@ -45,17 +46,18 @@ namespace Circuit.Component {
          }
 
          getProperties(): Types.properties {
-            return {
+            return Utility.deepCopy({
                name: this.name,
                capacitance: this.capacitance,
                isPolarised: this.isPolarised
-            }
+            });
          }
 
          getState(): Types.state {
-            return {
-               joints: this.joints
-            }
+            return Utility.deepCopy({
+               joints: this.joints,
+               disabled: this.disabled
+            });
          }
 
          draw() {

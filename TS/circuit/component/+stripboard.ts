@@ -8,10 +8,10 @@ namespace Circuit.Component {
          export interface properties extends Component.Types.properties {
             rows: number;
             columns: number;
-            trackBreaks: trackBreak[];
          }
          export interface state extends Component.Types.state {
             joints: [Vector, Vector];
+            trackBreaks: trackBreak[];
          }
 
          export interface loadFunction extends Component.Types.loadFunction {
@@ -25,13 +25,14 @@ namespace Circuit.Component {
       import Types = Stripboard.Types;
 
       export const defaultState: Types.state = {
-         joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }]
+         joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }],
+         disabled: false,
+         trackBreaks: []
       }
       export const defaultProperties: Types.properties = {
          name: "stripboard",
          rows: 1,
-         columns: 1,
-         trackBreaks: []
+         columns: 1
       }
 
       export class Instance extends Component.Instance implements Types.properties, Types.state {
@@ -46,23 +47,24 @@ namespace Circuit.Component {
             super(properties, state);
             this.rows = properties.rows;
             this.columns = properties.columns;
-            this.trackBreaks = properties.trackBreaks;
+            this.trackBreaks = state.trackBreaks;
             this.joints = state.joints;
          }
 
          getProperties(): Types.properties {
-            return {
+            return Utility.deepCopy({
                name: this.name,
                rows: this.rows,
-               columns: this.columns,
-               trackBreaks: this.trackBreaks
-            }
+               columns: this.columns
+            });
          }
 
          getState(): Types.state {
-            return {
-               joints: this.joints
-            }
+            return Utility.deepCopy({
+               joints: this.joints,
+               disabled: this.disabled,
+               trackBreaks: this.trackBreaks
+            });
          }
 
          makeConnectors() {
@@ -146,16 +148,16 @@ namespace Circuit.Component {
             {
                joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
                   ? vector.standardise(raw.state.joints as AnyVector[])
-                  : undefined
+                  : undefined,
+               trackBreaks: ((raw.state.trackBreaks && raw.state.trackBreaks.every((tB: Types.trackBreak) => {
+                  return (('track' in tB) && ('hole' in tB) && (typeof tB.track === 'number') && (typeof tB.hole === 'number'));
+               }))) ? raw.state.trackBreaks : undefined
             } : {};
 
          let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
             {
                rows: raw.properties.rows,
-               columns: raw.properties.columns,
-               trackBreaks: ((raw.properties.trackBreaks.every((tB: Types.trackBreak) => {
-                  return (('track' in tB) && ('hole' in tB) && (typeof tB.track === 'number') && (typeof tB.hole === 'number'));
-               }))) ? raw.properties.trackBreaks : undefined
+               columns: raw.properties.columns
             } : {};
 
          return makeInstance(properties, state, true);

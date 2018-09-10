@@ -19,7 +19,8 @@ namespace Circuit.Component {
       import Types = DiodeLayout.Types;
 
       export const defaultState: Types.state = {
-         joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }]
+         joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
+         disabled: false
       }
       export const defaultProperties: Types.properties = {
          name: "diode",
@@ -44,18 +45,19 @@ namespace Circuit.Component {
          }
 
          getProperties(): Types.properties {
-            return {
+            return Utility.deepCopy({
                name: this.name,
                breakdownVoltage: this.breakdownVoltage,
                saturationCurrent: this.saturationCurrent,
                color: this.color
-            }
+            });
          }
 
          getState(): Types.state {
-            return {
-               joints: this.joints
-            }
+            return Utility.deepCopy({
+               joints: this.joints,
+               disabled: this.disabled
+            });
          }
 
          draw() {

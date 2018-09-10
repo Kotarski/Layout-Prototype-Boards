@@ -6,7 +6,8 @@ namespace Circuit.Component {
       };
 
       export interface state {
-      }
+         disabled: boolean;
+      };
 
       export interface insertionFunction {
          (group: SVGGElement, target: SVGGElement, ...any: any[]): void;
@@ -43,9 +44,11 @@ namespace Circuit.Component {
       name: string;
       group = Svg.Element.Group.make();
       connectorSets: Types.connector[][] = [];
+      disabled: boolean;
 
       constructor(properties: Types.properties, state: Types.state) {
          this.name = properties.name;
+         this.disabled = state.disabled;
       }
 
       abstract getProperties(): Types.properties;

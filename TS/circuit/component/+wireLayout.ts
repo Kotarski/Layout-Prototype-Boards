@@ -22,7 +22,8 @@ namespace Circuit.Component {
 
       export const defaultState: Types.state = {
          joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
-         color: "#545454"
+         color: "#545454",
+         disabled: false
       }
 
       export const defaultProperties: Types.properties = {
@@ -41,16 +42,17 @@ namespace Circuit.Component {
          }
 
          getProperties(): Types.properties {
-            return {
+            return Utility.deepCopy({
                name: this.name
-            }
+            });
          }
 
          getState(): Types.state {
-            return {
+            return Utility.deepCopy({
                joints: this.joints,
-               color: this.color
-            }
+               color: this.color,
+               disabled: this.disabled
+            });
          }
 
          draw() {

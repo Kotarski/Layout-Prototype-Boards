@@ -42,63 +42,41 @@ namespace Ui.Events {
       FileIO.Save.handleFileSaveEvent(event);
    }
 
-   //TODO REMOVE
    export function makeStripBoardButtonPress() {
-
       let rowElement = NodeElements.stripboardRows;
       let columnElement = NodeElements.stripboardColumns;
+
       let rows = parseInt(rowElement.value);
       let columns = parseInt(columnElement.value);
+
       if (rows && columns &&
          rows >= parseInt(rowElement.min) && columns >= parseInt(columnElement.min) &&
          rows <= parseInt(rowElement.max) && columns <= parseInt(columnElement.max)
       ) {
-         if (Circuit.manifest.activeBoard) Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
-         let stripboard = Circuit.Component.Stripboard.makeInstance({
+         addBoard(Circuit.Component.Stripboard.makeInstance({
             rows: rows,
             columns: columns,
-         }, {})
-         Circuit.manifest.addComponent(stripboard, Circuit.manifest.layout);
-         Circuit.manifest.activeBoard = stripboard;
+         }, {}));
       }
    }
 
-
    export function makeBreadBoardSmallButtonPress() {
-      if (Circuit.manifest.activeBoard) Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
-      let breadboard = Circuit.Component.BreadboardSmall.makeInstance({}, {});
-      Circuit.manifest.addComponent(breadboard, Circuit.manifest.layout);
-      Circuit.manifest.activeBoard = breadboard;
+      addBoard(Circuit.Component.BreadboardSmall.makeInstance({}, {}));
    }
 
    export function makeBreadBoardLargeButtonPress() {
-      if (Circuit.manifest.activeBoard) Circuit.manifest.removeComponent(Circuit.manifest.activeBoard)
-      let breadboard = Circuit.Component.BreadboardLarge.makeInstance({}, {});
-      Circuit.manifest.addComponent(breadboard, Circuit.manifest.layout);
-      Circuit.manifest.activeBoard = breadboard;
+      addBoard(Circuit.Component.BreadboardLarge.makeInstance({}, {}));
    }
 
-   export function rotateBoard() {
-      let board = Circuit.manifest.activeBoard as Circuit.Component.Instance & {
-         joints: [Vector, Vector, ...Vector[]]
-      };
-      if (board) {
-         console.log(board)
-         let centre = board.joints[0];
-
-         board.joints = vector(board.joints)
-            .sumWith(vector(centre).scaleWith(-1))
-            .rotate(90)
-            .sumWith(centre)
-            .vectors as [Vector, Vector, ...Vector[]]
-
-         $(board.group.element).trigger(Circuit.Events.draw);
+   function addBoard(board: Circuit.Component.Instance) {
+      if (Circuit.manifest.activeBoard !== undefined) {
+         Circuit.manifest.removeComponent(Circuit.manifest.activeBoard);
+         Circuit.manifest.addComponent(Circuit.manifest.layout, board);
+         Circuit.history.mergeLast();
+      } else {
+         Circuit.manifest.addComponent(Circuit.manifest.layout, board);
       }
-   }
-
-   export function makeWire() {
-      let wire = Circuit.Component.WireLayout.makeInstance({}, {});
-      Circuit.manifest.addComponent(wire, Circuit.manifest.layout);
+      Circuit.manifest.activeBoard = board;
    }
 
    export function checkCircuit() {
@@ -158,5 +136,18 @@ namespace Ui.Events {
       let completion = (circuitStatus.corrects.length / (circuitStatus.corrects.length + circuitStatus.incorrects.length) * 100).toFixed(1);
       NodeElements.checkStatusText.innerText = "Correct: " + completion + "%";
    }
+
+   export function undo() {
+      if (Circuit.history !== undefined) {
+         Circuit.history.undo();
+      }
+   }
+
+   export function redo() {
+      if (Circuit.history !== undefined) {
+         Circuit.history.redo();
+      }
+   }
+
 
 }

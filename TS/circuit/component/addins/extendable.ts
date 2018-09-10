@@ -83,6 +83,7 @@ namespace Circuit.Component.Addins.Extendable {
       $(component.group.element).on(Events.dragStop, ".dragHandle", (e) => {
          if (component.joints.length === 2 && vector(component.joints[0]).isCloseTo(component.joints[1])) {
             manifest.removeComponent(component);
+            history.mergeLast();
          }
       });
    };

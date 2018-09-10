@@ -24,7 +24,8 @@ namespace Circuit.Component {
       import Types = OpAmpSchematic.Types;
 
       export const defaultState: Types.state = {
-         joints: [{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: 40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: 20 }]
+         joints: [{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: 40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: 20 }],
+         disabled: false
       }
       export const defaultProperties: Types.properties = {
          name: "opAmp",
@@ -43,16 +44,17 @@ namespace Circuit.Component {
          }
 
          getProperties(): Types.properties {
-            return {
+            return Utility.deepCopy({
                name: this.name,
                offsetVoltage: this.offsetVoltage
-            }
+            });
          }
 
          getState(): Types.state {
-            return {
+            return Utility.deepCopy({
                joints: this.joints,
-            }
+               disabled: this.disabled
+            });
          }
 
          draw() {
