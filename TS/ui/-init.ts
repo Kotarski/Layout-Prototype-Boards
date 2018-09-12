@@ -20,7 +20,7 @@ namespace Ui {
                Ui.Events.layoutPaneResize();
             },
             size: "30%",
-            minSize: "256",
+            minSize: "270",
             spacing_open: 10,
             spacing_closed: 10,
             slidable: false,

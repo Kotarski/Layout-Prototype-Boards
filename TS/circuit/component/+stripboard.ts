@@ -70,9 +70,7 @@ namespace Circuit.Component {
          makeConnectors() {
             this.tracks.forEach(track => track.makeConnectors());
             this.tracks.forEach((track, trackIdx) => {
-               let trackBreaks = this.trackBreaks.filter(
-                  trackBreak => trackBreak.track === trackIdx
-               );
+               let trackBreaks = this.trackBreaks.filter(trackBreak => trackBreak.track === trackIdx);
                track.connectorSets[0].forEach((hole, holeIdx) => {
                   if (trackBreaks.some(trackBreak => trackBreak.hole === holeIdx)) {
                      hole.type = "brokenhole";

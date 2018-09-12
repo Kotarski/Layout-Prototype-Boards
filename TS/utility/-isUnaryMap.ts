@@ -1,3 +1,4 @@
+/// <reference path="../Utility/-isNot.ts" />
 namespace Utility {
    /** Tests that for every element in array A there is exactly one corresponding element
     * in array B for which the predicate is true when presented with both elements.
@@ -5,7 +6,7 @@ namespace Utility {
    export function isUnaryMap<T>(A: T[], B: T[], predicate: (elA: T, elB: T) => boolean) {
       const isPredicateMatchForAllA: boolean = A.every(elA => {
          let match = B.find(elB => predicate(elA, elB));
-         B = B.filter(elB => elB !== match);
+         B = B.filter(isNot(match));
          return (match !== undefined);
       });
 

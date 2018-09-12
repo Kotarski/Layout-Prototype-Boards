@@ -443,7 +443,6 @@ var Circuit;
         };
         const mergeLast = (N = 1) => {
             let mergeStart = Math.max(0, lastIdx - N);
-            console.log(mergeStart);
             let toMerge = events.slice(mergeStart);
             let mergedDevelopments = [];
             toMerge.forEach(event => {
@@ -496,13 +495,13 @@ var Circuit;
             events[currentIdx] = undoEvent;
         };
         return {
-            events: () => events,
             add: addEvent,
             mergeLast: mergeLast,
             undo: undo,
             redo: redo,
-            currentIdx: () => currentIdx,
-            lastIdx: () => lastIdx
+            getEvents: () => [...events],
+            getCurrentIdx: () => currentIdx,
+            getLastIdx: () => lastIdx
         };
     });
     let History;
@@ -661,7 +660,7 @@ var Circuit;
             let match = layoutCopy.find(layoutElement => arePropertiesEqual(properties, layoutElement.getProperties()));
             if (match) {
                 if (!Circuit.mappings.isUnique(match)) {
-                    layoutCopy = layoutCopy.filter(layoutElement => layoutElement === match);
+                    layoutCopy = layoutCopy.filter(Utility.is(match));
                 }
             }
             else {
@@ -676,9 +675,7 @@ var Circuit;
         });
     };
     const mergeSingleOpAmps = () => {
-        let layoutOpAmps = Circuit.manifest.layout.filter(layoutElement => {
-            return (layoutElement["constructor"] === Circuit.Component.OpAmpLayout.Instance);
-        });
+        let layoutOpAmps = Circuit.manifest.layout.filter(layoutElement => (layoutElement["constructor"] === Circuit.Component.OpAmpLayout.Instance));
         let opAmpGroups = [];
         layoutOpAmps.forEach((opAmp, i) => {
             let groupIdx = opAmpGroups.findIndex(group => arePropertiesEqual(opAmp.getProperties(), group[0].getProperties()));
@@ -730,12 +727,12 @@ var Circuit;
                 connections.shift();
                 let blackHole = connections.find(connection => Circuit.mappings.isUnique(connection.component));
                 if (blackHole)
-                    connections = connections.filter(c => c === blackHole);
+                    connections = connections.filter(Utility.is(blackHole));
                 return {
                     name: connectorName,
                     connections: connections.filter((connection) => Circuit.mappings.isCorresponder(connection.component))
                 };
-            })).filter((c) => c.connections.length !== 0);
+            })).filter(c => c.connections.length !== 0);
         }));
     };
     const connectorSetsHaveMatch = Utility.Curry.makeOptional((connectorSetsA, connectorSetsB) => {
@@ -2660,7 +2657,7 @@ var Circuit;
                     ];
                 }
                 transferFunction(from) {
-                    return Utility.flatten2d(this.connectorSets.map(connectorSet => connectorSet.filter(connector => connector !== from)));
+                    return Utility.flatten2d(this.connectorSets.map(connectorSet => connectorSet.filter(Utility.isNot(from))));
                 }
             }
             Local.Instance = Instance;
@@ -2775,7 +2772,7 @@ var Circuit;
                     Utility.Insert.first(this.group.element, element);
                 }
                 transferFunction(from) {
-                    return Utility.flatten2d(this.connectorSets.map(connectorSet => connectorSet.filter(connector => (connector !== from))));
+                    return Utility.flatten2d(this.connectorSets.map(connectorSet => connectorSet.filter(Utility.isNot(from))));
                 }
             }
             Local.Instance = Instance;
@@ -3214,9 +3211,8 @@ var Circuit;
                     });
                     $(component.group.element).on("dblclick", ".dragHandle", (e) => {
                         if (component.joints.length > 2) {
-                            component.joints = component.joints.filter((joint, idx) => {
-                                return joint !== $(e.target).data("point");
-                            });
+                            const point = $(e.target).data("point");
+                            component.joints = component.joints.filter(Utility.isNot(point));
                             e.target.remove();
                             $(component.group.element).trigger(Circuit.Events.draw, [e]);
                         }
@@ -3248,9 +3244,9 @@ var Circuit;
                 };
                 const removeExcessJoints = (component, point) => {
                     if (component.joints.length > 2) {
-                        component.joints = component.joints.filter((joint, idx) => {
+                        component.joints = component.joints.filter((joint) => {
                             if ((joint !== point) && vector(point).isCloseTo(joint)) {
-                                $(component.group.element).children(".dragHandle").filter((i, el) => $(el).data('point') === joint).remove();
+                                $(component.group.element).children(".dragHandle").filter((el) => $(el).data('point') === joint).remove();
                                 return false;
                             }
                             return true;
@@ -22047,7 +22043,7 @@ var Ui;
                     Ui.Events.layoutPaneResize();
                 },
                 size: "30%",
-                minSize: "256",
+                minSize: "270",
                 spacing_open: 10,
                 spacing_closed: 10,
                 slidable: false,
@@ -22256,14 +22252,8 @@ var Utility;
 })(Utility || (Utility = {}));
 var Utility;
 (function (Utility) {
-    function flatten2d(array) {
-        return [].concat.apply([], array);
-    }
-    Utility.flatten2d = flatten2d;
-    function flatten3d(array) {
-        return [].concat.apply([], [].concat.apply([], array));
-    }
-    Utility.flatten3d = flatten3d;
+    Utility.flatten2d = (array) => [].concat.apply([], array);
+    Utility.flatten3d = (array) => Utility.flatten2d(Utility.flatten2d(array));
 })(Utility || (Utility = {}));
 var Utility;
 (function (Utility) {
@@ -22304,10 +22294,18 @@ var Utility;
 })(Utility || (Utility = {}));
 var Utility;
 (function (Utility) {
+    Utility.is = (check) => (test) => test === check;
+})(Utility || (Utility = {}));
+var Utility;
+(function (Utility) {
+    Utility.isNot = (check) => (test) => test !== check;
+})(Utility || (Utility = {}));
+var Utility;
+(function (Utility) {
     function isUnaryMap(A, B, predicate) {
         const isPredicateMatchForAllA = A.every(elA => {
             let match = B.find(elB => predicate(elA, elB));
-            B = B.filter(elB => elB !== match);
+            B = B.filter(Utility.isNot(match));
             return (match !== undefined);
         });
         const allBMatched = (B.length === 0);

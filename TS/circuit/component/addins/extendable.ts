@@ -70,9 +70,8 @@ namespace Circuit.Component.Addins.Extendable {
 
       $(component.group.element).on("dblclick", ".dragHandle", (e) => {
          if (component.joints.length > 2) {
-            component.joints = component.joints.filter((joint, idx) => {
-               return joint !== $(e.target).data("point")
-            });
+            const point = $(e.target).data("point");
+            component.joints = component.joints.filter(Utility.isNot(point));
             e.target.remove();
             $(component.group.element).trigger(Events.draw, [e]);
          }
@@ -110,9 +109,9 @@ namespace Circuit.Component.Addins.Extendable {
 
    const removeExcessJoints = (component: extendableComponent, point: Vector) => {
       if (component.joints.length > 2) {
-         component.joints = component.joints.filter((joint, idx) => {
+         component.joints = component.joints.filter((joint) => {
             if ((joint !== point) && vector(point).isCloseTo(joint)) {
-               $(component.group.element).children(".dragHandle").filter((i, el) => $(el).data('point') === joint).remove();
+               $(component.group.element).children(".dragHandle").filter((el) => $(el).data('point') === joint).remove();
                return false;
             }
             return true;

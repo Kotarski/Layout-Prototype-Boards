@@ -34,7 +34,6 @@ namespace Circuit {
       /* Useful when a single user action will create N+1 events */
       const mergeLast = (N: number = 1) => {
          let mergeStart = Math.max(0, lastIdx - N);
-         console.log(mergeStart)
          let toMerge = events.slice(mergeStart);
          let mergedDevelopments: development<participant>[] = [];
          toMerge.forEach(event => {
@@ -99,13 +98,13 @@ namespace Circuit {
       }
 
       return {
-         events: () => events,
          add: addEvent,
          mergeLast: mergeLast,
          undo: undo,
          redo: redo,
-         currentIdx: () => currentIdx,
-         lastIdx: () => lastIdx
+         getEvents: () => [...events],
+         getCurrentIdx: () => currentIdx,
+         getLastIdx: () => lastIdx
       }
    })
 
