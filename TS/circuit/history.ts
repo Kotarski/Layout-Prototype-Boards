@@ -98,13 +98,13 @@ namespace Circuit {
       }
 
       return {
-         events: () => events,
          add: addEvent,
          mergeLast: mergeLast,
          undo: undo,
          redo: redo,
-         currentIdx: () => currentIdx,
-         lastIdx: () => lastIdx
+         getEvents: () => [...events],
+         getCurrentIdx: () => currentIdx,
+         getLastIdx: () => lastIdx
       }
    })
 

@@ -184,7 +184,7 @@ namespace Circuit {
          );
          if (match) {
             if (!mappings.isUnique(match)) {
-               layoutCopy = layoutCopy.filter(layoutElement => layoutElement === match);
+               layoutCopy = layoutCopy.filter(Utility.is(match));
             }
          } else {
             if (mappings.isCorresponder(schematicElement)) {
@@ -201,9 +201,9 @@ namespace Circuit {
 
    const mergeSingleOpAmps = () => {
       // For dual op amps
-      let layoutOpAmps = manifest.layout.filter(layoutElement => {
-         return (layoutElement["constructor"] === Component.OpAmpLayout.Instance)
-      }) as Component.OpAmpLayout.Instance[];
+      let layoutOpAmps = manifest.layout.filter(layoutElement => (
+         layoutElement["constructor"] === Component.OpAmpLayout.Instance
+      )) as Component.OpAmpLayout.Instance[];
 
       let opAmpGroups: Component.OpAmpLayout.Instance[][] = [];
       layoutOpAmps.forEach((opAmp, i) => {
@@ -265,7 +265,7 @@ namespace Circuit {
             let connectorName = connections[0].name;
             connections.shift();
             let blackHole = connections.find(connection => mappings.isUnique(connection.component))
-            if (blackHole) connections = connections.filter(c => c === blackHole);
+            if (blackHole) connections = connections.filter(Utility.is(blackHole));
 
             return {
                name: connectorName,
@@ -273,7 +273,7 @@ namespace Circuit {
                   mappings.isCorresponder(connection.component)
                )
             }
-         })).filter((c) => c.connections.length !== 0);
+         })).filter(c => c.connections.length !== 0);
       }));
    }
 
