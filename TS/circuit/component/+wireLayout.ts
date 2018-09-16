@@ -20,25 +20,15 @@ namespace Circuit.Component {
    namespace Local {
       import Types = WireLayout.Types;
 
-      export const defaultState: Types.state = {
-         joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
-         color: "#545454",
-         disabled: false
-      }
-
-      export const defaultProperties: Types.properties = {
-         name: "wire",
-      }
-
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          joints: Vector[];
          color: string;
 
-         constructor(properties: Types.properties, state: Types.state) {
-            super(properties, state);
+         constructor(values: Types.properties & Types.state) {
+            super(values);
             $(this.group.element).addClass("component " + this.name);
-            this.joints = state.joints;
-            this.color = state.color;
+            this.joints = values.joints;
+            this.color = values.color;
          }
 
          getProperties(): Types.properties {
@@ -108,20 +98,21 @@ namespace Circuit.Component {
          }
       }
 
-      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
-         let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
-            {
-               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length > 1)
-                  ? vector.standardise(raw.state.joints as AnyVector[])
-                  : undefined,
-               color: raw.state.color
-            } : {};
-         let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
-            {
-               name: raw.properties.name,
-            } : {};
+      export const defaults: Types.state & Types.properties = {
+         joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
+         color: "#545454",
+         disabled: false,
+         name: "wire"
+      }
 
-         return makeInstance(properties, state, true);
+      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
+         const name = ValueCheck.validate("string", defaults.name)(raw.name);
+         const color = ValueCheck.color(defaults.color)(raw.color || raw.colour);
+         //Joints Block
+         const jointTest = ValueCheck.joints(defaults.joints, l => l >= 2);
+         const joints = jointTest(raw.joints);
+
+         return makeInstance({ name, color, joints }, true);
       }
 
       function getBezierBetweenJoints(joints: Vector[]): string {
@@ -166,7 +157,7 @@ namespace Circuit.Component {
          return vector(component.joints[0]).sumWith(offset).vector;
       }
 
-      export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
+      export const makeInstance = getMaker(Instance, defaults,
          (component: Instance) => {
             $(component.group.element).addClass("component " + component.name);
             Addins.Graphical.init(component); Addins.Draggable.init(component);
@@ -179,8 +170,7 @@ namespace Circuit.Component {
    }
 
    export const WireLayout = {
-      defaultState: Local.defaultState,
-      defaultProperties: Local.defaultProperties,
+
       Instance: Local.Instance,
       makeInstance: Local.makeInstance,
       loadInstance: Local.loadInstance

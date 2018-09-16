@@ -6,7 +6,7 @@ namespace Circuit.Component {
       };
 
       export interface state {
-         disabled: boolean;
+         disabled?: boolean;
       };
 
       export interface insertionFunction {
@@ -46,9 +46,9 @@ namespace Circuit.Component {
       connectorSets: Types.connector[][] = [];
       disabled: boolean;
 
-      constructor(properties: Types.properties, state: Types.state) {
-         this.name = properties.name;
-         this.disabled = state.disabled;
+      constructor(values: Types.properties & Types.state) {
+         this.name = values.name;
+         this.disabled = values.disabled || false;
       }
 
       abstract getProperties(): Types.properties;
@@ -87,20 +87,18 @@ namespace Circuit.Component {
       P extends ReturnType<C["getProperties"]>,
       S extends ReturnType<C["getState"]>
       >(
-         instanceClass: { new(p: P, s: S): C },
-         defaultProperties: P,
-         defaultState: S,
+         instanceClass: { new(v: P & S): C },
+         defaults: P & S,
          initialiser: (component: C) => void) {
       return (
-         partialProperties: Global.Types.DeepPartial<P>,
-         partialState: Global.Types.DeepPartial<S>,
+         partialValues: Global.Types.DeepPartial<P & S>,
          printFallbacks: boolean = false
       ): C => {
-         const defaultPropertyCopy = JSON.parse(JSON.stringify(defaultProperties));
-         const defaultStateCopy = JSON.parse(JSON.stringify(defaultState));
-         const properties = loadObjectWithDefaults(defaultPropertyCopy, partialProperties, [defaultProperties.name, "properties"], printFallbacks);
-         const state = loadObjectWithDefaults(defaultStateCopy, partialState, [defaultProperties.name, "state"], printFallbacks);
-         const component = new instanceClass(properties, state) as C;
+         const defaultsCopy = JSON.parse(JSON.stringify(defaults));
+         const values = loadObjectWithDefaults(defaultsCopy, partialValues, [defaults.name, "values"], printFallbacks);
+
+         const component = new instanceClass(values) as C;
+
          if (initialiser) initialiser(component);
          component.draw();
          component.makeConnectors();

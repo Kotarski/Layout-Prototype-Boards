@@ -55,17 +55,17 @@ namespace Ui.Events {
       ) {
          addBoard(Circuit.Component.Stripboard.makeInstance({
             rows: rows,
-            columns: columns,
-         }, {}));
+            columns: columns
+         }));
       }
    }
 
    export function makeBreadBoardSmallButtonPress() {
-      addBoard(Circuit.Component.BreadboardSmall.makeInstance({}, {}));
+      addBoard(Circuit.Component.BreadboardSmall.makeInstance({}));
    }
 
    export function makeBreadBoardLargeButtonPress() {
-      addBoard(Circuit.Component.BreadboardLarge.makeInstance({}, {}));
+      addBoard(Circuit.Component.BreadboardLarge.makeInstance({}));
    }
 
    function addBoard(board: Circuit.Component.Instance) {

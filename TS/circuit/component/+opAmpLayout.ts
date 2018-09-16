@@ -21,27 +21,17 @@ namespace Circuit.Component {
    namespace Local {
       import Types = OpAmpLayout.Types;
 
-      export const defaultState: Types.state = {
-         isDual: false,
-         joints: [{ x: 30, y: 30 }, { x: 40, y: 30 }],
-         disabled: false
-      }
-      export const defaultProperties: Types.properties = {
-         name: "opAmp",
-         offsetVoltage: 0
-      }
-
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          isDual: boolean;
          offsetVoltage: number;
          joints: [Vector, Vector];
 
-         constructor(properties: Types.properties, state: Types.state) {
-            super(properties, state);
+         constructor(values: Types.properties & Types.state) {
+            super(values);
             $(this.group.element).addClass("component " + this.name);
-            this.isDual = state.isDual;
-            this.joints = state.joints;
-            this.offsetVoltage = properties.offsetVoltage;
+            this.isDual = values.isDual;
+            this.joints = values.joints;
+            this.offsetVoltage = values.offsetVoltage;
          }
 
          getProperties(): Types.properties {
@@ -122,24 +112,24 @@ namespace Circuit.Component {
 
       }
 
-      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
-         let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
-            {
-               isDual: raw.state.isDual,
-               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
-                  ? vector.standardise(raw.state.joints as AnyVector[])
-                  : undefined
-            } : {};
-         let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
-            {
-               name: raw.properties.name,
-               offsetVoltage: raw.properties.offsetVoltage,
-            } : {};
-
-         return makeInstance(properties, state, true);
+      export const defaults: Types.state & Types.properties = {
+         isDual: false,
+         joints: [{ x: 30, y: 30 }, { x: 40, y: 30 }],
+         disabled: false,
+         name: "opAmp",
+         offsetVoltage: 0
       }
 
-      export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
+      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
+         const name = ValueCheck.validate("string", defaults.name)(raw.name);
+         const offsetVoltage = ValueCheck.validate("number", defaults.offsetVoltage)(raw.offsetVoltage);
+         const isDual = ValueCheck.validate("boolean", defaults.isDual)(raw.isDual);
+         const joints = ValueCheck.joints(defaults.joints)(raw.joints);
+
+         return makeInstance({ name, offsetVoltage, isDual, joints }, true);
+      }
+
+      export const makeInstance = getMaker(Instance, defaults,
          (component: Instance) => {
             $(component.group.element).addClass("component " + component.name);
             Addins.Graphical.init(component);
@@ -152,8 +142,7 @@ namespace Circuit.Component {
    }
 
    export const OpAmpLayout = {
-      defaultState: Local.defaultState,
-      defaultProperties: Local.defaultProperties,
+
       Instance: Local.Instance,
       makeInstance: Local.makeInstance,
       loadInstance: Local.loadInstance

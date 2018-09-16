@@ -24,17 +24,6 @@ namespace Circuit.Component {
    namespace Local {
       import Types = Stripboard.Types;
 
-      export const defaultState: Types.state = {
-         joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }],
-         disabled: false,
-         trackBreaks: []
-      }
-      export const defaultProperties: Types.properties = {
-         name: "stripboard",
-         rows: 1,
-         columns: 1
-      }
-
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          tracks: Addins.Board.Track.Instance[] = [];
          connectorSets: Component.Types.hole[][] = [];
@@ -43,12 +32,12 @@ namespace Circuit.Component {
          columns: number;
          joints: [Vector, Vector];
 
-         constructor(properties: Types.properties, state: Types.state) {
-            super(properties, state);
-            this.rows = properties.rows;
-            this.columns = properties.columns;
-            this.trackBreaks = state.trackBreaks;
-            this.joints = state.joints;
+         constructor(values: Types.properties & Types.state) {
+            super(values);
+            this.rows = values.rows;
+            this.columns = values.columns;
+            this.trackBreaks = values.trackBreaks;
+            this.joints = values.joints;
          }
 
          getProperties(): Types.properties {
@@ -129,10 +118,9 @@ namespace Circuit.Component {
             let holeSpacings: number[] = [0].concat(Array(parent.columns - 1).fill(1));
             let track = Addins.Board.Track.makeInstance({
                holeSpacings: holeSpacings,
-               style: "stripboard"
-            }, {
-                  joints: [rowStart, step]
-               });
+               style: "stripboard",
+               joints: [rowStart, step]
+            });
             //track.group.translate({ x: 0, y: row * gS }).rotate(0);
             tracks.push(track);
          }
@@ -140,28 +128,37 @@ namespace Circuit.Component {
          return tracks;
       }
 
-      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
-
-         let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
-            {
-               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
-                  ? vector.standardise(raw.state.joints as AnyVector[])
-                  : undefined,
-               trackBreaks: ((raw.state.trackBreaks && raw.state.trackBreaks.every((tB: Types.trackBreak) => {
-                  return (('track' in tB) && ('hole' in tB) && (typeof tB.track === 'number') && (typeof tB.hole === 'number'));
-               }))) ? raw.state.trackBreaks : undefined
-            } : {};
-
-         let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
-            {
-               rows: raw.properties.rows,
-               columns: raw.properties.columns
-            } : {};
-
-         return makeInstance(properties, state, true);
+      export const defaults: Types.state & Types.properties = {
+         joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }],
+         disabled: false,
+         trackBreaks: [],
+         name: "stripboard",
+         rows: 1,
+         columns: 1
       }
 
-      export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
+
+      export function validateTrackBreaks<T extends Types.trackBreak[]>(fallback: T): ValueCheck.validater<T> {
+         const result = (value: unknown, log: boolean = true) => {
+            return ((value && Array.isArray(value) && value.every((tB: Types.trackBreak) => {
+               return (('track' in tB) && ('hole' in tB) && (typeof tB.track === 'number') && (typeof tB.hole === 'number'));
+            }))) ? value as T : fallback
+         }
+
+         return result;
+      }
+
+      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
+         const name = ValueCheck.validate("string", defaults.name)(raw.name);
+         const rows = ValueCheck.integer(defaults.rows)(raw.rows);
+         const columns = ValueCheck.integer(defaults.columns)(raw.columns);
+         const trackBreaks = validateTrackBreaks(defaults.trackBreaks)(raw.trackBreaks);
+         const joints = ValueCheck.joints(defaults.joints)(raw.joints);
+
+         return makeInstance({ name, rows, columns, trackBreaks, joints }, true);
+      }
+
+      export const makeInstance = getMaker(Instance, defaults,
          (component: Instance) => {
             $(component.group.element).addClass(component.name);
             Addins.Graphical.init(component);
@@ -175,8 +172,7 @@ namespace Circuit.Component {
    }
 
    export const Stripboard = {
-      defaultState: Local.defaultState,
-      defaultProperties: Local.defaultProperties,
+
       Instance: Local.Instance,
       makeInstance: Local.makeInstance,
       loadInstance: Local.loadInstance

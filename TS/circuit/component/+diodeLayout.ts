@@ -18,30 +18,19 @@ namespace Circuit.Component {
    namespace Local {
       import Types = DiodeLayout.Types;
 
-      export const defaultState: Types.state = {
-         joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
-         disabled: false
-      }
-      export const defaultProperties: Types.properties = {
-         name: "diode",
-         breakdownVoltage: 0,
-         saturationCurrent: 0,
-         color: "N/A"
-      }
-
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          breakdownVoltage: number;
          saturationCurrent: number;
          joints: [Vector, Vector];
          color: string;
 
-         constructor(properties: Types.properties, state: Types.state) {
-            super(properties, state);
+         constructor(values: Types.properties & Types.state) {
+            super(values);
             $(this.group.element).addClass("component " + this.name);
-            this.joints = state.joints;
-            this.saturationCurrent = properties.saturationCurrent;
-            this.breakdownVoltage = properties.breakdownVoltage;
-            this.color = properties.color;
+            this.joints = values.joints;
+            this.saturationCurrent = values.saturationCurrent;
+            this.breakdownVoltage = values.breakdownVoltage;
+            this.color = values.color;
          }
 
          getProperties(): Types.properties {
@@ -85,25 +74,26 @@ namespace Circuit.Component {
 
       }
 
-      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
-         let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
-            {
-               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
-                  ? vector.standardise(raw.state.joints as AnyVector[])
-                  : undefined
-            } : {};
-         let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
-            {
-               name: raw.properties.name,
-               breakdownVoltage: raw.properties.breakdownVoltage,
-               saturationCurrent: raw.properties.saturationCurrent,
-               color: raw.properties.color
-            } : {};
-
-         return makeInstance(properties, state, true);
+      export const defaults: Types.state & Types.properties = {
+         joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
+         disabled: false,
+         name: "diode",
+         breakdownVoltage: 0,
+         saturationCurrent: 0,
+         color: "N/A"
       }
 
-      export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
+      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
+         const name = ValueCheck.validate("string", defaults.name)(raw.name);
+         const breakdownVoltage = ValueCheck.validate("number", defaults.breakdownVoltage)(raw.breakdownVoltage);
+         const saturationCurrent = ValueCheck.validate("number", defaults.saturationCurrent)(raw.saturationCurrent);
+         const color = ValueCheck.color(defaults.color)(raw.color);
+         const joints = ValueCheck.joints(defaults.joints)(raw.joints);
+
+         return makeInstance({ name, breakdownVoltage, saturationCurrent, color, joints }, true);
+      }
+
+      export const makeInstance = getMaker(Instance, defaults,
          (component: Instance) => {
             $(component.group.element).addClass("component " + component.name);
             Addins.Graphical.init(component);
@@ -116,8 +106,7 @@ namespace Circuit.Component {
    }
 
    export const DiodeLayout = {
-      defaultState: Local.defaultState,
-      defaultProperties: Local.defaultProperties,
+
       Instance: Local.Instance,
       makeInstance: Local.makeInstance,
       loadInstance: Local.loadInstance

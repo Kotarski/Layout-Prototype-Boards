@@ -18,24 +18,16 @@ namespace Circuit.Component {
 
    namespace Local {
       import Types = ResistorLayout.Types;
-      export const defaultState: Types.state = {
-         joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
-         disabled: false
-      }
-      export const defaultProperties: Types.properties = {
-         name: "resistor",
-         resistance: 0
-      }
 
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          resistance: number;
          joints: [Vector, Vector];
 
-         constructor(properties: Types.properties, state: Types.state) {
-            super(properties, state);
+         constructor(values: Types.properties & Types.state) {
+            super(values);
             $(this.group.element).addClass("component " + this.name);
-            this.joints = state.joints;
-            this.resistance = properties.resistance;
+            this.joints = values.joints;
+            this.resistance = values.resistance;
          }
 
          getProperties(): Types.properties {
@@ -73,23 +65,23 @@ namespace Circuit.Component {
 
       }
 
-      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
-         let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
-            {
-               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
-                  ? vector.standardise(raw.state.joints as AnyVector[])
-                  : undefined
-            } : {};
-         let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
-            {
-               name: raw.properties.name,
-               resistance: raw.properties.resistance,
-            } : {};
-
-         return makeInstance(properties, state, true);
+      export const defaults: Types.state & Types.properties = {
+         joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
+         disabled: false,
+         name: "resistor",
+         resistance: 0
       }
 
-      export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
+
+      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
+         const name = ValueCheck.validate("string", defaults.name)(raw.name);
+         const resistance = ValueCheck.validate("number", defaults.resistance)(raw.resistance);
+         const joints = ValueCheck.joints(defaults.joints)(raw.joints);
+
+         return makeInstance({ name, resistance, joints }, true);
+      }
+
+      export const makeInstance = getMaker(Instance, defaults,
          (component: Instance) => {
             $(component.group.element).addClass("component " + component.name);
             Addins.Graphical.init(component); Addins.Draggable.init(component);
@@ -101,8 +93,7 @@ namespace Circuit.Component {
    }
 
    export const ResistorLayout = {
-      defaultState: Local.defaultState,
-      defaultProperties: Local.defaultProperties,
+
       Instance: Local.Instance,
       makeInstance: Local.makeInstance,
       loadInstance: Local.loadInstance

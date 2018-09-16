@@ -21,28 +21,18 @@ namespace Circuit.Component {
    namespace Local {
       import Types = BipolarSchematic.Types;
 
-      export const defaultState: Types.state = {
-         joints: [{ x: -50, y: 0 }, { x: +10, y: -50 }, { x: +10, y: +50 }],
-         disabled: false
-      }
-      export const defaultProperties: Types.properties = {
-         name: "bipolar",
-         currentGain: 0,
-         type: "NPN"
-      }
-
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          name: string = "bipolar";
          currentGain: number;
          type: "PNP" | "NPN";
          joints: [Vector, Vector, Vector];
 
-         constructor(properties: Types.properties, state: Types.state) {
-            super(properties, state);
+         constructor(values: Types.properties & Types.state) {
+            super(values);
             $(this.group.element).addClass("component " + this.name);
-            this.joints = state.joints;
-            this.type = properties.type;
-            this.currentGain = properties.currentGain;
+            this.joints = values.joints;
+            this.type = values.type;
+            this.currentGain = values.currentGain;
          }
 
          getProperties(): Types.properties {
@@ -87,49 +77,40 @@ namespace Circuit.Component {
          transferFunction() { return [] };
       }
 
-      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
-
-         let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
-            {
-               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 3)
-                  ? vector.standardise(raw.state.joints as AnyVector[])
-                  : undefined
-            } : {
-               joints: (() => {
-                  if (["LR", "RL"].includes(raw.orientation) && ["NPN", "PNP"].includes(raw.type)) {
-                     let baseJoints = ({
-                        //   Emitter             Collector           Base
-                        LRPNP: [{ x: 0, y: -50 }, { x: 0, y: +50 }, { x: -60, y: 0 }],
-                        RLPNP: [{ x: 0, y: -50 }, { x: 0, y: +50 }, { x: +60, y: 0 }],
-                        LRNPN: [{ x: 0, y: +50 }, { x: 0, y: -50 }, { x: -60, y: 0 }],
-                        RLNPN: [{ x: 0, y: +50 }, { x: 0, y: -50 }, { x: +60, y: 0 }],
-                     } as { [key: string]: [Vector, Vector, Vector] })[raw.orientation + raw.type];
-
-                     let offset: Vector = (raw.where && vector.isVector(raw.where))
-                        ? vector(raw.where as AnyVector).sumWith({ x: (raw.orientation === "LR") ? 10 : -10 }).vector
-                        : { x: 0, y: 0 }
-
-                     return vector(baseJoints).sumWith(offset).vectors
-
-                  } else {
-                     return undefined;
-                  }
-               })()
-            };
-         let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
-            {
-               name: raw.properties.name,
-               currentGain: raw.properties.currentGain,
-               type: (["NPN", "PNP"].includes(raw.properties.type)) ? raw.properties.type : undefined
-            } : {
-               currentGain: raw.currentGain,
-               type: (["NPN", "PNP"].includes(raw.type)) ? raw.type : undefined
-            };
-
-         return makeInstance(properties, state, true);
+      export const defaults: Types.state & Types.properties = {
+         joints: [{ x: -50, y: 0 }, { x: +10, y: -50 }, { x: +10, y: +50 }],
+         disabled: false,
+         name: "bipolar",
+         currentGain: 0,
+         type: "NPN"
       }
 
-      export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
+      const deriveJoints = (orientation: "LR" | "RL", type: "NPN" | "PNP", where: Vector) => {
+         const [emitter, collector] = type === "PNP"
+            ? [{ x: 0, y: -50 }, { x: 0, y: +50 }]
+            : [{ x: 0, y: +50 }, { x: 0, y: -50 }];
+
+         const [base, offset] = orientation === "LR"
+            ? [{ x: -60, y: 0 }, { x: +10 }]
+            : [{ x: +60, y: 0 }, { x: -10 }];
+
+         return vector([emitter, collector, base]).sumWith(where, offset).vectors;
+      }
+
+      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
+         const name = ValueCheck.validate("string", defaults.name)(raw.name);
+         const currentGain = ValueCheck.validate("number", defaults.currentGain)(raw.currentGain);
+         const type = ValueCheck.validate<"NPN" | "PNP">(["NPN", "PNP"], defaults.type)(raw.type);
+         // Joints Block
+         const orientation = ValueCheck.validate<"LR" | "RL">(["LR", "RL"], "LR")(raw.orientation, false);
+         const where = ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
+         const jointTest = ValueCheck.joints(defaults.joints);
+         const joints = jointTest(raw.joints || deriveJoints(orientation, type, where));
+
+         return makeInstance({ name, currentGain, type, joints }, true);
+      }
+
+      export const makeInstance = getMaker(Instance, defaults,
          (component: Instance) => {
             $(component.group.element).addClass("component " + component.name);
             Addins.Selectable.init(component);
@@ -144,8 +125,7 @@ namespace Circuit.Component {
    }
 
    export const BipolarSchematic = {
-      defaultState: Local.defaultState,
-      defaultProperties: Local.defaultProperties,
+
       Instance: Local.Instance,
       makeInstance: Local.makeInstance,
       loadInstance: Local.loadInstance
