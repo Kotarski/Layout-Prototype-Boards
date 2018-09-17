@@ -77,14 +77,6 @@ namespace Circuit.Component {
          transferFunction() { return [] };
       }
 
-      export const defaults: Types.state & Types.properties = {
-         joints: [{ x: -50, y: 0 }, { x: +10, y: -50 }, { x: +10, y: +50 }],
-         disabled: false,
-         name: "bipolar",
-         currentGain: 0,
-         type: "NPN"
-      }
-
       export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
          name: ValueCheck.validate("string", "bipolar"),
          disabled: ValueCheck.validate("boolean", false),

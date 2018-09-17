@@ -74,7 +74,7 @@ namespace Circuit.Component {
 
       }
 
-      export const defaults: Types.state & Types.properties = {
+      const defaults: Types.state & Types.properties = {
          joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
          disabled: false,
          name: "diode",

@@ -985,13 +985,6 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
-            Local.defaults = {
-                joints: [{ x: 0, y: 0 }, { x: 20, y: -20 }, { x: 40, y: 0 }],
-                disabled: false,
-                name: "bipolar",
-                currentGain: 0,
-                type: "NPN"
-            };
             Local.defaulter = {
                 joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 20, y: -20 }, { x: 40, y: 0 }]),
                 disabled: Component.ValueCheck.validate("boolean", false),
@@ -1064,13 +1057,6 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
-            Local.defaults = {
-                joints: [{ x: -50, y: 0 }, { x: +10, y: -50 }, { x: +10, y: +50 }],
-                disabled: false,
-                name: "bipolar",
-                currentGain: 0,
-                type: "NPN"
-            };
             Local.defaulter = {
                 name: Component.ValueCheck.validate("string", "bipolar"),
                 disabled: Component.ValueCheck.validate("boolean", false),
@@ -1186,11 +1172,6 @@ var Circuit;
                 }
                 return tracks;
             };
-            Local.defaults = {
-                joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }],
-                disabled: false,
-                name: "breadboardlarge"
-            };
             Local.defaulter = {
                 name: Component.ValueCheck.validate("string", "breadboardlarge"),
                 disabled: Component.ValueCheck.validate("boolean", false),
@@ -1286,11 +1267,6 @@ var Circuit;
                 }
                 return tracks;
             };
-            Local.defaults = {
-                joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }],
-                disabled: false,
-                name: "breadboardsmall"
-            };
             Local.defaulter = {
                 name: Component.ValueCheck.validate("string", "breadboardsmall"),
                 disabled: Component.ValueCheck.validate("boolean", false),
@@ -1370,13 +1346,6 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
-            Local.defaults = {
-                joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
-                disabled: false,
-                name: "capacitor",
-                capacitance: 0,
-                isPolarised: false
-            };
             Local.defaulter = {
                 name: Component.ValueCheck.validate("string", "capacitor"),
                 disabled: Component.ValueCheck.validate("boolean", false),
@@ -1462,13 +1431,6 @@ var Circuit;
                 }
             }
             Local.validatePolarisation = validatePolarisation;
-            Local.defaults = {
-                joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }],
-                disabled: false,
-                name: "capacitor",
-                capacitance: 0,
-                isPolarised: false
-            };
             Local.defaulter = {
                 name: Component.ValueCheck.validate("string", "capacitor"),
                 disabled: Component.ValueCheck.validate("boolean", false),
@@ -1563,7 +1525,7 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
-            Local.defaults = {
+            const defaults = {
                 joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
                 disabled: false,
                 name: "diode",
@@ -1577,7 +1539,7 @@ var Circuit;
                 joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 80, y: 0 }]),
                 breakdownVoltage: Component.ValueCheck.validate("number", 0),
                 saturationCurrent: Component.ValueCheck.validate("number", 0),
-                color: Component.ValueCheck.color(Local.defaults.color)
+                color: Component.ValueCheck.color(defaults.color)
             };
             Local.loadInstance = (raw) => {
                 const name = (raw.name);
@@ -1649,7 +1611,7 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
-            Local.defaults = {
+            const defaults = {
                 joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }],
                 disabled: false,
                 name: "diode",
@@ -1663,7 +1625,7 @@ var Circuit;
                 joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
                 breakdownVoltage: Component.ValueCheck.validate("number", 0),
                 saturationCurrent: Component.ValueCheck.validate("number", 0),
-                color: Component.ValueCheck.color(Local.defaults.color)
+                color: Component.ValueCheck.color(defaults.color)
             };
             const deriveJoints = (orientation, where) => {
                 const baseJoints = ({
@@ -1742,12 +1704,6 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
-            Local.defaults = {
-                joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
-                disabled: false,
-                name: "inductor",
-                inductance: 0
-            };
             Local.defaulter = {
                 name: Component.ValueCheck.validate("string", "inductor"),
                 disabled: Component.ValueCheck.validate("boolean", false),
@@ -1814,12 +1770,6 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
-            Local.defaults = {
-                joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }],
-                disabled: false,
-                name: "inductor",
-                inductance: 0
-            };
             Local.defaulter = {
                 name: Component.ValueCheck.validate("string", "inductor"),
                 disabled: Component.ValueCheck.validate("boolean", false),
@@ -1944,13 +1894,6 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
-            Local.defaults = {
-                isDual: false,
-                joints: [{ x: 30, y: 30 }, { x: 40, y: 30 }],
-                disabled: false,
-                name: "opAmp",
-                offsetVoltage: 0
-            };
             Local.defaulter = {
                 name: Component.ValueCheck.validate("string", "opAmp"),
                 disabled: Component.ValueCheck.validate("boolean", false),
@@ -2027,12 +1970,6 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
-            Local.defaults = {
-                joints: [{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: 40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: 20 }],
-                disabled: false,
-                name: "opAmp",
-                offsetVoltage: 0
-            };
             Local.defaulter = {
                 name: Component.ValueCheck.validate("string", "opAmp"),
                 disabled: Component.ValueCheck.validate("boolean", false),
@@ -2139,7 +2076,7 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
-            Local.defaults = {
+            const defaults = {
                 joints: [{ x: 0, y: 40 }],
                 disabled: false,
                 name: "power",
@@ -2149,7 +2086,7 @@ var Circuit;
                 name: Component.ValueCheck.validate("string", "power"),
                 disabled: Component.ValueCheck.validate("boolean", false),
                 joints: Component.ValueCheck.joints([{ x: 0, y: 40 }]),
-                voltage: Component.ValueCheck.validate("number", Local.defaults.voltage)
+                voltage: Component.ValueCheck.validate("number", defaults.voltage)
             };
             Local.loadInstance = (raw) => {
                 const name = (raw.name);
@@ -2218,7 +2155,7 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
-            Local.defaults = {
+            const defaults = {
                 joints: [{ x: 0, y: 0 }],
                 disabled: false,
                 name: "power",
@@ -2228,7 +2165,7 @@ var Circuit;
                 name: Component.ValueCheck.validate("string", "power"),
                 disabled: Component.ValueCheck.validate("boolean", false),
                 joints: Component.ValueCheck.joints([{ x: 0, y: 0 }]),
-                voltage: Component.ValueCheck.validate("number", Local.defaults.voltage)
+                voltage: Component.ValueCheck.validate("number", defaults.voltage)
             };
             const deriveJoints = (voltage, where) => {
                 const baseJoints = (voltage < 0)
@@ -2301,12 +2238,6 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
-            Local.defaults = {
-                joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
-                disabled: false,
-                name: "resistor",
-                resistance: 0
-            };
             Local.defaulter = {
                 name: Component.ValueCheck.validate("string", "resistor"),
                 disabled: Component.ValueCheck.validate("boolean", false),
@@ -2373,12 +2304,6 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
-            Local.defaults = {
-                joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }],
-                disabled: false,
-                name: "resistor",
-                resistance: 0
-            };
             Local.defaulter = {
                 name: Component.ValueCheck.validate("string", "resistor"),
                 disabled: Component.ValueCheck.validate("boolean", false),
@@ -2498,14 +2423,6 @@ var Circuit;
                 }
                 return tracks;
             };
-            Local.defaults = {
-                joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }],
-                disabled: false,
-                trackBreaks: [],
-                name: "stripboard",
-                rows: 1,
-                columns: 1
-            };
             Local.defaulter = {
                 name: Component.ValueCheck.validate("string", "stripboard"),
                 disabled: Component.ValueCheck.validate("boolean", false),
@@ -2605,12 +2522,6 @@ var Circuit;
                 }
             }
             Local.Instance = Instance;
-            Local.defaults = {
-                joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
-                color: "#545454",
-                disabled: false,
-                name: "wire"
-            };
             Local.defaulter = {
                 name: Component.ValueCheck.validate("string", "wire"),
                 disabled: Component.ValueCheck.validate("boolean", false),
@@ -2715,11 +2626,6 @@ var Circuit;
                 }
             }
             Local.Instance = Instance;
-            Local.defaults = {
-                joints: [{ x: 0, y: 0 }, { x: 10, y: 10 }],
-                disabled: false,
-                name: "wire"
-            };
             Local.defaulter = {
                 name: Component.ValueCheck.validate("string", "wire"),
                 disabled: Component.ValueCheck.validate("boolean", false),
@@ -2768,13 +2674,6 @@ var Circuit;
                 Board.init = init;
                 let Local;
                 (function (Local) {
-                    Local.defaults = {
-                        joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }],
-                        disabled: false,
-                        name: "track",
-                        style: "breadboard",
-                        holeSpacings: [0]
-                    };
                     Local.defaulter = {
                         name: Component.ValueCheck.validate("string", "track"),
                         style: Component.ValueCheck.validate(["breadboard", "stripboard"], "breadboard"),

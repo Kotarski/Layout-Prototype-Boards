@@ -110,12 +110,6 @@ namespace Circuit.Component {
          return tracks;
       }
 
-      export const defaults: Types.state & Types.properties = {
-         joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }],
-         disabled: false,
-         name: "breadboardlarge"
-      }
-
       export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
          name: ValueCheck.validate("string", "breadboardlarge"),
          disabled: ValueCheck.validate("boolean", false),

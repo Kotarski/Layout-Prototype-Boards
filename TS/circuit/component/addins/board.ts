@@ -37,15 +37,7 @@ namespace Circuit.Component.Addins.Board {
    }
 
    namespace Local {
-      import Types = Track.Types
-
-      export const defaults: Types.state & Types.properties = {
-         joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }],
-         disabled: false,
-         name: "track",
-         style: "breadboard",
-         holeSpacings: [0]
-      }
+      import Types = Track.Types;
 
       export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
          name: ValueCheck.validate("string", "track"),

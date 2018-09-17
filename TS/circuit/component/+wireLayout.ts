@@ -97,14 +97,6 @@ namespace Circuit.Component {
             return Utility.flatten2d(this.connectorSets.map(connectorSet => connectorSet.filter(Utility.isNot(from))));
          }
       }
-
-      export const defaults: Types.state & Types.properties = {
-         joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
-         color: "#545454",
-         disabled: false,
-         name: "wire"
-      }
-
       export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
          name: ValueCheck.validate("string", "wire"),
          disabled: ValueCheck.validate("boolean", false),

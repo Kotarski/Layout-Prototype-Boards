@@ -65,12 +65,6 @@ namespace Circuit.Component {
          }
       }
 
-      export const defaults: Types.state & Types.properties = {
-         joints: [{ x: 0, y: 0 }, { x: 10, y: 10 }],
-         disabled: false,
-         name: "wire"
-      }
-
       export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
          name: ValueCheck.validate("string", "wire"),
          disabled: ValueCheck.validate("boolean", false),

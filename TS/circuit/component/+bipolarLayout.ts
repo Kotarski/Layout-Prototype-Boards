@@ -69,14 +69,6 @@ namespace Circuit.Component {
 
       }
 
-      export const defaults: Types.state & Types.properties = {
-         joints: [{ x: 0, y: 0 }, { x: 20, y: -20 }, { x: 40, y: 0 }],
-         disabled: false,
-         name: "bipolar",
-         currentGain: 0,
-         type: "NPN"
-      };
-
       export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
          joints: ValueCheck.joints<[Vector, Vector, Vector]>(
             [{ x: 0, y: 0 }, { x: 20, y: -20 }, { x: 40, y: 0 }]
