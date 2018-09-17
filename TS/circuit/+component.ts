@@ -1,3 +1,4 @@
+/// <reference path="component/~valueCheck.ts" />
 namespace Circuit.Component {
 
    export namespace Types {
@@ -6,7 +7,7 @@ namespace Circuit.Component {
       };
 
       export interface state {
-         disabled: boolean;
+         disabled?: boolean;
       };
 
       export interface insertionFunction {
@@ -46,9 +47,9 @@ namespace Circuit.Component {
       connectorSets: Types.connector[][] = [];
       disabled: boolean;
 
-      constructor(properties: Types.properties, state: Types.state) {
-         this.name = properties.name;
-         this.disabled = state.disabled;
+      constructor(values: Types.properties & Types.state) {
+         this.name = values.name;
+         this.disabled = values.disabled || false;
       }
 
       abstract getProperties(): Types.properties;
@@ -87,49 +88,44 @@ namespace Circuit.Component {
       P extends ReturnType<C["getProperties"]>,
       S extends ReturnType<C["getState"]>
       >(
-         instanceClass: { new(p: P, s: S): C },
-         defaultProperties: P,
-         defaultState: S,
+         instanceClass: { new(v: P & S): C },
+         defaulter: ValueCheck.Defaulter<P & S>,
          initialiser: (component: C) => void) {
       return (
-         partialProperties: Global.Types.DeepPartial<P>,
-         partialState: Global.Types.DeepPartial<S>,
-         printFallbacks: boolean = false
+         partialValues: Global.Types.DeepPartial<P & S>,
+         log = false
       ): C => {
-         const defaultPropertyCopy = JSON.parse(JSON.stringify(defaultProperties));
-         const defaultStateCopy = JSON.parse(JSON.stringify(defaultState));
-         const properties = loadObjectWithDefaults(defaultPropertyCopy, partialProperties, [defaultProperties.name, "properties"], printFallbacks);
-         const state = loadObjectWithDefaults(defaultStateCopy, partialState, [defaultProperties.name, "state"], printFallbacks);
-         const component = new instanceClass(properties, state) as C;
+         if (log) console.groupCollapsed("Loading...");
+         const values = loadObjectWithDefaults(defaulter, partialValues, log);
+         if (log) console.groupEnd();
+
+         const component = new instanceClass(values) as C;
          if (initialiser) initialiser(component);
          component.draw();
          component.makeConnectors();
+
+         if (log) {
+            console.groupCollapsed("%s: %o", component.name, component.group.element);
+            console.log(component);
+            console.groupEnd();
+         }
+
          return component;
       }
    }
 
-   function loadObjectWithDefaults(fallback: any, given: any, runningLocation: string[] = [], printFallbacks: boolean = false) {
-      // Check types match
-      if (typeof fallback !== typeof given || given === undefined) {
-         if (printFallbacks) {
-            console.log("Given type for \"%s\" does not match fallback, fallback value %o used.", runningLocation.join("."), fallback);
-         }
-         // if types are object, check object properties match
-      } else if (typeof fallback === "object" && !Array.isArray(fallback) && fallback !== null) {
-         Object.keys(fallback).forEach(key => {
-            let newRunningLocation = runningLocation.concat(key);
-            if (!given.hasOwnProperty(key)) {
-               if (printFallbacks) {
-                  console.log("Given does not contain key \"%s\", fallback value %o used.", newRunningLocation.join("."), fallback[key]);
-               }
-            } else {
-               fallback[key] = loadObjectWithDefaults(fallback[key], given[key], newRunningLocation, printFallbacks)
-            }
-         });
-      } else {
-         fallback = given;
-      }
-      return fallback;
+   function loadObjectWithDefaults<T>(defaulter: ValueCheck.Defaulter<T>, partial: any, log = true): T {
+      //TS just needs to trust me here...
+      const result: T = Object.keys(defaulter).reduce((acc, key) => {
+         if (log) console.group(key);
+         const defaultFn: ValueCheck.validater<any> = (defaulter as any)[key];
+         const partialValue = (partial)[key];
+         (acc as any)[key] = defaultFn(partialValue, log)
+         if (log) console.groupEnd();
+         return acc;
+      }, {}) as T;
+
+      return result;
    }
 }
 

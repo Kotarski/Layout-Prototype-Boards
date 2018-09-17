@@ -2,6 +2,7 @@ namespace FileIO.Load.Dasim {
    type savedManifist = { schematic: Circuit.Component.Instance[], layout: Circuit.Component.Instance[] };
 
    export function buildComponents(rawComponents: any[]): savedManifist {
+      console.groupCollapsed("Component Load Data");
 
       let manifest: savedManifist = {
          schematic: [],
@@ -27,7 +28,7 @@ namespace FileIO.Load.Dasim {
          }
 
       }
-
+      console.groupEnd();
       return manifest;
    }
 }

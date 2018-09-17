@@ -23,7 +23,6 @@ namespace Circuit {
          manifest.schematic = savedManifest.schematic;
          manifest.layout = savedManifest.layout;
          if (!savedManifest.layout || savedManifest.layout.length === 0) completeManifestLayout();
-         console.log(savedManifest, manifest)
 
          manifest.activeBoard = manifest.layout.find(component => mappings.isBoard(component));
          draw();

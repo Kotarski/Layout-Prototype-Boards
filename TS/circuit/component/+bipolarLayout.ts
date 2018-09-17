@@ -16,28 +16,17 @@ namespace Circuit.Component {
 
    namespace Local {
       import Types = BipolarLayout.Types;
-
-      export const defaultState: Types.state = {
-         joints: [{ x: 0, y: 0 }, { x: 20, y: -20 }, { x: 40, y: 0 }],
-         disabled: false
-      }
-      export const defaultProperties: Types.properties = {
-         name: "bipolar",
-         currentGain: 0,
-         type: "NPN"
-      };
-
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          currentGain: number;
          type: "NPN" | "PNP"
          joints: [Vector, Vector, Vector];
 
-         constructor(properties: Types.properties, state: Types.state) {
-            super(properties, state);
+         constructor(values: Types.properties & Types.state) {
+            super(values);
             $(this.group.element).addClass("component " + this.name);
-            this.joints = state.joints;
-            this.type = properties.type;
-            this.currentGain = properties.currentGain;
+            this.joints = values.joints;
+            this.type = values.type;
+            this.currentGain = values.currentGain;
          }
 
          getProperties(): Types.properties {
@@ -80,26 +69,26 @@ namespace Circuit.Component {
 
       }
 
+      export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
+         joints: ValueCheck.joints<[Vector, Vector, Vector]>(
+            [{ x: 0, y: 0 }, { x: 20, y: -20 }, { x: 40, y: 0 }]
+         ),
+         disabled: ValueCheck.validate("boolean", false),
+         name: ValueCheck.validate("string", "bipolar"),
+         currentGain: ValueCheck.validate("number", 0),
+         type: ValueCheck.validate<"NPN" | "PNP">(["NPN", "PNP"], "NPN")
+      };
+
       export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
+         const name = (raw.name);
+         const currentGain = (raw.currentGain);
+         const type = (raw.type);
+         const joints = (raw.joints);
 
-         let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
-            {
-               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 3)
-                  ? vector.standardise(raw.state.joints as AnyVector[])
-                  : undefined
-            } : {};
-
-         let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
-            {
-               name: raw.properties.name,
-               currentGain: raw.properties.currentGain,
-               type: (["NPN", "PNP"].includes(raw.properties.type)) ? raw.properties.type : undefined
-            } : {};
-
-         return makeInstance(properties, state, true);
+         return makeInstance({ name, currentGain, type, joints }, true);
       }
 
-      export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
+      export const makeInstance = getMaker(Instance, defaulter,
          (component: Instance) => {
             $(component.group.element).addClass("component " + component.name);
             Addins.Graphical.init(component);
@@ -112,8 +101,6 @@ namespace Circuit.Component {
    }
 
    export const BipolarLayout = {
-      defaultState: Local.defaultState,
-      defaultProperties: Local.defaultProperties,
       Instance: Local.Instance,
       makeInstance: Local.makeInstance,
       loadInstance: Local.loadInstance

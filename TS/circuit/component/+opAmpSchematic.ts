@@ -23,24 +23,15 @@ namespace Circuit.Component {
    namespace Local {
       import Types = OpAmpSchematic.Types;
 
-      export const defaultState: Types.state = {
-         joints: [{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: 40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: 20 }],
-         disabled: false
-      }
-      export const defaultProperties: Types.properties = {
-         name: "opAmp",
-         offsetVoltage: 0
-      }
-
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          offsetVoltage: number;
          joints: [Vector, Vector, Vector, Vector, Vector];
 
-         constructor(properties: Types.properties, state: Types.state) {
-            super(properties, state);
+         constructor(values: Types.properties & Types.state) {
+            super(values);
             $(this.group.element).addClass("component " + this.name);
-            this.joints = state.joints;
-            this.offsetVoltage = properties.offsetVoltage;
+            this.joints = values.joints;
+            this.offsetVoltage = values.offsetVoltage;
          }
 
          getProperties(): Types.properties {
@@ -84,75 +75,71 @@ namespace Circuit.Component {
 
       }
 
+      export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
+         name: ValueCheck.validate("string", "opAmp"),
+         disabled: ValueCheck.validate("boolean", false),
+         joints: ValueCheck.joints<[Vector, Vector, Vector, Vector, Vector]>(
+            [{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: 40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: 20 }]
+         ),
+         offsetVoltage: ValueCheck.validate("number", 0)
+      };
+
+      const deriveJoints = (orientation: "LR" | "RL", inputAtTop: "inverting" | "non-inverting", where: Vector) => {
+         const [inHigh, inLow] = orientation === "LR"
+            ? [{ x: -30, y: -10 }, { x: -30, y: +10 }]
+            : [{ x: +30, y: -10 }, { x: +30, y: +10 }];
+
+         const [inInverting, inNonInverting] = inputAtTop === "inverting"
+            ? [inHigh, inLow] : [inLow, inHigh]
+
+         const [out] = orientation === "LR"
+            ? [{ x: +40, y: 0 }]
+            : [{ x: -40, y: 0 }];
+
+         const [powPositive, powNegative] = inputAtTop === "inverting"
+            ? [{ x: 0, y: -20 }, { x: 0, y: +20 }]
+            : [{ x: 0, y: +20 }, { x: 0, y: -20 }];
+
+         return vector([inInverting, inNonInverting, out, powPositive, powNegative]).sumWith(where).vectors;
+      }
+
       export const loadInstance: Component.Types.loadFunction = (raw: any): (Instance | [PowerSchematic.Instance, PowerSchematic.Instance, Instance]) => {
-         let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
-            {
-               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 5)
-                  ? vector.standardise(raw.state.joints as AnyVector[])
-                  : undefined
-            } : {
-               joints: (() => {
-                  if (["LR", "RL"].includes(raw.orientation) && ["inverting", "non-inverting"].includes(raw.whichInputAtTop)) {
-                     let baseJoints = ({
-                        //              In Inverting        In Non-Inverting    Out                  Power Positive/Negative
-                        "LRinverting": [{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: +40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: +20 }],
-                        "RLinverting": [{ x: +30, y: -10 }, { x: +30, y: +10 }, { x: -40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: +20 }],
-                        "LRnon-inverting": [{ x: -30, y: +10 }, { x: -30, y: -10 }, { x: +40, y: 0 }, { x: 0, y: +20 }, { x: 0, y: -20 }],
-                        "RLnon-inverting": [{ x: +30, y: +10 }, { x: +30, y: -10 }, { x: -40, y: 0 }, { x: 0, y: +20 }, { x: 0, y: -20 }],
-                     } as { [key: string]: [Vector, Vector, Vector, Vector, Vector] })[raw.orientation + raw.whichInputAtTop]
+         const name = (raw.name);
+         const offsetVoltage = (raw.offsetVoltage);
 
-                     let offset: Vector = (raw.where && vector.isVector(raw.where))
-                        ? vector(raw.where as AnyVector).vector
-                        : { x: 0, y: 0 }
-                     return vector(baseJoints).sumWith(offset).vectors
-                  } else {
-                     return undefined;
-                  }
-               })()
-            };
+         //Joints Block
+         const orientations: ["LR", "RL"] = ["LR", "RL"];
+         const orientation = ValueCheck.validate(orientations, "LR")(raw.orientation, false);
+         const inputsAtTop: ["inverting", "non-inverting"] = ["inverting", "non-inverting"]
+         const inputAtTop = ValueCheck.validate(inputsAtTop, "non-inverting")(raw.whichInputAtTop, false);
+         const where = ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
+         const joints = (raw.joints || deriveJoints(orientation, inputAtTop, where));
 
+         const opAmp = makeInstance({ name, offsetVoltage, joints }, true);
 
-         let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
-            {
-               name: raw.properties.name,
-               offsetVoltage: raw.properties.offsetVoltage,
-            } : {
-               offsetVoltage: raw.offsetVoltage,
-            };
+         // Also make the power connections
+         const isNumber = ValueCheck.test("number");
+         const [minOutput, maxOutput] = [raw.minOutput, raw.maxOutput];
+         if (isNumber(minOutput) && isNumber(maxOutput)) {
 
-         if ((raw.minOutput) && (raw.maxOutput)) {
-            let offset: Vector = (raw.where && vector.isVector(raw.where))
-               ? vector(raw.where as AnyVector).vector
-               : { x: 0, y: 0 }
+            const topPower = PowerSchematic.makeInstance({
+               voltage: maxOutput,
+               joints: vector([{ x: 0, y: -20 }]).sumWith(where).vectors
+            }, true);
 
-            // Also create the power leads
-            let topPower = PowerSchematic.makeInstance(
-               { voltage: raw.maxOutput || 5 }, {
-                  joints: vector([{ x: 0, y: -20 }]).sumWith(offset).vectors
-               }, true
-            );
+            const bottomPower = PowerSchematic.makeInstance({
+               voltage: minOutput,
+               joints: vector([{ x: 0, y: 20 }]).sumWith(where).vectors
+            }, true);
 
-            let bottomPower = PowerSchematic.makeInstance(
-               { voltage: raw.minOutput || -5 }, {
-                  joints: vector([{ x: 0, y: 20 }]).sumWith(offset).vectors
-               }, true
-            );
-
-            let opAmp = makeInstance(properties, state, true);
-
-            let instances: [PowerSchematic.Instance, PowerSchematic.Instance, Instance] = [
-               topPower,
-               bottomPower,
-               opAmp,
-            ];
-
-            return instances
+            type newOpampParts = [PowerSchematic.Instance, PowerSchematic.Instance, Instance];
+            return [topPower, bottomPower, opAmp] as newOpampParts
          } else {
-            return makeInstance(properties, state, true);
+            return opAmp;
          }
       }
 
-      export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
+      export const makeInstance = getMaker(Instance, defaulter,
          (component: Instance) => {
             $(component.group.element).addClass("component " + component.name);
             Addins.Selectable.init(component);
@@ -167,8 +154,7 @@ namespace Circuit.Component {
    }
 
    export const OpAmpSchematic = {
-      defaultState: Local.defaultState,
-      defaultProperties: Local.defaultProperties,
+
       Instance: Local.Instance,
       makeInstance: Local.makeInstance,
       loadInstance: Local.loadInstance

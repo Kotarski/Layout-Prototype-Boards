@@ -21,25 +21,15 @@ namespace Circuit.Component {
    namespace Local {
       import Types = ResistorSchematic.Types
 
-      export const defaultState: Types.state = {
-         joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }],
-         disabled: false
-      }
-
-      export const defaultProperties: Types.properties = {
-         name: "resistor",
-         resistance: 0
-      }
-
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          resistance: number;
          joints: [Vector, Vector];
 
-         constructor(properties: Types.properties, state: Types.state) {
-            super(properties, state);
+         constructor(values: Types.properties & Types.state) {
+            super(values);
             $(this.group.element).addClass("component " + this.name);
-            this.joints = state.joints;
-            this.resistance = properties.resistance;
+            this.joints = values.joints;
+            this.resistance = values.resistance;
          }
 
          getProperties(): Types.properties {
@@ -78,43 +68,38 @@ namespace Circuit.Component {
 
       }
 
-      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
-         let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
-            {
-               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
-                  ? vector.standardise(raw.state.joints as AnyVector[])
-                  : undefined
-            } : {
-               joints: (() => {
-                  if (["LR", "UD", "RL", "DU"].includes(raw.orientation)) {
-                     let baseJoints = ({
-                        LR: [{ x: -30, y: 0 }, { x: 30, y: 0 }],
-                        UD: [{ x: 0, y: -30 }, { x: 0, y: 30 }],
-                        RL: [{ x: 30, y: 0 }, { x: -30, y: 0 }],
-                        DU: [{ x: 0, y: 30 }, { x: 0, y: -30 }]
-                     } as { [key: string]: [Vector, Vector] })[raw.orientation];
+      export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
+         name: ValueCheck.validate("string", "resistor"),
+         disabled: ValueCheck.validate("boolean", false),
+         joints: ValueCheck.joints<[Vector, Vector]>(
+            [{ x: 0, y: 0 }, { x: 40, y: 40 }]
+         ),
+         resistance: ValueCheck.validate("number", 0)
+      };
 
-                     let offset: Vector = (raw.where && vector.isVector(raw.where))
-                        ? vector(raw.where as AnyVector).vector
-                        : { x: 0, y: 0 }
-                     return vector(baseJoints).sumWith(offset).vectors
-                  } else {
-                     return undefined;
-                  }
-               })()
-            };
-         let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
-            {
-               name: raw.properties.name,
-               resistance: raw.properties.resistance,
-            } : {
-               resistance: raw.value,
-            };
-
-         return makeInstance(properties, state, true);
+      const deriveJoints = (orientation: "LR" | "RL" | "UD" | "DU", where: Vector) => {
+         const baseJoints = ({
+            LR: [{ x: -30, y: 0 }, { x: 30, y: 0 }],
+            UD: [{ x: 0, y: -30 }, { x: 0, y: 30 }],
+            RL: [{ x: 30, y: 0 }, { x: -30, y: 0 }],
+            DU: [{ x: 0, y: 30 }, { x: 0, y: -30 }]
+         })[orientation] as [Vector, Vector];
+         return vector(baseJoints).sumWith(where).vectors;
       }
 
-      export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
+      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
+         const name = (raw.name);
+         const resistance = (raw.resistance || raw.value);
+         //Joints Block
+         const orientations: ["LR", "RL", "UD", "DU"] = ["LR", "RL", "UD", "DU"];
+         const orientation = ValueCheck.validate(orientations, "LR")(raw.orientation, false);
+         const where = ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
+         const joints = (raw.joints || deriveJoints(orientation, where));
+
+         return makeInstance({ name, resistance, joints, }, true);
+      }
+
+      export const makeInstance = getMaker(Instance, defaulter,
          (component: Instance) => {
             $(component.group.element).addClass("component " + component.name);
             Addins.Selectable.init(component);
@@ -129,8 +114,7 @@ namespace Circuit.Component {
    }
 
    export const ResistorSchematic = {
-      defaultState: Local.defaultState,
-      defaultProperties: Local.defaultProperties,
+
       Instance: Local.Instance,
       makeInstance: Local.makeInstance,
       loadInstance: Local.loadInstance

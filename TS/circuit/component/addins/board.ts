@@ -37,17 +37,19 @@ namespace Circuit.Component.Addins.Board {
    }
 
    namespace Local {
-      import Types = Track.Types
+      import Types = Track.Types;
 
-      export const defaultState: Types.state = {
-         joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }],
-         disabled: false
-      }
-      export const defaultProperties: Types.properties = {
-         name: "track",
-         style: "breadboard",
-         holeSpacings: [0]
-      }
+      export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
+         name: ValueCheck.validate("string", "track"),
+         style: ValueCheck.validate<"breadboard" | "stripboard">(["breadboard", "stripboard"], "breadboard"),
+         disabled: ValueCheck.validate("boolean", false),
+         joints: ValueCheck.joints<[Vector, Vector]>(
+            [{ x: 0, y: 0 }, { x: 20, y: 0 }]
+         ),
+         holeSpacings: ValueCheck.validate(
+            v => Array.isArray(v) && v.every(ValueCheck.test("number")), [0]
+         ),
+      };
 
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          name: string;
@@ -56,12 +58,12 @@ namespace Circuit.Component.Addins.Board {
          style: "breadboard" | "stripboard";
          joints: [Vector, Vector];
 
-         constructor(properties: Types.properties, state: Types.state) {
-            super(properties, state);
-            this.name = properties.name;
-            this.holeSpacings = properties.holeSpacings;
-            this.style = properties.style;
-            this.joints = state.joints;
+         constructor(values: Types.properties & Types.state) {
+            super(values);
+            this.name = values.name;
+            this.holeSpacings = values.holeSpacings;
+            this.style = values.style;
+            this.joints = values.joints;
          }
 
          getProperties(): Types.properties {
@@ -200,7 +202,7 @@ namespace Circuit.Component.Addins.Board {
          component.group.prepend(Svg.Element.Rect.make(centre, size, vector(0), 'body').rotate(angle, centre));
       }
 
-      export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
+      export const makeInstance = getMaker(Instance, defaulter,
          (component: Instance) => {
             $(component.group.element).addClass(component.name);
          }
@@ -208,8 +210,7 @@ namespace Circuit.Component.Addins.Board {
    }
 
    export const Track = {
-      defaultState: Local.defaultState,
-      defaultProperties: Local.defaultProperties,
+
       Instance: Local.Instance,
       makeInstance: Local.makeInstance,
    }

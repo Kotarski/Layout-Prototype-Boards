@@ -21,24 +21,15 @@ namespace Circuit.Component {
    namespace Local {
       import Types = PowerSchematic.Types;
 
-      export const defaultState: Types.state = {
-         joints: [{ x: 0, y: 0 }],
-         disabled: false
-      }
-      export const defaultProperties: Types.properties = {
-         name: "power",
-         voltage: 0
-      }
-
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          voltage: number;
          joints: [Vector];
 
-         constructor(properties: Types.properties, state: Types.state) {
-            super(properties, state);
+         constructor(values: Types.properties & Types.state) {
+            super(values);
             $(this.group.element).addClass("component " + this.name);
-            this.voltage = properties.voltage;
-            this.joints = state.joints;
+            this.voltage = values.voltage;
+            this.joints = values.joints;
          }
 
          getProperties(): Types.properties {
@@ -69,55 +60,42 @@ namespace Circuit.Component {
 
       }
 
-      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
-
-         let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
-            {
-               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 1)
-                  ? vector.standardise(raw.state.joints as AnyVector[])
-                  : undefined
-            } : {
-               joints: (() => {
-                  if (raw.where && vector.isVector(raw.where)) {
-
-                     if (raw.value !== undefined && typeof raw.value === "number") {
-
-                        let offset = (raw.value < 0)
-                           ? { x: 0, y: -10 } // negative
-                           : (raw.value > 0)
-                              ? { x: 0, y: 10 } // positive
-                              : { x: 0, y: -10 }; // zero (ground)
-
-                        return [vector(raw.where as AnyVector).sumWith(offset).vector]
-
-                     } else {
-                        return [vector(raw.where as AnyVector).vector]
-                     }
-
-
-
-
-
-
-                  } else {
-                     return undefined;
-                  }
-
-               })()
-            };
-
-         let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
-            {
-               name: raw.properties.name,
-               voltage: raw.properties.voltage,
-            } : {
-               voltage: raw.value,
-            };
-
-         return makeInstance(properties, state, true);
+      const defaults: Types.state & Types.properties = {
+         joints: [{ x: 0, y: 0 }],
+         disabled: false,
+         name: "power",
+         voltage: 0
       }
 
-      export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
+      export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
+         name: ValueCheck.validate("string", "power"),
+         disabled: ValueCheck.validate("boolean", false),
+         joints: ValueCheck.joints<[Vector]>(
+            [{ x: 0, y: 0 }]
+         ),
+         voltage: ValueCheck.validate("number", defaults.voltage)
+      };
+
+      const deriveJoints = (voltage: number, where: Vector) => {
+         const baseJoints = (voltage < 0)
+            ? [{ x: 0, y: -10 }] // negative
+            : (voltage > 0)
+               ? [{ x: 0, y: 10 }] // positive
+               : [{ x: 0, y: -10 }]; // zero (ground)
+         return vector(baseJoints).sumWith(where).vectors;
+      }
+
+      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
+         const name = (raw.name);
+         const voltage = (raw.voltage || raw.value);
+         //Joints Block
+         const where = ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
+         const joints = (raw.joints || deriveJoints(voltage, where));
+
+         return makeInstance({ name, voltage, joints, }, true);
+      }
+
+      export const makeInstance = getMaker(Instance, defaulter,
          (component: Instance) => {
             $(component.group.element).addClass("component " + component.name);
             Addins.Selectable.init(component);
@@ -131,8 +109,7 @@ namespace Circuit.Component {
    }
 
    export const PowerSchematic = {
-      defaultState: Local.defaultState,
-      defaultProperties: Local.defaultProperties,
+
       Instance: Local.Instance,
       makeInstance: Local.makeInstance,
       loadInstance: Local.loadInstance

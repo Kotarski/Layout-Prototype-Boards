@@ -23,5 +23,15 @@ namespace Global {
          ? ReadonlyArray<DeepPartial<U>>
          : DeepPartial<T[P]>
       };
+      export type baseTypes = "string" | "number" | "boolean" | "symbol" | "undefined" | "object" | "function";
+
+      export type NameType<T> = (
+         T extends "string" ? string :
+         T extends "number" ? number :
+         T extends "boolean" ? boolean :
+         T extends "undefined" ? undefined :
+         T extends "function" ? Function :
+         object
+      );
    }
 }

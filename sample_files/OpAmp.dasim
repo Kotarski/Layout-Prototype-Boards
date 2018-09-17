@@ -1,0 +1,17 @@
+﻿[
+"{\"func\":\"makeOpAmp\",\"where\":{\"X\":500,\"Y\":310},\"orientation\":\"LR\",\"whichInputAtTop\":\"inverting\",\"lowFrequencyGain\":null,\"dominantPole\":15,\"bIsAC\":false,\"maxOutput\":12,\"minOutput\":-12,\"outputImpedance\":0,\"biasCurrent\":0,\"offsetVoltage\":0}",
+"{\"func\":\"makeResistor\",\"where\":{\"X\":400,\"Y\":380},\"orientation\":\"LR\",\"value\":1000,\"letter\":\"\"}",
+"{\"func\":\"makePower\",\"where\":{\"X\":680,\"Y\":260},\"orientation\":\"LR\",\"value\":12}",
+"{\"func\":\"makePower\",\"where\":{\"X\":370,\"Y\":430},\"orientation\":\"LR\",\"value\":0}",
+"{\"func\":\"makeResistor\",\"where\":{\"X\":500,\"Y\":250},\"orientation\":\"LR\",\"value\":2000,\"letter\":\"\"}",
+"{\"func\":\"makeResistor\",\"where\":{\"X\":650,\"Y\":310},\"orientation\":\"LR\",\"value\":1000,\"letter\":\"\"}",
+"{\"func\":\"makeWire\",\"joints\":[{\"X\":370,\"Y\":380},{\"X\":370,\"Y\":420}]}",
+"{\"func\":\"makeWire\",\"joints\":[{\"X\":540,\"Y\":310},{\"X\":560,\"Y\":310}]}",
+"{\"func\":\"makeWire\",\"joints\":[{\"X\":470,\"Y\":250},{\"X\":450,\"Y\":250},{\"X\":450,\"Y\":300},{\"X\":470,\"Y\":300}]}",
+"{\"func\":\"makeWire\",\"joints\":[{\"X\":430,\"Y\":380},{\"X\":450,\"Y\":380},{\"X\":450,\"Y\":320},{\"X\":470,\"Y\":320}]}",
+"{\"func\":\"makeWire\",\"joints\":[{\"X\":560,\"Y\":310},{\"X\":560,\"Y\":250},{\"X\":530,\"Y\":250}]}",
+"{\"func\":\"makeWire\",\"joints\":[{\"X\":560,\"Y\":310},{\"X\":620,\"Y\":310}]}",
+"{\"func\":\"makeWire\",\"joints\":[{\"X\":680,\"Y\":310},{\"X\":680,\"Y\":270}]}",
+"{\"func\":\"setSimMode\",\"mode\":\"DC\"}",
+"{\"func\":\"setGraphicsControls\",\"sgFreqCoarseSlider\":0.5,\"sgFreqMiddleSlider\":0.5,\"sgFreqFineSlider\":0.5,\"sgFreqSetZero\":false,\"sgZoomFactor\":0.5}",
+"{\"func\":\"setDrawingControls\",\"showCurrentBox\":false,\"showVoltageBox\":false,\"showAnimateBox\":false,\"showAutoWiringBox\":true,\"enableArrows\":false}"]

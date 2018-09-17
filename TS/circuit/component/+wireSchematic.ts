@@ -13,24 +13,15 @@ namespace Circuit.Component {
    namespace Local {
       import Types = WireSchematic.Types;
 
-      export const defaultState: Types.state = {
-         joints: [{ x: 0, y: 0 }, { x: 10, y: 10 }],
-         disabled: false
-      }
-
-      export const defaultProperties: Types.properties = {
-         name: "wire",
-      }
-
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          joints: Vector[];
          connectorSets: Component.Types.node[][] = [];
 
 
-         constructor(properties: Types.properties, state: Types.state) {
-            super(properties, state);
+         constructor(values: Types.properties & Types.state) {
+            super(values);
             $(this.group.element).addClass("component " + this.name);
-            this.joints = state.joints;
+            this.joints = values.joints;
          }
 
          getProperties(): Types.properties {
@@ -74,34 +65,23 @@ namespace Circuit.Component {
          }
       }
 
-      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
-         let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
-            {
-               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length > 1)
-                  ? vector.standardise(raw.state.joints as AnyVector[])
-                  : undefined
-            } : {
-               joints: (() => {
-                  if (vector.isVectorArray(raw.joints) && raw.joints.length > 1) {
-                     let baseJoints = vector.standardise(raw.joints as AnyVector[]);
-                     let offset: Vector = (raw.where && vector.isVector(raw.where))
-                        ? vector(raw.where as AnyVector).vector
-                        : { x: 0, y: 0 }
-                     return vector(baseJoints).sumWith(offset).vectors
-                  } else {
-                     return undefined;
-                  }
-               })()
-            };
-         let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
-            {
-               name: raw.properties.name,
-            } : {};
+      export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
+         name: ValueCheck.validate("string", "wire"),
+         disabled: ValueCheck.validate("boolean", false),
+         joints: ValueCheck.joints(
+            [{ x: 0, y: 0 }, { x: 10, y: 10 }], l => l >= 2
+         ),
+      };
 
-         return makeInstance(properties, state, true);
+      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
+         const name = (raw.name);
+         //Joints Block
+         const joints = (raw.joints);
+
+         return makeInstance({ name, joints, }, true);
       }
 
-      export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
+      export const makeInstance = getMaker(Instance, defaulter,
          (component: Instance) => {
             $(component.group.element).addClass("component " + component.name);
             Addins.Junctions.init(component);
@@ -116,8 +96,7 @@ namespace Circuit.Component {
    }
 
    export const WireSchematic = {
-      defaultState: Local.defaultState,
-      defaultProperties: Local.defaultProperties,
+
       makeInstance: Local.makeInstance,
       loadInstance: Local.loadInstance,
       Instance: Local.Instance

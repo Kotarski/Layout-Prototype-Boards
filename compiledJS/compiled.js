@@ -197,7 +197,7 @@ var _vector;
 var _vector;
 (function (_vector) {
     function isVector(inVector) {
-        return (isLVector(inVector) || isUVector(inVector));
+        return inVector && (isLVector(inVector) || isUVector(inVector));
     }
     _vector.isVector = isVector;
     function isVectorArray(inVectors) {
@@ -335,6 +335,95 @@ var _vector;
         };
     }
 })(_vector || (_vector = {}));
+var Utility;
+(function (Utility) {
+    Utility.is = (check) => (test) => test === check;
+})(Utility || (Utility = {}));
+var Utility;
+(function (Utility) {
+    ;
+    function validateType(test, fallback) {
+        const predicate = ((typeof test === "string")
+            ? (v) => typeof v === test
+            : (test instanceof Array)
+                ? (v) => test.some(Utility.is(v))
+                : test);
+        const validator = (value, log = true) => {
+            if (predicate(value)) {
+                if (log) {
+                    console.log(`Value '%o' passed test '%o`, value, test);
+                }
+                return value;
+            }
+            else {
+                if (log) {
+                    console.log(`Validation failure, value '%o' did not pass test '%o',
+                fallback '%o' used.`, value, test, fallback);
+                }
+                return fallback;
+            }
+        };
+        return validator;
+    }
+    Utility.validateType = validateType;
+})(Utility || (Utility = {}));
+var Utility;
+(function (Utility) {
+    function testType(test) {
+        const predicate = ((typeof test === "string")
+            ? (v) => typeof v === test
+            : (test instanceof Array)
+                ? (v) => test.some(Utility.is(v))
+                : test);
+        return predicate;
+    }
+    Utility.testType = testType;
+})(Utility || (Utility = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var ValueCheck;
+        (function (ValueCheck) {
+            ValueCheck.test = Utility.testType;
+            ValueCheck.validate = Utility.validateType;
+            const integerTest = (n) => ValueCheck.test("number")(n) && Number.isInteger(n);
+            function integer(fallback) {
+                const result = (value, log = true) => {
+                    return ValueCheck.validate(integerTest, fallback)(value, log);
+                };
+                return result;
+            }
+            ValueCheck.integer = integer;
+            function where(fallback) {
+                const result = (value, log = true) => {
+                    const anyVector = ValueCheck.validate(vector.isVector, fallback)(value, log);
+                    return vector.standardise(anyVector);
+                };
+                return result;
+            }
+            ValueCheck.where = where;
+            function joints(fallback, lengthTest = l => l === fallback.length) {
+                const jointTest = (value) => vector.isVectorArray(value) && lengthTest(value.length);
+                const result = (value, log = true) => {
+                    const anyVectors = ValueCheck.validate(jointTest, fallback)(value, log);
+                    return vector.standardise(anyVectors);
+                };
+                return result;
+            }
+            ValueCheck.joints = joints;
+            const maxValidCSSColorLength = 25;
+            const colorTest = (s) => ValueCheck.test("string")(s) && s.length <= maxValidCSSColorLength;
+            function color(fallback) {
+                const result = (value, log = true) => {
+                    return ValueCheck.validate(colorTest, fallback)(value, log);
+                };
+                return result;
+            }
+            ValueCheck.color = color;
+        })(ValueCheck = Component.ValueCheck || (Component.ValueCheck = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
 var Circuit;
 (function (Circuit) {
     var Component;
@@ -347,11 +436,11 @@ var Circuit;
             ;
         })(Types = Component.Types || (Component.Types = {}));
         class Instance {
-            constructor(properties, state) {
+            constructor(values) {
                 this.group = Svg.Element.Group.make();
                 this.connectorSets = [];
-                this.name = properties.name;
-                this.disabled = state.disabled;
+                this.name = values.name;
+                this.disabled = values.disabled || false;
             }
             insertInto(element) {
                 Utility.Insert.last(this.group.element, element);
@@ -366,44 +455,39 @@ var Circuit;
             }
         }
         Component.Instance = Instance;
-        function getMaker(instanceClass, defaultProperties, defaultState, initialiser) {
-            return (partialProperties, partialState, printFallbacks = false) => {
-                const defaultPropertyCopy = JSON.parse(JSON.stringify(defaultProperties));
-                const defaultStateCopy = JSON.parse(JSON.stringify(defaultState));
-                const properties = loadObjectWithDefaults(defaultPropertyCopy, partialProperties, [defaultProperties.name, "properties"], printFallbacks);
-                const state = loadObjectWithDefaults(defaultStateCopy, partialState, [defaultProperties.name, "state"], printFallbacks);
-                const component = new instanceClass(properties, state);
+        function getMaker(instanceClass, defaulter, initialiser) {
+            return (partialValues, log = false) => {
+                if (log)
+                    console.groupCollapsed("Loading...");
+                const values = loadObjectWithDefaults(defaulter, partialValues, log);
+                if (log)
+                    console.groupEnd();
+                const component = new instanceClass(values);
                 if (initialiser)
                     initialiser(component);
                 component.draw();
                 component.makeConnectors();
+                if (log) {
+                    console.groupCollapsed("%s: %o", component.name, component.group.element);
+                    console.log(component);
+                    console.groupEnd();
+                }
                 return component;
             };
         }
         Component.getMaker = getMaker;
-        function loadObjectWithDefaults(fallback, given, runningLocation = [], printFallbacks = false) {
-            if (typeof fallback !== typeof given || given === undefined) {
-                if (printFallbacks) {
-                    console.log("Given type for \"%s\" does not match fallback, fallback value %o used.", runningLocation.join("."), fallback);
-                }
-            }
-            else if (typeof fallback === "object" && !Array.isArray(fallback) && fallback !== null) {
-                Object.keys(fallback).forEach(key => {
-                    let newRunningLocation = runningLocation.concat(key);
-                    if (!given.hasOwnProperty(key)) {
-                        if (printFallbacks) {
-                            console.log("Given does not contain key \"%s\", fallback value %o used.", newRunningLocation.join("."), fallback[key]);
-                        }
-                    }
-                    else {
-                        fallback[key] = loadObjectWithDefaults(fallback[key], given[key], newRunningLocation, printFallbacks);
-                    }
-                });
-            }
-            else {
-                fallback = given;
-            }
-            return fallback;
+        function loadObjectWithDefaults(defaulter, partial, log = true) {
+            const result = Object.keys(defaulter).reduce((acc, key) => {
+                if (log)
+                    console.group(key);
+                const defaultFn = defaulter[key];
+                const partialValue = (partial)[key];
+                acc[key] = defaultFn(partialValue, log);
+                if (log)
+                    console.groupEnd();
+                return acc;
+            }, {});
+            return result;
         }
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
@@ -553,7 +637,6 @@ var Circuit;
             Circuit.manifest.layout = savedManifest.layout;
             if (!savedManifest.layout || savedManifest.layout.length === 0)
                 completeManifestLayout();
-            console.log(savedManifest, Circuit.manifest);
             Circuit.manifest.activeBoard = Circuit.manifest.layout.find(component => Circuit.mappings.isBoard(component));
             draw();
         };
@@ -825,7 +908,7 @@ var Circuit;
         function getLayoutInstanceFromSchematic(schematic) {
             let constructor = schematic["constructor"];
             let properties = schematic.getProperties();
-            return schematicToLayoutMap.get(constructor)(properties, {});
+            return schematicToLayoutMap.get(constructor)(properties);
         }
         function isCorresponder(component) {
             return ["resistor", "capacitor", "power", "opAmp", "diode", "inductor", "bipolar"].includes(component.name);
@@ -867,22 +950,13 @@ var Circuit;
     (function (Component) {
         let Local;
         (function (Local) {
-            Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 20, y: -20 }, { x: 40, y: 0 }],
-                disabled: false
-            };
-            Local.defaultProperties = {
-                name: "bipolar",
-                currentGain: 0,
-                type: "NPN"
-            };
             class Instance extends Component.Instance {
-                constructor(properties, state) {
-                    super(properties, state);
+                constructor(values) {
+                    super(values);
                     $(this.group.element).addClass("component " + this.name);
-                    this.joints = state.joints;
-                    this.type = properties.type;
-                    this.currentGain = properties.currentGain;
+                    this.joints = values.joints;
+                    this.type = values.type;
+                    this.currentGain = values.currentGain;
                 }
                 getProperties() {
                     return Utility.deepCopy({
@@ -911,22 +985,21 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
-            Local.loadInstance = (raw) => {
-                let state = (raw.state) ?
-                    {
-                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 3)
-                            ? vector.standardise(raw.state.joints)
-                            : undefined
-                    } : {};
-                let properties = (raw.properties) ?
-                    {
-                        name: raw.properties.name,
-                        currentGain: raw.properties.currentGain,
-                        type: (["NPN", "PNP"].includes(raw.properties.type)) ? raw.properties.type : undefined
-                    } : {};
-                return Local.makeInstance(properties, state, true);
+            Local.defaulter = {
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 20, y: -20 }, { x: 40, y: 0 }]),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                name: Component.ValueCheck.validate("string", "bipolar"),
+                currentGain: Component.ValueCheck.validate("number", 0),
+                type: Component.ValueCheck.validate(["NPN", "PNP"], "NPN")
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.loadInstance = (raw) => {
+                const name = (raw.name);
+                const currentGain = (raw.currentGain);
+                const type = (raw.type);
+                const joints = (raw.joints);
+                return Local.makeInstance({ name, currentGain, type, joints }, true);
+            };
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Graphical.init(component);
                 Component.Addins.Draggable.init(component);
@@ -936,8 +1009,6 @@ var Circuit;
             });
         })(Local || (Local = {}));
         Component.BipolarLayout = {
-            defaultState: Local.defaultState,
-            defaultProperties: Local.defaultProperties,
             Instance: Local.Instance,
             makeInstance: Local.makeInstance,
             loadInstance: Local.loadInstance
@@ -950,23 +1021,14 @@ var Circuit;
     (function (Component) {
         let Local;
         (function (Local) {
-            Local.defaultState = {
-                joints: [{ x: -50, y: 0 }, { x: +10, y: -50 }, { x: +10, y: +50 }],
-                disabled: false
-            };
-            Local.defaultProperties = {
-                name: "bipolar",
-                currentGain: 0,
-                type: "NPN"
-            };
             class Instance extends Component.Instance {
-                constructor(properties, state) {
-                    super(properties, state);
+                constructor(values) {
+                    super(values);
                     this.name = "bipolar";
                     $(this.group.element).addClass("component " + this.name);
-                    this.joints = state.joints;
-                    this.type = properties.type;
-                    this.currentGain = properties.currentGain;
+                    this.joints = values.joints;
+                    this.type = values.type;
+                    this.currentGain = values.currentGain;
                 }
                 getProperties() {
                     return Utility.deepCopy({
@@ -995,43 +1057,32 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
-            Local.loadInstance = (raw) => {
-                let state = (raw.state) ?
-                    {
-                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 3)
-                            ? vector.standardise(raw.state.joints)
-                            : undefined
-                    } : {
-                    joints: (() => {
-                        if (["LR", "RL"].includes(raw.orientation) && ["NPN", "PNP"].includes(raw.type)) {
-                            let baseJoints = {
-                                LRPNP: [{ x: 0, y: -50 }, { x: 0, y: +50 }, { x: -60, y: 0 }],
-                                RLPNP: [{ x: 0, y: -50 }, { x: 0, y: +50 }, { x: +60, y: 0 }],
-                                LRNPN: [{ x: 0, y: +50 }, { x: 0, y: -50 }, { x: -60, y: 0 }],
-                                RLNPN: [{ x: 0, y: +50 }, { x: 0, y: -50 }, { x: +60, y: 0 }],
-                            }[raw.orientation + raw.type];
-                            let offset = (raw.where && vector.isVector(raw.where))
-                                ? vector(raw.where).sumWith({ x: (raw.orientation === "LR") ? 10 : -10 }).vector
-                                : { x: 0, y: 0 };
-                            return vector(baseJoints).sumWith(offset).vectors;
-                        }
-                        else {
-                            return undefined;
-                        }
-                    })()
-                };
-                let properties = (raw.properties) ?
-                    {
-                        name: raw.properties.name,
-                        currentGain: raw.properties.currentGain,
-                        type: (["NPN", "PNP"].includes(raw.properties.type)) ? raw.properties.type : undefined
-                    } : {
-                    currentGain: raw.currentGain,
-                    type: (["NPN", "PNP"].includes(raw.type)) ? raw.type : undefined
-                };
-                return Local.makeInstance(properties, state, true);
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "bipolar"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: -50, y: 0 }, { x: +10, y: -50 }, { x: +10, y: +50 }]),
+                currentGain: Component.ValueCheck.validate("number", 0),
+                type: Component.ValueCheck.validate(["NPN", "PNP"], "NPN")
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            const deriveJoints = (orientation, type, where) => {
+                const [emitter, collector] = type === "PNP"
+                    ? [{ x: 0, y: -50 }, { x: 0, y: +50 }]
+                    : [{ x: 0, y: +50 }, { x: 0, y: -50 }];
+                const [base, offset] = orientation === "LR"
+                    ? [{ x: -60, y: 0 }, { x: +10 }]
+                    : [{ x: +60, y: 0 }, { x: -10 }];
+                return vector([emitter, collector, base]).sumWith(where, offset).vectors;
+            };
+            Local.loadInstance = (raw) => {
+                const name = (raw.name);
+                const currentGain = (raw.currentGain);
+                const type = (raw.type);
+                const orientation = Component.ValueCheck.validate(["LR", "RL"], "LR")(raw.orientation, false);
+                const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
+                const joints = (raw.joints || deriveJoints(orientation, type, where));
+                return Local.makeInstance({ name, currentGain, type, joints }, true);
+            };
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
@@ -1043,8 +1094,6 @@ var Circuit;
             });
         })(Local || (Local = {}));
         Component.BipolarSchematic = {
-            defaultState: Local.defaultState,
-            defaultProperties: Local.defaultProperties,
             Instance: Local.Instance,
             makeInstance: Local.makeInstance,
             loadInstance: Local.loadInstance
@@ -1057,19 +1106,12 @@ var Circuit;
     (function (Component) {
         let Local;
         (function (Local) {
-            Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }],
-                disabled: false
-            };
-            Local.defaultProperties = {
-                name: "breadboardlarge"
-            };
             class Instance extends Component.Instance {
-                constructor(properties, state) {
-                    super(properties, state);
+                constructor(values) {
+                    super(values);
                     this.tracks = [];
                     this.connectorSets = [];
-                    this.joints = state.joints;
+                    this.joints = values.joints;
                 }
                 getProperties() {
                     return Utility.deepCopy({
@@ -1107,10 +1149,9 @@ var Circuit;
                             .sumWith(parent.joints[0]);
                         const step = vector({ x: gS, y: 0 }).rotate(rotation);
                         let track = Component.Addins.Board.Track.makeInstance({
-                            holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1]
-                        }, {
+                            holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1],
                             joints: [start, step]
-                        });
+                        }, false);
                         tracks.push(track);
                     }
                 }
@@ -1123,27 +1164,25 @@ var Circuit;
                             .sumWith(parent.joints[0]);
                         const step = vector({ x: 0, y: gS }).rotate(rotation);
                         let track = Component.Addins.Board.Track.makeInstance({
-                            holeSpacings: [0, 1, 1, 1, 1]
-                        }, {
+                            holeSpacings: [0, 1, 1, 1, 1],
                             joints: [start, step]
-                        });
+                        }, false);
                         tracks.push(track);
                     }
                 }
                 return tracks;
             };
-            Local.loadInstance = (raw) => {
-                let state = (raw.state) ?
-                    {
-                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
-                            ? vector.standardise(raw.state.joints)
-                            : undefined
-                    } : {};
-                let properties = (raw.properties) ?
-                    {} : {};
-                return Local.makeInstance(properties, state, true);
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "breadboardlarge"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.loadInstance = (raw) => {
+                const name = (raw.name);
+                const joints = (raw.joints);
+                return Local.makeInstance({ name, joints }, true);
+            };
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("breadboard " + component.name);
                 Component.Addins.Graphical.init(component);
                 Component.Addins.Board.init(component);
@@ -1153,8 +1192,6 @@ var Circuit;
             });
         })(Local || (Local = {}));
         Component.BreadboardLarge = {
-            defaultState: Local.defaultState,
-            defaultProperties: Local.defaultProperties,
             Instance: Local.Instance,
             loadInstance: Local.loadInstance,
             makeInstance: Local.makeInstance
@@ -1167,19 +1204,12 @@ var Circuit;
     (function (Component) {
         let Local;
         (function (Local) {
-            Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }],
-                disabled: false
-            };
-            Local.defaultProperties = {
-                name: "breadboardsmall"
-            };
             class Instance extends Component.Instance {
-                constructor(properties, state) {
-                    super(properties, state);
+                constructor(values) {
+                    super(values);
                     this.tracks = [];
                     this.connectorSets = [];
-                    this.joints = state.joints;
+                    this.joints = values.joints;
                 }
                 getProperties() {
                     return Utility.deepCopy({
@@ -1215,10 +1245,9 @@ var Circuit;
                         .sumWith(parent.joints[0]);
                     const step = vector({ x: gS, y: 0 }).rotate(rotation);
                     let track = Component.Addins.Board.Track.makeInstance({
-                        holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1]
-                    }, {
+                        holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1],
                         joints: [start, step]
-                    });
+                    }, false);
                     tracks.push(track);
                 }
                 let mainGridTrackXPositions = [...Array(30).keys()];
@@ -1230,8 +1259,7 @@ var Circuit;
                             .sumWith(parent.joints[0]);
                         const step = vector({ x: 0, y: gS }).rotate(rotation);
                         let track = Component.Addins.Board.Track.makeInstance({
-                            holeSpacings: [0, 1, 1, 1, 1]
-                        }, {
+                            holeSpacings: [0, 1, 1, 1, 1],
                             joints: [start, step]
                         });
                         tracks.push(track);
@@ -1239,18 +1267,17 @@ var Circuit;
                 }
                 return tracks;
             };
-            Local.loadInstance = (raw) => {
-                let state = (raw.state) ?
-                    {
-                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
-                            ? vector.standardise(raw.state.joints)
-                            : undefined
-                    } : {};
-                let properties = (raw.properties) ?
-                    {} : {};
-                return Local.makeInstance(properties, state, true);
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "breadboardsmall"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.loadInstance = (raw) => {
+                const name = (raw.name);
+                const joints = (raw.joints);
+                return Local.makeInstance({ name, joints }, true);
+            };
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("breadboard " + component.name);
                 Component.Addins.Graphical.init(component);
                 Component.Addins.Board.init(component);
@@ -1261,8 +1288,6 @@ var Circuit;
             });
         })(Local || (Local = {}));
         Component.BreadboardSmall = {
-            defaultState: Local.defaultState,
-            defaultProperties: Local.defaultProperties,
             Instance: Local.Instance,
             makeInstance: Local.makeInstance,
             loadInstance: Local.loadInstance
@@ -1275,22 +1300,13 @@ var Circuit;
     (function (Component) {
         let Local;
         (function (Local) {
-            Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
-                disabled: false
-            };
-            Local.defaultProperties = {
-                name: "capacitor",
-                capacitance: 0,
-                isPolarised: false
-            };
             class Instance extends Component.Instance {
-                constructor(properties, state) {
-                    super(properties, state);
+                constructor(values) {
+                    super(values);
                     $(this.group.element).addClass("component " + this.name);
-                    this.joints = state.joints;
-                    this.capacitance = properties.capacitance;
-                    this.isPolarised = properties.isPolarised;
+                    this.joints = values.joints;
+                    this.capacitance = values.capacitance;
+                    this.isPolarised = values.isPolarised;
                 }
                 getProperties() {
                     return Utility.deepCopy({
@@ -1330,22 +1346,21 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
-            Local.loadInstance = (raw) => {
-                let state = (raw.state) ?
-                    {
-                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
-                            ? vector.standardise(raw.state.joints)
-                            : undefined
-                    } : {};
-                let properties = (raw.properties) ?
-                    {
-                        name: raw.properties.name,
-                        capacitance: raw.properties.capacitance,
-                        isPolarised: raw.properties.isPolarised,
-                    } : {};
-                return Local.makeInstance(properties, state, true);
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "capacitor"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                isPolarised: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 80, y: 0 }]),
+                capacitance: Component.ValueCheck.validate("number", 0)
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.loadInstance = (raw) => {
+                const name = (raw.name);
+                const capacitance = (raw.capacitance);
+                const isPolarised = (raw.isPolarised);
+                const joints = (raw.joints);
+                return Local.makeInstance({ name, capacitance, isPolarised, joints }, true);
+            };
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Graphical.init(component);
                 Component.Addins.Draggable.init(component);
@@ -1355,8 +1370,6 @@ var Circuit;
             });
         })(Local || (Local = {}));
         Component.CapacitorLayout = {
-            defaultState: Local.defaultState,
-            defaultProperties: Local.defaultProperties,
             Instance: Local.Instance,
             makeInstance: Local.makeInstance,
             loadInstance: Local.loadInstance
@@ -1369,22 +1382,13 @@ var Circuit;
     (function (Component) {
         let Local;
         (function (Local) {
-            Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }],
-                disabled: false
-            };
-            Local.defaultProperties = {
-                name: "capacitor",
-                capacitance: 0,
-                isPolarised: false
-            };
             class Instance extends Component.Instance {
-                constructor(properties, state) {
-                    super(properties, state);
+                constructor(values) {
+                    super(values);
                     $(this.group.element).addClass("component " + this.name);
-                    this.joints = state.joints;
-                    this.capacitance = properties.capacitance;
-                    this.isPolarised = properties.isPolarised;
+                    this.joints = values.joints;
+                    this.capacitance = values.capacitance;
+                    this.isPolarised = values.isPolarised;
                 }
                 getProperties() {
                     return Utility.deepCopy({
@@ -1413,43 +1417,51 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
-            Local.loadInstance = (raw) => {
-                let state = (raw.state) ?
-                    {
-                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
-                            ? vector.standardise(raw.state.joints)
-                            : undefined
-                    } : {
-                    joints: (() => {
-                        if (["LR", "UD", "RL", "DU"].includes(raw.orientation)) {
-                            let baseJoints = {
-                                LR: [{ x: -20, y: 0 }, { x: 20, y: 0 }],
-                                UD: [{ x: 0, y: -20 }, { x: 0, y: 20 }],
-                                RL: [{ x: 20, y: 0 }, { x: -20, y: 0 }],
-                                DU: [{ x: 0, y: 20 }, { x: 0, y: -20 }]
-                            }[raw.orientation];
-                            let offset = (raw.where && vector.isVector(raw.where))
-                                ? vector(raw.where).vector
-                                : { x: 0, y: 0 };
-                            return vector(baseJoints).sumWith(offset).vectors;
-                        }
-                        else {
-                            return undefined;
-                        }
-                    })()
-                };
-                let properties = (raw.properties) ?
-                    {
-                        name: raw.properties.name,
-                        capacitance: raw.properties.capacitance,
-                        isPolarised: raw.properties.isPolarised,
-                    } : {
-                    capacitance: raw.value,
-                    isPolarised: (raw.polarised === "polar") ? true : Number(raw.value) ? (raw.value > 1e-6) : undefined
-                };
-                return Local.makeInstance(properties, state, true);
+            function validatePolarisation(polarisation, capacitance) {
+                const isPolarValid = Component.ValueCheck.test(["polar", "non-polar"]);
+                const isCapacitanceValid = Component.ValueCheck.test("number");
+                if (isPolarValid(polarisation)) {
+                    return polarisation === "polar";
+                }
+                else if (isCapacitanceValid(capacitance)) {
+                    return (capacitance > 1e-6);
+                }
+                else {
+                    return undefined;
+                }
+            }
+            Local.validatePolarisation = validatePolarisation;
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "capacitor"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                isPolarised: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
+                capacitance: Component.ValueCheck.validate("number", 0)
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            const derivePolarisation = (capacitance, polarisation) => {
+                const isPolarValid = Component.ValueCheck.test(["polar", "non-polar"]);
+                return isPolarValid(polarisation) ? polarisation === "polar" : (capacitance > 1e-6);
+            };
+            const deriveJoints = (orientation, where) => {
+                const baseJoints = ({
+                    LR: [{ x: -20, y: 0 }, { x: 20, y: 0 }],
+                    UD: [{ x: 0, y: -20 }, { x: 0, y: 20 }],
+                    RL: [{ x: 20, y: 0 }, { x: -20, y: 0 }],
+                    DU: [{ x: 0, y: 20 }, { x: 0, y: -20 }]
+                })[orientation];
+                return vector(baseJoints).sumWith(where).vectors;
+            };
+            Local.loadInstance = (raw) => {
+                const name = (raw.name);
+                const capacitance = (raw.capacitance || raw.value);
+                const isPolarised = (raw.isPolarised || derivePolarisation(capacitance, raw.polarised));
+                const orientations = ["LR", "RL", "UD", "DU"];
+                const orientation = Component.ValueCheck.validate(orientations, "LR")(raw.orientation, false);
+                const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
+                const joints = (raw.joints || deriveJoints(orientation, where));
+                return Local.makeInstance({ name, capacitance, isPolarised, joints }, true);
+            };
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
@@ -1461,8 +1473,6 @@ var Circuit;
             });
         })(Local || (Local = {}));
         Component.CapacitorSchematic = {
-            defaultState: Local.defaultState,
-            defaultProperties: Local.defaultProperties,
             Instance: Local.Instance,
             makeInstance: Local.makeInstance,
             loadInstance: Local.loadInstance
@@ -1475,24 +1485,14 @@ var Circuit;
     (function (Component) {
         let Local;
         (function (Local) {
-            Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
-                disabled: false
-            };
-            Local.defaultProperties = {
-                name: "diode",
-                breakdownVoltage: 0,
-                saturationCurrent: 0,
-                color: "N/A"
-            };
             class Instance extends Component.Instance {
-                constructor(properties, state) {
-                    super(properties, state);
+                constructor(values) {
+                    super(values);
                     $(this.group.element).addClass("component " + this.name);
-                    this.joints = state.joints;
-                    this.saturationCurrent = properties.saturationCurrent;
-                    this.breakdownVoltage = properties.breakdownVoltage;
-                    this.color = properties.color;
+                    this.joints = values.joints;
+                    this.saturationCurrent = values.saturationCurrent;
+                    this.breakdownVoltage = values.breakdownVoltage;
+                    this.color = values.color;
                 }
                 getProperties() {
                     return Utility.deepCopy({
@@ -1525,23 +1525,31 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
-            Local.loadInstance = (raw) => {
-                let state = (raw.state) ?
-                    {
-                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
-                            ? vector.standardise(raw.state.joints)
-                            : undefined
-                    } : {};
-                let properties = (raw.properties) ?
-                    {
-                        name: raw.properties.name,
-                        breakdownVoltage: raw.properties.breakdownVoltage,
-                        saturationCurrent: raw.properties.saturationCurrent,
-                        color: raw.properties.color
-                    } : {};
-                return Local.makeInstance(properties, state, true);
+            const defaults = {
+                joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
+                disabled: false,
+                name: "diode",
+                breakdownVoltage: 0,
+                saturationCurrent: 0,
+                color: "N/A"
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "diode"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 80, y: 0 }]),
+                breakdownVoltage: Component.ValueCheck.validate("number", 0),
+                saturationCurrent: Component.ValueCheck.validate("number", 0),
+                color: Component.ValueCheck.color(defaults.color)
+            };
+            Local.loadInstance = (raw) => {
+                const name = (raw.name);
+                const breakdownVoltage = (raw.breakdownVoltage);
+                const saturationCurrent = (raw.saturationCurrent);
+                const color = (raw.color);
+                const joints = (raw.joints);
+                return Local.makeInstance({ name, breakdownVoltage, saturationCurrent, color, joints }, true);
+            };
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Graphical.init(component);
                 Component.Addins.Selectable.init(component);
@@ -1551,8 +1559,6 @@ var Circuit;
             });
         })(Local || (Local = {}));
         Component.DiodeLayout = {
-            defaultState: Local.defaultState,
-            defaultProperties: Local.defaultProperties,
             Instance: Local.Instance,
             makeInstance: Local.makeInstance,
             loadInstance: Local.loadInstance
@@ -1565,26 +1571,14 @@ var Circuit;
     (function (Component) {
         let Local;
         (function (Local) {
-            Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }],
-                disabled: false
-            };
-            Local.defaultProperties = {
-                name: "diode",
-                breakdownVoltage: 0,
-                saturationCurrent: 0,
-                color: "N/A"
-            };
             class Instance extends Component.Instance {
-                constructor(properties, state) {
-                    super(properties, state);
+                constructor(values) {
+                    super(values);
                     $(this.group.element).addClass("component " + this.name);
-                    this.joints = state.joints;
-                    this.breakdownVoltage = properties.breakdownVoltage;
-                    this.saturationCurrent = properties.saturationCurrent;
-                    this.color = properties.color;
-                    Component.Addins.Selectable.init(this);
-                    Component.Addins.ConnectionHighlights.init(this, false);
+                    this.joints = values.joints;
+                    this.breakdownVoltage = values.breakdownVoltage;
+                    this.saturationCurrent = values.saturationCurrent;
+                    this.color = values.color;
                 }
                 getProperties() {
                     return Utility.deepCopy({
@@ -1617,45 +1611,43 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
-            Local.loadInstance = (raw) => {
-                let state = (raw.state) ?
-                    {
-                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
-                            ? vector.standardise(raw.state.joints)
-                            : undefined
-                    } : {
-                    joints: (() => {
-                        if (["LR", "UD", "RL", "DU"].includes(raw.orientation)) {
-                            let baseJoints = {
-                                LR: [{ x: -20, y: 0 }, { x: 20, y: 0 }],
-                                UD: [{ x: 0, y: -20 }, { x: 0, y: 20 }],
-                                RL: [{ x: 20, y: 0 }, { x: -20, y: 0 }],
-                                DU: [{ x: 0, y: 20 }, { x: 0, y: -20 }]
-                            }[raw.orientation];
-                            let offset = (raw.where && vector.isVector(raw.where))
-                                ? vector(raw.where).vector
-                                : { x: 0, y: 0 };
-                            return vector(baseJoints).sumWith(offset).vectors;
-                        }
-                        else {
-                            return undefined;
-                        }
-                    })()
-                };
-                let properties = (raw.properties) ?
-                    {
-                        name: raw.properties.name,
-                        breakdownVoltage: raw.properties.breakdownVoltage,
-                        saturationCurrent: raw.properties.saturationCurrent,
-                        color: raw.properties.color
-                    } : {
-                    breakdownVoltage: raw.breakdownVoltage,
-                    saturationCurrent: raw.saturationCurrent,
-                    color: raw.colour
-                };
-                return Local.makeInstance(properties, state, true);
+            const defaults = {
+                joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }],
+                disabled: false,
+                name: "diode",
+                breakdownVoltage: 0,
+                saturationCurrent: 0,
+                color: "N/A"
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "diode"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
+                breakdownVoltage: Component.ValueCheck.validate("number", 0),
+                saturationCurrent: Component.ValueCheck.validate("number", 0),
+                color: Component.ValueCheck.color(defaults.color)
+            };
+            const deriveJoints = (orientation, where) => {
+                const baseJoints = ({
+                    LR: [{ x: -20, y: 0 }, { x: 20, y: 0 }],
+                    UD: [{ x: 0, y: -20 }, { x: 0, y: 20 }],
+                    RL: [{ x: 20, y: 0 }, { x: -20, y: 0 }],
+                    DU: [{ x: 0, y: 20 }, { x: 0, y: -20 }]
+                })[orientation];
+                return vector(baseJoints).sumWith(where).vectors;
+            };
+            Local.loadInstance = (raw) => {
+                const name = (raw.name);
+                const breakdownVoltage = (raw.breakdownVoltage);
+                const saturationCurrent = (raw.saturationCurrent);
+                const color = (raw.color || raw.colour);
+                const orientations = ["LR", "RL", "UD", "DU"];
+                const orientation = Component.ValueCheck.validate(orientations, "LR")(raw.orientation, false);
+                const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
+                const joints = (raw.joints || deriveJoints(orientation, where));
+                return Local.makeInstance({ name, breakdownVoltage, saturationCurrent, color, joints }, true);
+            };
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Graphical.init(component);
                 Component.Addins.Selectable.init(component);
@@ -1667,8 +1659,6 @@ var Circuit;
             });
         })(Local || (Local = {}));
         Component.DiodeSchematic = {
-            defaultState: Local.defaultState,
-            defaultProperties: Local.defaultProperties,
             Instance: Local.Instance,
             makeInstance: Local.makeInstance,
             loadInstance: Local.loadInstance
@@ -1681,20 +1671,12 @@ var Circuit;
     (function (Component) {
         let Local;
         (function (Local) {
-            Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
-                disabled: false
-            };
-            Local.defaultProperties = {
-                name: "inductor",
-                inductance: 0
-            };
             class Instance extends Component.Instance {
-                constructor(properties, state) {
-                    super(properties, state);
+                constructor(values) {
+                    super(values);
                     $(this.group.element).addClass("component " + this.name);
-                    this.joints = state.joints;
-                    this.inductance = properties.inductance;
+                    this.joints = values.joints;
+                    this.inductance = values.inductance;
                 }
                 getProperties() {
                     return Utility.deepCopy({
@@ -1722,21 +1704,19 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
-            Local.loadInstance = (raw) => {
-                let state = (raw.state) ?
-                    {
-                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
-                            ? vector.standardise(raw.state.joints)
-                            : undefined
-                    } : {};
-                let properties = (raw.properties) ?
-                    {
-                        name: raw.properties.name,
-                        inductance: raw.properties.inductance,
-                    } : {};
-                return Local.makeInstance(properties, state, true);
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "inductor"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 80, y: 0 }]),
+                inductance: Component.ValueCheck.validate("number", 0)
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.loadInstance = (raw) => {
+                const name = (raw.name);
+                const inductance = (raw.inductance);
+                const joints = (raw.joints);
+                return Local.makeInstance({ name, inductance, joints }, true);
+            };
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Graphical.init(component);
                 Component.Addins.Draggable.init(component);
@@ -1746,8 +1726,6 @@ var Circuit;
             });
         })(Local || (Local = {}));
         Component.InductorLayout = {
-            defaultState: Local.defaultState,
-            defaultProperties: Local.defaultProperties,
             Instance: Local.Instance,
             makeInstance: Local.makeInstance,
             loadInstance: Local.loadInstance
@@ -1760,20 +1738,12 @@ var Circuit;
     (function (Component) {
         let Local;
         (function (Local) {
-            Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }],
-                disabled: false
-            };
-            Local.defaultProperties = {
-                name: "inductor",
-                inductance: 0
-            };
             class Instance extends Component.Instance {
-                constructor(properties, state) {
-                    super(properties, state);
+                constructor(values) {
+                    super(values);
                     $(this.group.element).addClass("component " + this.name);
-                    this.joints = state.joints;
-                    this.inductance = properties.inductance;
+                    this.joints = values.joints;
+                    this.inductance = values.inductance;
                 }
                 getProperties() {
                     return Utility.deepCopy({
@@ -1800,41 +1770,31 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
-            Local.loadInstance = (raw) => {
-                let state = (raw.state) ?
-                    {
-                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
-                            ? vector.standardise(raw.state.joints)
-                            : undefined
-                    } : {
-                    joints: (() => {
-                        if (["LR", "UD", "RL", "DU"].includes(raw.orientation)) {
-                            let baseJoints = {
-                                LR: [{ x: -30, y: 0 }, { x: 30, y: 0 }],
-                                UD: [{ x: 0, y: -30 }, { x: 0, y: 30 }],
-                                RL: [{ x: 30, y: 0 }, { x: -30, y: 0 }],
-                                DU: [{ x: 0, y: 30 }, { x: 0, y: -30 }]
-                            }[raw.orientation];
-                            let offset = (raw.where && vector.isVector(raw.where))
-                                ? vector(raw.where).vector
-                                : { x: 0, y: 0 };
-                            return vector(baseJoints).sumWith(offset).vectors;
-                        }
-                        else {
-                            return undefined;
-                        }
-                    })()
-                };
-                let properties = (raw.properties) ?
-                    {
-                        name: raw.properties.name,
-                        inductance: raw.properties.inductance,
-                    } : {
-                    inductance: raw.value,
-                };
-                return Local.makeInstance(properties, state, true);
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "inductor"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
+                inductance: Component.ValueCheck.validate("number", 0)
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            const deriveJoints = (orientation, where) => {
+                const baseJoints = ({
+                    LR: [{ x: -30, y: 0 }, { x: 30, y: 0 }],
+                    UD: [{ x: 0, y: -30 }, { x: 0, y: 30 }],
+                    RL: [{ x: 30, y: 0 }, { x: -30, y: 0 }],
+                    DU: [{ x: 0, y: 30 }, { x: 0, y: -30 }]
+                })[orientation];
+                return vector(baseJoints).sumWith(where).vectors;
+            };
+            Local.loadInstance = (raw) => {
+                const name = (raw.name);
+                const inductance = (raw.inductance || raw.value);
+                const orientations = ["LR", "RL", "UD", "DU"];
+                const orientation = Component.ValueCheck.validate(orientations, "LR")(raw.orientation, false);
+                const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
+                const joints = (raw.joints || deriveJoints(orientation, where));
+                return Local.makeInstance({ name, inductance, joints, }, true);
+            };
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
@@ -1846,8 +1806,6 @@ var Circuit;
             });
         })(Local || (Local = {}));
         Component.InductorSchematic = {
-            defaultState: Local.defaultState,
-            defaultProperties: Local.defaultProperties,
             Instance: Local.Instance,
             makeInstance: Local.makeInstance,
             loadInstance: Local.loadInstance
@@ -1860,22 +1818,13 @@ var Circuit;
     (function (Component) {
         let Local;
         (function (Local) {
-            Local.defaultState = {
-                isDual: false,
-                joints: [{ x: 30, y: 30 }, { x: 40, y: 30 }],
-                disabled: false
-            };
-            Local.defaultProperties = {
-                name: "opAmp",
-                offsetVoltage: 0
-            };
             class Instance extends Component.Instance {
-                constructor(properties, state) {
-                    super(properties, state);
+                constructor(values) {
+                    super(values);
                     $(this.group.element).addClass("component " + this.name);
-                    this.isDual = state.isDual;
-                    this.joints = state.joints;
-                    this.offsetVoltage = properties.offsetVoltage;
+                    this.isDual = values.isDual;
+                    this.joints = values.joints;
+                    this.offsetVoltage = values.offsetVoltage;
                 }
                 getProperties() {
                     return Utility.deepCopy({
@@ -1945,22 +1894,21 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
-            Local.loadInstance = (raw) => {
-                let state = (raw.state) ?
-                    {
-                        isDual: raw.state.isDual,
-                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
-                            ? vector.standardise(raw.state.joints)
-                            : undefined
-                    } : {};
-                let properties = (raw.properties) ?
-                    {
-                        name: raw.properties.name,
-                        offsetVoltage: raw.properties.offsetVoltage,
-                    } : {};
-                return Local.makeInstance(properties, state, true);
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "opAmp"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                isDual: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 30, y: 30 }, { x: 40, y: 30 }]),
+                offsetVoltage: Component.ValueCheck.validate("number", 0)
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.loadInstance = (raw) => {
+                const name = (raw.name);
+                const offsetVoltage = (raw.offsetVoltage);
+                const isDual = (raw.isDual);
+                const joints = (raw.joints);
+                return Local.makeInstance({ name, offsetVoltage, isDual, joints }, true);
+            };
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Graphical.init(component);
                 Component.Addins.Draggable.init(component);
@@ -1970,8 +1918,6 @@ var Circuit;
             });
         })(Local || (Local = {}));
         Component.OpAmpLayout = {
-            defaultState: Local.defaultState,
-            defaultProperties: Local.defaultProperties,
             Instance: Local.Instance,
             makeInstance: Local.makeInstance,
             loadInstance: Local.loadInstance
@@ -1984,20 +1930,12 @@ var Circuit;
     (function (Component) {
         let Local;
         (function (Local) {
-            Local.defaultState = {
-                joints: [{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: 40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: 20 }],
-                disabled: false
-            };
-            Local.defaultProperties = {
-                name: "opAmp",
-                offsetVoltage: 0
-            };
             class Instance extends Component.Instance {
-                constructor(properties, state) {
-                    super(properties, state);
+                constructor(values) {
+                    super(values);
                     $(this.group.element).addClass("component " + this.name);
-                    this.joints = state.joints;
-                    this.offsetVoltage = properties.offsetVoltage;
+                    this.joints = values.joints;
+                    this.offsetVoltage = values.offsetVoltage;
                 }
                 getProperties() {
                     return Utility.deepCopy({
@@ -2032,61 +1970,54 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "opAmp"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: 40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: 20 }]),
+                offsetVoltage: Component.ValueCheck.validate("number", 0)
+            };
+            const deriveJoints = (orientation, inputAtTop, where) => {
+                const [inHigh, inLow] = orientation === "LR"
+                    ? [{ x: -30, y: -10 }, { x: -30, y: +10 }]
+                    : [{ x: +30, y: -10 }, { x: +30, y: +10 }];
+                const [inInverting, inNonInverting] = inputAtTop === "inverting"
+                    ? [inHigh, inLow] : [inLow, inHigh];
+                const [out] = orientation === "LR"
+                    ? [{ x: +40, y: 0 }]
+                    : [{ x: -40, y: 0 }];
+                const [powPositive, powNegative] = inputAtTop === "inverting"
+                    ? [{ x: 0, y: -20 }, { x: 0, y: +20 }]
+                    : [{ x: 0, y: +20 }, { x: 0, y: -20 }];
+                return vector([inInverting, inNonInverting, out, powPositive, powNegative]).sumWith(where).vectors;
+            };
             Local.loadInstance = (raw) => {
-                let state = (raw.state) ?
-                    {
-                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 5)
-                            ? vector.standardise(raw.state.joints)
-                            : undefined
-                    } : {
-                    joints: (() => {
-                        if (["LR", "RL"].includes(raw.orientation) && ["inverting", "non-inverting"].includes(raw.whichInputAtTop)) {
-                            let baseJoints = {
-                                "LRinverting": [{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: +40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: +20 }],
-                                "RLinverting": [{ x: +30, y: -10 }, { x: +30, y: +10 }, { x: -40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: +20 }],
-                                "LRnon-inverting": [{ x: -30, y: +10 }, { x: -30, y: -10 }, { x: +40, y: 0 }, { x: 0, y: +20 }, { x: 0, y: -20 }],
-                                "RLnon-inverting": [{ x: +30, y: +10 }, { x: +30, y: -10 }, { x: -40, y: 0 }, { x: 0, y: +20 }, { x: 0, y: -20 }],
-                            }[raw.orientation + raw.whichInputAtTop];
-                            let offset = (raw.where && vector.isVector(raw.where))
-                                ? vector(raw.where).vector
-                                : { x: 0, y: 0 };
-                            return vector(baseJoints).sumWith(offset).vectors;
-                        }
-                        else {
-                            return undefined;
-                        }
-                    })()
-                };
-                let properties = (raw.properties) ?
-                    {
-                        name: raw.properties.name,
-                        offsetVoltage: raw.properties.offsetVoltage,
-                    } : {
-                    offsetVoltage: raw.offsetVoltage,
-                };
-                if ((raw.minOutput) && (raw.maxOutput)) {
-                    let offset = (raw.where && vector.isVector(raw.where))
-                        ? vector(raw.where).vector
-                        : { x: 0, y: 0 };
-                    let topPower = Component.PowerSchematic.makeInstance({ voltage: raw.maxOutput || 5 }, {
-                        joints: vector([{ x: 0, y: -20 }]).sumWith(offset).vectors
+                const name = (raw.name);
+                const offsetVoltage = (raw.offsetVoltage);
+                const orientations = ["LR", "RL"];
+                const orientation = Component.ValueCheck.validate(orientations, "LR")(raw.orientation, false);
+                const inputsAtTop = ["inverting", "non-inverting"];
+                const inputAtTop = Component.ValueCheck.validate(inputsAtTop, "non-inverting")(raw.whichInputAtTop, false);
+                const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
+                const joints = (raw.joints || deriveJoints(orientation, inputAtTop, where));
+                const opAmp = Local.makeInstance({ name, offsetVoltage, joints }, true);
+                const isNumber = Component.ValueCheck.test("number");
+                const [minOutput, maxOutput] = [raw.minOutput, raw.maxOutput];
+                if (isNumber(minOutput) && isNumber(maxOutput)) {
+                    const topPower = Component.PowerSchematic.makeInstance({
+                        voltage: maxOutput,
+                        joints: vector([{ x: 0, y: -20 }]).sumWith(where).vectors
                     }, true);
-                    let bottomPower = Component.PowerSchematic.makeInstance({ voltage: raw.minOutput || -5 }, {
-                        joints: vector([{ x: 0, y: 20 }]).sumWith(offset).vectors
+                    const bottomPower = Component.PowerSchematic.makeInstance({
+                        voltage: minOutput,
+                        joints: vector([{ x: 0, y: 20 }]).sumWith(where).vectors
                     }, true);
-                    let opAmp = Local.makeInstance(properties, state, true);
-                    let instances = [
-                        topPower,
-                        bottomPower,
-                        opAmp,
-                    ];
-                    return instances;
+                    return [topPower, bottomPower, opAmp];
                 }
                 else {
-                    return Local.makeInstance(properties, state, true);
+                    return opAmp;
                 }
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
@@ -2098,8 +2029,6 @@ var Circuit;
             });
         })(Local || (Local = {}));
         Component.OpAmpSchematic = {
-            defaultState: Local.defaultState,
-            defaultProperties: Local.defaultProperties,
             Instance: Local.Instance,
             makeInstance: Local.makeInstance,
             loadInstance: Local.loadInstance
@@ -2112,21 +2041,13 @@ var Circuit;
     (function (Component) {
         let Local;
         (function (Local) {
-            Local.defaultState = {
-                joints: [{ x: 0, y: 40 }],
-                disabled: false
-            };
-            Local.defaultProperties = {
-                name: "power",
-                voltage: 0
-            };
             class Instance extends Component.Instance {
-                constructor(properties, state) {
-                    super(properties, state);
+                constructor(values) {
+                    super(values);
                     this.connectorSets = [];
                     $(this.group.element).addClass("component " + this.name);
-                    this.voltage = properties.voltage;
-                    this.joints = state.joints;
+                    this.voltage = values.voltage;
+                    this.joints = values.joints;
                 }
                 getProperties() {
                     return Utility.deepCopy({
@@ -2155,21 +2076,25 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
-            Local.loadInstance = (raw) => {
-                let state = (raw.state) ?
-                    {
-                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 1)
-                            ? vector.standardise(raw.state.joints)
-                            : undefined
-                    } : {};
-                let properties = (raw.properties) ?
-                    {
-                        name: raw.properties.name,
-                        voltage: raw.properties.voltage,
-                    } : {};
-                return Local.makeInstance(properties, state, true);
+            const defaults = {
+                joints: [{ x: 0, y: 40 }],
+                disabled: false,
+                name: "power",
+                voltage: 0
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "power"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 40 }]),
+                voltage: Component.ValueCheck.validate("number", defaults.voltage)
+            };
+            Local.loadInstance = (raw) => {
+                const name = (raw.name);
+                const voltage = (raw.voltage);
+                const joints = (raw.joints);
+                return Local.makeInstance({ name, voltage, joints }, true);
+            };
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass(component.name);
                 Component.Addins.Graphical.init(component);
                 Component.Addins.Draggable.init(component);
@@ -2187,8 +2112,6 @@ var Circuit;
             }
         })(Local || (Local = {}));
         Component.PowerLayout = {
-            defaultState: Local.defaultState,
-            defaultProperties: Local.defaultProperties,
             Instance: Local.Instance,
             makeInstance: Local.makeInstance,
             loadInstance: Local.loadInstance
@@ -2201,20 +2124,12 @@ var Circuit;
     (function (Component) {
         let Local;
         (function (Local) {
-            Local.defaultState = {
-                joints: [{ x: 0, y: 0 }],
-                disabled: false
-            };
-            Local.defaultProperties = {
-                name: "power",
-                voltage: 0
-            };
             class Instance extends Component.Instance {
-                constructor(properties, state) {
-                    super(properties, state);
+                constructor(values) {
+                    super(values);
                     $(this.group.element).addClass("component " + this.name);
-                    this.voltage = properties.voltage;
-                    this.joints = state.joints;
+                    this.voltage = values.voltage;
+                    this.joints = values.joints;
                 }
                 getProperties() {
                     return Utility.deepCopy({
@@ -2240,42 +2155,34 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
-            Local.loadInstance = (raw) => {
-                let state = (raw.state) ?
-                    {
-                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 1)
-                            ? vector.standardise(raw.state.joints)
-                            : undefined
-                    } : {
-                    joints: (() => {
-                        if (raw.where && vector.isVector(raw.where)) {
-                            if (raw.value !== undefined && typeof raw.value === "number") {
-                                let offset = (raw.value < 0)
-                                    ? { x: 0, y: -10 }
-                                    : (raw.value > 0)
-                                        ? { x: 0, y: 10 }
-                                        : { x: 0, y: -10 };
-                                return [vector(raw.where).sumWith(offset).vector];
-                            }
-                            else {
-                                return [vector(raw.where).vector];
-                            }
-                        }
-                        else {
-                            return undefined;
-                        }
-                    })()
-                };
-                let properties = (raw.properties) ?
-                    {
-                        name: raw.properties.name,
-                        voltage: raw.properties.voltage,
-                    } : {
-                    voltage: raw.value,
-                };
-                return Local.makeInstance(properties, state, true);
+            const defaults = {
+                joints: [{ x: 0, y: 0 }],
+                disabled: false,
+                name: "power",
+                voltage: 0
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "power"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }]),
+                voltage: Component.ValueCheck.validate("number", defaults.voltage)
+            };
+            const deriveJoints = (voltage, where) => {
+                const baseJoints = (voltage < 0)
+                    ? [{ x: 0, y: -10 }]
+                    : (voltage > 0)
+                        ? [{ x: 0, y: 10 }]
+                        : [{ x: 0, y: -10 }];
+                return vector(baseJoints).sumWith(where).vectors;
+            };
+            Local.loadInstance = (raw) => {
+                const name = (raw.name);
+                const voltage = (raw.voltage || raw.value);
+                const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
+                const joints = (raw.joints || deriveJoints(voltage, where));
+                return Local.makeInstance({ name, voltage, joints, }, true);
+            };
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
@@ -2286,8 +2193,6 @@ var Circuit;
             });
         })(Local || (Local = {}));
         Component.PowerSchematic = {
-            defaultState: Local.defaultState,
-            defaultProperties: Local.defaultProperties,
             Instance: Local.Instance,
             makeInstance: Local.makeInstance,
             loadInstance: Local.loadInstance
@@ -2300,20 +2205,12 @@ var Circuit;
     (function (Component) {
         let Local;
         (function (Local) {
-            Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
-                disabled: false
-            };
-            Local.defaultProperties = {
-                name: "resistor",
-                resistance: 0
-            };
             class Instance extends Component.Instance {
-                constructor(properties, state) {
-                    super(properties, state);
+                constructor(values) {
+                    super(values);
                     $(this.group.element).addClass("component " + this.name);
-                    this.joints = state.joints;
-                    this.resistance = properties.resistance;
+                    this.joints = values.joints;
+                    this.resistance = values.resistance;
                 }
                 getProperties() {
                     return Utility.deepCopy({
@@ -2341,21 +2238,19 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
-            Local.loadInstance = (raw) => {
-                let state = (raw.state) ?
-                    {
-                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
-                            ? vector.standardise(raw.state.joints)
-                            : undefined
-                    } : {};
-                let properties = (raw.properties) ?
-                    {
-                        name: raw.properties.name,
-                        resistance: raw.properties.resistance,
-                    } : {};
-                return Local.makeInstance(properties, state, true);
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "resistor"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
+                resistance: Component.ValueCheck.validate("number", 0)
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.loadInstance = (raw) => {
+                const name = (raw.name);
+                const resistance = (raw.resistance);
+                const joints = (raw.joints);
+                return Local.makeInstance({ name, resistance, joints }, true);
+            };
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Graphical.init(component);
                 Component.Addins.Draggable.init(component);
@@ -2365,8 +2260,6 @@ var Circuit;
             });
         })(Local || (Local = {}));
         Component.ResistorLayout = {
-            defaultState: Local.defaultState,
-            defaultProperties: Local.defaultProperties,
             Instance: Local.Instance,
             makeInstance: Local.makeInstance,
             loadInstance: Local.loadInstance
@@ -2379,20 +2272,12 @@ var Circuit;
     (function (Component) {
         let Local;
         (function (Local) {
-            Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }],
-                disabled: false
-            };
-            Local.defaultProperties = {
-                name: "resistor",
-                resistance: 0
-            };
             class Instance extends Component.Instance {
-                constructor(properties, state) {
-                    super(properties, state);
+                constructor(values) {
+                    super(values);
                     $(this.group.element).addClass("component " + this.name);
-                    this.joints = state.joints;
-                    this.resistance = properties.resistance;
+                    this.joints = values.joints;
+                    this.resistance = values.resistance;
                 }
                 getProperties() {
                     return Utility.deepCopy({
@@ -2419,41 +2304,31 @@ var Circuit;
                 ;
             }
             Local.Instance = Instance;
-            Local.loadInstance = (raw) => {
-                let state = (raw.state) ?
-                    {
-                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
-                            ? vector.standardise(raw.state.joints)
-                            : undefined
-                    } : {
-                    joints: (() => {
-                        if (["LR", "UD", "RL", "DU"].includes(raw.orientation)) {
-                            let baseJoints = {
-                                LR: [{ x: -30, y: 0 }, { x: 30, y: 0 }],
-                                UD: [{ x: 0, y: -30 }, { x: 0, y: 30 }],
-                                RL: [{ x: 30, y: 0 }, { x: -30, y: 0 }],
-                                DU: [{ x: 0, y: 30 }, { x: 0, y: -30 }]
-                            }[raw.orientation];
-                            let offset = (raw.where && vector.isVector(raw.where))
-                                ? vector(raw.where).vector
-                                : { x: 0, y: 0 };
-                            return vector(baseJoints).sumWith(offset).vectors;
-                        }
-                        else {
-                            return undefined;
-                        }
-                    })()
-                };
-                let properties = (raw.properties) ?
-                    {
-                        name: raw.properties.name,
-                        resistance: raw.properties.resistance,
-                    } : {
-                    resistance: raw.value,
-                };
-                return Local.makeInstance(properties, state, true);
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "resistor"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
+                resistance: Component.ValueCheck.validate("number", 0)
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            const deriveJoints = (orientation, where) => {
+                const baseJoints = ({
+                    LR: [{ x: -30, y: 0 }, { x: 30, y: 0 }],
+                    UD: [{ x: 0, y: -30 }, { x: 0, y: 30 }],
+                    RL: [{ x: 30, y: 0 }, { x: -30, y: 0 }],
+                    DU: [{ x: 0, y: 30 }, { x: 0, y: -30 }]
+                })[orientation];
+                return vector(baseJoints).sumWith(where).vectors;
+            };
+            Local.loadInstance = (raw) => {
+                const name = (raw.name);
+                const resistance = (raw.resistance || raw.value);
+                const orientations = ["LR", "RL", "UD", "DU"];
+                const orientation = Component.ValueCheck.validate(orientations, "LR")(raw.orientation, false);
+                const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
+                const joints = (raw.joints || deriveJoints(orientation, where));
+                return Local.makeInstance({ name, resistance, joints, }, true);
+            };
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
@@ -2465,8 +2340,6 @@ var Circuit;
             });
         })(Local || (Local = {}));
         Component.ResistorSchematic = {
-            defaultState: Local.defaultState,
-            defaultProperties: Local.defaultProperties,
             Instance: Local.Instance,
             makeInstance: Local.makeInstance,
             loadInstance: Local.loadInstance
@@ -2479,25 +2352,15 @@ var Circuit;
     (function (Component) {
         let Local;
         (function (Local) {
-            Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }],
-                disabled: false,
-                trackBreaks: []
-            };
-            Local.defaultProperties = {
-                name: "stripboard",
-                rows: 1,
-                columns: 1
-            };
             class Instance extends Component.Instance {
-                constructor(properties, state) {
-                    super(properties, state);
+                constructor(values) {
+                    super(values);
                     this.tracks = [];
                     this.connectorSets = [];
-                    this.rows = properties.rows;
-                    this.columns = properties.columns;
-                    this.trackBreaks = state.trackBreaks;
-                    this.joints = state.joints;
+                    this.rows = values.rows;
+                    this.columns = values.columns;
+                    this.trackBreaks = values.trackBreaks;
+                    this.joints = values.joints;
                 }
                 getProperties() {
                     return Utility.deepCopy({
@@ -2553,32 +2416,40 @@ var Circuit;
                     let holeSpacings = [0].concat(Array(parent.columns - 1).fill(1));
                     let track = Component.Addins.Board.Track.makeInstance({
                         holeSpacings: holeSpacings,
-                        style: "stripboard"
-                    }, {
+                        style: "stripboard",
                         joints: [rowStart, step]
-                    });
+                    }, false);
                     tracks.push(track);
                 }
                 return tracks;
             };
-            Local.loadInstance = (raw) => {
-                let state = (raw.state) ?
-                    {
-                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
-                            ? vector.standardise(raw.state.joints)
-                            : undefined,
-                        trackBreaks: ((raw.state.trackBreaks && raw.state.trackBreaks.every((tB) => {
-                            return (('track' in tB) && ('hole' in tB) && (typeof tB.track === 'number') && (typeof tB.hole === 'number'));
-                        }))) ? raw.state.trackBreaks : undefined
-                    } : {};
-                let properties = (raw.properties) ?
-                    {
-                        rows: raw.properties.rows,
-                        columns: raw.properties.columns
-                    } : {};
-                return Local.makeInstance(properties, state, true);
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "stripboard"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
+                rows: Component.ValueCheck.integer(1),
+                columns: Component.ValueCheck.integer(1),
+                trackBreaks: validateTrackBreaks([]),
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            function validateTrackBreaks(fallback) {
+                const result = (value, log = true) => {
+                    const predicate = (v) => ((value && Array.isArray(value) && value.every((tB) => {
+                        return (('track' in tB) && ('hole' in tB) && (typeof tB.track === 'number') && (typeof tB.hole === 'number'));
+                    })));
+                    return Component.ValueCheck.validate(predicate, fallback)(value);
+                };
+                return result;
+            }
+            Local.validateTrackBreaks = validateTrackBreaks;
+            Local.loadInstance = (raw) => {
+                const name = (raw.name);
+                const rows = (raw.rows);
+                const columns = (raw.columns);
+                const trackBreaks = (raw.trackBreaks);
+                const joints = (raw.joints);
+                return Local.makeInstance({ name, rows, columns, trackBreaks, joints }, true);
+            };
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass(component.name);
                 Component.Addins.Graphical.init(component);
                 Component.Addins.Board.init(component, true);
@@ -2589,8 +2460,6 @@ var Circuit;
             });
         })(Local || (Local = {}));
         Component.Stripboard = {
-            defaultState: Local.defaultState,
-            defaultProperties: Local.defaultProperties,
             Instance: Local.Instance,
             makeInstance: Local.makeInstance,
             loadInstance: Local.loadInstance
@@ -2603,20 +2472,12 @@ var Circuit;
     (function (Component) {
         let Local;
         (function (Local) {
-            Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
-                color: "#545454",
-                disabled: false
-            };
-            Local.defaultProperties = {
-                name: "wire",
-            };
             class Instance extends Component.Instance {
-                constructor(properties, state) {
-                    super(properties, state);
+                constructor(values) {
+                    super(values);
                     $(this.group.element).addClass("component " + this.name);
-                    this.joints = state.joints;
-                    this.color = state.color;
+                    this.joints = values.joints;
+                    this.color = values.color;
                 }
                 getProperties() {
                     return Utility.deepCopy({
@@ -2661,19 +2522,17 @@ var Circuit;
                 }
             }
             Local.Instance = Instance;
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "wire"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 80, y: 0 }], l => l >= 2),
+                color: Component.ValueCheck.color("#545454")
+            };
             Local.loadInstance = (raw) => {
-                let state = (raw.state) ?
-                    {
-                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length > 1)
-                            ? vector.standardise(raw.state.joints)
-                            : undefined,
-                        color: raw.state.color
-                    } : {};
-                let properties = (raw.properties) ?
-                    {
-                        name: raw.properties.name,
-                    } : {};
-                return Local.makeInstance(properties, state, true);
+                const name = (raw.name);
+                const color = (raw.color || raw.colour);
+                const joints = (raw.joints);
+                return Local.makeInstance({ name, color, joints }, true);
             };
             function getBezierBetweenJoints(joints) {
                 let path = "";
@@ -2707,7 +2566,7 @@ var Circuit;
                 const offset = Utility.Polar.toVector(12, angle + 45);
                 return vector(component.joints[0]).sumWith(offset).vector;
             }
-            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Graphical.init(component);
                 Component.Addins.Draggable.init(component);
@@ -2718,8 +2577,6 @@ var Circuit;
             });
         })(Local || (Local = {}));
         Component.WireLayout = {
-            defaultState: Local.defaultState,
-            defaultProperties: Local.defaultProperties,
             Instance: Local.Instance,
             makeInstance: Local.makeInstance,
             loadInstance: Local.loadInstance
@@ -2732,19 +2589,12 @@ var Circuit;
     (function (Component) {
         let Local;
         (function (Local) {
-            Local.defaultState = {
-                joints: [{ x: 0, y: 0 }, { x: 10, y: 10 }],
-                disabled: false
-            };
-            Local.defaultProperties = {
-                name: "wire",
-            };
             class Instance extends Component.Instance {
-                constructor(properties, state) {
-                    super(properties, state);
+                constructor(values) {
+                    super(values);
                     this.connectorSets = [];
                     $(this.group.element).addClass("component " + this.name);
-                    this.joints = state.joints;
+                    this.joints = values.joints;
                 }
                 getProperties() {
                     return Utility.deepCopy({
@@ -2776,33 +2626,17 @@ var Circuit;
                 }
             }
             Local.Instance = Instance;
-            Local.loadInstance = (raw) => {
-                let state = (raw.state) ?
-                    {
-                        joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length > 1)
-                            ? vector.standardise(raw.state.joints)
-                            : undefined
-                    } : {
-                    joints: (() => {
-                        if (vector.isVectorArray(raw.joints) && raw.joints.length > 1) {
-                            let baseJoints = vector.standardise(raw.joints);
-                            let offset = (raw.where && vector.isVector(raw.where))
-                                ? vector(raw.where).vector
-                                : { x: 0, y: 0 };
-                            return vector(baseJoints).sumWith(offset).vectors;
-                        }
-                        else {
-                            return undefined;
-                        }
-                    })()
-                };
-                let properties = (raw.properties) ?
-                    {
-                        name: raw.properties.name,
-                    } : {};
-                return Local.makeInstance(properties, state, true);
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "wire"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 10, y: 10 }], l => l >= 2),
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+            Local.loadInstance = (raw) => {
+                const name = (raw.name);
+                const joints = (raw.joints);
+                return Local.makeInstance({ name, joints, }, true);
+            };
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Junctions.init(component);
                 Component.Addins.Selectable.init(component);
@@ -2814,8 +2648,6 @@ var Circuit;
             });
         })(Local || (Local = {}));
         Component.WireSchematic = {
-            defaultState: Local.defaultState,
-            defaultProperties: Local.defaultProperties,
             makeInstance: Local.makeInstance,
             loadInstance: Local.loadInstance,
             Instance: Local.Instance
@@ -2842,23 +2674,21 @@ var Circuit;
                 Board.init = init;
                 let Local;
                 (function (Local) {
-                    Local.defaultState = {
-                        joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }],
-                        disabled: false
-                    };
-                    Local.defaultProperties = {
-                        name: "track",
-                        style: "breadboard",
-                        holeSpacings: [0]
+                    Local.defaulter = {
+                        name: Component.ValueCheck.validate("string", "track"),
+                        style: Component.ValueCheck.validate(["breadboard", "stripboard"], "breadboard"),
+                        disabled: Component.ValueCheck.validate("boolean", false),
+                        joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
+                        holeSpacings: Component.ValueCheck.validate(v => Array.isArray(v) && v.every(Component.ValueCheck.test("number")), [0]),
                     };
                     class Instance extends Component.Instance {
-                        constructor(properties, state) {
-                            super(properties, state);
+                        constructor(values) {
+                            super(values);
                             this.connectorSets = [];
-                            this.name = properties.name;
-                            this.holeSpacings = properties.holeSpacings;
-                            this.style = properties.style;
-                            this.joints = state.joints;
+                            this.name = values.name;
+                            this.holeSpacings = values.holeSpacings;
+                            this.style = values.style;
+                            this.joints = values.joints;
                         }
                         getProperties() {
                             return Utility.deepCopy({
@@ -2957,13 +2787,11 @@ var Circuit;
                         };
                         component.group.prepend(Svg.Element.Rect.make(centre, size, vector(0), 'body').rotate(angle, centre));
                     };
-                    Local.makeInstance = Component.getMaker(Instance, Local.defaultProperties, Local.defaultState, (component) => {
+                    Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                         $(component.group.element).addClass(component.name);
                     });
                 })(Local || (Local = {}));
                 Board.Track = {
-                    defaultState: Local.defaultState,
-                    defaultProperties: Local.defaultProperties,
                     Instance: Local.Instance,
                     makeInstance: Local.makeInstance,
                 };
@@ -3517,7 +3345,7 @@ var Circuit;
                     });
                 };
                 const createWireAtPoint = (vector) => {
-                    const wire = Component.WireLayout.makeInstance({}, {
+                    const wire = Component.WireLayout.makeInstance({
                         joints: [{ x: vector.x, y: vector.y }, { x: vector.x, y: vector.y }],
                     });
                     Circuit.manifest.addComponent(Circuit.manifest.layout, wire);
@@ -3627,6 +3455,7 @@ var FileIO;
             if (fileInput.value.length == 0) {
             }
             else {
+                console.groupCollapsed("File Load Data");
                 $.Deferred().resolve(fileInput)
                     .then(() => Load.getStringFromFileInput(fileInput))
                     .then((file, fileString) => {
@@ -3640,6 +3469,7 @@ var FileIO;
                             .then((rawComponents) => Load.Dasim.buildComponents(rawComponents))
                             .then((savedManifest) => {
                             NodeElements.fileStatusText.innerText = "File:\r\n\"" + filename + "\"\r\nLoaded Successfully";
+                            console.groupEnd();
                             if (savedManifest) {
                                 Circuit.manifest.constructFrom(savedManifest);
                                 Circuit.History.init(Circuit.manifest.layout);
@@ -3656,6 +3486,7 @@ var FileIO;
                                 + "" + filename + "\"\r\n"
                                 + "Error:\r\n\"" +
                                 failText + "\"";
+                            console.groupEnd();
                         });
                     }
                     else {
@@ -3664,6 +3495,7 @@ var FileIO;
                             + "" + filename + "\"\r\n"
                             + "Error:\r\n\"" +
                             "Incorrect file extenstion: \"." + fileExtension + "\"\"";
+                        console.groupEnd();
                     }
                     $(fileInput).val("");
                 });
@@ -3679,6 +3511,7 @@ var FileIO;
         var Dasim;
         (function (Dasim) {
             function buildComponents(rawComponents) {
+                console.groupCollapsed("Component Load Data");
                 let manifest = {
                     schematic: [],
                     layout: []
@@ -3699,6 +3532,7 @@ var FileIO;
                         manifestSection.push(newComponents);
                     }
                 }
+                console.groupEnd();
                 return manifest;
             }
             Dasim.buildComponents = buildComponents;
@@ -3855,13 +3689,9 @@ var FileIO;
             let componentStrings = [];
             Circuit.manifest.layout.concat(Circuit.manifest.schematic).forEach(component => {
                 try {
-                    let componentObject = {
-                        func: Circuit.mappings.getSaveName(component),
-                        properties: component.getProperties(),
-                        state: component.getState()
-                    };
-                    if (componentObject.state.disabled === false) {
-                        delete componentObject.state.disabled;
+                    let componentObject = Object.assign({ func: Circuit.mappings.getSaveName(component) }, component.getProperties(), component.getState());
+                    if (componentObject.disabled === false) {
+                        delete componentObject.disabled;
                         componentStrings.push(JSON.stringify(componentObject));
                     }
                 }
@@ -22143,17 +21973,17 @@ var Ui;
                 rows <= parseInt(rowElement.max) && columns <= parseInt(columnElement.max)) {
                 addBoard(Circuit.Component.Stripboard.makeInstance({
                     rows: rows,
-                    columns: columns,
-                }, {}));
+                    columns: columns
+                }));
             }
         }
         Events.makeStripBoardButtonPress = makeStripBoardButtonPress;
         function makeBreadBoardSmallButtonPress() {
-            addBoard(Circuit.Component.BreadboardSmall.makeInstance({}, {}));
+            addBoard(Circuit.Component.BreadboardSmall.makeInstance({}));
         }
         Events.makeBreadBoardSmallButtonPress = makeBreadBoardSmallButtonPress;
         function makeBreadBoardLargeButtonPress() {
-            addBoard(Circuit.Component.BreadboardLarge.makeInstance({}, {}));
+            addBoard(Circuit.Component.BreadboardLarge.makeInstance({}));
         }
         Events.makeBreadBoardLargeButtonPress = makeBreadBoardLargeButtonPress;
         function addBoard(board) {
@@ -22291,10 +22121,6 @@ var Utility;
         '21': 'Z',
         '24': 'Y'
     };
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    Utility.is = (check) => (test) => test === check;
 })(Utility || (Utility = {}));
 var Utility;
 (function (Utility) {

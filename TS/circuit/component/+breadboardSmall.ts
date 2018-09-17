@@ -18,22 +18,14 @@ namespace Circuit.Component {
    namespace Local {
       import Types = BreadboardSmall.Types;
 
-      export const defaultState: Types.state = {
-         joints: [{ x: 0, y: 0 }, { x: 20, y: 0 }],
-         disabled: false
-      }
-      export const defaultProperties: Types.properties = {
-         name: "breadboardsmall"
-      }
-
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          tracks: Addins.Board.Track.Instance[] = [];
          connectorSets: Component.Types.hole[][] = [];
          joints: [Vector, Vector];
 
-         constructor(properties: Types.properties, state: Types.state) {
-            super(properties, state);
-            this.joints = state.joints
+         constructor(values: Types.properties & Types.state) {
+            super(values);
+            this.joints = values.joints
          }
 
          getProperties(): Types.properties {
@@ -85,10 +77,9 @@ namespace Circuit.Component {
             const step = vector({ x: gS, y: 0 }).rotate(rotation);
 
             let track = Addins.Board.Track.makeInstance({
-               holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1]
-            }, {
-                  joints: [start, step]
-               });
+               holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1],
+               joints: [start, step]
+            }, false);
             tracks.push(track);
          }
 
@@ -105,33 +96,31 @@ namespace Circuit.Component {
                const step = vector({ x: 0, y: gS }).rotate(rotation);
 
                let track = Addins.Board.Track.makeInstance({
-                  holeSpacings: [0, 1, 1, 1, 1]
-               }, {
-                     joints: [start, step]
-                  });
+                  holeSpacings: [0, 1, 1, 1, 1],
+                  joints: [start, step]
+               });
                tracks.push(track);
             }
          }
 
          return tracks;
       }
+      export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
+         name: ValueCheck.validate("string", "breadboardsmall"),
+         disabled: ValueCheck.validate("boolean", false),
+         joints: ValueCheck.joints<[Vector, Vector]>(
+            [{ x: 0, y: 0 }, { x: 20, y: 0 }]
+         ),
+      };
 
       export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
+         const name = (raw.name);
+         const joints = (raw.joints);
 
-         let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
-            {
-               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
-                  ? vector.standardise(raw.state.joints as AnyVector[])
-                  : undefined
-            } : {};
-
-         let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
-            {} : {};
-
-         return makeInstance(properties, state, true);
+         return makeInstance({ name, joints }, true);
       }
 
-      export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
+      export const makeInstance = getMaker(Instance, defaulter,
          (component: Instance) => {
             $(component.group.element).addClass("breadboard " + component.name);
             Addins.Graphical.init(component);
@@ -145,8 +134,7 @@ namespace Circuit.Component {
    }
 
    export const BreadboardSmall = {
-      defaultState: Local.defaultState,
-      defaultProperties: Local.defaultProperties,
+
       Instance: Local.Instance,
       makeInstance: Local.makeInstance,
       loadInstance: Local.loadInstance

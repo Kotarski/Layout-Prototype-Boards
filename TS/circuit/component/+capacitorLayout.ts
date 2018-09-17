@@ -18,26 +18,17 @@ namespace Circuit.Component {
    namespace Local {
       import Types = CapacitorLayout.Types;
 
-      export const defaultState: Types.state = {
-         joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
-         disabled: false
-      }
-      export const defaultProperties: Types.properties = {
-         name: "capacitor",
-         capacitance: 0,
-         isPolarised: false
-      }
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          capacitance: number;
          isPolarised: boolean;
          joints: [Vector, Vector];
 
-         constructor(properties: Types.properties, state: Types.state) {
-            super(properties, state);
+         constructor(values: Types.properties & Types.state) {
+            super(values);
             $(this.group.element).addClass("component " + this.name);
-            this.joints = state.joints;
-            this.capacitance = properties.capacitance;
-            this.isPolarised = properties.isPolarised;
+            this.joints = values.joints;
+            this.capacitance = values.capacitance;
+            this.isPolarised = values.isPolarised;
          }
 
          getProperties(): Types.properties {
@@ -89,25 +80,27 @@ namespace Circuit.Component {
 
       }
 
-      export const loadInstance: Component.Types.loadFunction = (raw: any) => {
-         let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
-            {
-               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
-                  ? vector.standardise(raw.state.joints as AnyVector[])
-                  : undefined
-            } : {};
-         let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
-            {
-               name: raw.properties.name,
-               capacitance: raw.properties.capacitance,
-               isPolarised: raw.properties.isPolarised,
-            } : {};
+      export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
+         name: ValueCheck.validate("string", "capacitor"),
+         disabled: ValueCheck.validate("boolean", false),
+         isPolarised: ValueCheck.validate("boolean", false),
+         joints: ValueCheck.joints<[Vector, Vector]>(
+            [{ x: 0, y: 0 }, { x: 80, y: 0 }]
+         ),
+         capacitance: ValueCheck.validate("number", 0)
+      };
 
-         return makeInstance(properties, state, true);
+      export const loadInstance: Component.Types.loadFunction = (raw: any) => {
+         const name = (raw.name);
+         const capacitance = (raw.capacitance);
+         const isPolarised = (raw.isPolarised);
+         const joints = (raw.joints);
+
+         return makeInstance({ name, capacitance, isPolarised, joints }, true);
       }
 
 
-      export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
+      export const makeInstance = getMaker(Instance, defaulter,
          (component: Instance) => {
             $(component.group.element).addClass("component " + component.name);
             Addins.Graphical.init(component); Addins.Draggable.init(component);
@@ -119,8 +112,7 @@ namespace Circuit.Component {
    }
 
    export const CapacitorLayout = {
-      defaultState: Local.defaultState,
-      defaultProperties: Local.defaultProperties,
+
       Instance: Local.Instance,
       makeInstance: Local.makeInstance,
       loadInstance: Local.loadInstance

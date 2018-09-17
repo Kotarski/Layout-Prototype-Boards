@@ -21,28 +21,17 @@ namespace Circuit.Component {
    namespace Local {
       import Types = CapacitorSchematic.Types;
 
-      export const defaultState: Types.state = {
-         joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }],
-         disabled: false
-      }
-
-      export const defaultProperties: Types.properties = {
-         name: "capacitor",
-         capacitance: 0,
-         isPolarised: false
-      }
-
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          capacitance: number;
          joints: [Vector, Vector];
          isPolarised: boolean;
 
-         constructor(properties: Types.properties, state: Types.state) {
-            super(properties, state);
+         constructor(values: Types.properties & Types.state) {
+            super(values);
             $(this.group.element).addClass("component " + this.name);
-            this.joints = state.joints;
-            this.capacitance = properties.capacitance;
-            this.isPolarised = properties.isPolarised;
+            this.joints = values.joints;
+            this.capacitance = values.capacitance;
+            this.isPolarised = values.isPolarised;
          }
 
          getProperties(): Types.properties {
@@ -84,45 +73,58 @@ namespace Circuit.Component {
 
       }
 
-      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
-         let state: Global.Types.DeepPartial<typeof defaultState> = (raw.state) ?
-            {
-               joints: (vector.isVectorArray(raw.state.joints) && raw.state.joints.length === 2)
-                  ? vector.standardise(raw.state.joints as AnyVector[])
-                  : undefined
-            } : {
-               joints: (() => {
-                  if (["LR", "UD", "RL", "DU"].includes(raw.orientation)) {
-                     let baseJoints = ({
-                        LR: [{ x: -20, y: 0 }, { x: 20, y: 0 }],
-                        UD: [{ x: 0, y: -20 }, { x: 0, y: 20 }],
-                        RL: [{ x: 20, y: 0 }, { x: -20, y: 0 }],
-                        DU: [{ x: 0, y: 20 }, { x: 0, y: -20 }]
-                     } as { [key: string]: [Vector, Vector] })[raw.orientation];
-
-                     let offset: Vector = (raw.where && vector.isVector(raw.where))
-                        ? vector(raw.where as AnyVector).vector
-                        : { x: 0, y: 0 }
-                     return vector(baseJoints).sumWith(offset).vectors
-                  } else {
-                     return undefined;
-                  }
-               })()
-            };
-         let properties: Global.Types.DeepPartial<typeof defaultProperties> = (raw.properties) ?
-            {
-               name: raw.properties.name,
-               capacitance: raw.properties.capacitance,
-               isPolarised: raw.properties.isPolarised,
-            } : {
-               capacitance: raw.value,
-               isPolarised: (raw.polarised === "polar") ? true : Number(raw.value) ? (raw.value > 1e-6) : undefined
-            };
-
-         return makeInstance(properties, state, true);
+      export function validatePolarisation(polarisation: unknown, capacitance: unknown): boolean | undefined {
+         const isPolarValid = ValueCheck.test<"polar" | "non-polar">(["polar", "non-polar"]);
+         const isCapacitanceValid = ValueCheck.test("number");
+         if (isPolarValid(polarisation)) {
+            return polarisation === "polar";
+         } else if (isCapacitanceValid(capacitance)) {
+            return (capacitance > 1e-6);
+         } else {
+            return undefined;
+         }
       }
 
-      export const makeInstance = getMaker(Instance, defaultProperties, defaultState,
+      export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
+         name: ValueCheck.validate("string", "capacitor"),
+         disabled: ValueCheck.validate("boolean", false),
+         isPolarised: ValueCheck.validate("boolean", false),
+         joints: ValueCheck.joints<[Vector, Vector]>(
+            [{ x: 0, y: 0 }, { x: 40, y: 40 }]
+         ),
+         capacitance: ValueCheck.validate("number", 0)
+      };
+
+      const derivePolarisation = (capacitance: number, polarisation?: "polar" | "non-polar") => {
+         const isPolarValid = ValueCheck.test<"polar" | "non-polar">(["polar", "non-polar"]);
+         return isPolarValid(polarisation) ? polarisation === "polar" : (capacitance > 1e-6);
+      }
+
+      const deriveJoints = (orientation: "LR" | "RL" | "UD" | "DU", where: Vector) => {
+         const baseJoints = ({
+            LR: [{ x: -20, y: 0 }, { x: 20, y: 0 }],
+            UD: [{ x: 0, y: -20 }, { x: 0, y: 20 }],
+            RL: [{ x: 20, y: 0 }, { x: -20, y: 0 }],
+            DU: [{ x: 0, y: 20 }, { x: 0, y: -20 }]
+         })[orientation] as [Vector, Vector];
+         return vector(baseJoints).sumWith(where).vectors;
+      }
+
+      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
+         const name = (raw.name);
+         const capacitance = (raw.capacitance || raw.value);
+         //Polarisation Block
+         const isPolarised = (raw.isPolarised || derivePolarisation(capacitance, raw.polarised));
+         //Joints Block
+         const orientations: ["LR", "RL", "UD", "DU"] = ["LR", "RL", "UD", "DU"];
+         const orientation = ValueCheck.validate(orientations, "LR")(raw.orientation, false);
+         const where = ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
+         const joints = (raw.joints || deriveJoints(orientation, where));
+
+         return makeInstance({ name, capacitance, isPolarised, joints }, true);
+      }
+
+      export const makeInstance = getMaker(Instance, defaulter,
          (component: Instance) => {
             $(component.group.element).addClass("component " + component.name);
             Addins.Selectable.init(component);
@@ -137,8 +139,7 @@ namespace Circuit.Component {
    }
 
    export const CapacitorSchematic = {
-      defaultState: Local.defaultState,
-      defaultProperties: Local.defaultProperties,
+
       Instance: Local.Instance,
       makeInstance: Local.makeInstance,
       loadInstance: Local.loadInstance

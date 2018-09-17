@@ -3,10 +3,10 @@
 namespace _vector {
 
    export function isVector(inVector: any): inVector is AnyVector {
-      return (isLVector(inVector) || isUVector(inVector));
+      return inVector && (isLVector(inVector) || isUVector(inVector));
    }
 
-   export function isVectorArray(inVectors: any[]): inVectors is AnyVector[] {
+   export function isVectorArray(inVectors: any): inVectors is AnyVector[] {
       return (
          inVectors instanceof Array &&
          inVectors.every(isVector)

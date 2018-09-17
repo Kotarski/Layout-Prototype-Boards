@@ -74,12 +74,12 @@ namespace Circuit {
             C extends Component.Instance,
             P extends ReturnType<C["getProperties"]>,
             S extends ReturnType<C["getState"]>,
-            V extends (p: P, s: {}) => Component.Instance>(key: { new(properties: P, state: S): C }, value: V) => typeof schematicToLayoutMap;
+            V extends (v: P) => Component.Instance>(key: { new(values: P & S): C }, value: V) => typeof schematicToLayoutMap;
          get: <
             C extends Component.Instance,
             P extends ReturnType<C["getProperties"]>,
             S extends ReturnType<C["getState"]>,
-            V extends (p: P, s: {}) => Component.Instance>(key: { new(properties: P, state: S): C }) => V;
+            V extends (v: P) => Component.Instance>(key: { new(values: P & S): C }) => V;
       } = new Map() as any; //TODO
       schematicToLayoutMap
          .set(Component.ResistorSchematic.Instance, Component.ResistorLayout.makeInstance)
@@ -94,9 +94,9 @@ namespace Circuit {
          C extends Component.Instance,
          P extends ReturnType<C["getProperties"]>,
          S extends ReturnType<C["getState"]>>(schematic: C): Component.Instance {
-         let constructor = schematic["constructor"] as { new(properties: P, state: S): C };
+         let constructor = schematic["constructor"] as { new(values: P & S): C };
          let properties = schematic.getProperties() as P;
-         return schematicToLayoutMap.get(constructor)(properties, {});
+         return schematicToLayoutMap.get(constructor)(properties);
       }
 
 
