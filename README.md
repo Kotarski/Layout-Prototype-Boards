@@ -18,9 +18,15 @@ More can be added (fairly) easily, so I may be able to add new components on req
 
 This tool has only been tested in Chrome. It is unlikely to work in other browsers.
 
-You will need to download the HTML, CSS, compiledJS and sample_files folders. Unfortunately currently a mechanism to generate your own schematic files has not been implemented, so only those in the sample_files folder are available (the .dasim ones). 
+You will need to download the HTML, CSS, compiledJS and sample_files folders.
 
-Simply open the the HTML file, and load a sample file.
+Simply open the the HTML file, and load a file.
+
+The sample_files folder contains some premade schematic files (.dasim) along with their layout solutions (.layout).
+
+You can also make your own schematic files using [this Schematic Design Tool](http://www-users.york.ac.uk/~dajp1/Temp/dasim.html) (Credit Dave Pearce, Department of Electronic Engineering, University of York). However, the Author notes that it is in development, and may change at short notice. 
+
+Also note that not all components that are supported by the schematic tool are supported by this layout tool.
 
 # Sample Images
 
