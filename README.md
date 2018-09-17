@@ -14,7 +14,12 @@ The following components are currently supported:
 
 More can be added (fairly) easily, so I may be able to add new components on request.
 
-Some sample images:
+# How To Use
+
+
+
+# Sample Images
+
 ![Checking a Circuit](/sample_images/CheckingACircuit.gif)
 
 ![Flasher Breadboard Circuit](/sample_images/Flasher.png)
