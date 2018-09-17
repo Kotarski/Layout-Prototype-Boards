@@ -24,7 +24,7 @@ Simply open the the HTML file, and load a sample file.
 
 # Sample Images
 
-![Checking a Circuit](/sample_images/CheckingACircuit.gif)
+![Checking a Circuit Gif](/sample_images/CheckingACircuit.gif)
 
 ![Flasher Breadboard Circuit](/sample_images/Flasher.png)
 
