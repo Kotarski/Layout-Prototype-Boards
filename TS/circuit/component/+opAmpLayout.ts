@@ -88,14 +88,15 @@ namespace Circuit.Component {
                ]];
             } else {
                this.connectorSets = [[
-                  Component.Generics.makeConnector(this, "nc", "pin", connectorPoints[7], "nc"),        //8
+                  // The ordering here is important so the colors line up between layout and schematic
                   Component.Generics.makeConnector(this, "vcc+", "pin", connectorPoints[6], "v+"),  //7
                   Component.Generics.makeConnector(this, "out", "pin", connectorPoints[5], "o"),    //6
-                  Component.Generics.makeConnector(this, "offset n1", "pin", connectorPoints[4], "nc"), //5
-                  Component.Generics.makeConnector(this, "offset n2", "pin", connectorPoints[0], "nc"),  //1
                   Component.Generics.makeConnector(this, "in-", "pin", connectorPoints[1], "i-"),   //2
                   Component.Generics.makeConnector(this, "in+", "pin", connectorPoints[2], "i+"),   //3
                   Component.Generics.makeConnector(this, "vcc-", "pin", connectorPoints[3], "v-"),  //4
+                  Component.Generics.makeConnector(this, "nc", "pin", connectorPoints[7], "nc"),    //8
+                  Component.Generics.makeConnector(this, "offset n1", "pin", connectorPoints[4], "nc"), //5
+                  Component.Generics.makeConnector(this, "offset n2", "pin", connectorPoints[0], "nc"), //1
                ]];
             }
 

@@ -1873,14 +1873,14 @@ var Circuit;
                     }
                     else {
                         this.connectorSets = [[
-                                Component.Generics.makeConnector(this, "nc", "pin", connectorPoints[7], "nc"),
                                 Component.Generics.makeConnector(this, "vcc+", "pin", connectorPoints[6], "v+"),
                                 Component.Generics.makeConnector(this, "out", "pin", connectorPoints[5], "o"),
-                                Component.Generics.makeConnector(this, "offset n1", "pin", connectorPoints[4], "nc"),
-                                Component.Generics.makeConnector(this, "offset n2", "pin", connectorPoints[0], "nc"),
                                 Component.Generics.makeConnector(this, "in-", "pin", connectorPoints[1], "i-"),
                                 Component.Generics.makeConnector(this, "in+", "pin", connectorPoints[2], "i+"),
                                 Component.Generics.makeConnector(this, "vcc-", "pin", connectorPoints[3], "v-"),
+                                Component.Generics.makeConnector(this, "nc", "pin", connectorPoints[7], "nc"),
+                                Component.Generics.makeConnector(this, "offset n1", "pin", connectorPoints[4], "nc"),
+                                Component.Generics.makeConnector(this, "offset n2", "pin", connectorPoints[0], "nc"),
                             ]];
                     }
                 }
@@ -1956,8 +1956,7 @@ var Circuit;
                     let [posPower, negPower] = (this.joints[3].y < this.joints[4].y)
                         ? [this.joints[3], this.joints[4]]
                         : [this.joints[4], this.joints[3]];
-                    this.connectorSets = [
-                        [
+                    this.connectorSets = [[
                             Component.Generics.makeConnector(this, "vcc+", "node", posPower, "v+"),
                             Component.Generics.makeConnector(this, "out", "node", this.joints[2], "o"),
                             Component.Generics.makeConnector(this, "in-", "node", this.joints[1], "i-"),
