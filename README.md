@@ -16,7 +16,11 @@ More can be added (fairly) easily, so I may be able to add new components on req
 
 # How To Use
 
+This tool has only been tested in Chrome. It is unlikely to work in other browsers.
 
+You will need to download the HTML, CSS, compiledJS and sample_files folders. Unfortunately currently a mechanism to generate your own schematic files has not been implemented, so only those in the sample_files folder are available (the .dasim ones). 
+
+Simply open the the HTML file, and load a sample file.
 
 # Sample Images
 
