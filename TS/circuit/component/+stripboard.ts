@@ -120,7 +120,7 @@ namespace Circuit.Component {
                holeSpacings: holeSpacings,
                style: "stripboard",
                joints: [rowStart, step]
-            });
+            }, false);
             //track.group.translate({ x: 0, y: row * gS }).rotate(0);
             tracks.push(track);
          }
@@ -137,28 +137,40 @@ namespace Circuit.Component {
          columns: 1
       }
 
+      export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
+         name: ValueCheck.validate("string", "stripboard"),
+         disabled: ValueCheck.validate("boolean", false),
+         joints: ValueCheck.joints<[Vector, Vector]>(
+            [{ x: 0, y: 0 }, { x: 20, y: 0 }]
+         ),
+         rows: ValueCheck.integer(1),
+         columns: ValueCheck.integer(1),
+         trackBreaks: validateTrackBreaks([]),
+      };
 
       export function validateTrackBreaks<T extends Types.trackBreak[]>(fallback: T): ValueCheck.validater<T> {
          const result = (value: unknown, log: boolean = true) => {
-            return ((value && Array.isArray(value) && value.every((tB: Types.trackBreak) => {
+            const predicate = (v: unknown) => ((value && Array.isArray(value) && value.every((tB: Types.trackBreak) => {
                return (('track' in tB) && ('hole' in tB) && (typeof tB.track === 'number') && (typeof tB.hole === 'number'));
-            }))) ? value as T : fallback
+            })));
+
+            return ValueCheck.validate<T>(predicate, fallback)(value);
          }
 
          return result;
       }
 
       export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
-         const name = ValueCheck.validate("string", defaults.name)(raw.name);
-         const rows = ValueCheck.integer(defaults.rows)(raw.rows);
-         const columns = ValueCheck.integer(defaults.columns)(raw.columns);
-         const trackBreaks = validateTrackBreaks(defaults.trackBreaks)(raw.trackBreaks);
-         const joints = ValueCheck.joints(defaults.joints)(raw.joints);
+         const name = (raw.name);
+         const rows = (raw.rows);
+         const columns = (raw.columns);
+         const trackBreaks = (raw.trackBreaks);
+         const joints = (raw.joints);
 
          return makeInstance({ name, rows, columns, trackBreaks, joints }, true);
       }
 
-      export const makeInstance = getMaker(Instance, defaults,
+      export const makeInstance = getMaker(Instance, defaulter,
          (component: Instance) => {
             $(component.group.element).addClass(component.name);
             Addins.Graphical.init(component);

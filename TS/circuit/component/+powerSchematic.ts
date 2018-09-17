@@ -67,6 +67,15 @@ namespace Circuit.Component {
          voltage: 0
       }
 
+      export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
+         name: ValueCheck.validate("string", "power"),
+         disabled: ValueCheck.validate("boolean", false),
+         joints: ValueCheck.joints<[Vector]>(
+            [{ x: 0, y: 0 }]
+         ),
+         voltage: ValueCheck.validate("number", defaults.voltage)
+      };
+
       const deriveJoints = (voltage: number, where: Vector) => {
          const baseJoints = (voltage < 0)
             ? [{ x: 0, y: -10 }] // negative
@@ -77,17 +86,16 @@ namespace Circuit.Component {
       }
 
       export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
-         const name = ValueCheck.validate("string", defaults.name)(raw.name);
-         const voltage = ValueCheck.validate("number", defaults.voltage)(raw.voltage || raw.value);
+         const name = (raw.name);
+         const voltage = (raw.voltage || raw.value);
          //Joints Block
          const where = ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
-         const jointTest = ValueCheck.joints(defaults.joints);
-         const joints = jointTest(raw.joints || deriveJoints(voltage, where));
+         const joints = (raw.joints || deriveJoints(voltage, where));
 
          return makeInstance({ name, voltage, joints, }, true);
       }
 
-      export const makeInstance = getMaker(Instance, defaults,
+      export const makeInstance = getMaker(Instance, defaulter,
          (component: Instance) => {
             $(component.group.element).addClass("component " + component.name);
             Addins.Selectable.init(component);

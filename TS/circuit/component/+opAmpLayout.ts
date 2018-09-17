@@ -120,16 +120,26 @@ namespace Circuit.Component {
          offsetVoltage: 0
       }
 
+      export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
+         name: ValueCheck.validate("string", "opAmp"),
+         disabled: ValueCheck.validate("boolean", false),
+         isDual: ValueCheck.validate("boolean", false),
+         joints: ValueCheck.joints<[Vector, Vector]>(
+            [{ x: 30, y: 30 }, { x: 40, y: 30 }]
+         ),
+         offsetVoltage: ValueCheck.validate("number", 0)
+      };
+
       export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
-         const name = ValueCheck.validate("string", defaults.name)(raw.name);
-         const offsetVoltage = ValueCheck.validate("number", defaults.offsetVoltage)(raw.offsetVoltage);
-         const isDual = ValueCheck.validate("boolean", defaults.isDual)(raw.isDual);
-         const joints = ValueCheck.joints(defaults.joints)(raw.joints);
+         const name = (raw.name);
+         const offsetVoltage = (raw.offsetVoltage);
+         const isDual = (raw.isDual);
+         const joints = (raw.joints);
 
          return makeInstance({ name, offsetVoltage, isDual, joints }, true);
       }
 
-      export const makeInstance = getMaker(Instance, defaults,
+      export const makeInstance = getMaker(Instance, defaulter,
          (component: Instance) => {
             $(component.group.element).addClass("component " + component.name);
             Addins.Graphical.init(component);

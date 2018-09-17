@@ -75,6 +75,15 @@ namespace Circuit.Component {
          resistance: 0
       }
 
+      export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
+         name: ValueCheck.validate("string", "resistor"),
+         disabled: ValueCheck.validate("boolean", false),
+         joints: ValueCheck.joints<[Vector, Vector]>(
+            [{ x: 0, y: 0 }, { x: 40, y: 40 }]
+         ),
+         resistance: ValueCheck.validate("number", 0)
+      };
+
       const deriveJoints = (orientation: "LR" | "RL" | "UD" | "DU", where: Vector) => {
          const baseJoints = ({
             LR: [{ x: -30, y: 0 }, { x: 30, y: 0 }],
@@ -86,19 +95,18 @@ namespace Circuit.Component {
       }
 
       export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
-         const name = ValueCheck.validate("string", defaults.name)(raw.name);
-         const resistance = ValueCheck.validate("number", defaults.resistance)(raw.resistance || raw.value);
+         const name = (raw.name);
+         const resistance = (raw.resistance || raw.value);
          //Joints Block
          const orientations: ["LR", "RL", "UD", "DU"] = ["LR", "RL", "UD", "DU"];
          const orientation = ValueCheck.validate(orientations, "LR")(raw.orientation, false);
          const where = ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
-         const jointTest = ValueCheck.joints(defaults.joints);
-         const joints = jointTest(raw.joints || deriveJoints(orientation, where));
+         const joints = (raw.joints || deriveJoints(orientation, where));
 
          return makeInstance({ name, resistance, joints, }, true);
       }
 
-      export const makeInstance = getMaker(Instance, defaults,
+      export const makeInstance = getMaker(Instance, defaulter,
          (component: Instance) => {
             $(component.group.element).addClass("component " + component.name);
             Addins.Selectable.init(component);

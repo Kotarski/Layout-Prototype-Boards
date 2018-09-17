@@ -93,6 +93,15 @@ namespace Circuit.Component {
          isPolarised: false
       }
 
+      export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
+         name: ValueCheck.validate("string", "capacitor"),
+         disabled: ValueCheck.validate("boolean", false),
+         isPolarised: ValueCheck.validate("boolean", false),
+         joints: ValueCheck.joints<[Vector, Vector]>(
+            [{ x: 0, y: 0 }, { x: 40, y: 40 }]
+         ),
+         capacitance: ValueCheck.validate("number", 0)
+      };
 
       const derivePolarisation = (capacitance: number, polarisation?: "polar" | "non-polar") => {
          const isPolarValid = ValueCheck.test<"polar" | "non-polar">(["polar", "non-polar"]);
@@ -110,22 +119,20 @@ namespace Circuit.Component {
       }
 
       export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
-         const name = ValueCheck.validate("string", defaults.name)(raw.name);
-         const capacitance = ValueCheck.validate("number", defaults.capacitance)(raw.capacitance || raw.value);
+         const name = (raw.name);
+         const capacitance = (raw.capacitance || raw.value);
          //Polarisation Block
-         const savedPolarisation = raw.isPolarised || derivePolarisation(capacitance, raw.polarised);
-         const isPolarised = ValueCheck.validate("boolean", defaults.isPolarised)(savedPolarisation);
+         const isPolarised = (raw.isPolarised || derivePolarisation(capacitance, raw.polarised));
          //Joints Block
          const orientations: ["LR", "RL", "UD", "DU"] = ["LR", "RL", "UD", "DU"];
          const orientation = ValueCheck.validate(orientations, "LR")(raw.orientation, false);
          const where = ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
-         const jointTest = ValueCheck.joints(defaults.joints);
-         const joints = jointTest(raw.joints || deriveJoints(orientation, where));
+         const joints = (raw.joints || deriveJoints(orientation, where));
 
          return makeInstance({ name, capacitance, isPolarised, joints }, true);
       }
 
-      export const makeInstance = getMaker(Instance, defaults,
+      export const makeInstance = getMaker(Instance, defaulter,
          (component: Instance) => {
             $(component.group.element).addClass("component " + component.name);
             Addins.Selectable.init(component);

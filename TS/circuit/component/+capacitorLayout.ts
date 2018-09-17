@@ -88,17 +88,27 @@ namespace Circuit.Component {
          isPolarised: false
       }
 
+      export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
+         name: ValueCheck.validate("string", "capacitor"),
+         disabled: ValueCheck.validate("boolean", false),
+         isPolarised: ValueCheck.validate("boolean", false),
+         joints: ValueCheck.joints<[Vector, Vector]>(
+            [{ x: 0, y: 0 }, { x: 80, y: 0 }]
+         ),
+         capacitance: ValueCheck.validate("number", 0)
+      };
+
       export const loadInstance: Component.Types.loadFunction = (raw: any) => {
-         const name = ValueCheck.validate("string", defaults.name)(raw.name);
-         const capacitance = ValueCheck.validate("number", defaults.capacitance)(raw.capacitance);
-         const isPolarised = ValueCheck.validate("boolean", defaults.isPolarised)(raw.isPolarised);
-         const joints = ValueCheck.joints(defaults.joints)(raw.joints);
+         const name = (raw.name);
+         const capacitance = (raw.capacitance);
+         const isPolarised = (raw.isPolarised);
+         const joints = (raw.joints);
 
          return makeInstance({ name, capacitance, isPolarised, joints }, true);
       }
 
 
-      export const makeInstance = getMaker(Instance, defaults,
+      export const makeInstance = getMaker(Instance, defaulter,
          (component: Instance) => {
             $(component.group.element).addClass("component " + component.name);
             Addins.Graphical.init(component); Addins.Draggable.init(component);

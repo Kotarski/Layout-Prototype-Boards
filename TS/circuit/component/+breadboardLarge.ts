@@ -82,7 +82,7 @@ namespace Circuit.Component {
                let track = Addins.Board.Track.makeInstance({
                   holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1],
                   joints: [start, step]
-               });
+               }, false);
                tracks.push(track);
             }
          }
@@ -102,7 +102,7 @@ namespace Circuit.Component {
                let track = Addins.Board.Track.makeInstance({
                   holeSpacings: [0, 1, 1, 1, 1],
                   joints: [start, step]
-               });
+               }, false);
                tracks.push(track);
             }
          }
@@ -116,15 +116,23 @@ namespace Circuit.Component {
          name: "breadboardlarge"
       }
 
+      export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
+         name: ValueCheck.validate("string", "breadboardlarge"),
+         disabled: ValueCheck.validate("boolean", false),
+         joints: ValueCheck.joints<[Vector, Vector]>(
+            [{ x: 0, y: 0 }, { x: 20, y: 0 }]
+         ),
+      };
+
       export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
-         const name = ValueCheck.validate("string", defaults.name)(raw.name);
-         const joints = ValueCheck.joints(defaults.joints)(raw.joints);
+         const name = (raw.name);
+         const joints = (raw.joints);
 
          return makeInstance({ name, joints }, true);
       }
 
 
-      export const makeInstance = getMaker(Instance, defaults,
+      export const makeInstance = getMaker(Instance, defaulter,
          (component: Instance) => {
             $(component.group.element).addClass("breadboard " + component.name);
             Addins.Graphical.init(component);

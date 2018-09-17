@@ -91,6 +91,17 @@ namespace Circuit.Component {
          color: "N/A"
       }
 
+      export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
+         name: ValueCheck.validate("string", "diode"),
+         disabled: ValueCheck.validate("boolean", false),
+         joints: ValueCheck.joints<[Vector, Vector]>(
+            [{ x: 0, y: 0 }, { x: 40, y: 40 }]
+         ),
+         breakdownVoltage: ValueCheck.validate("number", 0),
+         saturationCurrent: ValueCheck.validate("number", 0),
+         color: ValueCheck.color(defaults.color)
+      };
+
       const deriveJoints = (orientation: "LR" | "RL" | "UD" | "DU", where: Vector) => {
          const baseJoints = ({
             LR: [{ x: -20, y: 0 }, { x: 20, y: 0 }],
@@ -102,21 +113,20 @@ namespace Circuit.Component {
       }
 
       export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
-         const name = ValueCheck.validate("string", defaults.name)(raw.name);
-         const breakdownVoltage = ValueCheck.validate("number", defaults.breakdownVoltage)(raw.breakdownVoltage);
-         const saturationCurrent = ValueCheck.validate("number", defaults.saturationCurrent)(raw.saturationCurrent);
-         const color = ValueCheck.color(defaults.color)(raw.color || raw.colour);
+         const name = (raw.name);
+         const breakdownVoltage = (raw.breakdownVoltage);
+         const saturationCurrent = (raw.saturationCurrent);
+         const color = (raw.color || raw.colour);
          //Joints Block
          const orientations: ["LR", "RL", "UD", "DU"] = ["LR", "RL", "UD", "DU"];
          const orientation = ValueCheck.validate(orientations, "LR")(raw.orientation, false);
          const where = ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
-         const jointTest = ValueCheck.joints(defaults.joints);
-         const joints = jointTest(raw.joints || deriveJoints(orientation, where));
+         const joints = (raw.joints || deriveJoints(orientation, where));
 
          return makeInstance({ name, breakdownVoltage, saturationCurrent, color, joints }, true);
       }
 
-      export const makeInstance = getMaker(Instance, defaults,
+      export const makeInstance = getMaker(Instance, defaulter,
          (component: Instance) => {
             $(component.group.element).addClass("component " + component.name);
             Addins.Graphical.init(component);

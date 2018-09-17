@@ -85,6 +85,16 @@ namespace Circuit.Component {
          type: "NPN"
       }
 
+      export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
+         name: ValueCheck.validate("string", "bipolar"),
+         disabled: ValueCheck.validate("boolean", false),
+         joints: ValueCheck.joints<[Vector, Vector, Vector]>(
+            [{ x: -50, y: 0 }, { x: +10, y: -50 }, { x: +10, y: +50 }]
+         ),
+         currentGain: ValueCheck.validate("number", 0),
+         type: ValueCheck.validate<"NPN" | "PNP">(["NPN", "PNP"], "NPN")
+      };
+
       const deriveJoints = (orientation: "LR" | "RL", type: "NPN" | "PNP", where: Vector) => {
          const [emitter, collector] = type === "PNP"
             ? [{ x: 0, y: -50 }, { x: 0, y: +50 }]
@@ -98,19 +108,18 @@ namespace Circuit.Component {
       }
 
       export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
-         const name = ValueCheck.validate("string", defaults.name)(raw.name);
-         const currentGain = ValueCheck.validate("number", defaults.currentGain)(raw.currentGain);
-         const type = ValueCheck.validate<"NPN" | "PNP">(["NPN", "PNP"], defaults.type)(raw.type);
+         const name = (raw.name);
+         const currentGain = (raw.currentGain);
+         const type = (raw.type);
          // Joints Block
          const orientation = ValueCheck.validate<"LR" | "RL">(["LR", "RL"], "LR")(raw.orientation, false);
          const where = ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
-         const jointTest = ValueCheck.joints(defaults.joints);
-         const joints = jointTest(raw.joints || deriveJoints(orientation, type, where));
+         const joints = (raw.joints || deriveJoints(orientation, type, where));
 
          return makeInstance({ name, currentGain, type, joints }, true);
       }
 
-      export const makeInstance = getMaker(Instance, defaults,
+      export const makeInstance = getMaker(Instance, defaulter,
          (component: Instance) => {
             $(component.group.element).addClass("component " + component.name);
             Addins.Selectable.init(component);

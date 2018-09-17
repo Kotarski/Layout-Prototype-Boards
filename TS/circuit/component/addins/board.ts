@@ -47,6 +47,18 @@ namespace Circuit.Component.Addins.Board {
          holeSpacings: [0]
       }
 
+      export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
+         name: ValueCheck.validate("string", "track"),
+         style: ValueCheck.validate<"breadboard" | "stripboard">(["breadboard", "stripboard"], "breadboard"),
+         disabled: ValueCheck.validate("boolean", false),
+         joints: ValueCheck.joints<[Vector, Vector]>(
+            [{ x: 0, y: 0 }, { x: 20, y: 0 }]
+         ),
+         holeSpacings: ValueCheck.validate(
+            v => Array.isArray(v) && v.every(ValueCheck.test("number")), [0]
+         ),
+      };
+
       export class Instance extends Component.Instance implements Types.properties, Types.state {
          name: string;
          holeSpacings: number[];
@@ -198,7 +210,7 @@ namespace Circuit.Component.Addins.Board {
          component.group.prepend(Svg.Element.Rect.make(centre, size, vector(0), 'body').rotate(angle, centre));
       }
 
-      export const makeInstance = getMaker(Instance, defaults,
+      export const makeInstance = getMaker(Instance, defaulter,
          (component: Instance) => {
             $(component.group.element).addClass(component.name);
          }

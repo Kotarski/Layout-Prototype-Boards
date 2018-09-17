@@ -1,3 +1,4 @@
+/// <reference path="component/~valueCheck.ts" />
 namespace Circuit.Component {
 
    export namespace Types {
@@ -88,46 +89,43 @@ namespace Circuit.Component {
       S extends ReturnType<C["getState"]>
       >(
          instanceClass: { new(v: P & S): C },
-         defaults: P & S,
+         defaulter: ValueCheck.Defaulter<P & S>,
          initialiser: (component: C) => void) {
       return (
          partialValues: Global.Types.DeepPartial<P & S>,
-         printFallbacks: boolean = false
+         log = false
       ): C => {
-         const defaultsCopy = JSON.parse(JSON.stringify(defaults));
-         const values = loadObjectWithDefaults(defaultsCopy, partialValues, [defaults.name, "values"], printFallbacks);
+         if (log) console.groupCollapsed("Loading...");
+         const values = loadObjectWithDefaults(defaulter, partialValues, log);
+         if (log) console.groupEnd();
 
          const component = new instanceClass(values) as C;
-
          if (initialiser) initialiser(component);
          component.draw();
          component.makeConnectors();
+
+         if (log) {
+            console.groupCollapsed("%s: %o", component.name, component.group.element);
+            console.log(component);
+            console.groupEnd();
+         }
+
          return component;
       }
    }
 
-   function loadObjectWithDefaults(fallback: any, given: any, runningLocation: string[] = [], printFallbacks: boolean = false) {
-      // Check types match
-      if (typeof fallback !== typeof given || given === undefined) {
-         if (printFallbacks) {
-            console.log("Given type for \"%s\" does not match fallback, fallback value %o used.", runningLocation.join("."), fallback);
-         }
-         // if types are object, check object properties match
-      } else if (typeof fallback === "object" && !Array.isArray(fallback) && fallback !== null) {
-         Object.keys(fallback).forEach(key => {
-            let newRunningLocation = runningLocation.concat(key);
-            if (!given.hasOwnProperty(key)) {
-               if (printFallbacks) {
-                  console.log("Given does not contain key \"%s\", fallback value %o used.", newRunningLocation.join("."), fallback[key]);
-               }
-            } else {
-               fallback[key] = loadObjectWithDefaults(fallback[key], given[key], newRunningLocation, printFallbacks)
-            }
-         });
-      } else {
-         fallback = given;
-      }
-      return fallback;
+   function loadObjectWithDefaults<T>(defaulter: ValueCheck.Defaulter<T>, partial: any, log = true): T {
+      //TS just needs to trust me here...
+      const result: T = Object.keys(defaulter).reduce((acc, key) => {
+         if (log) console.group(key);
+         const defaultFn: ValueCheck.validater<any> = (defaulter as any)[key];
+         const partialValue = (partial)[key];
+         (acc as any)[key] = defaultFn(partialValue, log)
+         if (log) console.groupEnd();
+         return acc;
+      }, {}) as T;
+
+      return result;
    }
 }
 

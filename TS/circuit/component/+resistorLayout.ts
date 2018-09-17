@@ -72,16 +72,24 @@ namespace Circuit.Component {
          resistance: 0
       }
 
+      export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
+         name: ValueCheck.validate("string", "resistor"),
+         disabled: ValueCheck.validate("boolean", false),
+         joints: ValueCheck.joints<[Vector, Vector]>(
+            [{ x: 0, y: 0 }, { x: 40, y: 40 }]
+         ),
+         resistance: ValueCheck.validate("number", 0)
+      };
 
       export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
-         const name = ValueCheck.validate("string", defaults.name)(raw.name);
-         const resistance = ValueCheck.validate("number", defaults.resistance)(raw.resistance);
-         const joints = ValueCheck.joints(defaults.joints)(raw.joints);
+         const name = (raw.name);
+         const resistance = (raw.resistance);
+         const joints = (raw.joints);
 
          return makeInstance({ name, resistance, joints }, true);
       }
 
-      export const makeInstance = getMaker(Instance, defaults,
+      export const makeInstance = getMaker(Instance, defaulter,
          (component: Instance) => {
             $(component.group.element).addClass("component " + component.name);
             Addins.Graphical.init(component); Addins.Draggable.init(component);

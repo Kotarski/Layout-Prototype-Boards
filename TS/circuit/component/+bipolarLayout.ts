@@ -88,15 +88,15 @@ namespace Circuit.Component {
       };
 
       export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
-         const name = ValueCheck.validate("string", defaults.name)(raw.name);
-         const currentGain = ValueCheck.validate("number", defaults.currentGain)(raw.currentGain);
-         const type = ValueCheck.validate<"NPN" | "PNP">(["NPN", "PNP"], defaults.type)(raw.type);
-         const joints = ValueCheck.joints(defaults.joints)(raw.joints);
+         const name = (raw.name);
+         const currentGain = (raw.currentGain);
+         const type = (raw.type);
+         const joints = (raw.joints);
 
          return makeInstance({ name, currentGain, type, joints }, true);
       }
 
-      export const makeInstance = getMaker(Instance, defaults,
+      export const makeInstance = getMaker(Instance, defaulter,
          (component: Instance) => {
             $(component.group.element).addClass("component " + component.name);
             Addins.Graphical.init(component);

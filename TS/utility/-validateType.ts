@@ -27,6 +27,9 @@ namespace Utility {
 
       const validator: checkfunction<T> = (value, log = true) => {
          if (predicate(value)) {
+            if (log) {
+               console.log(`Value '%o' passed test '%o`, value, test);
+            }
             return value as T;
          } else {
             if (log) {

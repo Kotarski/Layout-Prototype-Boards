@@ -105,12 +105,20 @@ namespace Circuit.Component {
          name: "wire"
       }
 
+      export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
+         name: ValueCheck.validate("string", "wire"),
+         disabled: ValueCheck.validate("boolean", false),
+         joints: ValueCheck.joints(
+            [{ x: 0, y: 0 }, { x: 80, y: 0 }], l => l >= 2
+         ),
+         color: ValueCheck.color("#545454")
+      };
+
       export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
-         const name = ValueCheck.validate("string", defaults.name)(raw.name);
-         const color = ValueCheck.color(defaults.color)(raw.color || raw.colour);
+         const name = (raw.name);
+         const color = (raw.color || raw.colour);
          //Joints Block
-         const jointTest = ValueCheck.joints(defaults.joints, l => l >= 2);
-         const joints = jointTest(raw.joints);
+         const joints = (raw.joints);
 
          return makeInstance({ name, color, joints }, true);
       }
@@ -157,7 +165,7 @@ namespace Circuit.Component {
          return vector(component.joints[0]).sumWith(offset).vector;
       }
 
-      export const makeInstance = getMaker(Instance, defaults,
+      export const makeInstance = getMaker(Instance, defaulter,
          (component: Instance) => {
             $(component.group.element).addClass("component " + component.name);
             Addins.Graphical.init(component); Addins.Draggable.init(component);

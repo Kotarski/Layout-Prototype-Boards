@@ -22,6 +22,7 @@ namespace FileIO.Load {
          //
          //
          // }
+         console.groupCollapsed("File Load Data");
 
          $.Deferred().resolve(fileInput)
             // Get the file as a string from the fileinput
@@ -45,6 +46,7 @@ namespace FileIO.Load {
                      // Called if any of the functions fail using detail from their context
                      .then((savedManifest) => {
                         NodeElements.fileStatusText.innerText = "File:\r\n\"" + filename + "\"\r\nLoaded Successfully";
+                        console.groupEnd();
                         if (savedManifest) {
                            Circuit.manifest.constructFrom(savedManifest);
                            Circuit.History.init(Circuit.manifest.layout);
@@ -62,6 +64,7 @@ namespace FileIO.Load {
                            + "" + filename + "\"\r\n"
                            + "Error:\r\n\"" +
                            failText + "\"";
+                        console.groupEnd();
                      })
                } else {
                   console.error("Failed to load circuit: Incorrect file extenstion %o", fileExtension)
@@ -69,6 +72,7 @@ namespace FileIO.Load {
                      + "" + filename + "\"\r\n"
                      + "Error:\r\n\"" +
                      "Incorrect file extenstion: \"." + fileExtension + "\"\"";
+                  console.groupEnd();
                }
 
                //Clear file input

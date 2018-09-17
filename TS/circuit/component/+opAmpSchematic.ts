@@ -82,6 +82,15 @@ namespace Circuit.Component {
          offsetVoltage: 0
       }
 
+      export const defaulter: ValueCheck.Defaulter<Types.state & Types.properties> = {
+         name: ValueCheck.validate("string", "opAmp"),
+         disabled: ValueCheck.validate("boolean", false),
+         joints: ValueCheck.joints<[Vector, Vector, Vector, Vector, Vector]>(
+            [{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: 40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: 20 }]
+         ),
+         offsetVoltage: ValueCheck.validate("number", 0)
+      };
+
       const deriveJoints = (orientation: "LR" | "RL", inputAtTop: "inverting" | "non-inverting", where: Vector) => {
          const [inHigh, inLow] = orientation === "LR"
             ? [{ x: -30, y: -10 }, { x: -30, y: +10 }]
@@ -102,57 +111,42 @@ namespace Circuit.Component {
       }
 
       export const loadInstance: Component.Types.loadFunction = (raw: any): (Instance | [PowerSchematic.Instance, PowerSchematic.Instance, Instance]) => {
+         const name = (raw.name);
+         const offsetVoltage = (raw.offsetVoltage);
 
-
-         const name = ValueCheck.validate("string", defaults.name)(raw.name);
-         const offsetVoltage = ValueCheck.validate("number", defaults.offsetVoltage)(raw.offsetVoltage);
          //Joints Block
          const orientations: ["LR", "RL"] = ["LR", "RL"];
          const orientation = ValueCheck.validate(orientations, "LR")(raw.orientation, false);
          const inputsAtTop: ["inverting", "non-inverting"] = ["inverting", "non-inverting"]
-         const inputAtTop = ValueCheck.validate(inputsAtTop, "non-inverting")(raw.whichInputAtTop);
+         const inputAtTop = ValueCheck.validate(inputsAtTop, "non-inverting")(raw.whichInputAtTop, false);
          const where = ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
-         const jointTest = ValueCheck.joints(defaults.joints);
-         const joints = jointTest(raw.joints || deriveJoints(orientation, inputAtTop, where));
+         const joints = (raw.joints || deriveJoints(orientation, inputAtTop, where));
 
-         const values = { name, offsetVoltage, joints };
+         const opAmp = makeInstance({ name, offsetVoltage, joints }, true);
 
+         // Also make the power connections
+         const isNumber = ValueCheck.test("number");
+         const [minOutput, maxOutput] = [raw.minOutput, raw.maxOutput];
+         if (isNumber(minOutput) && isNumber(maxOutput)) {
 
-         if ((raw.minOutput) && (raw.maxOutput)) {
-            let offset: Vector = (raw.where && vector.isVector(raw.where))
-               ? vector(raw.where as AnyVector).vector
-               : { x: 0, y: 0 }
+            const topPower = PowerSchematic.makeInstance({
+               voltage: maxOutput,
+               joints: vector([{ x: 0, y: -20 }]).sumWith(where).vectors
+            }, true);
 
-            // Also create the power leads
-            let topPower = PowerSchematic.makeInstance(
-               {
-                  voltage: raw.maxOutput || 5,
-                  joints: vector([{ x: 0, y: -20 }]).sumWith(offset).vectors
-               }, true
-            );
+            const bottomPower = PowerSchematic.makeInstance({
+               voltage: minOutput,
+               joints: vector([{ x: 0, y: 20 }]).sumWith(where).vectors
+            }, true);
 
-            let bottomPower = PowerSchematic.makeInstance(
-               {
-                  voltage: raw.minOutput || -5,
-                  joints: vector([{ x: 0, y: 20 }]).sumWith(offset).vectors
-               }, true
-            );
-
-            let opAmp = makeInstance(values, true);
-
-            let instances: [PowerSchematic.Instance, PowerSchematic.Instance, Instance] = [
-               topPower,
-               bottomPower,
-               opAmp,
-            ];
-
-            return instances
+            type newOpampParts = [PowerSchematic.Instance, PowerSchematic.Instance, Instance];
+            return [topPower, bottomPower, opAmp] as newOpampParts
          } else {
-            return makeInstance(values, true);
+            return opAmp;
          }
       }
 
-      export const makeInstance = getMaker(Instance, defaults,
+      export const makeInstance = getMaker(Instance, defaulter,
          (component: Instance) => {
             $(component.group.element).addClass("component " + component.name);
             Addins.Selectable.init(component);

@@ -335,6 +335,95 @@ var _vector;
         };
     }
 })(_vector || (_vector = {}));
+var Utility;
+(function (Utility) {
+    Utility.is = (check) => (test) => test === check;
+})(Utility || (Utility = {}));
+var Utility;
+(function (Utility) {
+    ;
+    function validateType(test, fallback) {
+        const predicate = ((typeof test === "string")
+            ? (v) => typeof v === test
+            : (test instanceof Array)
+                ? (v) => test.some(Utility.is(v))
+                : test);
+        const validator = (value, log = true) => {
+            if (predicate(value)) {
+                if (log) {
+                    console.log(`Value '%o' passed test '%o`, value, test);
+                }
+                return value;
+            }
+            else {
+                if (log) {
+                    console.log(`Validation failure, value '%o' did not pass test '%o',
+                fallback '%o' used.`, value, test, fallback);
+                }
+                return fallback;
+            }
+        };
+        return validator;
+    }
+    Utility.validateType = validateType;
+})(Utility || (Utility = {}));
+var Utility;
+(function (Utility) {
+    function testType(test) {
+        const predicate = ((typeof test === "string")
+            ? (v) => typeof v === test
+            : (test instanceof Array)
+                ? (v) => test.some(Utility.is(v))
+                : test);
+        return predicate;
+    }
+    Utility.testType = testType;
+})(Utility || (Utility = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var ValueCheck;
+        (function (ValueCheck) {
+            ValueCheck.test = Utility.testType;
+            ValueCheck.validate = Utility.validateType;
+            const integerTest = (n) => ValueCheck.test("number")(n) && Number.isInteger(n);
+            function integer(fallback) {
+                const result = (value, log = true) => {
+                    return ValueCheck.validate(integerTest, fallback)(value, log);
+                };
+                return result;
+            }
+            ValueCheck.integer = integer;
+            function where(fallback) {
+                const result = (value, log = true) => {
+                    const anyVector = ValueCheck.validate(vector.isVector, fallback)(value, log);
+                    return vector.standardise(anyVector);
+                };
+                return result;
+            }
+            ValueCheck.where = where;
+            function joints(fallback, lengthTest = l => l === fallback.length) {
+                const jointTest = (value) => vector.isVectorArray(value) && lengthTest(value.length);
+                const result = (value, log = true) => {
+                    const anyVectors = ValueCheck.validate(jointTest, fallback)(value, log);
+                    return vector.standardise(anyVectors);
+                };
+                return result;
+            }
+            ValueCheck.joints = joints;
+            const maxValidCSSColorLength = 25;
+            const colorTest = (s) => ValueCheck.test("string")(s) && s.length <= maxValidCSSColorLength;
+            function color(fallback) {
+                const result = (value, log = true) => {
+                    return ValueCheck.validate(colorTest, fallback)(value, log);
+                };
+                return result;
+            }
+            ValueCheck.color = color;
+        })(ValueCheck = Component.ValueCheck || (Component.ValueCheck = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
 var Circuit;
 (function (Circuit) {
     var Component;
@@ -366,42 +455,39 @@ var Circuit;
             }
         }
         Component.Instance = Instance;
-        function getMaker(instanceClass, defaults, initialiser) {
-            return (partialValues, printFallbacks = false) => {
-                const defaultsCopy = JSON.parse(JSON.stringify(defaults));
-                const values = loadObjectWithDefaults(defaultsCopy, partialValues, [defaults.name, "values"], printFallbacks);
+        function getMaker(instanceClass, defaulter, initialiser) {
+            return (partialValues, log = false) => {
+                if (log)
+                    console.groupCollapsed("Loading...");
+                const values = loadObjectWithDefaults(defaulter, partialValues, log);
+                if (log)
+                    console.groupEnd();
                 const component = new instanceClass(values);
                 if (initialiser)
                     initialiser(component);
                 component.draw();
                 component.makeConnectors();
+                if (log) {
+                    console.groupCollapsed("%s: %o", component.name, component.group.element);
+                    console.log(component);
+                    console.groupEnd();
+                }
                 return component;
             };
         }
         Component.getMaker = getMaker;
-        function loadObjectWithDefaults(fallback, given, runningLocation = [], printFallbacks = false) {
-            if (typeof fallback !== typeof given || given === undefined) {
-                if (printFallbacks) {
-                    console.log("Given type for \"%s\" does not match fallback, fallback value %o used.", runningLocation.join("."), fallback);
-                }
-            }
-            else if (typeof fallback === "object" && !Array.isArray(fallback) && fallback !== null) {
-                Object.keys(fallback).forEach(key => {
-                    let newRunningLocation = runningLocation.concat(key);
-                    if (!given.hasOwnProperty(key)) {
-                        if (printFallbacks) {
-                            console.log("Given does not contain key \"%s\", fallback value %o used.", newRunningLocation.join("."), fallback[key]);
-                        }
-                    }
-                    else {
-                        fallback[key] = loadObjectWithDefaults(fallback[key], given[key], newRunningLocation, printFallbacks);
-                    }
-                });
-            }
-            else {
-                fallback = given;
-            }
-            return fallback;
+        function loadObjectWithDefaults(defaulter, partial, log = true) {
+            const result = Object.keys(defaulter).reduce((acc, key) => {
+                if (log)
+                    console.group(key);
+                const defaultFn = defaulter[key];
+                const partialValue = (partial)[key];
+                acc[key] = defaultFn(partialValue, log);
+                if (log)
+                    console.groupEnd();
+                return acc;
+            }, {});
+            return result;
         }
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
@@ -551,7 +637,6 @@ var Circuit;
             Circuit.manifest.layout = savedManifest.layout;
             if (!savedManifest.layout || savedManifest.layout.length === 0)
                 completeManifestLayout();
-            console.log(savedManifest, Circuit.manifest);
             Circuit.manifest.activeBoard = Circuit.manifest.layout.find(component => Circuit.mappings.isBoard(component));
             draw();
         };
@@ -915,13 +1000,13 @@ var Circuit;
                 type: Component.ValueCheck.validate(["NPN", "PNP"], "NPN")
             };
             Local.loadInstance = (raw) => {
-                const name = Component.ValueCheck.validate("string", Local.defaults.name)(raw.name);
-                const currentGain = Component.ValueCheck.validate("number", Local.defaults.currentGain)(raw.currentGain);
-                const type = Component.ValueCheck.validate(["NPN", "PNP"], Local.defaults.type)(raw.type);
-                const joints = Component.ValueCheck.joints(Local.defaults.joints)(raw.joints);
+                const name = (raw.name);
+                const currentGain = (raw.currentGain);
+                const type = (raw.type);
+                const joints = (raw.joints);
                 return Local.makeInstance({ name, currentGain, type, joints }, true);
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaults, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Graphical.init(component);
                 Component.Addins.Draggable.init(component);
@@ -986,6 +1071,13 @@ var Circuit;
                 currentGain: 0,
                 type: "NPN"
             };
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "bipolar"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: -50, y: 0 }, { x: +10, y: -50 }, { x: +10, y: +50 }]),
+                currentGain: Component.ValueCheck.validate("number", 0),
+                type: Component.ValueCheck.validate(["NPN", "PNP"], "NPN")
+            };
             const deriveJoints = (orientation, type, where) => {
                 const [emitter, collector] = type === "PNP"
                     ? [{ x: 0, y: -50 }, { x: 0, y: +50 }]
@@ -996,16 +1088,15 @@ var Circuit;
                 return vector([emitter, collector, base]).sumWith(where, offset).vectors;
             };
             Local.loadInstance = (raw) => {
-                const name = Component.ValueCheck.validate("string", Local.defaults.name)(raw.name);
-                const currentGain = Component.ValueCheck.validate("number", Local.defaults.currentGain)(raw.currentGain);
-                const type = Component.ValueCheck.validate(["NPN", "PNP"], Local.defaults.type)(raw.type);
+                const name = (raw.name);
+                const currentGain = (raw.currentGain);
+                const type = (raw.type);
                 const orientation = Component.ValueCheck.validate(["LR", "RL"], "LR")(raw.orientation, false);
                 const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
-                const jointTest = Component.ValueCheck.joints(Local.defaults.joints);
-                const joints = jointTest(raw.joints || deriveJoints(orientation, type, where));
+                const joints = (raw.joints || deriveJoints(orientation, type, where));
                 return Local.makeInstance({ name, currentGain, type, joints }, true);
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaults, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
@@ -1074,7 +1165,7 @@ var Circuit;
                         let track = Component.Addins.Board.Track.makeInstance({
                             holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1],
                             joints: [start, step]
-                        });
+                        }, false);
                         tracks.push(track);
                     }
                 }
@@ -1089,7 +1180,7 @@ var Circuit;
                         let track = Component.Addins.Board.Track.makeInstance({
                             holeSpacings: [0, 1, 1, 1, 1],
                             joints: [start, step]
-                        });
+                        }, false);
                         tracks.push(track);
                     }
                 }
@@ -1100,12 +1191,17 @@ var Circuit;
                 disabled: false,
                 name: "breadboardlarge"
             };
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "breadboardlarge"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
+            };
             Local.loadInstance = (raw) => {
-                const name = Component.ValueCheck.validate("string", Local.defaults.name)(raw.name);
-                const joints = Component.ValueCheck.joints(Local.defaults.joints)(raw.joints);
+                const name = (raw.name);
+                const joints = (raw.joints);
                 return Local.makeInstance({ name, joints }, true);
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaults, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("breadboard " + component.name);
                 Component.Addins.Graphical.init(component);
                 Component.Addins.Board.init(component);
@@ -1170,7 +1266,7 @@ var Circuit;
                     let track = Component.Addins.Board.Track.makeInstance({
                         holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1],
                         joints: [start, step]
-                    });
+                    }, false);
                     tracks.push(track);
                 }
                 let mainGridTrackXPositions = [...Array(30).keys()];
@@ -1195,12 +1291,17 @@ var Circuit;
                 disabled: false,
                 name: "breadboardsmall"
             };
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "breadboardsmall"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
+            };
             Local.loadInstance = (raw) => {
-                const name = Component.ValueCheck.validate("string", Local.defaults.name)(raw.name);
-                const joints = Component.ValueCheck.joints(Local.defaults.joints)(raw.joints);
+                const name = (raw.name);
+                const joints = (raw.joints);
                 return Local.makeInstance({ name, joints }, true);
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaults, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("breadboard " + component.name);
                 Component.Addins.Graphical.init(component);
                 Component.Addins.Board.init(component);
@@ -1276,14 +1377,21 @@ var Circuit;
                 capacitance: 0,
                 isPolarised: false
             };
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "capacitor"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                isPolarised: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 80, y: 0 }]),
+                capacitance: Component.ValueCheck.validate("number", 0)
+            };
             Local.loadInstance = (raw) => {
-                const name = Component.ValueCheck.validate("string", Local.defaults.name)(raw.name);
-                const capacitance = Component.ValueCheck.validate("number", Local.defaults.capacitance)(raw.capacitance);
-                const isPolarised = Component.ValueCheck.validate("boolean", Local.defaults.isPolarised)(raw.isPolarised);
-                const joints = Component.ValueCheck.joints(Local.defaults.joints)(raw.joints);
+                const name = (raw.name);
+                const capacitance = (raw.capacitance);
+                const isPolarised = (raw.isPolarised);
+                const joints = (raw.joints);
                 return Local.makeInstance({ name, capacitance, isPolarised, joints }, true);
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaults, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Graphical.init(component);
                 Component.Addins.Draggable.init(component);
@@ -1361,6 +1469,13 @@ var Circuit;
                 capacitance: 0,
                 isPolarised: false
             };
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "capacitor"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                isPolarised: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
+                capacitance: Component.ValueCheck.validate("number", 0)
+            };
             const derivePolarisation = (capacitance, polarisation) => {
                 const isPolarValid = Component.ValueCheck.test(["polar", "non-polar"]);
                 return isPolarValid(polarisation) ? polarisation === "polar" : (capacitance > 1e-6);
@@ -1375,18 +1490,16 @@ var Circuit;
                 return vector(baseJoints).sumWith(where).vectors;
             };
             Local.loadInstance = (raw) => {
-                const name = Component.ValueCheck.validate("string", Local.defaults.name)(raw.name);
-                const capacitance = Component.ValueCheck.validate("number", Local.defaults.capacitance)(raw.capacitance || raw.value);
-                const savedPolarisation = raw.isPolarised || derivePolarisation(capacitance, raw.polarised);
-                const isPolarised = Component.ValueCheck.validate("boolean", Local.defaults.isPolarised)(savedPolarisation);
+                const name = (raw.name);
+                const capacitance = (raw.capacitance || raw.value);
+                const isPolarised = (raw.isPolarised || derivePolarisation(capacitance, raw.polarised));
                 const orientations = ["LR", "RL", "UD", "DU"];
                 const orientation = Component.ValueCheck.validate(orientations, "LR")(raw.orientation, false);
                 const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
-                const jointTest = Component.ValueCheck.joints(Local.defaults.joints);
-                const joints = jointTest(raw.joints || deriveJoints(orientation, where));
+                const joints = (raw.joints || deriveJoints(orientation, where));
                 return Local.makeInstance({ name, capacitance, isPolarised, joints }, true);
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaults, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
@@ -1458,15 +1571,23 @@ var Circuit;
                 saturationCurrent: 0,
                 color: "N/A"
             };
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "diode"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 80, y: 0 }]),
+                breakdownVoltage: Component.ValueCheck.validate("number", 0),
+                saturationCurrent: Component.ValueCheck.validate("number", 0),
+                color: Component.ValueCheck.color(Local.defaults.color)
+            };
             Local.loadInstance = (raw) => {
-                const name = Component.ValueCheck.validate("string", Local.defaults.name)(raw.name);
-                const breakdownVoltage = Component.ValueCheck.validate("number", Local.defaults.breakdownVoltage)(raw.breakdownVoltage);
-                const saturationCurrent = Component.ValueCheck.validate("number", Local.defaults.saturationCurrent)(raw.saturationCurrent);
-                const color = Component.ValueCheck.color(Local.defaults.color)(raw.color);
-                const joints = Component.ValueCheck.joints(Local.defaults.joints)(raw.joints);
+                const name = (raw.name);
+                const breakdownVoltage = (raw.breakdownVoltage);
+                const saturationCurrent = (raw.saturationCurrent);
+                const color = (raw.color);
+                const joints = (raw.joints);
                 return Local.makeInstance({ name, breakdownVoltage, saturationCurrent, color, joints }, true);
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaults, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Graphical.init(component);
                 Component.Addins.Selectable.init(component);
@@ -1536,6 +1657,14 @@ var Circuit;
                 saturationCurrent: 0,
                 color: "N/A"
             };
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "diode"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
+                breakdownVoltage: Component.ValueCheck.validate("number", 0),
+                saturationCurrent: Component.ValueCheck.validate("number", 0),
+                color: Component.ValueCheck.color(Local.defaults.color)
+            };
             const deriveJoints = (orientation, where) => {
                 const baseJoints = ({
                     LR: [{ x: -20, y: 0 }, { x: 20, y: 0 }],
@@ -1546,18 +1675,17 @@ var Circuit;
                 return vector(baseJoints).sumWith(where).vectors;
             };
             Local.loadInstance = (raw) => {
-                const name = Component.ValueCheck.validate("string", Local.defaults.name)(raw.name);
-                const breakdownVoltage = Component.ValueCheck.validate("number", Local.defaults.breakdownVoltage)(raw.breakdownVoltage);
-                const saturationCurrent = Component.ValueCheck.validate("number", Local.defaults.saturationCurrent)(raw.saturationCurrent);
-                const color = Component.ValueCheck.color(Local.defaults.color)(raw.color || raw.colour);
+                const name = (raw.name);
+                const breakdownVoltage = (raw.breakdownVoltage);
+                const saturationCurrent = (raw.saturationCurrent);
+                const color = (raw.color || raw.colour);
                 const orientations = ["LR", "RL", "UD", "DU"];
                 const orientation = Component.ValueCheck.validate(orientations, "LR")(raw.orientation, false);
                 const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
-                const jointTest = Component.ValueCheck.joints(Local.defaults.joints);
-                const joints = jointTest(raw.joints || deriveJoints(orientation, where));
+                const joints = (raw.joints || deriveJoints(orientation, where));
                 return Local.makeInstance({ name, breakdownVoltage, saturationCurrent, color, joints }, true);
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaults, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Graphical.init(component);
                 Component.Addins.Selectable.init(component);
@@ -1620,13 +1748,19 @@ var Circuit;
                 name: "inductor",
                 inductance: 0
             };
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "inductor"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 80, y: 0 }]),
+                inductance: Component.ValueCheck.validate("number", 0)
+            };
             Local.loadInstance = (raw) => {
-                const name = Component.ValueCheck.validate("string", Local.defaults.name)(raw.name);
-                const inductance = Component.ValueCheck.validate("number", Local.defaults.inductance)(raw.inductance);
-                const joints = Component.ValueCheck.joints(Local.defaults.joints)(raw.joints);
+                const name = (raw.name);
+                const inductance = (raw.inductance);
+                const joints = (raw.joints);
                 return Local.makeInstance({ name, inductance, joints }, true);
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaults, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Graphical.init(component);
                 Component.Addins.Draggable.init(component);
@@ -1686,6 +1820,12 @@ var Circuit;
                 name: "inductor",
                 inductance: 0
             };
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "inductor"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
+                inductance: Component.ValueCheck.validate("number", 0)
+            };
             const deriveJoints = (orientation, where) => {
                 const baseJoints = ({
                     LR: [{ x: -30, y: 0 }, { x: 30, y: 0 }],
@@ -1696,16 +1836,15 @@ var Circuit;
                 return vector(baseJoints).sumWith(where).vectors;
             };
             Local.loadInstance = (raw) => {
-                const name = Component.ValueCheck.validate("string", Local.defaults.name)(raw.name);
-                const inductance = Component.ValueCheck.validate("number", Local.defaults.inductance)(raw.inductance || raw.value);
+                const name = (raw.name);
+                const inductance = (raw.inductance || raw.value);
                 const orientations = ["LR", "RL", "UD", "DU"];
                 const orientation = Component.ValueCheck.validate(orientations, "LR")(raw.orientation, false);
                 const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
-                const jointTest = Component.ValueCheck.joints(Local.defaults.joints);
-                const joints = jointTest(raw.joints || deriveJoints(orientation, where));
+                const joints = (raw.joints || deriveJoints(orientation, where));
                 return Local.makeInstance({ name, inductance, joints, }, true);
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaults, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
@@ -1812,14 +1951,21 @@ var Circuit;
                 name: "opAmp",
                 offsetVoltage: 0
             };
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "opAmp"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                isDual: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 30, y: 30 }, { x: 40, y: 30 }]),
+                offsetVoltage: Component.ValueCheck.validate("number", 0)
+            };
             Local.loadInstance = (raw) => {
-                const name = Component.ValueCheck.validate("string", Local.defaults.name)(raw.name);
-                const offsetVoltage = Component.ValueCheck.validate("number", Local.defaults.offsetVoltage)(raw.offsetVoltage);
-                const isDual = Component.ValueCheck.validate("boolean", Local.defaults.isDual)(raw.isDual);
-                const joints = Component.ValueCheck.joints(Local.defaults.joints)(raw.joints);
+                const name = (raw.name);
+                const offsetVoltage = (raw.offsetVoltage);
+                const isDual = (raw.isDual);
+                const joints = (raw.joints);
                 return Local.makeInstance({ name, offsetVoltage, isDual, joints }, true);
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaults, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Graphical.init(component);
                 Component.Addins.Draggable.init(component);
@@ -1887,6 +2033,12 @@ var Circuit;
                 name: "opAmp",
                 offsetVoltage: 0
             };
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "opAmp"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: 40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: 20 }]),
+                offsetVoltage: Component.ValueCheck.validate("number", 0)
+            };
             const deriveJoints = (orientation, inputAtTop, where) => {
                 const [inHigh, inLow] = orientation === "LR"
                     ? [{ x: -30, y: -10 }, { x: -30, y: +10 }]
@@ -1902,41 +2054,33 @@ var Circuit;
                 return vector([inInverting, inNonInverting, out, powPositive, powNegative]).sumWith(where).vectors;
             };
             Local.loadInstance = (raw) => {
-                const name = Component.ValueCheck.validate("string", Local.defaults.name)(raw.name);
-                const offsetVoltage = Component.ValueCheck.validate("number", Local.defaults.offsetVoltage)(raw.offsetVoltage);
+                const name = (raw.name);
+                const offsetVoltage = (raw.offsetVoltage);
                 const orientations = ["LR", "RL"];
                 const orientation = Component.ValueCheck.validate(orientations, "LR")(raw.orientation, false);
                 const inputsAtTop = ["inverting", "non-inverting"];
-                const inputAtTop = Component.ValueCheck.validate(inputsAtTop, "non-inverting")(raw.whichInputAtTop);
+                const inputAtTop = Component.ValueCheck.validate(inputsAtTop, "non-inverting")(raw.whichInputAtTop, false);
                 const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
-                const jointTest = Component.ValueCheck.joints(Local.defaults.joints);
-                const joints = jointTest(raw.joints || deriveJoints(orientation, inputAtTop, where));
-                const values = { name, offsetVoltage, joints };
-                if ((raw.minOutput) && (raw.maxOutput)) {
-                    let offset = (raw.where && vector.isVector(raw.where))
-                        ? vector(raw.where).vector
-                        : { x: 0, y: 0 };
-                    let topPower = Component.PowerSchematic.makeInstance({
-                        voltage: raw.maxOutput || 5,
-                        joints: vector([{ x: 0, y: -20 }]).sumWith(offset).vectors
+                const joints = (raw.joints || deriveJoints(orientation, inputAtTop, where));
+                const opAmp = Local.makeInstance({ name, offsetVoltage, joints }, true);
+                const isNumber = Component.ValueCheck.test("number");
+                const [minOutput, maxOutput] = [raw.minOutput, raw.maxOutput];
+                if (isNumber(minOutput) && isNumber(maxOutput)) {
+                    const topPower = Component.PowerSchematic.makeInstance({
+                        voltage: maxOutput,
+                        joints: vector([{ x: 0, y: -20 }]).sumWith(where).vectors
                     }, true);
-                    let bottomPower = Component.PowerSchematic.makeInstance({
-                        voltage: raw.minOutput || -5,
-                        joints: vector([{ x: 0, y: 20 }]).sumWith(offset).vectors
+                    const bottomPower = Component.PowerSchematic.makeInstance({
+                        voltage: minOutput,
+                        joints: vector([{ x: 0, y: 20 }]).sumWith(where).vectors
                     }, true);
-                    let opAmp = Local.makeInstance(values, true);
-                    let instances = [
-                        topPower,
-                        bottomPower,
-                        opAmp,
-                    ];
-                    return instances;
+                    return [topPower, bottomPower, opAmp];
                 }
                 else {
-                    return Local.makeInstance(values, true);
+                    return opAmp;
                 }
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaults, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
@@ -2001,13 +2145,19 @@ var Circuit;
                 name: "power",
                 voltage: 0
             };
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "power"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 40 }]),
+                voltage: Component.ValueCheck.validate("number", Local.defaults.voltage)
+            };
             Local.loadInstance = (raw) => {
-                const name = Component.ValueCheck.validate("string", Local.defaults.name)(raw.name);
-                const voltage = Component.ValueCheck.validate("number", Local.defaults.voltage)(raw.voltage);
-                const joints = Component.ValueCheck.joints(Local.defaults.joints)(raw.joints);
+                const name = (raw.name);
+                const voltage = (raw.voltage);
+                const joints = (raw.joints);
                 return Local.makeInstance({ name, voltage, joints }, true);
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaults, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass(component.name);
                 Component.Addins.Graphical.init(component);
                 Component.Addins.Draggable.init(component);
@@ -2074,6 +2224,12 @@ var Circuit;
                 name: "power",
                 voltage: 0
             };
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "power"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }]),
+                voltage: Component.ValueCheck.validate("number", Local.defaults.voltage)
+            };
             const deriveJoints = (voltage, where) => {
                 const baseJoints = (voltage < 0)
                     ? [{ x: 0, y: -10 }]
@@ -2083,14 +2239,13 @@ var Circuit;
                 return vector(baseJoints).sumWith(where).vectors;
             };
             Local.loadInstance = (raw) => {
-                const name = Component.ValueCheck.validate("string", Local.defaults.name)(raw.name);
-                const voltage = Component.ValueCheck.validate("number", Local.defaults.voltage)(raw.voltage || raw.value);
+                const name = (raw.name);
+                const voltage = (raw.voltage || raw.value);
                 const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
-                const jointTest = Component.ValueCheck.joints(Local.defaults.joints);
-                const joints = jointTest(raw.joints || deriveJoints(voltage, where));
+                const joints = (raw.joints || deriveJoints(voltage, where));
                 return Local.makeInstance({ name, voltage, joints, }, true);
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaults, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
@@ -2152,13 +2307,19 @@ var Circuit;
                 name: "resistor",
                 resistance: 0
             };
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "resistor"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
+                resistance: Component.ValueCheck.validate("number", 0)
+            };
             Local.loadInstance = (raw) => {
-                const name = Component.ValueCheck.validate("string", Local.defaults.name)(raw.name);
-                const resistance = Component.ValueCheck.validate("number", Local.defaults.resistance)(raw.resistance);
-                const joints = Component.ValueCheck.joints(Local.defaults.joints)(raw.joints);
+                const name = (raw.name);
+                const resistance = (raw.resistance);
+                const joints = (raw.joints);
                 return Local.makeInstance({ name, resistance, joints }, true);
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaults, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Graphical.init(component);
                 Component.Addins.Draggable.init(component);
@@ -2218,6 +2379,12 @@ var Circuit;
                 name: "resistor",
                 resistance: 0
             };
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "resistor"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
+                resistance: Component.ValueCheck.validate("number", 0)
+            };
             const deriveJoints = (orientation, where) => {
                 const baseJoints = ({
                     LR: [{ x: -30, y: 0 }, { x: 30, y: 0 }],
@@ -2228,16 +2395,15 @@ var Circuit;
                 return vector(baseJoints).sumWith(where).vectors;
             };
             Local.loadInstance = (raw) => {
-                const name = Component.ValueCheck.validate("string", Local.defaults.name)(raw.name);
-                const resistance = Component.ValueCheck.validate("number", Local.defaults.resistance)(raw.resistance || raw.value);
+                const name = (raw.name);
+                const resistance = (raw.resistance || raw.value);
                 const orientations = ["LR", "RL", "UD", "DU"];
                 const orientation = Component.ValueCheck.validate(orientations, "LR")(raw.orientation, false);
                 const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
-                const jointTest = Component.ValueCheck.joints(Local.defaults.joints);
-                const joints = jointTest(raw.joints || deriveJoints(orientation, where));
+                const joints = (raw.joints || deriveJoints(orientation, where));
                 return Local.makeInstance({ name, resistance, joints, }, true);
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaults, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
@@ -2327,7 +2493,7 @@ var Circuit;
                         holeSpacings: holeSpacings,
                         style: "stripboard",
                         joints: [rowStart, step]
-                    });
+                    }, false);
                     tracks.push(track);
                 }
                 return tracks;
@@ -2340,24 +2506,33 @@ var Circuit;
                 rows: 1,
                 columns: 1
             };
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "stripboard"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
+                rows: Component.ValueCheck.integer(1),
+                columns: Component.ValueCheck.integer(1),
+                trackBreaks: validateTrackBreaks([]),
+            };
             function validateTrackBreaks(fallback) {
                 const result = (value, log = true) => {
-                    return ((value && Array.isArray(value) && value.every((tB) => {
+                    const predicate = (v) => ((value && Array.isArray(value) && value.every((tB) => {
                         return (('track' in tB) && ('hole' in tB) && (typeof tB.track === 'number') && (typeof tB.hole === 'number'));
-                    }))) ? value : fallback;
+                    })));
+                    return Component.ValueCheck.validate(predicate, fallback)(value);
                 };
                 return result;
             }
             Local.validateTrackBreaks = validateTrackBreaks;
             Local.loadInstance = (raw) => {
-                const name = Component.ValueCheck.validate("string", Local.defaults.name)(raw.name);
-                const rows = Component.ValueCheck.integer(Local.defaults.rows)(raw.rows);
-                const columns = Component.ValueCheck.integer(Local.defaults.columns)(raw.columns);
-                const trackBreaks = validateTrackBreaks(Local.defaults.trackBreaks)(raw.trackBreaks);
-                const joints = Component.ValueCheck.joints(Local.defaults.joints)(raw.joints);
+                const name = (raw.name);
+                const rows = (raw.rows);
+                const columns = (raw.columns);
+                const trackBreaks = (raw.trackBreaks);
+                const joints = (raw.joints);
                 return Local.makeInstance({ name, rows, columns, trackBreaks, joints }, true);
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaults, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass(component.name);
                 Component.Addins.Graphical.init(component);
                 Component.Addins.Board.init(component, true);
@@ -2436,11 +2611,16 @@ var Circuit;
                 disabled: false,
                 name: "wire"
             };
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "wire"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 80, y: 0 }], l => l >= 2),
+                color: Component.ValueCheck.color("#545454")
+            };
             Local.loadInstance = (raw) => {
-                const name = Component.ValueCheck.validate("string", Local.defaults.name)(raw.name);
-                const color = Component.ValueCheck.color(Local.defaults.color)(raw.color || raw.colour);
-                const jointTest = Component.ValueCheck.joints(Local.defaults.joints, l => l >= 2);
-                const joints = jointTest(raw.joints);
+                const name = (raw.name);
+                const color = (raw.color || raw.colour);
+                const joints = (raw.joints);
                 return Local.makeInstance({ name, color, joints }, true);
             };
             function getBezierBetweenJoints(joints) {
@@ -2475,7 +2655,7 @@ var Circuit;
                 const offset = Utility.Polar.toVector(12, angle + 45);
                 return vector(component.joints[0]).sumWith(offset).vector;
             }
-            Local.makeInstance = Component.getMaker(Instance, Local.defaults, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Graphical.init(component);
                 Component.Addins.Draggable.init(component);
@@ -2540,13 +2720,17 @@ var Circuit;
                 disabled: false,
                 name: "wire"
             };
+            Local.defaulter = {
+                name: Component.ValueCheck.validate("string", "wire"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 10, y: 10 }], l => l >= 2),
+            };
             Local.loadInstance = (raw) => {
-                const name = Component.ValueCheck.validate("string", Local.defaults.name)(raw.name);
-                const jointTest = Component.ValueCheck.joints(Local.defaults.joints, l => l >= 2);
-                const joints = jointTest(raw.joints);
+                const name = (raw.name);
+                const joints = (raw.joints);
                 return Local.makeInstance({ name, joints, }, true);
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaults, (component) => {
+            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                 $(component.group.element).addClass("component " + component.name);
                 Component.Addins.Junctions.init(component);
                 Component.Addins.Selectable.init(component);
@@ -2562,92 +2746,6 @@ var Circuit;
             loadInstance: Local.loadInstance,
             Instance: Local.Instance
         };
-    })(Component = Circuit.Component || (Circuit.Component = {}));
-})(Circuit || (Circuit = {}));
-var Utility;
-(function (Utility) {
-    Utility.is = (check) => (test) => test === check;
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    ;
-    function validateType(test, fallback) {
-        const predicate = ((typeof test === "string")
-            ? (v) => typeof v === test
-            : (test instanceof Array)
-                ? (v) => test.some(Utility.is(v))
-                : test);
-        const validator = (value, log = true) => {
-            if (predicate(value)) {
-                return value;
-            }
-            else {
-                if (log) {
-                    console.log(`Validation failure, value '%o' did not pass test '%o',
-                fallback '%o' used.`, value, test, fallback);
-                }
-                return fallback;
-            }
-        };
-        return validator;
-    }
-    Utility.validateType = validateType;
-})(Utility || (Utility = {}));
-var Utility;
-(function (Utility) {
-    function testType(test) {
-        const predicate = ((typeof test === "string")
-            ? (v) => typeof v === test
-            : (test instanceof Array)
-                ? (v) => test.some(Utility.is(v))
-                : test);
-        return predicate;
-    }
-    Utility.testType = testType;
-})(Utility || (Utility = {}));
-var Circuit;
-(function (Circuit) {
-    var Component;
-    (function (Component) {
-        var ValueCheck;
-        (function (ValueCheck) {
-            ValueCheck.test = Utility.testType;
-            ValueCheck.validate = Utility.validateType;
-            const integerTest = (n) => ValueCheck.test("number")(n) && Number.isInteger(n);
-            function integer(fallback) {
-                const result = (value, log = true) => {
-                    return ValueCheck.validate(integerTest, fallback)(value, log);
-                };
-                return result;
-            }
-            ValueCheck.integer = integer;
-            function where(fallback) {
-                const result = (value, log = true) => {
-                    const anyVector = ValueCheck.validate(vector.isVector, fallback)(value, log);
-                    return vector.standardise(anyVector);
-                };
-                return result;
-            }
-            ValueCheck.where = where;
-            function joints(fallback, lengthTest = l => l === fallback.length) {
-                const jointTest = (value) => vector.isVectorArray(value) && lengthTest(value.length);
-                const result = (value, log = true) => {
-                    const anyVectors = ValueCheck.validate(jointTest, fallback)(value, log);
-                    return vector.standardise(anyVectors);
-                };
-                return result;
-            }
-            ValueCheck.joints = joints;
-            const maxValidCSSColorLength = 25;
-            const colorTest = (s) => ValueCheck.test("string")(s) && s.length <= maxValidCSSColorLength;
-            function color(fallback) {
-                const result = (value, log = true) => {
-                    return ValueCheck.validate(colorTest, fallback)(value, log);
-                };
-                return result;
-            }
-            ValueCheck.color = color;
-        })(ValueCheck = Component.ValueCheck || (Component.ValueCheck = {}));
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
 var Circuit;
@@ -2676,6 +2774,13 @@ var Circuit;
                         name: "track",
                         style: "breadboard",
                         holeSpacings: [0]
+                    };
+                    Local.defaulter = {
+                        name: Component.ValueCheck.validate("string", "track"),
+                        style: Component.ValueCheck.validate(["breadboard", "stripboard"], "breadboard"),
+                        disabled: Component.ValueCheck.validate("boolean", false),
+                        joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
+                        holeSpacings: Component.ValueCheck.validate(v => Array.isArray(v) && v.every(Component.ValueCheck.test("number")), [0]),
                     };
                     class Instance extends Component.Instance {
                         constructor(values) {
@@ -2783,7 +2888,7 @@ var Circuit;
                         };
                         component.group.prepend(Svg.Element.Rect.make(centre, size, vector(0), 'body').rotate(angle, centre));
                     };
-                    Local.makeInstance = Component.getMaker(Instance, Local.defaults, (component) => {
+                    Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
                         $(component.group.element).addClass(component.name);
                     });
                 })(Local || (Local = {}));
@@ -3451,6 +3556,7 @@ var FileIO;
             if (fileInput.value.length == 0) {
             }
             else {
+                console.groupCollapsed("File Load Data");
                 $.Deferred().resolve(fileInput)
                     .then(() => Load.getStringFromFileInput(fileInput))
                     .then((file, fileString) => {
@@ -3464,6 +3570,7 @@ var FileIO;
                             .then((rawComponents) => Load.Dasim.buildComponents(rawComponents))
                             .then((savedManifest) => {
                             NodeElements.fileStatusText.innerText = "File:\r\n\"" + filename + "\"\r\nLoaded Successfully";
+                            console.groupEnd();
                             if (savedManifest) {
                                 Circuit.manifest.constructFrom(savedManifest);
                                 Circuit.History.init(Circuit.manifest.layout);
@@ -3480,6 +3587,7 @@ var FileIO;
                                 + "" + filename + "\"\r\n"
                                 + "Error:\r\n\"" +
                                 failText + "\"";
+                            console.groupEnd();
                         });
                     }
                     else {
@@ -3488,6 +3596,7 @@ var FileIO;
                             + "" + filename + "\"\r\n"
                             + "Error:\r\n\"" +
                             "Incorrect file extenstion: \"." + fileExtension + "\"\"";
+                        console.groupEnd();
                     }
                     $(fileInput).val("");
                 });
@@ -3503,6 +3612,7 @@ var FileIO;
         var Dasim;
         (function (Dasim) {
             function buildComponents(rawComponents) {
+                console.groupCollapsed("Component Load Data");
                 let manifest = {
                     schematic: [],
                     layout: []
@@ -3523,6 +3633,7 @@ var FileIO;
                         manifestSection.push(newComponents);
                     }
                 }
+                console.groupEnd();
                 return manifest;
             }
             Dasim.buildComponents = buildComponents;
