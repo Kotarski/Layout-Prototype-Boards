@@ -58,17 +58,17 @@ namespace Circuit.Component {
                ? [this.joints[3], this.joints[4]]
                : [this.joints[4], this.joints[3]];
 
-            this.connectorSets = [
-               [//Component.Generics.makeConnector(this, "nc", "node", {???}),//8
-                  Component.Generics.makeConnector(this, "vcc+", "node", posPower, "v+"),//7
-                  Component.Generics.makeConnector(this, "out", "node", this.joints[2], "o"),//6
-                  //Component.Generics.makeConnector(this, "offset n1", "node", {???}),//5
-                  //Component.Generics.makeConnector(this, "offset n2", "node", {???}),//1
-                  Component.Generics.makeConnector(this, "in-", "node", this.joints[1], "i-"),//2
-                  Component.Generics.makeConnector(this, "in+", "node", this.joints[0], "i+"),//3
-                  Component.Generics.makeConnector(this, "vcc-", "node", negPower, "v-"),//4
-               ]
-            ];
+            this.connectorSets = [[
+               // The ordering here is important so the colors line up between layout and schematic
+               Component.Generics.makeConnector(this, "vcc+", "node", posPower, "v+"),//7
+               Component.Generics.makeConnector(this, "out", "node", this.joints[2], "o"),//6
+               Component.Generics.makeConnector(this, "in-", "node", this.joints[1], "i-"),//2
+               Component.Generics.makeConnector(this, "in+", "node", this.joints[0], "i+"),//3
+               Component.Generics.makeConnector(this, "vcc-", "node", negPower, "v-"),//4
+               //Component.Generics.makeConnector(this, "nc", "node", {???}),//8
+               //Component.Generics.makeConnector(this, "offset n1", "node", {???}),//5
+               //Component.Generics.makeConnector(this, "offset n2", "node", {???}),//1
+            ]];
          }
 
          transferFunction() { return [] };
