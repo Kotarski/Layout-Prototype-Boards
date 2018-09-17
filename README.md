@@ -1,6 +1,6 @@
 # Layout-Prototype-Boards
 
-The aim of this project was to create software to help its users learn how to design physical circuits on prototyping boards. The software allows users to build circuits on a virtual breadboard or stripboard from provided schematics. The virtual build process mimics the real-world process as closely as possible, but the software provides additional feedback to help reduce the impact of mistakes, teach the users about board connectivity, and identify issues without the need of outside help. The software is written in JavaScript, so it can easily be hosted online and accessed remotely by users on a wide range of platforms. Circuit designs can be saved, so users can continue their work across sessions. Both large and small size breadboards are supported, as are arbitrarily-sized stripboards, to which track breaks can be added on the reverse. 
+The aim of this project was to create software to help its users learn how to design physical circuits on prototyping boards. The software allows users to build circuits on a virtual breadboard or stripboard from provided schematics. The virtual build process mimics the real-world process as closely as possible, but the software provides additional feedback to help reduce the impact of mistakes, teach the users about board connectivity, and identify issues without the need of outside help. Circuit designs can be saved, so users can continue their work across sessions. Both large and small size breadboards are supported, as are arbitrarily-sized stripboards, to which track breaks can be added on the reverse. 
 
 The following components are currently supported:
   Wires,
@@ -26,7 +26,7 @@ The sample_files folder contains some premade schematic files (.dasim) along wit
 
 You can also make your own schematic files using [this Schematic Design Tool](http://www-users.york.ac.uk/~dajp1/Temp/dasim.html) (Credit Dave Pearce, Department of Electronic Engineering, University of York). However, the Author notes that it is in development, and may change at short notice. 
 
-Also note that not all components that are supported by the schematic tool are supported by this layout tool.
+Also note that not all components that are supported by the schematic tool are supported by this layout tool (see list above).
 
 # Sample Images
 
