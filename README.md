@@ -13,3 +13,11 @@ The following components are currently supported:
   Bipolar Transistors
 
 More can be added (fairly) easily, so I may be able to add new components on request.
+
+Some sample images:
+![Checking a Circuit](/sample_images/CheckingACircuit.gif)
+
+![Flasher Breadboard Circuit](/sample_images/Flasher.gif)
+
+![Pin Name Hints](/sample_images/PinGuides.gif)
+
