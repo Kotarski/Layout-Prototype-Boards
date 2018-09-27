@@ -28,6 +28,9 @@ You can also make your own schematic files using [this Schematic Design Tool](ht
 
 Also note that not all components that are supported by the schematic tool are supported by this layout tool (see list above).
 
+# Feedback
+For feedback email me at: edktrsk+layout@gmail.com, or comment here on GitHub
+
 # Sample Images
 
 ![Checking a Circuit Gif](/sample_images/CheckingACircuit.gif)
