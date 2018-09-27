@@ -47,8 +47,8 @@ namespace Circuit.Component {
          }
 
 
-         insertInto(element: SVGGraphicsElement) {
-            Utility.Insert.before(this.group.element, element, ".component");
+         insertInto(element?: SVGGraphicsElement) {
+            Utility.Insert.after(this.group.element, element, ".board");
          }
 
 
@@ -61,6 +61,10 @@ namespace Circuit.Component {
             this.connectorSets = [[
                Component.Generics.makeConnector(this, "", "hole", this.joints[0])
             ]]
+         }
+
+         getConnections(): Component.Types.connector[][][] {
+            return Generics.getComponentConnections(this, manifest.layout);
          }
 
          transferFunction() { return [] };
@@ -83,7 +87,7 @@ namespace Circuit.Component {
          voltage: ValueCheck.validate("number", defaults.voltage)
       };
 
-      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
+      export const load: Component.Types.loadFunction = (raw: any): Instance => {
          const name = (raw.name);
          const voltage = (raw.voltage);
          const joints = (raw.joints);
@@ -114,8 +118,8 @@ namespace Circuit.Component {
 
    export const PowerLayout = {
 
-      Instance: Local.Instance,
-      makeInstance: Local.makeInstance,
-      loadInstance: Local.loadInstance
+      instance: Local.Instance,
+      make: Local.makeInstance,
+      load: Local.load
    }
 }

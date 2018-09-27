@@ -19,15 +19,23 @@ namespace Circuit.Component.Addins.Selectable {
 
    const setSelectTrigger = (component: Component.Instance) => {
       // Selecting component triggers select
-      $(document).one("mousedown", e => {
-         // Checks target isn't child of component, ignore if so
-         if (elementSelectsComponent(e.target, component)) {
-            $(component.group.element).trigger(Events.select);
-            setDeselectTrigger(component);
-         } else {
-            setSelectTrigger(component);
-         }
+      $(component.group.element).one("mousedown", () => {
+         console.groupCollapsed("Selected", component.group.element);
+         console.log("Primary: %o", component);
+
+         const otherComponents = manifest.findCorresponding(component);
+         console.log("Secondaries: %o", otherComponents);
+
+         const selectComponents = otherComponents.concat(component);
+         selectComponents.forEach(selectComponent => {
+            $(selectComponent.group.element).trigger(Events.select);
+            setDeselectTrigger(selectComponent);
+         });
+
+         console.groupEnd();
       })
+
+
    }
 
    const setDeselectTrigger = (component: Component.Instance) => {
@@ -45,7 +53,6 @@ namespace Circuit.Component.Addins.Selectable {
 
    const setDisplayHandlers = (component: Component.Instance) => {
       $(component.group.element).on(Events.select, () => {
-         console.log("Selected: %o", component)
          $(component.group.element).addClass("selected");
          component.insertInto(component.group.element);
       });

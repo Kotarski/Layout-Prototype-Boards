@@ -53,6 +53,14 @@ namespace Circuit.Component {
             ));
          }
 
+         insertInto(element?: SVGGraphicsElement) {
+            Utility.Insert.last(this.group.element, element);
+         }
+
+         getConnections(): Component.Types.connector[][][] {
+            return Generics.getComponentConnections(this, manifest.schematic);
+         }
+
 
          /** Builds and draws the components connectors */
          makeConnectors() {
@@ -85,7 +93,7 @@ namespace Circuit.Component {
          return vector(baseJoints).sumWith(where).vectors;
       }
 
-      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
+      export const load: Component.Types.loadFunction = (raw: any): Instance => {
          const name = (raw.name);
          const inductance = (raw.inductance || raw.value);
          //Joints Block
@@ -113,8 +121,8 @@ namespace Circuit.Component {
 
    export const InductorSchematic = {
 
-      Instance: Local.Instance,
-      makeInstance: Local.makeInstance,
-      loadInstance: Local.loadInstance
+      instance: Local.Instance,
+      make: Local.makeInstance,
+      load: Local.load
    }
 }

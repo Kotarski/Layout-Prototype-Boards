@@ -52,6 +52,14 @@ namespace Circuit.Component {
             this.group.prepend(Svg.Element.Group.OpAmp.Schematic.make(this.joints[0], this.joints[1], this.joints[2], this.joints[3], this.joints[4], "body"))
          }
 
+         getConnections(): Component.Types.connector[][][] {
+            return Generics.getComponentConnections(this, manifest.schematic);
+         }
+
+         insertInto(element?: SVGGraphicsElement) {
+            Utility.Insert.last(this.group.element, element);
+         }
+
          makeConnectors() {
 
             let [posPower, negPower] = (this.joints[3].y < this.joints[4].y)
@@ -103,7 +111,7 @@ namespace Circuit.Component {
          return vector([inInverting, inNonInverting, out, powPositive, powNegative]).sumWith(where).vectors;
       }
 
-      export const loadInstance: Component.Types.loadFunction = (raw: any): (Instance | [PowerSchematic.Instance, PowerSchematic.Instance, Instance]) => {
+      export const load: Component.Types.loadFunction = (raw: any): (Instance | [PowerSchematic.Instance, PowerSchematic.Instance, Instance]) => {
          const name = (raw.name);
          const offsetVoltage = (raw.offsetVoltage);
 
@@ -122,12 +130,12 @@ namespace Circuit.Component {
          const [minOutput, maxOutput] = [raw.minOutput, raw.maxOutput];
          if (isNumber(minOutput) && isNumber(maxOutput)) {
 
-            const topPower = PowerSchematic.makeInstance({
+            const topPower = PowerSchematic.make({
                voltage: maxOutput,
                joints: vector([{ x: 0, y: -20 }]).sumWith(where).vectors
             }, true);
 
-            const bottomPower = PowerSchematic.makeInstance({
+            const bottomPower = PowerSchematic.make({
                voltage: minOutput,
                joints: vector([{ x: 0, y: 20 }]).sumWith(where).vectors
             }, true);
@@ -155,8 +163,8 @@ namespace Circuit.Component {
 
    export const OpAmpSchematic = {
 
-      Instance: Local.Instance,
-      makeInstance: Local.makeInstance,
-      loadInstance: Local.loadInstance
+      instance: Local.Instance,
+      make: Local.makeInstance,
+      load: Local.load
    }
 }

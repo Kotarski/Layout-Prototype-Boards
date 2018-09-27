@@ -117,6 +117,14 @@ namespace Circuit.Component.Addins.Board {
             })
          }
 
+         getConnections(): Component.Types.connector[][][] {
+            return Generics.getComponentConnections(this, manifest.layout);
+         }
+
+         insertInto(element?: SVGGraphicsElement) {
+            Utility.Insert.last(this.group.element, element);
+         }
+
          /** ...
          */
          transferFunction(from: Component.Types.hole): Component.Types.connector[] {
@@ -211,8 +219,8 @@ namespace Circuit.Component.Addins.Board {
 
    export const Track = {
 
-      Instance: Local.Instance,
-      makeInstance: Local.makeInstance,
+      instance: Local.Instance,
+      make: Local.makeInstance,
    }
 
    namespace Reversible {

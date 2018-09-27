@@ -5,37 +5,37 @@ namespace Circuit {
       const schematicComponents = {
          "makeWire": Component.WireSchematic,
          "makeResistor": Component.ResistorSchematic,
-         "makeCapacitor": Component.CapacitorSchematic,
+         "makeCapacitor": Component.Capacitor.schematic,
          "makeInductor": Component.InductorSchematic,
          "makeDiode": Component.DiodeSchematic,
          "makeOpAmp": Component.OpAmpSchematic,
          "makePower": Component.PowerSchematic,
-         "makeBipolar": Component.BipolarSchematic,
+         "makeBipolar": Component.Bipolar.schematic,
       };
 
       const layoutComponents = {
          "makeLayoutWire": Component.WireLayout,
          "makeLayoutResistor": Component.ResistorLayout,
-         "makeLayoutCapacitor": Component.CapacitorLayout,
+         "makeLayoutCapacitor": Component.Capacitor.layout,
          "makeLayoutInductor": Component.InductorLayout,
          "makeLayoutDiode": Component.DiodeLayout,
          "makeLayoutOpAmp": Component.OpAmpLayout,
          "makeLayoutPower": Component.PowerLayout,
-         "makeLayoutBipolar": Component.BipolarLayout,
+         "makeLayoutBipolar": Component.Bipolar.layout,
          "makeLayoutStripboard": Component.Stripboard,
          "makeLayoutBreadboardSmall": Component.BreadboardSmall,
          "makeLayoutBreadboardLarge": Component.BreadboardLarge,
       };
 
       type componentLoaderName = keyof (typeof schematicComponents & typeof layoutComponents);
-      type componentLoaderList = { [key: string]: { loadInstance: Component.Types.loadFunction } };
+      type componentLoaderList = { [key: string]: { load: Component.Types.loadFunction } };
       const getComponentLoader = (name: componentLoaderName): Component.Types.loadFunction => {
          let schematicLoaders = schematicComponents as componentLoaderList;
          let layoutLoaders = layoutComponents as componentLoaderList;
          if (schematicLoaders[name]) {
-            return schematicLoaders[name].loadInstance;
+            return schematicLoaders[name].load;
          } else if (layoutLoaders[name]) {
-            return layoutLoaders[name].loadInstance;
+            return layoutLoaders[name].load;
          }
 
          throw new Error("Component loader missing!")
@@ -53,13 +53,13 @@ namespace Circuit {
          }
       };
 
-      type componentInstanceList = { [key: string]: { Instance: typeof Component.Instance } };
+      type componentInstanceList = { [key: string]: { instance: typeof Component.Instance } };
       function getSaveName<C extends Component.Instance>(component: C): string {
          let loaders = Object.assign({}, schematicComponents, layoutComponents) as componentInstanceList;
          let constructor = component["constructor"] as typeof Component.Instance
 
          for (let key in loaders) {
-            if (loaders.hasOwnProperty(key) && (constructor === loaders[key].Instance)) {
+            if (loaders.hasOwnProperty(key) && (constructor === loaders[key].instance)) {
                return key;
             }
          }
@@ -82,13 +82,13 @@ namespace Circuit {
             V extends (v: P) => Component.Instance>(key: { new(values: P & S): C }) => V;
       } = new Map() as any; //TODO
       schematicToLayoutMap
-         .set(Component.ResistorSchematic.Instance, Component.ResistorLayout.makeInstance)
-         .set(Component.CapacitorSchematic.Instance, Component.CapacitorLayout.makeInstance)
-         .set(Component.InductorSchematic.Instance, Component.InductorLayout.makeInstance)
-         .set(Component.DiodeSchematic.Instance, Component.DiodeLayout.makeInstance)
-         .set(Component.OpAmpSchematic.Instance, Component.OpAmpLayout.makeInstance)
-         .set(Component.PowerSchematic.Instance, Component.PowerLayout.makeInstance)
-         .set(Component.BipolarSchematic.Instance, Component.BipolarLayout.makeInstance);
+         .set(Component.ResistorSchematic.instance, Component.ResistorLayout.make)
+         .set(Component.Capacitor.schematic.instance, Component.Capacitor.layout.make)
+         .set(Component.InductorSchematic.instance, Component.InductorLayout.make)
+         .set(Component.DiodeSchematic.instance, Component.DiodeLayout.make)
+         .set(Component.OpAmpSchematic.instance, Component.OpAmpLayout.make)
+         .set(Component.PowerSchematic.instance, Component.PowerLayout.make)
+         .set(Component.Bipolar.schematic.instance, Component.Bipolar.layout.make);
 
       function getLayoutInstanceFromSchematic<
          C extends Component.Instance,

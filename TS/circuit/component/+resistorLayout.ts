@@ -53,6 +53,10 @@ namespace Circuit.Component {
             );
          }
 
+         insertInto(element?: SVGGraphicsElement) {
+            Utility.Insert.last(this.group.element, element);
+         }
+
          /** Builds the components connectors */
          makeConnectors() {
             this.connectorSets = [
@@ -62,6 +66,10 @@ namespace Circuit.Component {
          }
 
          transferFunction() { return [] };
+
+         getConnections(): Component.Types.connector[][][] {
+            return Generics.getComponentConnections(this, manifest.layout);
+         }
 
       }
 
@@ -74,7 +82,7 @@ namespace Circuit.Component {
          resistance: ValueCheck.validate("number", 0)
       };
 
-      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
+      export const load: Component.Types.loadFunction = (raw: any): Instance => {
          const name = (raw.name);
          const resistance = (raw.resistance);
          const joints = (raw.joints);
@@ -95,8 +103,8 @@ namespace Circuit.Component {
 
    export const ResistorLayout = {
 
-      Instance: Local.Instance,
-      makeInstance: Local.makeInstance,
-      loadInstance: Local.loadInstance
+      instance: Local.Instance,
+      make: Local.makeInstance,
+      load: Local.load
    }
 }

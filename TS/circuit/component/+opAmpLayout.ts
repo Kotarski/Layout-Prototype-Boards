@@ -53,6 +53,14 @@ namespace Circuit.Component {
             this.group.prepend(Svg.Element.Group.OpAmp.Layout.make(this.isDual, this.joints[0], this.joints[1], "body"))
          }
 
+         insertInto(element?: SVGGraphicsElement) {
+            Utility.Insert.last(this.group.element, element);
+         }
+
+         getConnections(): Component.Types.connector[][][] {
+            return Generics.getComponentConnections(this, manifest.layout);
+         }
+
          makeConnectors() {
             let gs = Constants.gridSpacing;
 
@@ -123,7 +131,7 @@ namespace Circuit.Component {
          offsetVoltage: ValueCheck.validate("number", 0)
       };
 
-      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
+      export const load: Component.Types.loadFunction = (raw: any): Instance => {
          const name = (raw.name);
          const offsetVoltage = (raw.offsetVoltage);
          const isDual = (raw.isDual);
@@ -146,8 +154,8 @@ namespace Circuit.Component {
 
    export const OpAmpLayout = {
 
-      Instance: Local.Instance,
-      makeInstance: Local.makeInstance,
-      loadInstance: Local.loadInstance
+      instance: Local.Instance,
+      make: Local.makeInstance,
+      load: Local.load
    }
 }

@@ -53,7 +53,7 @@ namespace Ui.Events {
          rows >= parseInt(rowElement.min) && columns >= parseInt(columnElement.min) &&
          rows <= parseInt(rowElement.max) && columns <= parseInt(columnElement.max)
       ) {
-         addBoard(Circuit.Component.Stripboard.makeInstance({
+         addBoard(Circuit.Component.Stripboard.make({
             rows: rows,
             columns: columns
          }));
@@ -61,11 +61,11 @@ namespace Ui.Events {
    }
 
    export function makeBreadBoardSmallButtonPress() {
-      addBoard(Circuit.Component.BreadboardSmall.makeInstance({}));
+      addBoard(Circuit.Component.BreadboardSmall.make({}));
    }
 
    export function makeBreadBoardLargeButtonPress() {
-      addBoard(Circuit.Component.BreadboardLarge.makeInstance({}));
+      addBoard(Circuit.Component.BreadboardLarge.make({}));
    }
 
    function addBoard(board: Circuit.Component.Instance) {

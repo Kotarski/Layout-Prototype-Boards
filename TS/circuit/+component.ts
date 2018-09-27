@@ -7,7 +7,7 @@ namespace Circuit.Component {
       };
 
       export interface state {
-         disabled?: boolean;
+         disabled: boolean;
       };
 
       export interface insertionFunction {
@@ -20,6 +20,16 @@ namespace Circuit.Component {
 
       export interface connectionFunction {
          (component: Instance): connector[][];
+      }
+
+      export type map = {
+         savename: string;
+         instance: { new(values: any): Component.Instance };
+         make: ReturnType<typeof Component.getMaker>;
+         load: Component.Types.loadFunction;
+         correspondsTo?: map;
+         isUnique?: boolean;
+         isBoard?: boolean;
       }
 
       export type connectorTypes = "pin" | "hole" | "brokenhole" | "node";
@@ -43,7 +53,7 @@ namespace Circuit.Component {
 
    export abstract class Instance implements Types.properties, Types.state {
       name: string;
-      group = Svg.Element.Group.make();
+      group: Svg.Element.Group.type = Svg.Element.Group.make();
       connectorSets: Types.connector[][] = [];
       disabled: boolean;
 
@@ -62,20 +72,12 @@ namespace Circuit.Component {
       /** Builds and draws the components connectors */
       abstract makeConnectors(): void;
 
-      insertInto(element: SVGGraphicsElement) {
-         Utility.Insert.last(this.group.element, element);
-      }
+      abstract insertInto(element?: SVGGraphicsElement): void;
 
       /** Gets other components that this component is connected to, or that
        * the component specified in "from" is connected to via this component.
       */
-      getConnections(): Types.connector[][][] {
-         if (manifest.layout.includes(this)) {
-            return Generics.getComponentConnections(this, manifest.layout);
-         } else {
-            return Generics.getComponentConnections(this, manifest.schematic);
-         }
-      }
+      abstract getConnections(): Types.connector[][][];
 
       /** ...
       */
@@ -85,14 +87,13 @@ namespace Circuit.Component {
 
    export function getMaker<
       C extends Instance,
-      P extends ReturnType<C["getProperties"]>,
-      S extends ReturnType<C["getState"]>
+      V extends ReturnType<C["getProperties"]> & ReturnType<C["getState"]>,
       >(
-         instanceClass: { new(v: P & S): C },
-         defaulter: ValueCheck.Defaulter<P & S>,
+         instanceClass: { new(values: V): C },
+         defaulter: ValueCheck.Defaulter<V>,
          initialiser: (component: C) => void) {
       return (
-         partialValues: Global.Types.DeepPartial<P & S>,
+         partialValues: Global.Types.DeepPartial<V>,
          log = false
       ): C => {
          if (log) console.groupCollapsed("Loading...");
@@ -109,6 +110,8 @@ namespace Circuit.Component {
             console.log(component);
             console.groupEnd();
          }
+
+         $(component.group.element).addClass(component.name)
 
          return component;
       }

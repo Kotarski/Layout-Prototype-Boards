@@ -49,11 +49,19 @@ namespace Circuit.Component {
             this.group.prepend(Svg.Element.Group.Power.Schematic.make(this.voltage, this.joints[0]))
          }
 
+         insertInto(element?: SVGGraphicsElement) {
+            Utility.Insert.last(this.group.element, element);
+         }
+
          /** Builds and draws the components connectors */
          makeConnectors() {
             this.connectorSets = [
                [Component.Generics.makeConnector(this, "", "node", this.joints[0])]
             ]
+         }
+
+         getConnections(): Component.Types.connector[][][] {
+            return Generics.getComponentConnections(this, manifest.schematic);
          }
 
          transferFunction() { return [] };
@@ -85,7 +93,7 @@ namespace Circuit.Component {
          return vector(baseJoints).sumWith(where).vectors;
       }
 
-      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
+      export const load: Component.Types.loadFunction = (raw: any): Instance => {
          const name = (raw.name);
          const voltage = (raw.voltage || raw.value);
          //Joints Block
@@ -110,8 +118,8 @@ namespace Circuit.Component {
 
    export const PowerSchematic = {
 
-      Instance: Local.Instance,
-      makeInstance: Local.makeInstance,
-      loadInstance: Local.loadInstance
+      instance: Local.Instance,
+      make: Local.makeInstance,
+      load: Local.load
    }
 }

@@ -43,6 +43,10 @@ namespace Circuit.Component {
 
          makeConnectors() { }
 
+         getConnections(): Component.Types.connector[][][] {
+            return Generics.getComponentConnections(this, manifest.layout);
+         }
+
          draw() {
             this.tracks = makeTracks(this)
 
@@ -52,7 +56,7 @@ namespace Circuit.Component {
             )
          }
 
-         insertInto(element: SVGGraphicsElement) {
+         insertInto(element?: SVGGraphicsElement) {
             Utility.Insert.first(this.group.element, element);
          }
 
@@ -79,7 +83,7 @@ namespace Circuit.Component {
 
                const step = vector({ x: gS, y: 0 }).rotate(rotation);
 
-               let track = Addins.Board.Track.makeInstance({
+               let track = Addins.Board.Track.make({
                   holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1],
                   joints: [start, step]
                }, false);
@@ -99,7 +103,7 @@ namespace Circuit.Component {
 
                const step = vector({ x: 0, y: gS }).rotate(rotation);
 
-               let track = Addins.Board.Track.makeInstance({
+               let track = Addins.Board.Track.make({
                   holeSpacings: [0, 1, 1, 1, 1],
                   joints: [start, step]
                }, false);
@@ -118,7 +122,7 @@ namespace Circuit.Component {
          ),
       };
 
-      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
+      export const load: Component.Types.loadFunction = (raw: any): Instance => {
          const name = (raw.name);
          const joints = (raw.joints);
 
@@ -140,8 +144,8 @@ namespace Circuit.Component {
 
    export const BreadboardLarge = {
 
-      Instance: Local.Instance,
-      loadInstance: Local.loadInstance,
-      makeInstance: Local.makeInstance
+      instance: Local.Instance,
+      load: Local.load,
+      make: Local.makeInstance
    }
 }

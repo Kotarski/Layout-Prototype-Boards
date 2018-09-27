@@ -52,6 +52,14 @@ namespace Circuit.Component {
             );
          }
 
+         insertInto(element?: SVGGraphicsElement) {
+            Utility.Insert.last(this.group.element, element);
+         }
+
+         getConnections(): Component.Types.connector[][][] {
+            return Generics.getComponentConnections(this, manifest.layout);
+         }
+
          /** Builds the components connectors */
          makeConnectors() {
             this.connectorSets = [[
@@ -73,7 +81,7 @@ namespace Circuit.Component {
          inductance: ValueCheck.validate("number", 0)
       };
 
-      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
+      export const load: Component.Types.loadFunction = (raw: any): Instance => {
          const name = (raw.name);
          const inductance = (raw.inductance);
          const joints = (raw.joints);
@@ -94,8 +102,8 @@ namespace Circuit.Component {
 
    export const InductorLayout = {
 
-      Instance: Local.Instance,
-      makeInstance: Local.makeInstance,
-      loadInstance: Local.loadInstance
+      instance: Local.Instance,
+      make: Local.makeInstance,
+      load: Local.load
    }
 }

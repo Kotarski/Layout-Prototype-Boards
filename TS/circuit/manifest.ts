@@ -82,33 +82,58 @@ namespace Circuit {
       }
 
       const checkAll = () => {
+         console.groupCollapsed("Check Data")
          // Only look at components which need to be compared
          let layComponents = manifest.layout.filter(mappings.isCorresponder);
          let schComponents = manifest.schematic.filter(mappings.isCorresponder);
 
-         //TODO
-         //Copy the schconnectorsets (deeplyish)  outside of the loop
-         //When a match is found with a laycomponent, filter the match
+         let schConnectorData = schComponents.map(schComponent => ({
+            component: schComponent,
+            connectorSets: getMinConnections(schComponent)
+         }));
+
 
          // Split the layout components by whether they pass the test
          let split = Utility.split(layComponents, (layComponent) => {
+            if (schConnectorData.length === 0) return false;
+
             // Find the layout components connector sets
             let layConnectorSets = getMinConnections(layComponent);
 
             // Find the connector sets for schematic components that are similar
-            let schConnectorSets = schComponents
-               .filter(areComponentsSimilar(layComponent)).map(getMinConnections);
+            let schConnectorMinData = schConnectorData.filter(datum =>
+               areComponentsSimilar(layComponent)(datum.component)
+            );
 
             // Merge them into one if the component is unique (e.g. power supplies)
-            if (mappings.isUnique(layComponent)) {
-               schConnectorSets = [mergeConnectorsSets(schConnectorSets)];
+            const componentIsUnique = mappings.isUnique(layComponent);
+            if (componentIsUnique) {
+               let merged = mergeConnectorsSets(schConnectorMinData.map(datum => datum.connectorSets))
+               schConnectorMinData.forEach(datum => {
+                  datum.connectorSets = merged;
+               });
             }
 
-            console.log(layComponent, schConnectorSets)
+            let found = schConnectorMinData.filter(datum => connectorSetsHaveMatch(layConnectorSets, datum.connectorSets));
+
+            if (componentIsUnique) {
+               schConnectorData = schConnectorData.filter(datum => !found.includes(datum));
+               console.log("Layout %s '%o, matched with '%o'", layComponent.name, [layComponent], found)
+            } else {
+               schConnectorData = schConnectorData.filter(datum => datum !== found[0]);
+               console.log("Layout %s '%o, matched with '%o'", layComponent.name, [layComponent], [found[0]])
+            }
+
+
 
             // Check if there is any match between connector sets
-            return schConnectorSets.some(connectorSetsHaveMatch(layConnectorSets));
-         })
+            return found.length > 0;
+         });
+
+         console.log("Unmatched schematic components: %o", schConnectorData.map(datum => datum.component));
+         console.log("Unmatched layout components: %o", split.fails);
+
+         console.groupEnd();
 
          return {
             corrects: split.passes,
@@ -201,7 +226,7 @@ namespace Circuit {
    const mergeSingleOpAmps = () => {
       // For dual op amps
       let layoutOpAmps = manifest.layout.filter(layoutElement => (
-         layoutElement["constructor"] === Component.OpAmpLayout.Instance
+         layoutElement["constructor"] === Component.OpAmpLayout.instance
       )) as Component.OpAmpLayout.Instance[];
 
       let opAmpGroups: Component.OpAmpLayout.Instance[][] = [];

@@ -86,7 +86,11 @@ namespace Circuit.Component {
 
          }
 
-         insertInto(element: SVGGraphicsElement) {
+         getConnections(): Component.Types.connector[][][] {
+            return Generics.getComponentConnections(this, manifest.layout);
+         }
+
+         insertInto(element?: SVGGraphicsElement) {
             Utility.Insert.first(this.group.element, element);
          }
 
@@ -116,7 +120,7 @@ namespace Circuit.Component {
 
 
             let holeSpacings: number[] = [0].concat(Array(parent.columns - 1).fill(1));
-            let track = Addins.Board.Track.makeInstance({
+            let track = Addins.Board.Track.make({
                holeSpacings: holeSpacings,
                style: "stripboard",
                joints: [rowStart, step]
@@ -151,7 +155,7 @@ namespace Circuit.Component {
          return result;
       }
 
-      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
+      export const load: Component.Types.loadFunction = (raw: any): Instance => {
          const name = (raw.name);
          const rows = (raw.rows);
          const columns = (raw.columns);
@@ -176,8 +180,8 @@ namespace Circuit.Component {
 
    export const Stripboard = {
 
-      Instance: Local.Instance,
-      makeInstance: Local.makeInstance,
-      loadInstance: Local.loadInstance
+      instance: Local.Instance,
+      make: Local.makeInstance,
+      load: Local.load
    }
 }

@@ -69,6 +69,10 @@ namespace Circuit.Component {
             );
          }
 
+         insertInto(element?: SVGGraphicsElement) {
+            Utility.Insert.last(this.group.element, element);
+         }
+
 
          /** Builds and draws the components connectors */
          makeConnectors() {
@@ -76,6 +80,10 @@ namespace Circuit.Component {
                Component.Generics.makeConnector(this, "anode", "node", this.joints[0], "+"),
                Component.Generics.makeConnector(this, "cathode", "node", this.joints[1], "-"),
             ]];
+         }
+
+         getConnections(): Component.Types.connector[][][] {
+            return Generics.getComponentConnections(this, manifest.schematic);
          }
 
          transferFunction() { return [] };
@@ -112,7 +120,7 @@ namespace Circuit.Component {
          return vector(baseJoints).sumWith(where).vectors;
       }
 
-      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
+      export const load: Component.Types.loadFunction = (raw: any): Instance => {
          const name = (raw.name);
          const breakdownVoltage = (raw.breakdownVoltage);
          const saturationCurrent = (raw.saturationCurrent);
@@ -143,8 +151,8 @@ namespace Circuit.Component {
 
    export const DiodeSchematic = {
 
-      Instance: Local.Instance,
-      makeInstance: Local.makeInstance,
-      loadInstance: Local.loadInstance
+      instance: Local.Instance,
+      make: Local.makeInstance,
+      load: Local.load
    }
 }

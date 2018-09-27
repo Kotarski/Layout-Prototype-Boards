@@ -39,7 +39,14 @@ namespace Circuit.Component {
          }
 
          draw() {
-            this.group.prepend(Svg.Element.Path.make(this.joints, "line thin"));
+            this.group.prepend(Svg.Element.Group.Wire.Schematic.make(
+               this.joints,
+               "line thin"
+            ));
+         }
+
+         getConnections(): Component.Types.connector[][][] {
+            return Generics.getComponentConnections(this, manifest.schematic);
          }
 
          /** Builds and draws the components connectors */
@@ -53,7 +60,7 @@ namespace Circuit.Component {
             ]
          }
 
-         insertInto(element: SVGGraphicsElement) {
+         insertInto(element?: SVGGraphicsElement) {
             Utility.Insert.first(this.group.element, element);
          }
 
@@ -73,7 +80,7 @@ namespace Circuit.Component {
          ),
       };
 
-      export const loadInstance: Component.Types.loadFunction = (raw: any): Instance => {
+      export const load: Component.Types.loadFunction = (raw: any): Instance => {
          const name = (raw.name);
          //Joints Block
          const joints = (raw.joints);
@@ -97,8 +104,8 @@ namespace Circuit.Component {
 
    export const WireSchematic = {
 
-      makeInstance: Local.makeInstance,
-      loadInstance: Local.loadInstance,
+      make: Local.makeInstance,
+      load: Local.load,
       Instance: Local.Instance
    }
 }
