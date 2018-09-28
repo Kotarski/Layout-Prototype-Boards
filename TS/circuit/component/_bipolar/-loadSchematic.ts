@@ -1,5 +1,5 @@
 namespace Circuit.Component._Bipolar {
-   export const loadSchematic: Component.Types.loadFunction = (raw: any): Instance => {
+   export const loadSchematic: Component.Types.loadFunction<Classes.Schematic> = (raw: any) => {
       const name = (raw.name);
       const currentGain = (raw.currentGain);
       const type = (raw.type);

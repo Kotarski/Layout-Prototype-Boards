@@ -80,7 +80,7 @@ namespace Circuit.Component {
          ),
       };
 
-      export const load: Component.Types.loadFunction = (raw: any): Instance => {
+      export const load: Component.Types.loadFunction<Instance> = (raw: any): Instance => {
          const name = (raw.name);
          //Joints Block
          const joints = (raw.joints);

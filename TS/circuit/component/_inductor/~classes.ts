@@ -24,13 +24,6 @@ namespace Circuit.Component._Inductor.Classes {
          });
       }
 
-      makeConnectors() {
-         this.connectorSets = [[
-            Component.Generics.makeConnector(this, "", "pin", this.joints[0]),
-            Component.Generics.makeConnector(this, "", "pin", this.joints[1]),
-         ]]
-      }
-
       insertInto(element?: SVGGraphicsElement) {
          Utility.Insert.last(this.group.element, element);
       }
@@ -46,6 +39,12 @@ namespace Circuit.Component._Inductor.Classes {
       getConnections(): Component.Types.connector[][][] {
          return Generics.getComponentConnections(this, manifest.schematic);
       }
+      makeConnectors() {
+         this.connectorSets = [[
+            Component.Generics.makeConnector(this, "", "node", this.joints[INDEXEND1]),
+            Component.Generics.makeConnector(this, "", "node", this.joints[INDEXEND2]),
+         ]]
+      }
    }
 
    export class Layout extends Base {
@@ -56,5 +55,12 @@ namespace Circuit.Component._Inductor.Classes {
       getConnections(): Component.Types.connector[][][] {
          return Generics.getComponentConnections(this, manifest.layout);
       }
+      makeConnectors() {
+         this.connectorSets = [[
+            Component.Generics.makeConnector(this, "", "pin", this.joints[INDEXEND1]),
+            Component.Generics.makeConnector(this, "", "pin", this.joints[INDEXEND2]),
+         ]]
+      }
+
    }
 }

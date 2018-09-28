@@ -1,5 +1,5 @@
 namespace Circuit.Component._Resistor {
-   export const loadSchematic: Component.Types.loadFunction = (raw: any): Instance => {
+   export const loadSchematic: Component.Types.loadFunction<Classes.Schematic> = (raw: any) => {
 
    }
 

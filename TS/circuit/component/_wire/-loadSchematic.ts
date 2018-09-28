@@ -1,5 +1,5 @@
 namespace Circuit.Component._Wire {
-   export const loadSchematic: Component.Types.loadFunction = (raw: any): Instance => {
+   export const loadSchematic: Component.Types.loadFunction<Classes.Schematic> = (raw: any) => {
 
    }
 

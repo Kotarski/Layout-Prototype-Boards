@@ -9,7 +9,7 @@ namespace Circuit.Component {
             color: string;
          }
 
-         export interface loadFunction extends Component.Types.loadFunction {
+         export interface loadFunction extends Component.Types.loadFunction<Instance> {
             (raw: any): Instance;
          }
 
@@ -82,7 +82,7 @@ namespace Circuit.Component {
          color: ValueCheck.color("#545454")
       };
 
-      export const load: Component.Types.loadFunction = (raw: any): Instance => {
+      export const load: Component.Types.loadFunction<Instance> = (raw: any): Instance => {
          const name = (raw.name);
          const color = (raw.color || raw.colour);
          //Joints Block

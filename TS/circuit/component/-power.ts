@@ -22,7 +22,7 @@ namespace Circuit.Component {
    schematicMap.correspondsTo = layoutMap;
    layoutMap.correspondsTo = schematicMap;
 
-   export const Power = {
+   export const power = {
       schematic: schematicMap,
       layout: layoutMap
    }

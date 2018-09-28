@@ -14,19 +14,19 @@ namespace Circuit.Component {
          (group: SVGGElement, target: SVGGElement, ...any: any[]): void;
       }
 
-      export interface loadFunction {
-         (raw: any): (Component.Instance | Component.Instance[]);
+      export interface loadFunction<R extends Component.Instance | Component.Instance[]= Component.Instance> {
+         (raw: any): R;
       }
 
       export interface connectionFunction {
          (component: Instance): connector[][];
       }
 
-      export type map = {
+      export interface map {
          savename: string;
          instance: { new(values: any): Component.Instance };
          make: ReturnType<typeof Component.getMaker>;
-         load: Component.Types.loadFunction;
+         load: Component.Types.loadFunction<Component.Instance | Component.Instance[]>;
          correspondsTo?: map;
          isUnique?: boolean;
          isBoard?: boolean;

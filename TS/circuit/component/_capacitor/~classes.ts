@@ -31,20 +31,6 @@ namespace Circuit.Component._Capacitor.Classes {
          Utility.Insert.last(this.group.element, element);
       }
 
-      makeConnectors() {
-         if (this.isPolarised) {
-            this.connectorSets = [[
-               Component.Generics.makeConnector(this, "cathode", "pin", this.joints[INDEXCATHODE], "-"),
-               Component.Generics.makeConnector(this, "anode", "pin", this.joints[INDEXANODE], "+"),
-            ]]
-         } else {
-            this.connectorSets = [[
-               Component.Generics.makeConnector(this, "", "pin", this.joints[INDEXCATHODE]),
-               Component.Generics.makeConnector(this, "", "pin", this.joints[INDEXANODE]),
-            ]]
-         }
-      }
-
       transferFunction() { return [] };
    }
 
@@ -57,6 +43,20 @@ namespace Circuit.Component._Capacitor.Classes {
       getConnections(): Component.Types.connector[][][] {
          return Generics.getComponentConnections(this, manifest.schematic);
       }
+
+      makeConnectors() {
+         if (this.isPolarised) {
+            this.connectorSets = [[
+               Component.Generics.makeConnector(this, "cathode", "node", this.joints[INDEXCATHODE], "-"),
+               Component.Generics.makeConnector(this, "anode", "node", this.joints[INDEXANODE], "+"),
+            ]]
+         } else {
+            this.connectorSets = [[
+               Component.Generics.makeConnector(this, "", "node", this.joints[INDEXCATHODE]),
+               Component.Generics.makeConnector(this, "", "node", this.joints[INDEXANODE]),
+            ]]
+         }
+      }
    }
 
    export class Layout extends Base {
@@ -67,6 +67,20 @@ namespace Circuit.Component._Capacitor.Classes {
 
       getConnections(): Component.Types.connector[][][] {
          return Generics.getComponentConnections(this, manifest.layout);
+      }
+
+      makeConnectors() {
+         if (this.isPolarised) {
+            this.connectorSets = [[
+               Component.Generics.makeConnector(this, "cathode", "pin", this.joints[INDEXCATHODE], "-"),
+               Component.Generics.makeConnector(this, "anode", "pin", this.joints[INDEXANODE], "+"),
+            ]]
+         } else {
+            this.connectorSets = [[
+               Component.Generics.makeConnector(this, "", "pin", this.joints[INDEXCATHODE]),
+               Component.Generics.makeConnector(this, "", "pin", this.joints[INDEXANODE]),
+            ]]
+         }
       }
    }
 }

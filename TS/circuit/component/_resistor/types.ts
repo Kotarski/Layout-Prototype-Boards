@@ -11,4 +11,3 @@ namespace Circuit.Component._Resistor {
       export type values = properties & state;
    }
 }
-

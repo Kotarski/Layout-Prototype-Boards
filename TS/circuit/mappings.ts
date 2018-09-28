@@ -5,23 +5,23 @@ namespace Circuit {
       const schematicComponents = {
          "makeWire": Component.WireSchematic,
          "makeResistor": Component.ResistorSchematic,
-         "makeCapacitor": Component.Capacitor.schematic,
-         "makeInductor": Component.InductorSchematic,
-         "makeDiode": Component.DiodeSchematic,
-         "makeOpAmp": Component.OpAmpSchematic,
-         "makePower": Component.PowerSchematic,
-         "makeBipolar": Component.Bipolar.schematic,
+         "makeCapacitor": Component.capacitor.schematic,
+         "makeInductor": Component.inductor.schematic,
+         "makeDiode": Component.diode.schematic,
+         "makeOpAmp": Component.opAmp.schematic,
+         "makePower": Component.power.schematic,
+         "makeBipolar": Component.bipolar.schematic,
       };
 
       const layoutComponents = {
          "makeLayoutWire": Component.WireLayout,
          "makeLayoutResistor": Component.ResistorLayout,
-         "makeLayoutCapacitor": Component.Capacitor.layout,
-         "makeLayoutInductor": Component.InductorLayout,
-         "makeLayoutDiode": Component.DiodeLayout,
-         "makeLayoutOpAmp": Component.OpAmpLayout,
-         "makeLayoutPower": Component.PowerLayout,
-         "makeLayoutBipolar": Component.Bipolar.layout,
+         "makeLayoutCapacitor": Component.capacitor.layout,
+         "makeLayoutInductor": Component.inductor.layout,
+         "makeLayoutDiode": Component.diode.layout,
+         "makeLayoutOpAmp": Component.opAmp.layout,
+         "makeLayoutPower": Component.power.layout,
+         "makeLayoutBipolar": Component.bipolar.layout,
          "makeLayoutStripboard": Component.Stripboard,
          "makeLayoutBreadboardSmall": Component.BreadboardSmall,
          "makeLayoutBreadboardLarge": Component.BreadboardLarge,
@@ -83,12 +83,12 @@ namespace Circuit {
       } = new Map() as any; //TODO
       schematicToLayoutMap
          .set(Component.ResistorSchematic.instance, Component.ResistorLayout.make)
-         .set(Component.Capacitor.schematic.instance, Component.Capacitor.layout.make)
-         .set(Component.InductorSchematic.instance, Component.InductorLayout.make)
-         .set(Component.DiodeSchematic.instance, Component.DiodeLayout.make)
-         .set(Component.OpAmpSchematic.instance, Component.OpAmpLayout.make)
-         .set(Component.PowerSchematic.instance, Component.PowerLayout.make)
-         .set(Component.Bipolar.schematic.instance, Component.Bipolar.layout.make);
+         .set(Component.capacitor.schematic.instance, Component.capacitor.layout.make)
+         .set(Component.inductor.schematic.instance, Component.inductor.layout.make)
+         .set(Component.diode.schematic.instance, Component.diode.layout.make)
+         .set(Component.opAmp.schematic.instance, Component.opAmp.layout.make)
+         .set(Component.power.schematic.instance, Component.power.layout.make)
+         .set(Component.bipolar.schematic.instance, Component.bipolar.layout.make);
 
       function getLayoutInstanceFromSchematic<
          C extends Component.Instance,

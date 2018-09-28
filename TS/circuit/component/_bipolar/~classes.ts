@@ -27,15 +27,6 @@ namespace Circuit.Component._Bipolar.Classes {
          });
       }
 
-      /** Builds the components connectors */
-      makeConnectors() {
-         this.connectorSets = [[
-            Generics.makeConnector(this, "emitter", "pin", this.joints[INDEXEMITTER], "e"),
-            Generics.makeConnector(this, "collector", "pin", this.joints[INDEXCOLLECTOR], "c"),
-            Generics.makeConnector(this, "base", "pin", this.joints[INDEXBASE], "b")
-         ]];
-      }
-
       insertInto(element?: SVGGraphicsElement) {
          Utility.Insert.last(this.group.element, element);
       }
@@ -51,6 +42,13 @@ namespace Circuit.Component._Bipolar.Classes {
       getConnections(): Component.Types.connector[][][] {
          return Generics.getComponentConnections(this, manifest.schematic);
       }
+      makeConnectors() {
+         this.connectorSets = [[
+            Generics.makeConnector(this, "emitter", "node", this.joints[INDEXEMITTER], "e"),
+            Generics.makeConnector(this, "collector", "node", this.joints[INDEXCOLLECTOR], "c"),
+            Generics.makeConnector(this, "base", "node", this.joints[INDEXBASE], "b")
+         ]];
+      }
    }
 
    export class Layout extends Base {
@@ -60,6 +58,13 @@ namespace Circuit.Component._Bipolar.Classes {
       }
       getConnections(): Component.Types.connector[][][] {
          return Generics.getComponentConnections(this, manifest.layout);
+      }
+      makeConnectors() {
+         this.connectorSets = [[
+            Generics.makeConnector(this, "emitter", "pin", this.joints[INDEXEMITTER], "e"),
+            Generics.makeConnector(this, "collector", "pin", this.joints[INDEXCOLLECTOR], "c"),
+            Generics.makeConnector(this, "base", "pin", this.joints[INDEXBASE], "b")
+         ]];
       }
    }
 }

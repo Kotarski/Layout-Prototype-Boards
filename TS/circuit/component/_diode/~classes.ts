@@ -30,13 +30,6 @@ namespace Circuit.Component._Diode.Classes {
          });
       }
 
-      makeConnectors() {
-         this.connectorSets = [[
-            Component.Generics.makeConnector(this, "anode", "node", this.joints[0], "+"),
-            Component.Generics.makeConnector(this, "cathode", "node", this.joints[1], "-"),
-         ]];
-      }
-
       insertInto(element?: SVGGraphicsElement) {
          Utility.Insert.last(this.group.element, element);
       }
@@ -52,6 +45,12 @@ namespace Circuit.Component._Diode.Classes {
       getConnections(): Component.Types.connector[][][] {
          return Generics.getComponentConnections(this, manifest.schematic);
       }
+      makeConnectors() {
+         this.connectorSets = [[
+            Component.Generics.makeConnector(this, "anode", "node", this.joints[INDEXANODE], "+"),
+            Component.Generics.makeConnector(this, "cathode", "node", this.joints[INDEXCATHODE], "-"),
+         ]];
+      }
    }
 
    export class Layout extends Base {
@@ -61,6 +60,12 @@ namespace Circuit.Component._Diode.Classes {
       }
       getConnections(): Component.Types.connector[][][] {
          return Generics.getComponentConnections(this, manifest.layout);
+      }
+      makeConnectors() {
+         this.connectorSets = [[
+            Component.Generics.makeConnector(this, "anode", "pin", this.joints[INDEXANODE], "+"),
+            Component.Generics.makeConnector(this, "cathode", "pin", this.joints[INDEXCATHODE], "-"),
+         ]];
       }
    }
 }

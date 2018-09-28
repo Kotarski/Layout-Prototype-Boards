@@ -2,8 +2,8 @@ namespace Circuit.Component._Inductor {
    export function drawSchematic(instance: Classes.Schematic) {
       const bodyGroup = Svg.Element.Group.make("body");
 
-      const end1 = instance.joints[0];
-      const end2 = instance.joints[1];
+      const end1 = instance.joints[INDEXEND1];
+      const end2 = instance.joints[INDEXEND2];
 
       let centre = vector(end1, end2).centre().vector;
       let rotation = vector(end1).getAngleTo(end2);

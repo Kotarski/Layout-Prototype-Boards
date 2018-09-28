@@ -226,10 +226,10 @@ namespace Circuit {
    const mergeSingleOpAmps = () => {
       // For dual op amps
       let layoutOpAmps = manifest.layout.filter(layoutElement => (
-         layoutElement["constructor"] === Component.OpAmpLayout.instance
-      )) as Component.OpAmpLayout.Instance[];
+         layoutElement["constructor"] === Component.opAmp.layout.instance
+      )) as InstanceType<typeof Component.opAmp.layout.instance>[];
 
-      let opAmpGroups: Component.OpAmpLayout.Instance[][] = [];
+      let opAmpGroups: InstanceType<typeof Component.opAmp.layout.instance>[][] = [];
       layoutOpAmps.forEach((opAmp, i) => {
          let groupIdx = opAmpGroups.findIndex(group =>
             arePropertiesEqual(opAmp.getProperties(), group[0].getProperties())

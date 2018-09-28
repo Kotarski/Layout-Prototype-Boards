@@ -10,7 +10,7 @@ namespace Circuit.Component {
             joints: [Vector, Vector];
          }
 
-         export interface loadFunction extends Component.Types.loadFunction {
+         export interface loadFunction extends Component.Types.loadFunction<Instance> {
             (raw: any): Instance;
          }
 
@@ -94,7 +94,7 @@ namespace Circuit.Component {
          return vector(baseJoints).sumWith(where).vectors;
       }
 
-      export const load: Component.Types.loadFunction = (raw: any): Instance => {
+      export const load: Component.Types.loadFunction<Instance> = (raw: any): Instance => {
          const name = (raw.name);
          const resistance = (raw.resistance || raw.value);
          //Joints Block

@@ -1,5 +1,5 @@
 namespace Circuit.Component._Wire {
-   export const loadLayout: Component.Types.loadFunction = (raw: any): Instance => {
+   export const loadLayout: Component.Types.loadFunction<Classes.Layout> = (raw: any) => {
 
    }
 }

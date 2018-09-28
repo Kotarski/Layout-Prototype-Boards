@@ -18,7 +18,7 @@ namespace Circuit.Component._OpAmp.Classes {
       abstract getState(): Types.stateLayout | Types.stateSchematic;
 
       insertInto(element?: SVGGraphicsElement) {
-
+         Utility.Insert.last(this.group.element, element);
       }
 
       transferFunction() { return [] };

@@ -8,7 +8,7 @@ namespace Circuit.Component {
             joints: [Vector, Vector];
          }
 
-         export interface loadFunction extends Component.Types.loadFunction {
+         export interface loadFunction extends Component.Types.loadFunction<Instance> {
             (raw: any): Instance;
          }
 
@@ -82,7 +82,7 @@ namespace Circuit.Component {
          resistance: ValueCheck.validate("number", 0)
       };
 
-      export const load: Component.Types.loadFunction = (raw: any): Instance => {
+      export const load: Component.Types.loadFunction<Instance> = (raw: any): Instance => {
          const name = (raw.name);
          const resistance = (raw.resistance);
          const joints = (raw.joints);

@@ -14,7 +14,7 @@ namespace Circuit.Component {
             trackBreaks: trackBreak[];
          }
 
-         export interface loadFunction extends Component.Types.loadFunction {
+         export interface loadFunction extends Component.Types.loadFunction<Instance> {
             (raw: any): Instance;
          }
 
@@ -155,7 +155,7 @@ namespace Circuit.Component {
          return result;
       }
 
-      export const load: Component.Types.loadFunction = (raw: any): Instance => {
+      export const load: Component.Types.loadFunction<Instance> = (raw: any): Instance => {
          const name = (raw.name);
          const rows = (raw.rows);
          const columns = (raw.columns);

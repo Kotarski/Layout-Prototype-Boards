@@ -1,5 +1,5 @@
 namespace Circuit.Component._Capacitor {
-   export const loadSchematic: Component.Types.loadFunction = (raw: any): Instance => {
+   export const loadSchematic: Component.Types.loadFunction<Classes.Schematic> = (raw: any) => {
       const name = (raw.name);
       const capacitance = (raw.capacitance || raw.value);
       //Polarisation Block

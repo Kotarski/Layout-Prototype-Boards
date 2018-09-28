@@ -12,7 +12,11 @@ namespace Circuit.Component {
       load: _OpAmp.loadSchematic,
    }
 
-   const layoutMap: Component.Types.map = {
+   type layoutMap = Component.Types.map & {
+      instance: typeof _OpAmp.Classes.Layout;
+   }
+
+   const layoutMap: layoutMap = {
       savename: "makeLayoutOpAmp",
       instance: _OpAmp.Classes.Layout,
       make: _OpAmp.makeLayout,
