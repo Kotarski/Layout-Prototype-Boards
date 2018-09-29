@@ -46,7 +46,7 @@ namespace Circuit.Component.Addins.WireCreation {
    }
 
    const createWireAtPoint = (vector: Vector) => {
-      const wire = Component.WireLayout.make({
+      const wire = Component.wire.layout.make({
          joints: [{ x: vector.x, y: vector.y }, { x: vector.x, y: vector.y }],
       });
       manifest.addComponent(manifest.layout, wire);

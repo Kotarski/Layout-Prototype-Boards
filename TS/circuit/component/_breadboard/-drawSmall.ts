@@ -1,9 +1,11 @@
-namespace Svg.Element.Group.Breadboard.SmallLayout {
-   export type type = ReturnType<typeof make>;
-   export function make(centre: Vector, rotationJoint: Vector, classes: string = "") {
-      const bodyGroup = Group.make(classes);
+namespace Circuit.Component._Breadboard {
+   export function drawSmall(instance: Classes.Small) {
+      const bodyGroup = Svg.Element.Group.make("body");
 
-      let rotation = vector(centre).getAngleTo(rotationJoint);
+      const centre = instance.joints[INDEXCENTRE];
+      const rotationPoint = instance.joints[INDEXROTATION];
+
+      let rotation = vector(centre).getAngleTo(rotationPoint);
 
 
       const gS = Constants.gridSpacing;
@@ -72,4 +74,3 @@ namespace Svg.Element.Group.Breadboard.SmallLayout {
       ];
    }
 }
-

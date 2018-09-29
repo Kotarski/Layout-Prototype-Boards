@@ -1,4 +1,5 @@
 /// <reference path="component/~valueCheck.ts" />
+
 namespace Circuit.Component {
 
    export namespace Types {
@@ -85,6 +86,19 @@ namespace Circuit.Component {
 
    }
 
+   export interface getMaker<
+      C extends Instance,
+      V extends ReturnType<C["getProperties"]> & ReturnType<C["getState"]>
+      > {
+      (
+         instanceClass: { new(values: V): C },
+         defaulter: ValueCheck.Defaulter<V>,
+         initialiser: (component: C) => void
+      ): (
+            partialValues: Global.Types.DeepPartial<V>,
+            log: boolean
+         ) => C
+   }
    export function getMaker<
       C extends Instance,
       V extends ReturnType<C["getProperties"]> & ReturnType<C["getState"]>,
@@ -122,7 +136,7 @@ namespace Circuit.Component {
       const result: T = Object.keys(defaulter).reduce((acc, key) => {
          if (log) console.group(key);
          const defaultFn: ValueCheck.validater<any> = (defaulter as any)[key];
-         const partialValue = (partial)[key];
+         const partialValue = (partial) ? partial[key] : undefined;
          (acc as any)[key] = defaultFn(partialValue, log)
          if (log) console.groupEnd();
          return acc;

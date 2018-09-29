@@ -16,7 +16,7 @@ namespace Circuit.Component._Power {
    }
 
    function powerNegativeGraphics(voltage: number) {
-      let text = Utility.getStandardForm(voltage, "V")
+      const text = Utility.getStandardForm(voltage, "V")
       return [
          Svg.Element.Rect.make({ x: 0, y: 18 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
          Svg.Element.Line.make({ x: -12, y: 15 }, { x: 12, y: 15 }, "line medium"),
@@ -26,7 +26,7 @@ namespace Circuit.Component._Power {
    }
 
    function powerPositiveGraphics(voltage: number) {
-      let text = Utility.getStandardForm(voltage, "V")
+      const text = Utility.getStandardForm(voltage, "V")
       return [
          Svg.Element.Rect.make({ x: 0, y: -18 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
          Svg.Element.Line.make({ x: -12, y: -15 }, { x: 12, y: -15 }, "line medium"),

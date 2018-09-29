@@ -16,6 +16,8 @@ namespace Circuit.Component._Diode {
             Svg.Element.Rect.make({ x: 0, y: 0 }, { width: 40, height: 15 }, { x: 1, y: 1 }, "highlight nofill")
          );
       } else {
+         $(bodyGroup.element).addClass("led");
+
          const bodyString =
             "M " + (10) + " " + (15) +
             "a " + (18) + " " + (18) + " " + (0) + " " + (1) + " " + (0) + " " + (-20) + " " + (0) +
@@ -38,7 +40,7 @@ namespace Circuit.Component._Diode {
             middle,
             Svg.Element.Circle.make({ x: 0, y: 0 }, 8, "lightener"),
             Svg.Element.Path.make(highlightString, "nofill highlight"),
-         );
+         ).rotate(-90);
       }
 
       return [

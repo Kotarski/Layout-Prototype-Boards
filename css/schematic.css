@@ -54,6 +54,7 @@
    font-family: Arial;
    font-weight: normal;
    text-anchor: middle;
+   stroke-width: 0;
 }
 
 .schematic .text.anchormid {

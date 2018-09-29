@@ -3,8 +3,8 @@ namespace Circuit {
    const mappingsBuilder = (() => {
 
       const schematicComponents = {
-         "makeWire": Component.WireSchematic,
-         "makeResistor": Component.ResistorSchematic,
+         "makeWire": Component.wire.schematic,
+         "makeResistor": Component.resistor.schematic,
          "makeCapacitor": Component.capacitor.schematic,
          "makeInductor": Component.inductor.schematic,
          "makeDiode": Component.diode.schematic,
@@ -14,17 +14,17 @@ namespace Circuit {
       };
 
       const layoutComponents = {
-         "makeLayoutWire": Component.WireLayout,
-         "makeLayoutResistor": Component.ResistorLayout,
+         "makeLayoutWire": Component.wire.layout,
+         "makeLayoutResistor": Component.resistor.layout,
          "makeLayoutCapacitor": Component.capacitor.layout,
          "makeLayoutInductor": Component.inductor.layout,
          "makeLayoutDiode": Component.diode.layout,
          "makeLayoutOpAmp": Component.opAmp.layout,
          "makeLayoutPower": Component.power.layout,
          "makeLayoutBipolar": Component.bipolar.layout,
-         "makeLayoutStripboard": Component.Stripboard,
-         "makeLayoutBreadboardSmall": Component.BreadboardSmall,
-         "makeLayoutBreadboardLarge": Component.BreadboardLarge,
+         "makeLayoutStripboard": Component.stripboard.layout,
+         "makeLayoutBreadboardSmall": Component.Breadboard.layoutSmall,
+         "makeLayoutBreadboardLarge": Component.Breadboard.layoutLarge,
       };
 
       type componentLoaderName = keyof (typeof schematicComponents & typeof layoutComponents);
@@ -82,7 +82,7 @@ namespace Circuit {
             V extends (v: P) => Component.Instance>(key: { new(values: P & S): C }) => V;
       } = new Map() as any; //TODO
       schematicToLayoutMap
-         .set(Component.ResistorSchematic.instance, Component.ResistorLayout.make)
+         .set(Component.resistor.schematic.instance, Component.resistor.layout.make)
          .set(Component.capacitor.schematic.instance, Component.capacitor.layout.make)
          .set(Component.inductor.schematic.instance, Component.inductor.layout.make)
          .set(Component.diode.schematic.instance, Component.diode.layout.make)

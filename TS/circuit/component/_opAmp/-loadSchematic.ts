@@ -20,12 +20,12 @@ namespace Circuit.Component._OpAmp {
       const [minOutput, maxOutput] = [raw.minOutput, raw.maxOutput];
       if (isNumber(minOutput) && isNumber(maxOutput)) {
 
-         const topPower = PowerSchematic.make({
+         const topPower = power.schematic.make({
             voltage: maxOutput,
             joints: vector([{ x: 0, y: -20 }]).sumWith(where).vectors
          }, true);
 
-         const bottomPower = PowerSchematic.make({
+         const bottomPower = power.schematic.make({
             voltage: minOutput,
             joints: vector([{ x: 0, y: 20 }]).sumWith(where).vectors
          }, true);

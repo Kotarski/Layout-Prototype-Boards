@@ -1,4 +1,5 @@
 /// <reference path="../Utility/~curry.ts" />
+/// <reference path="./history.ts" />
 namespace Circuit {
 
    export const manifest = (() => {

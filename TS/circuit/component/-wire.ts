@@ -9,18 +9,20 @@ namespace Circuit.Component {
       savename: "makeWire",
       instance: _Wire.Classes.Schematic,
       make: _Wire.makeSchematic,
-      load: _Wire.loadSchematic,
+      load: _Wire.loadSchematic
    }
 
-   const layoutMap: Component.Types.map = {
+   //TODO Find a way to make typescript infer the correct type of makelayout
+   type layoutMap = Component.Types.map & {
+      make: typeof _Wire.makeLayout;
+   }
+
+   const layoutMap: layoutMap = {
       savename: "makeLayoutWire",
       instance: _Wire.Classes.Layout,
       make: _Wire.makeLayout,
-      load: _Wire.loadLayout,
+      load: _Wire.loadLayout
    }
-
-   schematicMap.correspondsTo = layoutMap;
-   layoutMap.correspondsTo = schematicMap;
 
    export const wire = {
       schematic: schematicMap,

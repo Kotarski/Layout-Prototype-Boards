@@ -5,7 +5,13 @@
 /// <reference path="_Power/-loadLayout.ts" />
 
 namespace Circuit.Component {
-   const schematicMap: Component.Types.map = {
+
+   //TODO Find a way to make typescript infer the correct type of makelayout
+   type schematicMap = Component.Types.map & {
+      make: typeof _Power.makeSchematic;
+   }
+
+   const schematicMap: schematicMap = {
       savename: "makePower",
       instance: _Power.Classes.Schematic,
       make: _Power.makeSchematic,
@@ -17,6 +23,7 @@ namespace Circuit.Component {
       instance: _Power.Classes.Layout,
       make: _Power.makeLayout,
       load: _Power.loadLayout,
+      isUnique: true
    }
 
    schematicMap.correspondsTo = layoutMap;
