@@ -442,17 +442,6 @@ var Circuit;
                 this.name = values.name;
                 this.disabled = values.disabled || false;
             }
-            insertInto(element) {
-                Utility.Insert.last(this.group.element, element);
-            }
-            getConnections() {
-                if (Circuit.manifest.layout.includes(this)) {
-                    return Component.Generics.getComponentConnections(this, Circuit.manifest.layout);
-                }
-                else {
-                    return Component.Generics.getComponentConnections(this, Circuit.manifest.schematic);
-                }
-            }
         }
         Component.Instance = Instance;
         function getMaker(instanceClass, defaulter, initialiser) {
@@ -472,6 +461,7 @@ var Circuit;
                     console.log(component);
                     console.groupEnd();
                 }
+                $(component.group.element).addClass(component.name);
                 return component;
             };
         }
@@ -481,7 +471,7 @@ var Circuit;
                 if (log)
                     console.group(key);
                 const defaultFn = defaulter[key];
-                const partialValue = (partial)[key];
+                const partialValue = (partial) ? partial[key] : undefined;
                 acc[key] = defaultFn(partialValue, log);
                 if (log)
                     console.groupEnd();
@@ -687,18 +677,39 @@ var Circuit;
             }
         };
         const checkAll = () => {
+            console.groupCollapsed("Check Data");
             let layComponents = Circuit.manifest.layout.filter(Circuit.mappings.isCorresponder);
             let schComponents = Circuit.manifest.schematic.filter(Circuit.mappings.isCorresponder);
+            let schConnectorData = schComponents.map(schComponent => ({
+                component: schComponent,
+                connectorSets: getMinConnections(schComponent)
+            }));
             let split = Utility.split(layComponents, (layComponent) => {
+                if (schConnectorData.length === 0)
+                    return false;
                 let layConnectorSets = getMinConnections(layComponent);
-                let schConnectorSets = schComponents
-                    .filter(areComponentsSimilar(layComponent)).map(getMinConnections);
-                if (Circuit.mappings.isUnique(layComponent)) {
-                    schConnectorSets = [mergeConnectorsSets(schConnectorSets)];
+                let schConnectorMinData = schConnectorData.filter(datum => areComponentsSimilar(layComponent)(datum.component));
+                const componentIsUnique = Circuit.mappings.isUnique(layComponent);
+                if (componentIsUnique) {
+                    let merged = mergeConnectorsSets(schConnectorMinData.map(datum => datum.connectorSets));
+                    schConnectorMinData.forEach(datum => {
+                        datum.connectorSets = merged;
+                    });
                 }
-                console.log(layComponent, schConnectorSets);
-                return schConnectorSets.some(connectorSetsHaveMatch(layConnectorSets));
+                let found = schConnectorMinData.filter(datum => connectorSetsHaveMatch(layConnectorSets, datum.connectorSets));
+                if (componentIsUnique) {
+                    schConnectorData = schConnectorData.filter(datum => !found.includes(datum));
+                    console.log("Layout %s '%o, matched with '%o'", layComponent.name, [layComponent], found);
+                }
+                else {
+                    schConnectorData = schConnectorData.filter(datum => datum !== found[0]);
+                    console.log("Layout %s '%o, matched with '%o'", layComponent.name, [layComponent], [found[0]]);
+                }
+                return found.length > 0;
             });
+            console.log("Unmatched schematic components: %o", schConnectorData.map(datum => datum.component));
+            console.log("Unmatched layout components: %o", split.fails);
+            console.groupEnd();
             return {
                 corrects: split.passes,
                 incorrects: split.fails
@@ -758,7 +769,7 @@ var Circuit;
         });
     };
     const mergeSingleOpAmps = () => {
-        let layoutOpAmps = Circuit.manifest.layout.filter(layoutElement => (layoutElement["constructor"] === Circuit.Component.OpAmpLayout.Instance));
+        let layoutOpAmps = Circuit.manifest.layout.filter(layoutElement => (layoutElement["constructor"] === Circuit.Component.opAmp.layout.instance));
         let opAmpGroups = [];
         layoutOpAmps.forEach((opAmp, i) => {
             let groupIdx = opAmpGroups.findIndex(group => arePropertiesEqual(opAmp.getProperties(), group[0].getProperties()));
@@ -840,36 +851,36 @@ var Circuit;
 (function (Circuit) {
     const mappingsBuilder = (() => {
         const schematicComponents = {
-            "makeWire": Circuit.Component.WireSchematic,
-            "makeResistor": Circuit.Component.ResistorSchematic,
-            "makeCapacitor": Circuit.Component.CapacitorSchematic,
-            "makeInductor": Circuit.Component.InductorSchematic,
-            "makeDiode": Circuit.Component.DiodeSchematic,
-            "makeOpAmp": Circuit.Component.OpAmpSchematic,
-            "makePower": Circuit.Component.PowerSchematic,
-            "makeBipolar": Circuit.Component.BipolarSchematic,
+            "makeWire": Circuit.Component.wire.schematic,
+            "makeResistor": Circuit.Component.resistor.schematic,
+            "makeCapacitor": Circuit.Component.capacitor.schematic,
+            "makeInductor": Circuit.Component.inductor.schematic,
+            "makeDiode": Circuit.Component.diode.schematic,
+            "makeOpAmp": Circuit.Component.opAmp.schematic,
+            "makePower": Circuit.Component.power.schematic,
+            "makeBipolar": Circuit.Component.bipolar.schematic,
         };
         const layoutComponents = {
-            "makeLayoutWire": Circuit.Component.WireLayout,
-            "makeLayoutResistor": Circuit.Component.ResistorLayout,
-            "makeLayoutCapacitor": Circuit.Component.CapacitorLayout,
-            "makeLayoutInductor": Circuit.Component.InductorLayout,
-            "makeLayoutDiode": Circuit.Component.DiodeLayout,
-            "makeLayoutOpAmp": Circuit.Component.OpAmpLayout,
-            "makeLayoutPower": Circuit.Component.PowerLayout,
-            "makeLayoutBipolar": Circuit.Component.BipolarLayout,
-            "makeLayoutStripboard": Circuit.Component.Stripboard,
-            "makeLayoutBreadboardSmall": Circuit.Component.BreadboardSmall,
-            "makeLayoutBreadboardLarge": Circuit.Component.BreadboardLarge,
+            "makeLayoutWire": Circuit.Component.wire.layout,
+            "makeLayoutResistor": Circuit.Component.resistor.layout,
+            "makeLayoutCapacitor": Circuit.Component.capacitor.layout,
+            "makeLayoutInductor": Circuit.Component.inductor.layout,
+            "makeLayoutDiode": Circuit.Component.diode.layout,
+            "makeLayoutOpAmp": Circuit.Component.opAmp.layout,
+            "makeLayoutPower": Circuit.Component.power.layout,
+            "makeLayoutBipolar": Circuit.Component.bipolar.layout,
+            "makeLayoutStripboard": Circuit.Component.stripboard.layout,
+            "makeLayoutBreadboardSmall": Circuit.Component.Breadboard.layoutSmall,
+            "makeLayoutBreadboardLarge": Circuit.Component.Breadboard.layoutLarge,
         };
         const getComponentLoader = (name) => {
             let schematicLoaders = schematicComponents;
             let layoutLoaders = layoutComponents;
             if (schematicLoaders[name]) {
-                return schematicLoaders[name].loadInstance;
+                return schematicLoaders[name].load;
             }
             else if (layoutLoaders[name]) {
-                return layoutLoaders[name].loadInstance;
+                return layoutLoaders[name].load;
             }
             throw new Error("Component loader missing!");
         };
@@ -890,7 +901,7 @@ var Circuit;
             let loaders = Object.assign({}, schematicComponents, layoutComponents);
             let constructor = component["constructor"];
             for (let key in loaders) {
-                if (loaders.hasOwnProperty(key) && (constructor === loaders[key].Instance)) {
+                if (loaders.hasOwnProperty(key) && (constructor === loaders[key].instance)) {
                     return key;
                 }
             }
@@ -898,13 +909,13 @@ var Circuit;
         }
         const schematicToLayoutMap = new Map();
         schematicToLayoutMap
-            .set(Circuit.Component.ResistorSchematic.Instance, Circuit.Component.ResistorLayout.makeInstance)
-            .set(Circuit.Component.CapacitorSchematic.Instance, Circuit.Component.CapacitorLayout.makeInstance)
-            .set(Circuit.Component.InductorSchematic.Instance, Circuit.Component.InductorLayout.makeInstance)
-            .set(Circuit.Component.DiodeSchematic.Instance, Circuit.Component.DiodeLayout.makeInstance)
-            .set(Circuit.Component.OpAmpSchematic.Instance, Circuit.Component.OpAmpLayout.makeInstance)
-            .set(Circuit.Component.PowerSchematic.Instance, Circuit.Component.PowerLayout.makeInstance)
-            .set(Circuit.Component.BipolarSchematic.Instance, Circuit.Component.BipolarLayout.makeInstance);
+            .set(Circuit.Component.resistor.schematic.instance, Circuit.Component.resistor.layout.make)
+            .set(Circuit.Component.capacitor.schematic.instance, Circuit.Component.capacitor.layout.make)
+            .set(Circuit.Component.inductor.schematic.instance, Circuit.Component.inductor.layout.make)
+            .set(Circuit.Component.diode.schematic.instance, Circuit.Component.diode.layout.make)
+            .set(Circuit.Component.opAmp.schematic.instance, Circuit.Component.opAmp.layout.make)
+            .set(Circuit.Component.power.schematic.instance, Circuit.Component.power.layout.make)
+            .set(Circuit.Component.bipolar.schematic.instance, Circuit.Component.bipolar.layout.make);
         function getLayoutInstanceFromSchematic(schematic) {
             let constructor = schematic["constructor"];
             let properties = schematic.getProperties();
@@ -948,121 +959,112 @@ var Circuit;
 (function (Circuit) {
     var Component;
     (function (Component) {
-        let Local;
-        (function (Local) {
-            class Instance extends Component.Instance {
-                constructor(values) {
-                    super(values);
-                    $(this.group.element).addClass("component " + this.name);
-                    this.joints = values.joints;
-                    this.type = values.type;
-                    this.currentGain = values.currentGain;
+        var _Bipolar;
+        (function (_Bipolar) {
+            var Classes;
+            (function (Classes) {
+                class Base extends Component.Instance {
+                    constructor(values) {
+                        super(values);
+                        $(this.group.element).addClass("component " + this.name);
+                        this.joints = values.joints;
+                        this.type = values.type;
+                        this.currentGain = values.currentGain;
+                    }
+                    getProperties() {
+                        return Utility.deepCopy({
+                            name: this.name,
+                            currentGain: this.currentGain,
+                            type: this.type
+                        });
+                    }
+                    getState() {
+                        return Utility.deepCopy({
+                            joints: this.joints,
+                            disabled: this.disabled
+                        });
+                    }
+                    insertInto(element) {
+                        Utility.Insert.last(this.group.element, element);
+                    }
+                    transferFunction() { return []; }
+                    ;
                 }
-                getProperties() {
-                    return Utility.deepCopy({
-                        name: this.name,
-                        currentGain: this.currentGain,
-                        type: this.type
-                    });
+                class Schematic extends Base {
+                    draw() {
+                        this.group.prepend(_Bipolar.drawSchematic(this));
+                    }
+                    getConnections() {
+                        return Component.Generics.getComponentConnections(this, Circuit.manifest.schematic);
+                    }
+                    makeConnectors() {
+                        this.connectorSets = [[
+                                Component.Generics.makeConnector(this, "emitter", "node", this.joints[_Bipolar.INDEXEMITTER], "e"),
+                                Component.Generics.makeConnector(this, "collector", "node", this.joints[_Bipolar.INDEXCOLLECTOR], "c"),
+                                Component.Generics.makeConnector(this, "base", "node", this.joints[_Bipolar.INDEXBASE], "b")
+                            ]];
+                    }
                 }
-                getState() {
-                    return Utility.deepCopy({
-                        joints: this.joints,
-                        disabled: this.disabled
-                    });
+                Classes.Schematic = Schematic;
+                class Layout extends Base {
+                    draw() {
+                        this.group.prepend(_Bipolar.drawLayout(this));
+                    }
+                    getConnections() {
+                        return Component.Generics.getComponentConnections(this, Circuit.manifest.layout);
+                    }
+                    makeConnectors() {
+                        this.connectorSets = [[
+                                Component.Generics.makeConnector(this, "emitter", "pin", this.joints[_Bipolar.INDEXEMITTER], "e"),
+                                Component.Generics.makeConnector(this, "collector", "pin", this.joints[_Bipolar.INDEXCOLLECTOR], "c"),
+                                Component.Generics.makeConnector(this, "base", "pin", this.joints[_Bipolar.INDEXBASE], "b")
+                            ]];
+                    }
                 }
-                draw() {
-                    this.group.prepend(Svg.Element.Group.Bipolar.Layout.make(this.type, this.joints[0], this.joints[1], this.joints[2], "body"));
-                }
-                makeConnectors() {
-                    this.connectorSets = [[
-                            Component.Generics.makeConnector(this, "emitter", "pin", this.joints[0], "e"),
-                            Component.Generics.makeConnector(this, "collector", "pin", this.joints[1], "c"),
-                            Component.Generics.makeConnector(this, "base", "pin", this.joints[2], "b")
-                        ]];
-                }
-                transferFunction() { return []; }
-                ;
-            }
-            Local.Instance = Instance;
-            Local.defaulter = {
-                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 20, y: -20 }, { x: 40, y: 0 }]),
-                disabled: Component.ValueCheck.validate("boolean", false),
-                name: Component.ValueCheck.validate("string", "bipolar"),
-                currentGain: Component.ValueCheck.validate("number", 0),
-                type: Component.ValueCheck.validate(["NPN", "PNP"], "NPN")
-            };
-            Local.loadInstance = (raw) => {
-                const name = (raw.name);
-                const currentGain = (raw.currentGain);
-                const type = (raw.type);
-                const joints = (raw.joints);
-                return Local.makeInstance({ name, currentGain, type, joints }, true);
-            };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
-                $(component.group.element).addClass("component " + component.name);
-                Component.Addins.Graphical.init(component);
-                Component.Addins.Draggable.init(component);
-                Component.Addins.Selectable.init(component);
-                Component.Addins.Extendable.init(component);
-                Component.Addins.ConnectionHighlights.init(component);
-            });
-        })(Local || (Local = {}));
-        Component.BipolarLayout = {
-            Instance: Local.Instance,
-            makeInstance: Local.makeInstance,
-            loadInstance: Local.loadInstance
-        };
+                Classes.Layout = Layout;
+            })(Classes = _Bipolar.Classes || (_Bipolar.Classes = {}));
+        })(_Bipolar = Component._Bipolar || (Component._Bipolar = {}));
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
 var Circuit;
 (function (Circuit) {
     var Component;
     (function (Component) {
-        let Local;
-        (function (Local) {
-            class Instance extends Component.Instance {
-                constructor(values) {
-                    super(values);
-                    this.name = "bipolar";
-                    $(this.group.element).addClass("component " + this.name);
-                    this.joints = values.joints;
-                    this.type = values.type;
-                    this.currentGain = values.currentGain;
-                }
-                getProperties() {
-                    return Utility.deepCopy({
-                        name: this.name,
-                        currentGain: this.currentGain,
-                        type: this.type
-                    });
-                }
-                getState() {
-                    return Utility.deepCopy({
-                        joints: this.joints,
-                        disabled: this.disabled
-                    });
-                }
-                draw() {
-                    this.group.prepend(Svg.Element.Group.Bipolar.Schematic.make(this.type, this.currentGain, this.joints[0], this.joints[1], this.joints[2], "body"));
-                }
-                makeConnectors() {
-                    this.connectorSets = [[
-                            Component.Generics.makeConnector(this, "emitter", "node", this.joints[0], "e"),
-                            Component.Generics.makeConnector(this, "collector", "node", this.joints[1], "c"),
-                            Component.Generics.makeConnector(this, "base", "node", this.joints[2], "b"),
-                        ]];
-                }
-                transferFunction() { return []; }
-                ;
-            }
-            Local.Instance = Instance;
-            Local.defaulter = {
+        var _Bipolar;
+        (function (_Bipolar) {
+            const defaulterSchematic = {
                 name: Component.ValueCheck.validate("string", "bipolar"),
                 disabled: Component.ValueCheck.validate("boolean", false),
                 joints: Component.ValueCheck.joints([{ x: -50, y: 0 }, { x: +10, y: -50 }, { x: +10, y: +50 }]),
                 currentGain: Component.ValueCheck.validate("number", 0),
                 type: Component.ValueCheck.validate(["NPN", "PNP"], "NPN")
+            };
+            _Bipolar.makeSchematic = Component.getMaker(_Bipolar.Classes.Schematic, defaulterSchematic, (component) => {
+                Component.Addins.Selectable.init(component);
+                Component.Addins.ConnectionHighlights.init(component, false);
+                Component.Addins.Graphical.init(component);
+                if (Constants.schematicManipulationEnabled) {
+                    Component.Addins.Draggable.init(component);
+                    Component.Addins.Extendable.init(component);
+                }
+            });
+        })(_Bipolar = Component._Bipolar || (Component._Bipolar = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Bipolar;
+        (function (_Bipolar) {
+            _Bipolar.loadSchematic = (raw) => {
+                const name = (raw.name);
+                const currentGain = (raw.currentGain);
+                const type = (raw.type);
+                const orientation = Component.ValueCheck.validate(["LR", "RL"], "LR")(raw.orientation, false);
+                const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
+                const joints = (raw.joints || deriveJoints(orientation, type, where));
+                return _Bipolar.makeSchematic({ name, currentGain, type, joints }, true);
             };
             const deriveJoints = (orientation, type, where) => {
                 const [emitter, collector] = type === "PNP"
@@ -1073,17 +1075,317 @@ var Circuit;
                     : [{ x: +60, y: 0 }, { x: -10 }];
                 return vector([emitter, collector, base]).sumWith(where, offset).vectors;
             };
-            Local.loadInstance = (raw) => {
+        })(_Bipolar = Component._Bipolar || (Component._Bipolar = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Bipolar;
+        (function (_Bipolar) {
+            const defaulterLayout = {
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 20, y: -20 }, { x: 40, y: 0 }]),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                name: Component.ValueCheck.validate("string", "bipolar"),
+                currentGain: Component.ValueCheck.validate("number", 0),
+                type: Component.ValueCheck.validate(["NPN", "PNP"], "NPN")
+            };
+            _Bipolar.makeLayout = Component.getMaker(_Bipolar.Classes.Layout, defaulterLayout, (component) => {
+                Component.Addins.Graphical.init(component);
+                Component.Addins.Draggable.init(component);
+                Component.Addins.Selectable.init(component);
+                Component.Addins.Extendable.init(component);
+                Component.Addins.ConnectionHighlights.init(component);
+            });
+        })(_Bipolar = Component._Bipolar || (Component._Bipolar = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Bipolar;
+        (function (_Bipolar) {
+            _Bipolar.loadLayout = (raw) => {
                 const name = (raw.name);
                 const currentGain = (raw.currentGain);
                 const type = (raw.type);
-                const orientation = Component.ValueCheck.validate(["LR", "RL"], "LR")(raw.orientation, false);
-                const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
-                const joints = (raw.joints || deriveJoints(orientation, type, where));
-                return Local.makeInstance({ name, currentGain, type, joints }, true);
+                const joints = (raw.joints);
+                return _Bipolar.makeLayout({ name, currentGain, type, joints }, true);
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
-                $(component.group.element).addClass("component " + component.name);
+        })(_Bipolar = Component._Bipolar || (Component._Bipolar = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        const schematicMap = {
+            savename: "makeBipolar",
+            instance: Component._Bipolar.Classes.Schematic,
+            make: Component._Bipolar.makeSchematic,
+            load: Component._Bipolar.loadSchematic,
+        };
+        const layoutMap = {
+            savename: "makeLayoutBipolar",
+            instance: Component._Bipolar.Classes.Layout,
+            make: Component._Bipolar.makeLayout,
+            load: Component._Bipolar.loadLayout,
+        };
+        schematicMap.correspondsTo = layoutMap;
+        layoutMap.correspondsTo = schematicMap;
+        Component.bipolar = {
+            schematic: schematicMap,
+            layout: layoutMap
+        };
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Breadboard;
+        (function (_Breadboard) {
+            var Classes;
+            (function (Classes) {
+                class Base extends Component.Instance {
+                    constructor(values) {
+                        super(values);
+                        this.tracks = [];
+                        this.connectorSets = [];
+                        this.joints = values.joints;
+                    }
+                    getProperties() {
+                        return Utility.deepCopy({
+                            name: this.name,
+                        });
+                    }
+                    getState() {
+                        return Utility.deepCopy({
+                            joints: this.joints,
+                            disabled: this.disabled
+                        });
+                    }
+                    makeConnectors() { }
+                    insertInto(element) {
+                        Utility.Insert.first(this.group.element, element);
+                    }
+                    transferFunction() { return []; }
+                    ;
+                    getConnections() {
+                        return Component.Generics.getComponentConnections(this, Circuit.manifest.layout);
+                    }
+                }
+                class Small extends Base {
+                    draw() {
+                        this.tracks = _Breadboard.makeTracks(this, "small");
+                        this.group.prepend(_Breadboard.drawSmall(this), this.tracks.map(t => t.group));
+                    }
+                }
+                Classes.Small = Small;
+                class Large extends Base {
+                    draw() {
+                        this.tracks = _Breadboard.makeTracks(this, "large");
+                        this.group.prepend(_Breadboard.drawLarge(this), this.tracks.map(t => t.group));
+                    }
+                }
+                Classes.Large = Large;
+            })(Classes = _Breadboard.Classes || (_Breadboard.Classes = {}));
+        })(_Breadboard = Component._Breadboard || (Component._Breadboard = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Breadboard;
+        (function (_Breadboard) {
+            const defaulterSmall = {
+                name: Component.ValueCheck.validate("string", "breadboardsmall"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
+            };
+            _Breadboard.makeSmall = Component.getMaker(_Breadboard.Classes.Small, defaulterSmall, (component) => {
+                Component.Addins.Graphical.init(component);
+                Component.Addins.Board.init(component);
+                Component.Addins.Selectable.init(component);
+                Component.Addins.WireCreation.init(component);
+                Component.Addins.Draggable.init(component);
+                Component.Addins.Rotatable.init(component);
+            });
+        })(_Breadboard = Component._Breadboard || (Component._Breadboard = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Breadboard;
+        (function (_Breadboard) {
+            _Breadboard.loadSmall = (raw) => {
+                const name = (raw.name);
+                const joints = (raw.joints);
+                return _Breadboard.makeSmall({ name, joints }, true);
+            };
+        })(_Breadboard = Component._Breadboard || (Component._Breadboard = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Breadboard;
+        (function (_Breadboard) {
+            const defaulterLarge = {
+                name: Component.ValueCheck.validate("string", "breadboardlarge"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
+            };
+            _Breadboard.makeLarge = Component.getMaker(_Breadboard.Classes.Large, defaulterLarge, (component) => {
+                Component.Addins.Graphical.init(component);
+                Component.Addins.Board.init(component);
+                Component.Addins.Selectable.init(component);
+                Component.Addins.WireCreation.init(component);
+                Component.Addins.Draggable.init(component);
+            });
+        })(_Breadboard = Component._Breadboard || (Component._Breadboard = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Breadboard;
+        (function (_Breadboard) {
+            _Breadboard.loadLarge = (raw) => {
+                const name = (raw.name);
+                const joints = (raw.joints);
+                return _Breadboard.makeLarge({ name, joints }, true);
+            };
+        })(_Breadboard = Component._Breadboard || (Component._Breadboard = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        const smallMap = {
+            savename: "makeLayoutBreadboardSmall",
+            instance: Component._Breadboard.Classes.Small,
+            make: Component._Breadboard.makeSmall,
+            load: Component._Breadboard.loadSmall,
+        };
+        const largeMap = {
+            savename: "makeLayoutBreadboardLarge",
+            instance: Component._Breadboard.Classes.Large,
+            make: Component._Breadboard.makeLarge,
+            load: Component._Breadboard.loadLarge,
+        };
+        Component.Breadboard = {
+            layoutSmall: smallMap,
+            layoutLarge: largeMap
+        };
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Capacitor;
+        (function (_Capacitor) {
+            var Classes;
+            (function (Classes) {
+                class Base extends Component.Instance {
+                    constructor(values) {
+                        super(values);
+                        this.joints = values.joints;
+                        this.capacitance = values.capacitance;
+                        this.isPolarised = values.isPolarised;
+                    }
+                    getProperties() {
+                        return Utility.deepCopy({
+                            name: this.name,
+                            capacitance: this.capacitance,
+                            isPolarised: this.isPolarised
+                        });
+                    }
+                    getState() {
+                        return Utility.deepCopy({
+                            joints: this.joints,
+                            disabled: this.disabled
+                        });
+                    }
+                    insertInto(element) {
+                        Utility.Insert.last(this.group.element, element);
+                    }
+                    transferFunction() { return []; }
+                    ;
+                }
+                class Schematic extends Base {
+                    draw() {
+                        this.group.prepend(_Capacitor.drawSchematic(this));
+                    }
+                    getConnections() {
+                        return Component.Generics.getComponentConnections(this, Circuit.manifest.schematic);
+                    }
+                    makeConnectors() {
+                        if (this.isPolarised) {
+                            this.connectorSets = [[
+                                    Component.Generics.makeConnector(this, "cathode", "node", this.joints[_Capacitor.INDEXCATHODE], "-"),
+                                    Component.Generics.makeConnector(this, "anode", "node", this.joints[_Capacitor.INDEXANODE], "+"),
+                                ]];
+                        }
+                        else {
+                            this.connectorSets = [[
+                                    Component.Generics.makeConnector(this, "", "node", this.joints[_Capacitor.INDEXCATHODE]),
+                                    Component.Generics.makeConnector(this, "", "node", this.joints[_Capacitor.INDEXANODE]),
+                                ]];
+                        }
+                    }
+                }
+                Classes.Schematic = Schematic;
+                class Layout extends Base {
+                    draw() {
+                        this.group.prepend(_Capacitor.drawLayout(this));
+                    }
+                    getConnections() {
+                        return Component.Generics.getComponentConnections(this, Circuit.manifest.layout);
+                    }
+                    makeConnectors() {
+                        if (this.isPolarised) {
+                            this.connectorSets = [[
+                                    Component.Generics.makeConnector(this, "cathode", "pin", this.joints[_Capacitor.INDEXCATHODE], "-"),
+                                    Component.Generics.makeConnector(this, "anode", "pin", this.joints[_Capacitor.INDEXANODE], "+"),
+                                ]];
+                        }
+                        else {
+                            this.connectorSets = [[
+                                    Component.Generics.makeConnector(this, "", "pin", this.joints[_Capacitor.INDEXCATHODE]),
+                                    Component.Generics.makeConnector(this, "", "pin", this.joints[_Capacitor.INDEXANODE]),
+                                ]];
+                        }
+                    }
+                }
+                Classes.Layout = Layout;
+            })(Classes = _Capacitor.Classes || (_Capacitor.Classes = {}));
+        })(_Capacitor = Component._Capacitor || (Component._Capacitor = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Capacitor;
+        (function (_Capacitor) {
+            const defaulterSchematic = {
+                name: Component.ValueCheck.validate("string", "capacitor"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                isPolarised: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
+                capacitance: Component.ValueCheck.validate("number", 0)
+            };
+            _Capacitor.makeSchematic = Component.getMaker(_Capacitor.Classes.Schematic, defaulterSchematic, (component) => {
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
                 Component.Addins.Graphical.init(component);
@@ -1092,351 +1394,24 @@ var Circuit;
                     Component.Addins.Extendable.init(component);
                 }
             });
-        })(Local || (Local = {}));
-        Component.BipolarSchematic = {
-            Instance: Local.Instance,
-            makeInstance: Local.makeInstance,
-            loadInstance: Local.loadInstance
-        };
+        })(_Capacitor = Component._Capacitor || (Component._Capacitor = {}));
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
 var Circuit;
 (function (Circuit) {
     var Component;
     (function (Component) {
-        let Local;
-        (function (Local) {
-            class Instance extends Component.Instance {
-                constructor(values) {
-                    super(values);
-                    this.tracks = [];
-                    this.connectorSets = [];
-                    this.joints = values.joints;
-                }
-                getProperties() {
-                    return Utility.deepCopy({
-                        name: this.name,
-                    });
-                }
-                getState() {
-                    return Utility.deepCopy({
-                        joints: this.joints,
-                        disabled: this.disabled
-                    });
-                }
-                makeConnectors() { }
-                draw() {
-                    this.tracks = makeTracks(this);
-                    this.group.prepend(Svg.Element.Group.Breadboard.LargeLayout.make(this.joints[0], this.joints[1], "body"), this.tracks.map(t => t.group));
-                }
-                insertInto(element) {
-                    Utility.Insert.first(this.group.element, element);
-                }
-                transferFunction() { return []; }
-                ;
-            }
-            Local.Instance = Instance;
-            const makeTracks = (parent) => {
-                let tracks = [];
-                let gS = Constants.gridSpacing;
-                let rotation = vector(parent.joints[0]).getAngleTo(parent.joints[1]);
-                let powerTrackYPositions = [-9.5, -8.5, 8.5, 9.5];
-                let powerTrackXPositions = [-29.5, 1.5];
-                for (let x of powerTrackXPositions) {
-                    for (let y of powerTrackYPositions) {
-                        const start = vector({ x: x * gS, y: y * gS })
-                            .rotate(rotation)
-                            .sumWith(parent.joints[0]);
-                        const step = vector({ x: gS, y: 0 }).rotate(rotation);
-                        let track = Component.Addins.Board.Track.makeInstance({
-                            holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1],
-                            joints: [start, step]
-                        }, false);
-                        tracks.push(track);
-                    }
-                }
-                let mainGridTrackXPositions = [...Array(64).keys()];
-                let mainGridTrackYPositions = [-5.5, +1.5];
-                for (let x of mainGridTrackXPositions) {
-                    for (let y of mainGridTrackYPositions) {
-                        const start = vector({ x: (x - 31.5) * gS, y: y * gS })
-                            .rotate(rotation)
-                            .sumWith(parent.joints[0]);
-                        const step = vector({ x: 0, y: gS }).rotate(rotation);
-                        let track = Component.Addins.Board.Track.makeInstance({
-                            holeSpacings: [0, 1, 1, 1, 1],
-                            joints: [start, step]
-                        }, false);
-                        tracks.push(track);
-                    }
-                }
-                return tracks;
-            };
-            Local.defaulter = {
-                name: Component.ValueCheck.validate("string", "breadboardlarge"),
-                disabled: Component.ValueCheck.validate("boolean", false),
-                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
-            };
-            Local.loadInstance = (raw) => {
+        var _Capacitor;
+        (function (_Capacitor) {
+            _Capacitor.loadSchematic = (raw) => {
                 const name = (raw.name);
-                const joints = (raw.joints);
-                return Local.makeInstance({ name, joints }, true);
-            };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
-                $(component.group.element).addClass("breadboard " + component.name);
-                Component.Addins.Graphical.init(component);
-                Component.Addins.Board.init(component);
-                Component.Addins.Selectable.init(component);
-                Component.Addins.WireCreation.init(component);
-                Component.Addins.Draggable.init(component);
-            });
-        })(Local || (Local = {}));
-        Component.BreadboardLarge = {
-            Instance: Local.Instance,
-            loadInstance: Local.loadInstance,
-            makeInstance: Local.makeInstance
-        };
-    })(Component = Circuit.Component || (Circuit.Component = {}));
-})(Circuit || (Circuit = {}));
-var Circuit;
-(function (Circuit) {
-    var Component;
-    (function (Component) {
-        let Local;
-        (function (Local) {
-            class Instance extends Component.Instance {
-                constructor(values) {
-                    super(values);
-                    this.tracks = [];
-                    this.connectorSets = [];
-                    this.joints = values.joints;
-                }
-                getProperties() {
-                    return Utility.deepCopy({
-                        name: this.name,
-                    });
-                }
-                getState() {
-                    return Utility.deepCopy({
-                        joints: this.joints,
-                        disabled: this.disabled
-                    });
-                }
-                makeConnectors() { }
-                draw() {
-                    this.tracks = makeTracks(this);
-                    this.group.prepend(Svg.Element.Group.Breadboard.SmallLayout.make(this.joints[0], this.joints[1], "body"), this.tracks.map(t => t.group));
-                }
-                insertInto(element) {
-                    Utility.Insert.first(this.group.element, element);
-                }
-                transferFunction() { return []; }
-                ;
-            }
-            Local.Instance = Instance;
-            const makeTracks = (parent) => {
-                let tracks = [];
-                let gS = Constants.gridSpacing;
-                let rotation = vector(parent.joints[0]).getAngleTo(parent.joints[1]);
-                let powerTrackYPositions = [-9.5, -8.5, 8.5, 9.5];
-                for (let y of powerTrackYPositions) {
-                    const start = vector({ x: gS * -14, y: y * gS })
-                        .rotate(rotation)
-                        .sumWith(parent.joints[0]);
-                    const step = vector({ x: gS, y: 0 }).rotate(rotation);
-                    let track = Component.Addins.Board.Track.makeInstance({
-                        holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1],
-                        joints: [start, step]
-                    }, false);
-                    tracks.push(track);
-                }
-                let mainGridTrackXPositions = [...Array(30).keys()];
-                let mainGridTrackYPositions = [-5.5, +1.5];
-                for (let x of mainGridTrackXPositions) {
-                    for (let y of mainGridTrackYPositions) {
-                        const start = vector({ x: (x - 14.5) * gS, y: y * gS })
-                            .rotate(rotation)
-                            .sumWith(parent.joints[0]);
-                        const step = vector({ x: 0, y: gS }).rotate(rotation);
-                        let track = Component.Addins.Board.Track.makeInstance({
-                            holeSpacings: [0, 1, 1, 1, 1],
-                            joints: [start, step]
-                        });
-                        tracks.push(track);
-                    }
-                }
-                return tracks;
-            };
-            Local.defaulter = {
-                name: Component.ValueCheck.validate("string", "breadboardsmall"),
-                disabled: Component.ValueCheck.validate("boolean", false),
-                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
-            };
-            Local.loadInstance = (raw) => {
-                const name = (raw.name);
-                const joints = (raw.joints);
-                return Local.makeInstance({ name, joints }, true);
-            };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
-                $(component.group.element).addClass("breadboard " + component.name);
-                Component.Addins.Graphical.init(component);
-                Component.Addins.Board.init(component);
-                Component.Addins.Selectable.init(component);
-                Component.Addins.WireCreation.init(component);
-                Component.Addins.Draggable.init(component);
-                Component.Addins.Rotatable.init(component);
-            });
-        })(Local || (Local = {}));
-        Component.BreadboardSmall = {
-            Instance: Local.Instance,
-            makeInstance: Local.makeInstance,
-            loadInstance: Local.loadInstance
-        };
-    })(Component = Circuit.Component || (Circuit.Component = {}));
-})(Circuit || (Circuit = {}));
-var Circuit;
-(function (Circuit) {
-    var Component;
-    (function (Component) {
-        let Local;
-        (function (Local) {
-            class Instance extends Component.Instance {
-                constructor(values) {
-                    super(values);
-                    $(this.group.element).addClass("component " + this.name);
-                    this.joints = values.joints;
-                    this.capacitance = values.capacitance;
-                    this.isPolarised = values.isPolarised;
-                }
-                getProperties() {
-                    return Utility.deepCopy({
-                        name: this.name,
-                        capacitance: this.capacitance,
-                        isPolarised: this.isPolarised
-                    });
-                }
-                getState() {
-                    return Utility.deepCopy({
-                        joints: this.joints,
-                        disabled: this.disabled
-                    });
-                }
-                draw() {
-                    const [start, end] = this.joints;
-                    let capacitorBody = (this.isPolarised)
-                        ? Svg.Element.Group.Capacitor.Layout.Electrolytic.make(this.capacitance, start, end, "bodyelectrolytic")
-                        : Svg.Element.Group.Capacitor.Layout.Ceramic.make(this.capacitance, start, end, "bodyceramic");
-                    this.group.prepend(capacitorBody);
-                }
-                makeConnectors() {
-                    if (this.isPolarised) {
-                        this.connectorSets = [[
-                                Component.Generics.makeConnector(this, "cathode", "pin", this.joints[0], "-"),
-                                Component.Generics.makeConnector(this, "anode", "pin", this.joints[1], "+"),
-                            ]];
-                    }
-                    else {
-                        this.connectorSets = [[
-                                Component.Generics.makeConnector(this, "", "pin", this.joints[0]),
-                                Component.Generics.makeConnector(this, "", "pin", this.joints[1]),
-                            ]];
-                    }
-                }
-                transferFunction() { return []; }
-                ;
-            }
-            Local.Instance = Instance;
-            Local.defaulter = {
-                name: Component.ValueCheck.validate("string", "capacitor"),
-                disabled: Component.ValueCheck.validate("boolean", false),
-                isPolarised: Component.ValueCheck.validate("boolean", false),
-                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 80, y: 0 }]),
-                capacitance: Component.ValueCheck.validate("number", 0)
-            };
-            Local.loadInstance = (raw) => {
-                const name = (raw.name);
-                const capacitance = (raw.capacitance);
-                const isPolarised = (raw.isPolarised);
-                const joints = (raw.joints);
-                return Local.makeInstance({ name, capacitance, isPolarised, joints }, true);
-            };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
-                $(component.group.element).addClass("component " + component.name);
-                Component.Addins.Graphical.init(component);
-                Component.Addins.Draggable.init(component);
-                Component.Addins.Selectable.init(component);
-                Component.Addins.Extendable.init(component);
-                Component.Addins.ConnectionHighlights.init(component);
-            });
-        })(Local || (Local = {}));
-        Component.CapacitorLayout = {
-            Instance: Local.Instance,
-            makeInstance: Local.makeInstance,
-            loadInstance: Local.loadInstance
-        };
-    })(Component = Circuit.Component || (Circuit.Component = {}));
-})(Circuit || (Circuit = {}));
-var Circuit;
-(function (Circuit) {
-    var Component;
-    (function (Component) {
-        let Local;
-        (function (Local) {
-            class Instance extends Component.Instance {
-                constructor(values) {
-                    super(values);
-                    $(this.group.element).addClass("component " + this.name);
-                    this.joints = values.joints;
-                    this.capacitance = values.capacitance;
-                    this.isPolarised = values.isPolarised;
-                }
-                getProperties() {
-                    return Utility.deepCopy({
-                        name: this.name,
-                        capacitance: this.capacitance,
-                        isPolarised: this.isPolarised
-                    });
-                }
-                getState() {
-                    return Utility.deepCopy({
-                        joints: this.joints,
-                        disabled: this.disabled
-                    });
-                }
-                draw() {
-                    this.group.prepend(Svg.Element.Group.Capacitor.Schematic.make(this.capacitance, this.isPolarised, this.joints[0], this.joints[1], "body"));
-                }
-                makeConnectors() {
-                    let [lead1Name, lead2Name] = (this.isPolarised) ? ["cathode", "anode"] : ["", ""];
-                    this.connectorSets = [[
-                            Component.Generics.makeConnector(this, lead1Name, "node", this.joints[0]),
-                            Component.Generics.makeConnector(this, lead2Name, "node", this.joints[1]),
-                        ]];
-                }
-                transferFunction() { return []; }
-                ;
-            }
-            Local.Instance = Instance;
-            function validatePolarisation(polarisation, capacitance) {
-                const isPolarValid = Component.ValueCheck.test(["polar", "non-polar"]);
-                const isCapacitanceValid = Component.ValueCheck.test("number");
-                if (isPolarValid(polarisation)) {
-                    return polarisation === "polar";
-                }
-                else if (isCapacitanceValid(capacitance)) {
-                    return (capacitance > 1e-6);
-                }
-                else {
-                    return undefined;
-                }
-            }
-            Local.validatePolarisation = validatePolarisation;
-            Local.defaulter = {
-                name: Component.ValueCheck.validate("string", "capacitor"),
-                disabled: Component.ValueCheck.validate("boolean", false),
-                isPolarised: Component.ValueCheck.validate("boolean", false),
-                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
-                capacitance: Component.ValueCheck.validate("number", 0)
+                const capacitance = (raw.capacitance || raw.value);
+                const isPolarised = (raw.isPolarised || derivePolarisation(capacitance, raw.polarised));
+                const orientations = ["LR", "RL", "UD", "DU"];
+                const orientation = Component.ValueCheck.validate(orientations, "LR")(raw.orientation, false);
+                const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
+                const joints = (raw.joints || deriveJoints(orientation, where));
+                return _Capacitor.makeSchematic({ name, capacitance, isPolarised, joints }, true);
             };
             const derivePolarisation = (capacitance, polarisation) => {
                 const isPolarValid = Component.ValueCheck.test(["polar", "non-polar"]);
@@ -1451,117 +1426,69 @@ var Circuit;
                 })[orientation];
                 return vector(baseJoints).sumWith(where).vectors;
             };
-            Local.loadInstance = (raw) => {
-                const name = (raw.name);
-                const capacitance = (raw.capacitance || raw.value);
-                const isPolarised = (raw.isPolarised || derivePolarisation(capacitance, raw.polarised));
-                const orientations = ["LR", "RL", "UD", "DU"];
-                const orientation = Component.ValueCheck.validate(orientations, "LR")(raw.orientation, false);
-                const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
-                const joints = (raw.joints || deriveJoints(orientation, where));
-                return Local.makeInstance({ name, capacitance, isPolarised, joints }, true);
-            };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
-                $(component.group.element).addClass("component " + component.name);
-                Component.Addins.Selectable.init(component);
-                Component.Addins.ConnectionHighlights.init(component, false);
-                Component.Addins.Graphical.init(component);
-                if (Constants.schematicManipulationEnabled) {
-                    Component.Addins.Draggable.init(component);
-                    Component.Addins.Extendable.init(component);
-                }
-            });
-        })(Local || (Local = {}));
-        Component.CapacitorSchematic = {
-            Instance: Local.Instance,
-            makeInstance: Local.makeInstance,
-            loadInstance: Local.loadInstance
-        };
+        })(_Capacitor = Component._Capacitor || (Component._Capacitor = {}));
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
 var Circuit;
 (function (Circuit) {
     var Component;
     (function (Component) {
-        let Local;
-        (function (Local) {
-            class Instance extends Component.Instance {
-                constructor(values) {
-                    super(values);
-                    $(this.group.element).addClass("component " + this.name);
-                    this.joints = values.joints;
-                    this.saturationCurrent = values.saturationCurrent;
-                    this.breakdownVoltage = values.breakdownVoltage;
-                    this.color = values.color;
-                }
-                getProperties() {
-                    return Utility.deepCopy({
-                        name: this.name,
-                        breakdownVoltage: this.breakdownVoltage,
-                        saturationCurrent: this.saturationCurrent,
-                        color: this.color
-                    });
-                }
-                getState() {
-                    return Utility.deepCopy({
-                        joints: this.joints,
-                        disabled: this.disabled
-                    });
-                }
-                draw() {
-                    const [start, end] = this.joints;
-                    let diodeBody = (this.color === "N/A")
-                        ? Svg.Element.Group.Diode.Layout.make(this.breakdownVoltage, start, end, "body")
-                        : Svg.Element.Group.Led.Layout.make(this.breakdownVoltage, this.color, start, end, "body led");
-                    this.group.prepend(diodeBody);
-                }
-                makeConnectors() {
-                    this.connectorSets = [[
-                            Component.Generics.makeConnector(this, "anode", "pin", this.joints[0], "+"),
-                            Component.Generics.makeConnector(this, "cathode", "pin", this.joints[this.joints.length - 1], "-"),
-                        ]];
-                }
-                transferFunction() { return []; }
-                ;
-            }
-            Local.Instance = Instance;
-            const defaults = {
-                joints: [{ x: 0, y: 0 }, { x: 80, y: 0 }],
-                disabled: false,
-                name: "diode",
-                breakdownVoltage: 0,
-                saturationCurrent: 0,
-                color: "N/A"
-            };
-            Local.defaulter = {
-                name: Component.ValueCheck.validate("string", "diode"),
+        var _Capacitor;
+        (function (_Capacitor) {
+            const defaulterLayout = {
+                name: Component.ValueCheck.validate("string", "capacitor"),
                 disabled: Component.ValueCheck.validate("boolean", false),
+                isPolarised: Component.ValueCheck.validate("boolean", false),
                 joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 80, y: 0 }]),
-                breakdownVoltage: Component.ValueCheck.validate("number", 0),
-                saturationCurrent: Component.ValueCheck.validate("number", 0),
-                color: Component.ValueCheck.color(defaults.color)
+                capacitance: Component.ValueCheck.validate("number", 0)
             };
-            Local.loadInstance = (raw) => {
-                const name = (raw.name);
-                const breakdownVoltage = (raw.breakdownVoltage);
-                const saturationCurrent = (raw.saturationCurrent);
-                const color = (raw.color);
-                const joints = (raw.joints);
-                return Local.makeInstance({ name, breakdownVoltage, saturationCurrent, color, joints }, true);
-            };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
-                $(component.group.element).addClass("component " + component.name);
+            _Capacitor.makeLayout = Component.getMaker(_Capacitor.Classes.Layout, defaulterLayout, (component) => {
                 Component.Addins.Graphical.init(component);
-                Component.Addins.Selectable.init(component);
                 Component.Addins.Draggable.init(component);
+                Component.Addins.Selectable.init(component);
                 Component.Addins.Extendable.init(component);
                 Component.Addins.ConnectionHighlights.init(component);
             });
-        })(Local || (Local = {}));
-        Component.DiodeLayout = {
-            Instance: Local.Instance,
-            makeInstance: Local.makeInstance,
-            loadInstance: Local.loadInstance
+        })(_Capacitor = Component._Capacitor || (Component._Capacitor = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Capacitor;
+        (function (_Capacitor) {
+            _Capacitor.loadLayout = (raw) => {
+                const name = (raw.name);
+                const capacitance = (raw.capacitance);
+                const isPolarised = (raw.isPolarised);
+                const joints = (raw.joints);
+                return _Capacitor.makeLayout({ name, capacitance, isPolarised, joints }, true);
+            };
+        })(_Capacitor = Component._Capacitor || (Component._Capacitor = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        const schematicMap = {
+            savename: "makeCapacitor",
+            instance: Component._Capacitor.Classes.Schematic,
+            make: Component._Capacitor.makeSchematic,
+            load: Component._Capacitor.loadSchematic,
+        };
+        const layoutMap = {
+            savename: "makeLayoutCapacitor",
+            instance: Component._Capacitor.Classes.Layout,
+            make: Component._Capacitor.makeLayout,
+            load: Component._Capacitor.loadLayout,
+        };
+        schematicMap.correspondsTo = layoutMap;
+        layoutMap.correspondsTo = schematicMap;
+        Component.capacitor = {
+            schematic: schematicMap,
+            layout: layoutMap
         };
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
@@ -1569,63 +1496,114 @@ var Circuit;
 (function (Circuit) {
     var Component;
     (function (Component) {
-        let Local;
-        (function (Local) {
-            class Instance extends Component.Instance {
-                constructor(values) {
-                    super(values);
-                    $(this.group.element).addClass("component " + this.name);
-                    this.joints = values.joints;
-                    this.breakdownVoltage = values.breakdownVoltage;
-                    this.saturationCurrent = values.saturationCurrent;
-                    this.color = values.color;
+        var _Diode;
+        (function (_Diode) {
+            var Classes;
+            (function (Classes) {
+                class Base extends Component.Instance {
+                    constructor(values) {
+                        super(values);
+                        this.joints = values.joints;
+                        this.saturationCurrent = values.saturationCurrent;
+                        this.breakdownVoltage = values.breakdownVoltage;
+                        this.color = values.color;
+                    }
+                    getProperties() {
+                        return Utility.deepCopy({
+                            name: this.name,
+                            breakdownVoltage: this.breakdownVoltage,
+                            saturationCurrent: this.saturationCurrent,
+                            color: this.color
+                        });
+                    }
+                    getState() {
+                        return Utility.deepCopy({
+                            joints: this.joints,
+                            disabled: this.disabled
+                        });
+                    }
+                    insertInto(element) {
+                        Utility.Insert.last(this.group.element, element);
+                    }
+                    transferFunction() { return []; }
+                    ;
                 }
-                getProperties() {
-                    return Utility.deepCopy({
-                        name: this.name,
-                        breakdownVoltage: this.breakdownVoltage,
-                        saturationCurrent: this.saturationCurrent,
-                        color: this.color
-                    });
+                class Schematic extends Base {
+                    draw() {
+                        this.group.prepend(_Diode.drawSchematic(this));
+                    }
+                    getConnections() {
+                        return Component.Generics.getComponentConnections(this, Circuit.manifest.schematic);
+                    }
+                    makeConnectors() {
+                        this.connectorSets = [[
+                                Component.Generics.makeConnector(this, "anode", "node", this.joints[_Diode.INDEXANODE], "+"),
+                                Component.Generics.makeConnector(this, "cathode", "node", this.joints[_Diode.INDEXCATHODE], "-"),
+                            ]];
+                    }
                 }
-                getState() {
-                    return Utility.deepCopy({
-                        joints: this.joints,
-                        disabled: this.disabled
-                    });
+                Classes.Schematic = Schematic;
+                class Layout extends Base {
+                    draw() {
+                        this.group.prepend(_Diode.drawLayout(this));
+                    }
+                    getConnections() {
+                        return Component.Generics.getComponentConnections(this, Circuit.manifest.layout);
+                    }
+                    makeConnectors() {
+                        this.connectorSets = [[
+                                Component.Generics.makeConnector(this, "anode", "pin", this.joints[_Diode.INDEXANODE], "+"),
+                                Component.Generics.makeConnector(this, "cathode", "pin", this.joints[_Diode.INDEXCATHODE], "-"),
+                            ]];
+                    }
                 }
-                draw() {
-                    const [start, end] = this.joints;
-                    let diodeBody = (this.color === "N/A")
-                        ? Svg.Element.Group.Diode.Schematic.make(this.breakdownVoltage, this.saturationCurrent, start, end, "bodyelectrolytic")
-                        : Svg.Element.Group.Led.Schematic.make(this.breakdownVoltage, this.saturationCurrent, this.color, start, end, "bodyceramic");
-                    this.group.prepend(diodeBody);
-                }
-                makeConnectors() {
-                    this.connectorSets = [[
-                            Component.Generics.makeConnector(this, "anode", "node", this.joints[0], "+"),
-                            Component.Generics.makeConnector(this, "cathode", "node", this.joints[1], "-"),
-                        ]];
-                }
-                transferFunction() { return []; }
-                ;
-            }
-            Local.Instance = Instance;
-            const defaults = {
-                joints: [{ x: 0, y: 0 }, { x: 40, y: 40 }],
-                disabled: false,
-                name: "diode",
-                breakdownVoltage: 0,
-                saturationCurrent: 0,
-                color: "N/A"
-            };
-            Local.defaulter = {
+                Classes.Layout = Layout;
+            })(Classes = _Diode.Classes || (_Diode.Classes = {}));
+        })(_Diode = Component._Diode || (Component._Diode = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Diode;
+        (function (_Diode) {
+            const defaulterSchematic = {
                 name: Component.ValueCheck.validate("string", "diode"),
                 disabled: Component.ValueCheck.validate("boolean", false),
                 joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
                 breakdownVoltage: Component.ValueCheck.validate("number", 0),
                 saturationCurrent: Component.ValueCheck.validate("number", 0),
-                color: Component.ValueCheck.color(defaults.color)
+                color: Component.ValueCheck.color("N/A")
+            };
+            _Diode.makeSchematic = Component.getMaker(_Diode.Classes.Schematic, defaulterSchematic, (component) => {
+                Component.Addins.Graphical.init(component);
+                Component.Addins.Selectable.init(component);
+                Component.Addins.ConnectionHighlights.init(component, false);
+                if (Constants.schematicManipulationEnabled) {
+                    Component.Addins.Draggable.init(component);
+                    Component.Addins.Extendable.init(component);
+                }
+            });
+        })(_Diode = Component._Diode || (Component._Diode = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Diode;
+        (function (_Diode) {
+            _Diode.loadSchematic = (raw) => {
+                const name = (raw.name);
+                const breakdownVoltage = (raw.breakdownVoltage);
+                const saturationCurrent = (raw.saturationCurrent);
+                const color = (raw.color || raw.colour);
+                const orientations = ["LR", "RL", "UD", "DU"];
+                const orientation = Component.ValueCheck.validate(orientations, "LR")(raw.orientation, false);
+                const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
+                const joints = (raw.joints || deriveJoints(orientation, where));
+                return _Diode.makeSchematic({ name, breakdownVoltage, saturationCurrent, color, joints }, true);
             };
             const deriveJoints = (orientation, where) => {
                 const baseJoints = ({
@@ -1636,145 +1614,178 @@ var Circuit;
                 })[orientation];
                 return vector(baseJoints).sumWith(where).vectors;
             };
-            Local.loadInstance = (raw) => {
+        })(_Diode = Component._Diode || (Component._Diode = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Diode;
+        (function (_Diode) {
+            const defaulterLayout = {
+                name: Component.ValueCheck.validate("string", "diode"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 80, y: 0 }]),
+                breakdownVoltage: Component.ValueCheck.validate("number", 0),
+                saturationCurrent: Component.ValueCheck.validate("number", 0),
+                color: Component.ValueCheck.color("N/A")
+            };
+            _Diode.makeLayout = Component.getMaker(_Diode.Classes.Layout, defaulterLayout, (component) => {
+                Component.Addins.Graphical.init(component);
+                Component.Addins.Selectable.init(component);
+                Component.Addins.Draggable.init(component);
+                Component.Addins.Extendable.init(component);
+                Component.Addins.ConnectionHighlights.init(component);
+            });
+        })(_Diode = Component._Diode || (Component._Diode = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Diode;
+        (function (_Diode) {
+            _Diode.loadLayout = (raw) => {
                 const name = (raw.name);
                 const breakdownVoltage = (raw.breakdownVoltage);
                 const saturationCurrent = (raw.saturationCurrent);
-                const color = (raw.color || raw.colour);
-                const orientations = ["LR", "RL", "UD", "DU"];
-                const orientation = Component.ValueCheck.validate(orientations, "LR")(raw.orientation, false);
-                const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
-                const joints = (raw.joints || deriveJoints(orientation, where));
-                return Local.makeInstance({ name, breakdownVoltage, saturationCurrent, color, joints }, true);
+                const color = (raw.color);
+                const joints = (raw.joints);
+                return _Diode.makeLayout({ name, breakdownVoltage, saturationCurrent, color, joints }, true);
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
-                $(component.group.element).addClass("component " + component.name);
-                Component.Addins.Graphical.init(component);
+        })(_Diode = Component._Diode || (Component._Diode = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        const schematicMap = {
+            savename: "makeDiode",
+            instance: Component._Diode.Classes.Schematic,
+            make: Component._Diode.makeSchematic,
+            load: Component._Diode.loadSchematic,
+        };
+        const layoutMap = {
+            savename: "makeLayoutDiode",
+            instance: Component._Diode.Classes.Layout,
+            make: Component._Diode.makeLayout,
+            load: Component._Diode.loadLayout,
+        };
+        schematicMap.correspondsTo = layoutMap;
+        layoutMap.correspondsTo = schematicMap;
+        Component.diode = {
+            schematic: schematicMap,
+            layout: layoutMap
+        };
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Inductor;
+        (function (_Inductor) {
+            var Classes;
+            (function (Classes) {
+                class Base extends Component.Instance {
+                    constructor(values) {
+                        super(values);
+                        this.joints = values.joints;
+                        this.inductance = values.inductance;
+                    }
+                    getProperties() {
+                        return Utility.deepCopy({
+                            name: this.name,
+                            inductance: this.inductance,
+                        });
+                    }
+                    getState() {
+                        return Utility.deepCopy({
+                            joints: this.joints,
+                            disabled: this.disabled
+                        });
+                    }
+                    insertInto(element) {
+                        Utility.Insert.last(this.group.element, element);
+                    }
+                    transferFunction() { return []; }
+                    ;
+                }
+                class Schematic extends Base {
+                    draw() {
+                        this.group.prepend(_Inductor.drawSchematic(this));
+                    }
+                    getConnections() {
+                        return Component.Generics.getComponentConnections(this, Circuit.manifest.schematic);
+                    }
+                    makeConnectors() {
+                        this.connectorSets = [[
+                                Component.Generics.makeConnector(this, "", "node", this.joints[_Inductor.INDEXEND1]),
+                                Component.Generics.makeConnector(this, "", "node", this.joints[_Inductor.INDEXEND2]),
+                            ]];
+                    }
+                }
+                Classes.Schematic = Schematic;
+                class Layout extends Base {
+                    draw() {
+                        this.group.prepend(_Inductor.drawLayout(this));
+                    }
+                    getConnections() {
+                        return Component.Generics.getComponentConnections(this, Circuit.manifest.layout);
+                    }
+                    makeConnectors() {
+                        this.connectorSets = [[
+                                Component.Generics.makeConnector(this, "", "pin", this.joints[_Inductor.INDEXEND1]),
+                                Component.Generics.makeConnector(this, "", "pin", this.joints[_Inductor.INDEXEND2]),
+                            ]];
+                    }
+                }
+                Classes.Layout = Layout;
+            })(Classes = _Inductor.Classes || (_Inductor.Classes = {}));
+        })(_Inductor = Component._Inductor || (Component._Inductor = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Inductor;
+        (function (_Inductor) {
+            const defaulterSchematic = {
+                name: Component.ValueCheck.validate("string", "inductor"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
+                inductance: Component.ValueCheck.validate("number", 0)
+            };
+            _Inductor.makeSchematic = Component.getMaker(_Inductor.Classes.Schematic, defaulterSchematic, (component) => {
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
+                Component.Addins.Graphical.init(component);
                 if (Constants.schematicManipulationEnabled) {
                     Component.Addins.Draggable.init(component);
                     Component.Addins.Extendable.init(component);
                 }
             });
-        })(Local || (Local = {}));
-        Component.DiodeSchematic = {
-            Instance: Local.Instance,
-            makeInstance: Local.makeInstance,
-            loadInstance: Local.loadInstance
-        };
+        })(_Inductor = Component._Inductor || (Component._Inductor = {}));
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
 var Circuit;
 (function (Circuit) {
     var Component;
     (function (Component) {
-        let Local;
-        (function (Local) {
-            class Instance extends Component.Instance {
-                constructor(values) {
-                    super(values);
-                    $(this.group.element).addClass("component " + this.name);
-                    this.joints = values.joints;
-                    this.inductance = values.inductance;
-                }
-                getProperties() {
-                    return Utility.deepCopy({
-                        name: this.name,
-                        inductance: this.inductance,
-                    });
-                }
-                getState() {
-                    return Utility.deepCopy({
-                        joints: this.joints,
-                        disabled: this.disabled
-                    });
-                }
-                draw() {
-                    const [start, end] = this.joints;
-                    this.group.prepend(Svg.Element.Group.Inductor.Layout.make(this.inductance, start, end, "body"));
-                }
-                makeConnectors() {
-                    this.connectorSets = [[
-                            Component.Generics.makeConnector(this, "", "pin", this.joints[0]),
-                            Component.Generics.makeConnector(this, "", "pin", this.joints[this.joints.length - 1]),
-                        ]];
-                }
-                transferFunction() { return []; }
-                ;
-            }
-            Local.Instance = Instance;
-            Local.defaulter = {
-                name: Component.ValueCheck.validate("string", "inductor"),
-                disabled: Component.ValueCheck.validate("boolean", false),
-                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 80, y: 0 }]),
-                inductance: Component.ValueCheck.validate("number", 0)
-            };
-            Local.loadInstance = (raw) => {
+        var _Inductor;
+        (function (_Inductor) {
+            _Inductor.loadSchematic = (raw) => {
                 const name = (raw.name);
-                const inductance = (raw.inductance);
-                const joints = (raw.joints);
-                return Local.makeInstance({ name, inductance, joints }, true);
-            };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
-                $(component.group.element).addClass("component " + component.name);
-                Component.Addins.Graphical.init(component);
-                Component.Addins.Draggable.init(component);
-                Component.Addins.Selectable.init(component);
-                Component.Addins.Extendable.init(component);
-                Component.Addins.ConnectionHighlights.init(component);
-            });
-        })(Local || (Local = {}));
-        Component.InductorLayout = {
-            Instance: Local.Instance,
-            makeInstance: Local.makeInstance,
-            loadInstance: Local.loadInstance
-        };
-    })(Component = Circuit.Component || (Circuit.Component = {}));
-})(Circuit || (Circuit = {}));
-var Circuit;
-(function (Circuit) {
-    var Component;
-    (function (Component) {
-        let Local;
-        (function (Local) {
-            class Instance extends Component.Instance {
-                constructor(values) {
-                    super(values);
-                    $(this.group.element).addClass("component " + this.name);
-                    this.joints = values.joints;
-                    this.inductance = values.inductance;
-                }
-                getProperties() {
-                    return Utility.deepCopy({
-                        name: this.name,
-                        inductance: this.inductance,
-                    });
-                }
-                getState() {
-                    return Utility.deepCopy({
-                        joints: this.joints,
-                        disabled: this.disabled
-                    });
-                }
-                draw() {
-                    this.group.prepend(Svg.Element.Group.Inductor.Schematic.make(this.inductance, this.joints[0], this.joints[1], "body"));
-                }
-                makeConnectors() {
-                    this.connectorSets = [[
-                            Component.Generics.makeConnector(this, "", "node", this.joints[0]),
-                            Component.Generics.makeConnector(this, "", "node", this.joints[1]),
-                        ]];
-                }
-                transferFunction() { return []; }
-                ;
-            }
-            Local.Instance = Instance;
-            Local.defaulter = {
-                name: Component.ValueCheck.validate("string", "inductor"),
-                disabled: Component.ValueCheck.validate("boolean", false),
-                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
-                inductance: Component.ValueCheck.validate("number", 0)
+                const inductance = (raw.inductance || raw.value);
+                const orientations = ["LR", "RL", "UD", "DU"];
+                const orientation = Component.ValueCheck.validate(orientations, "LR")(raw.orientation, false);
+                const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
+                const joints = (raw.joints || deriveJoints(orientation, where));
+                return _Inductor.makeSchematic({ name, inductance, joints, }, true);
             };
             const deriveJoints = (orientation, where) => {
                 const baseJoints = ({
@@ -1785,17 +1796,214 @@ var Circuit;
                 })[orientation];
                 return vector(baseJoints).sumWith(where).vectors;
             };
-            Local.loadInstance = (raw) => {
-                const name = (raw.name);
-                const inductance = (raw.inductance || raw.value);
-                const orientations = ["LR", "RL", "UD", "DU"];
-                const orientation = Component.ValueCheck.validate(orientations, "LR")(raw.orientation, false);
-                const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
-                const joints = (raw.joints || deriveJoints(orientation, where));
-                return Local.makeInstance({ name, inductance, joints, }, true);
+        })(_Inductor = Component._Inductor || (Component._Inductor = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Inductor;
+        (function (_Inductor) {
+            const defaulterLayout = {
+                name: Component.ValueCheck.validate("string", "inductor"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 80, y: 0 }]),
+                inductance: Component.ValueCheck.validate("number", 0)
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
-                $(component.group.element).addClass("component " + component.name);
+            _Inductor.makeLayout = Component.getMaker(_Inductor.Classes.Layout, defaulterLayout, (component) => {
+                Component.Addins.Graphical.init(component);
+                Component.Addins.Draggable.init(component);
+                Component.Addins.Selectable.init(component);
+                Component.Addins.Extendable.init(component);
+                Component.Addins.ConnectionHighlights.init(component);
+            });
+        })(_Inductor = Component._Inductor || (Component._Inductor = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Inductor;
+        (function (_Inductor) {
+            _Inductor.loadLayout = (raw) => {
+                const name = (raw.name);
+                const inductance = (raw.inductance);
+                const joints = (raw.joints);
+                return _Inductor.makeLayout({ name, inductance, joints }, true);
+            };
+        })(_Inductor = Component._Inductor || (Component._Inductor = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        const schematicMap = {
+            savename: "makeInductor",
+            instance: Component._Inductor.Classes.Schematic,
+            make: Component._Inductor.makeSchematic,
+            load: Component._Inductor.loadSchematic,
+        };
+        const layoutMap = {
+            savename: "makeLayoutInductor",
+            instance: Component._Inductor.Classes.Layout,
+            make: Component._Inductor.makeLayout,
+            load: Component._Inductor.loadLayout,
+        };
+        schematicMap.correspondsTo = layoutMap;
+        layoutMap.correspondsTo = schematicMap;
+        Component.inductor = {
+            schematic: schematicMap,
+            layout: layoutMap
+        };
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _OpAmp;
+        (function (_OpAmp) {
+            var Classes;
+            (function (Classes) {
+                class Base extends Component.Instance {
+                    constructor(values) {
+                        super(values);
+                        this.offsetVoltage = values.offsetVoltage;
+                    }
+                    getProperties() {
+                        return Utility.deepCopy({
+                            name: this.name,
+                            offsetVoltage: this.offsetVoltage
+                        });
+                    }
+                    insertInto(element) {
+                        Utility.Insert.last(this.group.element, element);
+                    }
+                    transferFunction() { return []; }
+                    ;
+                }
+                class Schematic extends Base {
+                    constructor(values) {
+                        super(values);
+                        this.offsetVoltage = values.offsetVoltage;
+                        this.joints = values.joints;
+                    }
+                    getState() {
+                        return Utility.deepCopy({
+                            joints: this.joints,
+                            disabled: this.disabled
+                        });
+                    }
+                    draw() {
+                        this.group.prepend(_OpAmp.drawSchematic(this));
+                    }
+                    getConnections() {
+                        return Component.Generics.getComponentConnections(this, Circuit.manifest.schematic);
+                    }
+                    makeConnectors() {
+                        let [posPower, negPower] = (this.joints[_OpAmp.INDEXPOW1].y < this.joints[_OpAmp.INDEXPOW2].y)
+                            ? [this.joints[_OpAmp.INDEXPOW1], this.joints[_OpAmp.INDEXPOW2]]
+                            : [this.joints[_OpAmp.INDEXPOW2], this.joints[_OpAmp.INDEXPOW1]];
+                        this.connectorSets = [[
+                                Component.Generics.makeConnector(this, "vcc+", "node", posPower, "v+"),
+                                Component.Generics.makeConnector(this, "out", "node", this.joints[_OpAmp.INDEXOUT], "o"),
+                                Component.Generics.makeConnector(this, "in-", "node", this.joints[_OpAmp.INDEXINNEG], "i-"),
+                                Component.Generics.makeConnector(this, "in+", "node", this.joints[_OpAmp.INDEXINPOS], "i+"),
+                                Component.Generics.makeConnector(this, "vcc-", "node", negPower, "v-"),
+                            ]];
+                    }
+                }
+                Classes.Schematic = Schematic;
+                class Layout extends Base {
+                    constructor(values) {
+                        super(values);
+                        this.offsetVoltage = values.offsetVoltage;
+                        this.isDual = values.isDual;
+                        this.joints = values.joints;
+                    }
+                    getState() {
+                        return Utility.deepCopy({
+                            isDual: this.isDual,
+                            joints: this.joints,
+                            disabled: this.disabled
+                        });
+                    }
+                    draw() {
+                        this.group.prepend(_OpAmp.drawLayout(this));
+                    }
+                    getConnections() {
+                        return Component.Generics.getComponentConnections(this, Circuit.manifest.layout);
+                    }
+                    makeConnectors() {
+                        let gs = Constants.gridSpacing;
+                        let c = this.joints[_OpAmp.INDEXCENTRE];
+                        let r = vector(this.joints[_OpAmp.INDEXCENTRE]).getAngleTo(this.joints[_OpAmp.INDEXROTATION]);
+                        let connectorPoints = vector([
+                            { x: 0 * gs, y: 3 * gs },
+                            { x: 1 * gs, y: 3 * gs },
+                            { x: 2 * gs, y: 3 * gs },
+                            { x: 3 * gs, y: 3 * gs },
+                            { x: 3 * gs, y: 0 * gs },
+                            { x: 2 * gs, y: 0 * gs },
+                            { x: 1 * gs, y: 0 * gs },
+                            { x: 0 * gs, y: 0 * gs }
+                        ]).sumWith(vector(-30)).rotate(r).sumWith(c).vectors;
+                        if (this.isDual) {
+                            this.connectorSets = [[
+                                    Component.Generics.makeConnector(this, "vcc+", "pin", connectorPoints[7], "v+"),
+                                    Component.Generics.makeConnector(this, "out", "pin", connectorPoints[6], "1o"),
+                                    Component.Generics.makeConnector(this, "in-", "pin", connectorPoints[5], "1i-"),
+                                    Component.Generics.makeConnector(this, "in+", "pin", connectorPoints[4], "1i+"),
+                                    Component.Generics.makeConnector(this, "vcc-", "pin", connectorPoints[3], "v-"),
+                                ], [
+                                    Component.Generics.makeConnector(this, "vcc+", "pin", connectorPoints[7], "v+"),
+                                    Component.Generics.makeConnector(this, "out", "pin", connectorPoints[0], "2o"),
+                                    Component.Generics.makeConnector(this, "in-", "pin", connectorPoints[1], "2i-"),
+                                    Component.Generics.makeConnector(this, "in+", "pin", connectorPoints[2], "2i+"),
+                                    Component.Generics.makeConnector(this, "vcc-", "pin", connectorPoints[3], "v-"),
+                                ]];
+                        }
+                        else {
+                            this.connectorSets = [[
+                                    Component.Generics.makeConnector(this, "vcc+", "pin", connectorPoints[6], "v+"),
+                                    Component.Generics.makeConnector(this, "out", "pin", connectorPoints[5], "o"),
+                                    Component.Generics.makeConnector(this, "in-", "pin", connectorPoints[1], "i-"),
+                                    Component.Generics.makeConnector(this, "in+", "pin", connectorPoints[2], "i+"),
+                                    Component.Generics.makeConnector(this, "vcc-", "pin", connectorPoints[3], "v-"),
+                                    Component.Generics.makeConnector(this, "nc", "pin", connectorPoints[7], "nc"),
+                                    Component.Generics.makeConnector(this, "offset n1", "pin", connectorPoints[4], "nc"),
+                                    Component.Generics.makeConnector(this, "offset n2", "pin", connectorPoints[0], "nc"),
+                                ]];
+                        }
+                    }
+                    replaceWithDual() {
+                        this.isDual = true;
+                        this.group.clearChildren();
+                        this.draw();
+                        this.makeConnectors();
+                    }
+                }
+                Classes.Layout = Layout;
+            })(Classes = _OpAmp.Classes || (_OpAmp.Classes = {}));
+        })(_OpAmp = Component._OpAmp || (Component._OpAmp = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _OpAmp;
+        (function (_OpAmp) {
+            const defaulterSchematic = {
+                name: Component.ValueCheck.validate("string", "opAmp"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: 40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: 20 }]),
+                offsetVoltage: Component.ValueCheck.validate("number", 0)
+            };
+            _OpAmp.makeSchematic = Component.getMaker(_OpAmp.Classes.Schematic, defaulterSchematic, (component) => {
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
                 Component.Addins.Graphical.init(component);
@@ -1804,176 +2012,41 @@ var Circuit;
                     Component.Addins.Extendable.init(component);
                 }
             });
-        })(Local || (Local = {}));
-        Component.InductorSchematic = {
-            Instance: Local.Instance,
-            makeInstance: Local.makeInstance,
-            loadInstance: Local.loadInstance
-        };
+        })(_OpAmp = Component._OpAmp || (Component._OpAmp = {}));
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
 var Circuit;
 (function (Circuit) {
     var Component;
     (function (Component) {
-        let Local;
-        (function (Local) {
-            class Instance extends Component.Instance {
-                constructor(values) {
-                    super(values);
-                    $(this.group.element).addClass("component " + this.name);
-                    this.isDual = values.isDual;
-                    this.joints = values.joints;
-                    this.offsetVoltage = values.offsetVoltage;
-                }
-                getProperties() {
-                    return Utility.deepCopy({
-                        name: this.name,
-                        offsetVoltage: this.offsetVoltage
-                    });
-                }
-                getState() {
-                    return Utility.deepCopy({
-                        isDual: this.isDual,
-                        joints: this.joints,
-                        disabled: this.disabled
-                    });
-                }
-                draw() {
-                    this.group.prepend(Svg.Element.Group.OpAmp.Layout.make(this.isDual, this.joints[0], this.joints[1], "body"));
-                }
-                makeConnectors() {
-                    let gs = Constants.gridSpacing;
-                    let c = this.joints[0];
-                    let r = vector(this.joints[0]).getAngleTo(this.joints[1]);
-                    let connectorPoints = vector([
-                        { x: 0 * gs, y: 3 * gs },
-                        { x: 1 * gs, y: 3 * gs },
-                        { x: 2 * gs, y: 3 * gs },
-                        { x: 3 * gs, y: 3 * gs },
-                        { x: 3 * gs, y: 0 * gs },
-                        { x: 2 * gs, y: 0 * gs },
-                        { x: 1 * gs, y: 0 * gs },
-                        { x: 0 * gs, y: 0 * gs }
-                    ]).sumWith(vector(-30)).rotate(r).sumWith(c).vectors;
-                    if (this.isDual) {
-                        this.connectorSets = [[
-                                Component.Generics.makeConnector(this, "vcc+", "pin", connectorPoints[7], "v+"),
-                                Component.Generics.makeConnector(this, "out", "pin", connectorPoints[6], "1o"),
-                                Component.Generics.makeConnector(this, "in-", "pin", connectorPoints[5], "1i-"),
-                                Component.Generics.makeConnector(this, "in+", "pin", connectorPoints[4], "1i+"),
-                                Component.Generics.makeConnector(this, "vcc-", "pin", connectorPoints[3], "v-"),
-                            ], [
-                                Component.Generics.makeConnector(this, "vcc+", "pin", connectorPoints[7], "v+"),
-                                Component.Generics.makeConnector(this, "out", "pin", connectorPoints[0], "2o"),
-                                Component.Generics.makeConnector(this, "in-", "pin", connectorPoints[1], "2i-"),
-                                Component.Generics.makeConnector(this, "in+", "pin", connectorPoints[2], "2i+"),
-                                Component.Generics.makeConnector(this, "vcc-", "pin", connectorPoints[3], "v-"),
-                            ]];
-                    }
-                    else {
-                        this.connectorSets = [[
-                                Component.Generics.makeConnector(this, "vcc+", "pin", connectorPoints[6], "v+"),
-                                Component.Generics.makeConnector(this, "out", "pin", connectorPoints[5], "o"),
-                                Component.Generics.makeConnector(this, "in-", "pin", connectorPoints[1], "i-"),
-                                Component.Generics.makeConnector(this, "in+", "pin", connectorPoints[2], "i+"),
-                                Component.Generics.makeConnector(this, "vcc-", "pin", connectorPoints[3], "v-"),
-                                Component.Generics.makeConnector(this, "nc", "pin", connectorPoints[7], "nc"),
-                                Component.Generics.makeConnector(this, "offset n1", "pin", connectorPoints[4], "nc"),
-                                Component.Generics.makeConnector(this, "offset n2", "pin", connectorPoints[0], "nc"),
-                            ]];
-                    }
-                }
-                replaceWithDual() {
-                    this.isDual = true;
-                    this.group.clearChildren();
-                    this.draw();
-                    this.makeConnectors();
-                }
-                transferFunction() { return []; }
-                ;
-            }
-            Local.Instance = Instance;
-            Local.defaulter = {
-                name: Component.ValueCheck.validate("string", "opAmp"),
-                disabled: Component.ValueCheck.validate("boolean", false),
-                isDual: Component.ValueCheck.validate("boolean", false),
-                joints: Component.ValueCheck.joints([{ x: 30, y: 30 }, { x: 40, y: 30 }]),
-                offsetVoltage: Component.ValueCheck.validate("number", 0)
-            };
-            Local.loadInstance = (raw) => {
+        var _OpAmp;
+        (function (_OpAmp) {
+            _OpAmp.loadSchematic = (raw) => {
                 const name = (raw.name);
                 const offsetVoltage = (raw.offsetVoltage);
-                const isDual = (raw.isDual);
-                const joints = (raw.joints);
-                return Local.makeInstance({ name, offsetVoltage, isDual, joints }, true);
-            };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
-                $(component.group.element).addClass("component " + component.name);
-                Component.Addins.Graphical.init(component);
-                Component.Addins.Draggable.init(component);
-                Component.Addins.Rotatable.init(component);
-                Component.Addins.Selectable.init(component);
-                Component.Addins.ConnectionHighlights.init(component);
-            });
-        })(Local || (Local = {}));
-        Component.OpAmpLayout = {
-            Instance: Local.Instance,
-            makeInstance: Local.makeInstance,
-            loadInstance: Local.loadInstance
-        };
-    })(Component = Circuit.Component || (Circuit.Component = {}));
-})(Circuit || (Circuit = {}));
-var Circuit;
-(function (Circuit) {
-    var Component;
-    (function (Component) {
-        let Local;
-        (function (Local) {
-            class Instance extends Component.Instance {
-                constructor(values) {
-                    super(values);
-                    $(this.group.element).addClass("component " + this.name);
-                    this.joints = values.joints;
-                    this.offsetVoltage = values.offsetVoltage;
+                const orientations = ["LR", "RL"];
+                const orientation = Component.ValueCheck.validate(orientations, "LR")(raw.orientation, false);
+                const inputsAtTop = ["inverting", "non-inverting"];
+                const inputAtTop = Component.ValueCheck.validate(inputsAtTop, "non-inverting")(raw.whichInputAtTop, false);
+                const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
+                const joints = (raw.joints || deriveJoints(orientation, inputAtTop, where));
+                const opAmp = _OpAmp.makeSchematic({ name, offsetVoltage, joints }, true);
+                const isNumber = Component.ValueCheck.test("number");
+                const [minOutput, maxOutput] = [raw.minOutput, raw.maxOutput];
+                if (isNumber(minOutput) && isNumber(maxOutput)) {
+                    const topPower = Component.power.schematic.make({
+                        voltage: maxOutput,
+                        joints: vector([{ x: 0, y: -20 }]).sumWith(where).vectors
+                    }, true);
+                    const bottomPower = Component.power.schematic.make({
+                        voltage: minOutput,
+                        joints: vector([{ x: 0, y: 20 }]).sumWith(where).vectors
+                    }, true);
+                    return [topPower, bottomPower, opAmp];
                 }
-                getProperties() {
-                    return Utility.deepCopy({
-                        name: this.name,
-                        offsetVoltage: this.offsetVoltage
-                    });
+                else {
+                    return opAmp;
                 }
-                getState() {
-                    return Utility.deepCopy({
-                        joints: this.joints,
-                        disabled: this.disabled
-                    });
-                }
-                draw() {
-                    this.group.prepend(Svg.Element.Group.OpAmp.Schematic.make(this.joints[0], this.joints[1], this.joints[2], this.joints[3], this.joints[4], "body"));
-                }
-                makeConnectors() {
-                    let [posPower, negPower] = (this.joints[3].y < this.joints[4].y)
-                        ? [this.joints[3], this.joints[4]]
-                        : [this.joints[4], this.joints[3]];
-                    this.connectorSets = [[
-                            Component.Generics.makeConnector(this, "vcc+", "node", posPower, "v+"),
-                            Component.Generics.makeConnector(this, "out", "node", this.joints[2], "o"),
-                            Component.Generics.makeConnector(this, "in-", "node", this.joints[1], "i-"),
-                            Component.Generics.makeConnector(this, "in+", "node", this.joints[0], "i+"),
-                            Component.Generics.makeConnector(this, "vcc-", "node", negPower, "v-"),
-                        ]
-                    ];
-                }
-                transferFunction() { return []; }
-                ;
-            }
-            Local.Instance = Instance;
-            Local.defaulter = {
-                name: Component.ValueCheck.validate("string", "opAmp"),
-                disabled: Component.ValueCheck.validate("boolean", false),
-                joints: Component.ValueCheck.joints([{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: 40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: 20 }]),
-                offsetVoltage: Component.ValueCheck.validate("number", 0)
             };
             const deriveJoints = (orientation, inputAtTop, where) => {
                 const [inHigh, inLow] = orientation === "LR"
@@ -1989,48 +2062,69 @@ var Circuit;
                     : [{ x: 0, y: +20 }, { x: 0, y: -20 }];
                 return vector([inInverting, inNonInverting, out, powPositive, powNegative]).sumWith(where).vectors;
             };
-            Local.loadInstance = (raw) => {
+        })(_OpAmp = Component._OpAmp || (Component._OpAmp = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _OpAmp;
+        (function (_OpAmp) {
+            const defaulterLayout = {
+                name: Component.ValueCheck.validate("string", "opAmp"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                isDual: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 30, y: 30 }, { x: 40, y: 30 }]),
+                offsetVoltage: Component.ValueCheck.validate("number", 0)
+            };
+            _OpAmp.makeLayout = Component.getMaker(_OpAmp.Classes.Layout, defaulterLayout, (component) => {
+                Component.Addins.Graphical.init(component);
+                Component.Addins.Draggable.init(component);
+                Component.Addins.Rotatable.init(component);
+                Component.Addins.Selectable.init(component);
+                Component.Addins.ConnectionHighlights.init(component);
+            });
+        })(_OpAmp = Component._OpAmp || (Component._OpAmp = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _OpAmp;
+        (function (_OpAmp) {
+            _OpAmp.loadLayout = (raw) => {
                 const name = (raw.name);
                 const offsetVoltage = (raw.offsetVoltage);
-                const orientations = ["LR", "RL"];
-                const orientation = Component.ValueCheck.validate(orientations, "LR")(raw.orientation, false);
-                const inputsAtTop = ["inverting", "non-inverting"];
-                const inputAtTop = Component.ValueCheck.validate(inputsAtTop, "non-inverting")(raw.whichInputAtTop, false);
-                const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
-                const joints = (raw.joints || deriveJoints(orientation, inputAtTop, where));
-                const opAmp = Local.makeInstance({ name, offsetVoltage, joints }, true);
-                const isNumber = Component.ValueCheck.test("number");
-                const [minOutput, maxOutput] = [raw.minOutput, raw.maxOutput];
-                if (isNumber(minOutput) && isNumber(maxOutput)) {
-                    const topPower = Component.PowerSchematic.makeInstance({
-                        voltage: maxOutput,
-                        joints: vector([{ x: 0, y: -20 }]).sumWith(where).vectors
-                    }, true);
-                    const bottomPower = Component.PowerSchematic.makeInstance({
-                        voltage: minOutput,
-                        joints: vector([{ x: 0, y: 20 }]).sumWith(where).vectors
-                    }, true);
-                    return [topPower, bottomPower, opAmp];
-                }
-                else {
-                    return opAmp;
-                }
+                const isDual = (raw.isDual);
+                const joints = (raw.joints);
+                return _OpAmp.makeLayout({ name, offsetVoltage, isDual, joints }, true);
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
-                $(component.group.element).addClass("component " + component.name);
-                Component.Addins.Selectable.init(component);
-                Component.Addins.ConnectionHighlights.init(component, false);
-                Component.Addins.Graphical.init(component);
-                if (Constants.schematicManipulationEnabled) {
-                    Component.Addins.Draggable.init(component);
-                    Component.Addins.Extendable.init(component);
-                }
-            });
-        })(Local || (Local = {}));
-        Component.OpAmpSchematic = {
-            Instance: Local.Instance,
-            makeInstance: Local.makeInstance,
-            loadInstance: Local.loadInstance
+        })(_OpAmp = Component._OpAmp || (Component._OpAmp = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        const schematicMap = {
+            savename: "makeOpAmp",
+            instance: Component._OpAmp.Classes.Schematic,
+            make: Component._OpAmp.makeSchematic,
+            load: Component._OpAmp.loadSchematic,
+        };
+        const layoutMap = {
+            savename: "makeLayoutOpAmp",
+            instance: Component._OpAmp.Classes.Layout,
+            make: Component._OpAmp.makeLayout,
+            load: Component._OpAmp.loadLayout,
+        };
+        schematicMap.correspondsTo = layoutMap;
+        layoutMap.correspondsTo = schematicMap;
+        Component.opAmp = {
+            schematic: schematicMap,
+            layout: layoutMap
         };
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
@@ -2038,63 +2132,133 @@ var Circuit;
 (function (Circuit) {
     var Component;
     (function (Component) {
-        let Local;
-        (function (Local) {
-            class Instance extends Component.Instance {
-                constructor(values) {
-                    super(values);
-                    this.connectorSets = [];
-                    $(this.group.element).addClass("component " + this.name);
-                    this.voltage = values.voltage;
-                    this.joints = values.joints;
+        var _Power;
+        (function (_Power) {
+            var Classes;
+            (function (Classes) {
+                class Base extends Component.Instance {
+                    constructor(values) {
+                        super(values);
+                        this.voltage = values.voltage;
+                        this.joints = values.joints;
+                    }
+                    getProperties() {
+                        return Utility.deepCopy({
+                            name: this.name,
+                            voltage: this.voltage
+                        });
+                    }
+                    getState() {
+                        return Utility.deepCopy({
+                            joints: this.joints,
+                            disabled: this.disabled
+                        });
+                    }
+                    transferFunction() { return []; }
+                    ;
                 }
-                getProperties() {
-                    return Utility.deepCopy({
-                        name: this.name,
-                        voltage: this.voltage
-                    });
+                class Schematic extends Base {
+                    insertInto(element) {
+                        Utility.Insert.last(this.group.element, element);
+                    }
+                    makeConnectors() {
+                        this.connectorSets = [
+                            [Component.Generics.makeConnector(this, "", "node", this.joints[0])]
+                        ];
+                    }
+                    draw() {
+                        this.group.prepend(_Power.drawSchematic(this));
+                    }
+                    getConnections() {
+                        return Component.Generics.getComponentConnections(this, Circuit.manifest.schematic);
+                    }
                 }
-                getState() {
-                    return Utility.deepCopy({
-                        joints: this.joints,
-                        disabled: this.disabled
-                    });
+                Classes.Schematic = Schematic;
+                class Layout extends Base {
+                    constructor() {
+                        super(...arguments);
+                        this.connectorSets = [];
+                    }
+                    insertInto(element) {
+                        Utility.Insert.after(this.group.element, element, ".board");
+                    }
+                    makeConnectors() {
+                        this.connectorSets = [[
+                                Component.Generics.makeConnector(this, "", "hole", this.joints[0])
+                            ]];
+                    }
+                    draw() {
+                        this.group.prepend(_Power.drawLayout(this));
+                    }
+                    getConnections() {
+                        return Component.Generics.getComponentConnections(this, Circuit.manifest.layout);
+                    }
                 }
-                insertInto(element) {
-                    Utility.Insert.before(this.group.element, element, ".component");
-                }
-                draw() {
-                    this.group.prepend(Svg.Element.Group.Power.Layout.make(this.voltage, this.joints[0], "body"));
-                }
-                makeConnectors() {
-                    this.connectorSets = [[
-                            Component.Generics.makeConnector(this, "", "hole", this.joints[0])
-                        ]];
-                }
-                transferFunction() { return []; }
-                ;
-            }
-            Local.Instance = Instance;
-            const defaults = {
-                joints: [{ x: 0, y: 40 }],
-                disabled: false,
-                name: "power",
-                voltage: 0
+                Classes.Layout = Layout;
+            })(Classes = _Power.Classes || (_Power.Classes = {}));
+        })(_Power = Component._Power || (Component._Power = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Power;
+        (function (_Power) {
+            const defaulterSchematic = {
+                name: Component.ValueCheck.validate("string", "power"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }]),
+                voltage: Component.ValueCheck.validate("number", 0)
             };
-            Local.defaulter = {
+            _Power.makeSchematic = Component.getMaker(_Power.Classes.Schematic, defaulterSchematic, (component) => {
+                Component.Addins.Selectable.init(component);
+                Component.Addins.ConnectionHighlights.init(component, false);
+                Component.Addins.Graphical.init(component);
+                if (Constants.schematicManipulationEnabled) {
+                    Component.Addins.Draggable.init(component);
+                }
+            });
+        })(_Power = Component._Power || (Component._Power = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Power;
+        (function (_Power) {
+            _Power.loadSchematic = (raw) => {
+                const name = (raw.name);
+                const voltage = (raw.voltage || raw.value);
+                const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
+                const joints = (raw.joints || deriveJoints(voltage, where));
+                return _Power.makeSchematic({ name, voltage, joints, }, true);
+            };
+            const deriveJoints = (voltage, where) => {
+                const baseJoints = (voltage < 0)
+                    ? [{ x: 0, y: -10 }]
+                    : (voltage > 0)
+                        ? [{ x: 0, y: 10 }]
+                        : [{ x: 0, y: -10 }];
+                return vector(baseJoints).sumWith(where).vectors;
+            };
+        })(_Power = Component._Power || (Component._Power = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Power;
+        (function (_Power) {
+            const defaulterLayout = {
                 name: Component.ValueCheck.validate("string", "power"),
                 disabled: Component.ValueCheck.validate("boolean", false),
                 joints: Component.ValueCheck.joints([{ x: 0, y: 40 }]),
-                voltage: Component.ValueCheck.validate("number", defaults.voltage)
+                voltage: Component.ValueCheck.validate("number", 0)
             };
-            Local.loadInstance = (raw) => {
-                const name = (raw.name);
-                const voltage = (raw.voltage);
-                const joints = (raw.joints);
-                return Local.makeInstance({ name, voltage, joints }, true);
-            };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
-                $(component.group.element).addClass(component.name);
+            _Power.makeLayout = Component.getMaker(_Power.Classes.Layout, defaulterLayout, (component) => {
                 Component.Addins.Graphical.init(component);
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Selectable.init(component);
@@ -2109,11 +2273,46 @@ var Circuit;
                             : "black"
                 ];
             }
-        })(Local || (Local = {}));
-        Component.PowerLayout = {
-            Instance: Local.Instance,
-            makeInstance: Local.makeInstance,
-            loadInstance: Local.loadInstance
+        })(_Power = Component._Power || (Component._Power = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Power;
+        (function (_Power) {
+            _Power.loadLayout = (raw) => {
+                const name = (raw.name);
+                const voltage = (raw.voltage);
+                const joints = (raw.joints);
+                return _Power.makeLayout({ name, voltage, joints }, true);
+            };
+        })(_Power = Component._Power || (Component._Power = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        const schematicMap = {
+            savename: "makePower",
+            instance: Component._Power.Classes.Schematic,
+            make: Component._Power.makeSchematic,
+            load: Component._Power.loadSchematic,
+        };
+        const layoutMap = {
+            savename: "makeLayoutPower",
+            instance: Component._Power.Classes.Layout,
+            make: Component._Power.makeLayout,
+            load: Component._Power.loadLayout,
+            isUnique: true
+        };
+        schematicMap.correspondsTo = layoutMap;
+        layoutMap.correspondsTo = schematicMap;
+        Component.power = {
+            schematic: schematicMap,
+            layout: layoutMap
         };
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
@@ -2121,193 +2320,106 @@ var Circuit;
 (function (Circuit) {
     var Component;
     (function (Component) {
-        let Local;
-        (function (Local) {
-            class Instance extends Component.Instance {
-                constructor(values) {
-                    super(values);
-                    $(this.group.element).addClass("component " + this.name);
-                    this.voltage = values.voltage;
-                    this.joints = values.joints;
+        var _Resistor;
+        (function (_Resistor) {
+            var Classes;
+            (function (Classes) {
+                class Base extends Component.Instance {
+                    constructor(values) {
+                        super(values);
+                        this.joints = values.joints;
+                        this.resistance = values.resistance;
+                    }
+                    getProperties() {
+                        return Utility.deepCopy({
+                            name: this.name,
+                            resistance: this.resistance
+                        });
+                    }
+                    getState() {
+                        return Utility.deepCopy({
+                            joints: this.joints,
+                            disabled: this.disabled
+                        });
+                    }
+                    insertInto(element) {
+                        Utility.Insert.last(this.group.element, element);
+                    }
+                    transferFunction() { return []; }
+                    ;
                 }
-                getProperties() {
-                    return Utility.deepCopy({
-                        name: this.name,
-                        voltage: this.voltage
-                    });
+                class Schematic extends Base {
+                    draw() {
+                        this.group.prepend(_Resistor.drawSchematic(this));
+                    }
+                    getConnections() {
+                        return Component.Generics.getComponentConnections(this, Circuit.manifest.schematic);
+                    }
+                    makeConnectors() {
+                        this.connectorSets = [
+                            [Component.Generics.makeConnector(this, "", "node", this.joints[_Resistor.INDEXEND1]),
+                                Component.Generics.makeConnector(this, "", "node", this.joints[_Resistor.INDEXEND2]),]
+                        ];
+                    }
                 }
-                getState() {
-                    return Utility.deepCopy({
-                        joints: this.joints,
-                        disabled: this.disabled
-                    });
+                Classes.Schematic = Schematic;
+                class Layout extends Base {
+                    draw() {
+                        this.group.prepend(_Resistor.drawLayout(this));
+                    }
+                    getConnections() {
+                        return Component.Generics.getComponentConnections(this, Circuit.manifest.layout);
+                    }
+                    makeConnectors() {
+                        this.connectorSets = [
+                            [Component.Generics.makeConnector(this, "", "pin", this.joints[_Resistor.INDEXEND1]),
+                                Component.Generics.makeConnector(this, "", "pin", this.joints[_Resistor.INDEXEND2]),]
+                        ];
+                    }
                 }
-                draw() {
-                    this.group.prepend(Svg.Element.Group.Power.Schematic.make(this.voltage, this.joints[0]));
-                }
-                makeConnectors() {
-                    this.connectorSets = [
-                        [Component.Generics.makeConnector(this, "", "node", this.joints[0])]
-                    ];
-                }
-                transferFunction() { return []; }
-                ;
-            }
-            Local.Instance = Instance;
-            const defaults = {
-                joints: [{ x: 0, y: 0 }],
-                disabled: false,
-                name: "power",
-                voltage: 0
-            };
-            Local.defaulter = {
-                name: Component.ValueCheck.validate("string", "power"),
+                Classes.Layout = Layout;
+            })(Classes = _Resistor.Classes || (_Resistor.Classes = {}));
+        })(_Resistor = Component._Resistor || (Component._Resistor = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Resistor;
+        (function (_Resistor) {
+            const defaulterSchematic = {
+                name: Component.ValueCheck.validate("string", "resistor"),
                 disabled: Component.ValueCheck.validate("boolean", false),
-                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }]),
-                voltage: Component.ValueCheck.validate("number", defaults.voltage)
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
+                resistance: Component.ValueCheck.validate("number", 0)
             };
-            const deriveJoints = (voltage, where) => {
-                const baseJoints = (voltage < 0)
-                    ? [{ x: 0, y: -10 }]
-                    : (voltage > 0)
-                        ? [{ x: 0, y: 10 }]
-                        : [{ x: 0, y: -10 }];
-                return vector(baseJoints).sumWith(where).vectors;
-            };
-            Local.loadInstance = (raw) => {
-                const name = (raw.name);
-                const voltage = (raw.voltage || raw.value);
-                const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
-                const joints = (raw.joints || deriveJoints(voltage, where));
-                return Local.makeInstance({ name, voltage, joints, }, true);
-            };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
-                $(component.group.element).addClass("component " + component.name);
+            _Resistor.makeSchematic = Component.getMaker(_Resistor.Classes.Schematic, defaulterSchematic, (component) => {
                 Component.Addins.Selectable.init(component);
                 Component.Addins.ConnectionHighlights.init(component, false);
                 Component.Addins.Graphical.init(component);
                 if (Constants.schematicManipulationEnabled) {
                     Component.Addins.Draggable.init(component);
+                    Component.Addins.Extendable.init(component);
                 }
             });
-        })(Local || (Local = {}));
-        Component.PowerSchematic = {
-            Instance: Local.Instance,
-            makeInstance: Local.makeInstance,
-            loadInstance: Local.loadInstance
-        };
+        })(_Resistor = Component._Resistor || (Component._Resistor = {}));
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
 var Circuit;
 (function (Circuit) {
     var Component;
     (function (Component) {
-        let Local;
-        (function (Local) {
-            class Instance extends Component.Instance {
-                constructor(values) {
-                    super(values);
-                    $(this.group.element).addClass("component " + this.name);
-                    this.joints = values.joints;
-                    this.resistance = values.resistance;
-                }
-                getProperties() {
-                    return Utility.deepCopy({
-                        name: this.name,
-                        resistance: this.resistance
-                    });
-                }
-                getState() {
-                    return Utility.deepCopy({
-                        joints: this.joints,
-                        disabled: this.disabled
-                    });
-                }
-                draw() {
-                    const [start, end] = this.joints;
-                    this.group.prepend(Svg.Element.Group.Resistor.Layout.make(this.resistance, start, end, "body"));
-                }
-                makeConnectors() {
-                    this.connectorSets = [
-                        [Component.Generics.makeConnector(this, "", "pin", this.joints[0]),
-                            Component.Generics.makeConnector(this, "", "pin", this.joints[this.joints.length - 1]),]
-                    ];
-                }
-                transferFunction() { return []; }
-                ;
-            }
-            Local.Instance = Instance;
-            Local.defaulter = {
-                name: Component.ValueCheck.validate("string", "resistor"),
-                disabled: Component.ValueCheck.validate("boolean", false),
-                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
-                resistance: Component.ValueCheck.validate("number", 0)
-            };
-            Local.loadInstance = (raw) => {
+        var _Resistor;
+        (function (_Resistor) {
+            _Resistor.loadSchematic = (raw) => {
                 const name = (raw.name);
-                const resistance = (raw.resistance);
-                const joints = (raw.joints);
-                return Local.makeInstance({ name, resistance, joints }, true);
-            };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
-                $(component.group.element).addClass("component " + component.name);
-                Component.Addins.Graphical.init(component);
-                Component.Addins.Draggable.init(component);
-                Component.Addins.Selectable.init(component);
-                Component.Addins.Extendable.init(component);
-                Component.Addins.ConnectionHighlights.init(component);
-            });
-        })(Local || (Local = {}));
-        Component.ResistorLayout = {
-            Instance: Local.Instance,
-            makeInstance: Local.makeInstance,
-            loadInstance: Local.loadInstance
-        };
-    })(Component = Circuit.Component || (Circuit.Component = {}));
-})(Circuit || (Circuit = {}));
-var Circuit;
-(function (Circuit) {
-    var Component;
-    (function (Component) {
-        let Local;
-        (function (Local) {
-            class Instance extends Component.Instance {
-                constructor(values) {
-                    super(values);
-                    $(this.group.element).addClass("component " + this.name);
-                    this.joints = values.joints;
-                    this.resistance = values.resistance;
-                }
-                getProperties() {
-                    return Utility.deepCopy({
-                        name: this.name,
-                        resistance: this.resistance
-                    });
-                }
-                getState() {
-                    return Utility.deepCopy({
-                        joints: this.joints,
-                        disabled: this.disabled
-                    });
-                }
-                draw() {
-                    this.group.prepend(Svg.Element.Group.Resistor.Schematic.make(this.resistance, this.joints[0], this.joints[1], "body"));
-                }
-                makeConnectors() {
-                    this.connectorSets = [
-                        [Component.Generics.makeConnector(this, "", "node", this.joints[0]),
-                            Component.Generics.makeConnector(this, "", "node", this.joints[1]),]
-                    ];
-                }
-                transferFunction() { return []; }
-                ;
-            }
-            Local.Instance = Instance;
-            Local.defaulter = {
-                name: Component.ValueCheck.validate("string", "resistor"),
-                disabled: Component.ValueCheck.validate("boolean", false),
-                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
-                resistance: Component.ValueCheck.validate("number", 0)
+                const resistance = (raw.resistance || raw.value);
+                const orientations = ["LR", "RL", "UD", "DU"];
+                const orientation = Component.ValueCheck.validate(orientations, "LR")(raw.orientation, false);
+                const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
+                const joints = (raw.joints || deriveJoints(orientation, where));
+                return _Resistor.makeSchematic({ name, resistance, joints, }, true);
             };
             const deriveJoints = (orientation, where) => {
                 const baseJoints = ({
@@ -2318,30 +2430,67 @@ var Circuit;
                 })[orientation];
                 return vector(baseJoints).sumWith(where).vectors;
             };
-            Local.loadInstance = (raw) => {
-                const name = (raw.name);
-                const resistance = (raw.resistance || raw.value);
-                const orientations = ["LR", "RL", "UD", "DU"];
-                const orientation = Component.ValueCheck.validate(orientations, "LR")(raw.orientation, false);
-                const where = Component.ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
-                const joints = (raw.joints || deriveJoints(orientation, where));
-                return Local.makeInstance({ name, resistance, joints, }, true);
+        })(_Resistor = Component._Resistor || (Component._Resistor = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Resistor;
+        (function (_Resistor) {
+            const defaulterLayout = {
+                name: Component.ValueCheck.validate("string", "resistor"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
+                resistance: Component.ValueCheck.validate("number", 0)
             };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
-                $(component.group.element).addClass("component " + component.name);
-                Component.Addins.Selectable.init(component);
-                Component.Addins.ConnectionHighlights.init(component, false);
+            _Resistor.makeLayout = Component.getMaker(_Resistor.Classes.Layout, defaulterLayout, (component) => {
                 Component.Addins.Graphical.init(component);
-                if (Constants.schematicManipulationEnabled) {
-                    Component.Addins.Draggable.init(component);
-                    Component.Addins.Extendable.init(component);
-                }
+                Component.Addins.Draggable.init(component);
+                Component.Addins.Selectable.init(component);
+                Component.Addins.Extendable.init(component);
+                Component.Addins.ConnectionHighlights.init(component);
             });
-        })(Local || (Local = {}));
-        Component.ResistorSchematic = {
-            Instance: Local.Instance,
-            makeInstance: Local.makeInstance,
-            loadInstance: Local.loadInstance
+        })(_Resistor = Component._Resistor || (Component._Resistor = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Resistor;
+        (function (_Resistor) {
+            _Resistor.loadLayout = (raw) => {
+                const name = (raw.name);
+                const resistance = (raw.resistance);
+                const joints = (raw.joints);
+                return _Resistor.makeLayout({ name, resistance, joints }, true);
+            };
+        })(_Resistor = Component._Resistor || (Component._Resistor = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        const schematicMap = {
+            savename: "makeResistor",
+            instance: Component._Resistor.Classes.Schematic,
+            make: Component._Resistor.makeSchematic,
+            load: Component._Resistor.loadSchematic,
+        };
+        const layoutMap = {
+            savename: "makeLayoutResistor",
+            instance: Component._Resistor.Classes.Layout,
+            make: Component._Resistor.makeLayout,
+            load: Component._Resistor.loadLayout,
+        };
+        schematicMap.correspondsTo = layoutMap;
+        layoutMap.correspondsTo = schematicMap;
+        Component.resistor = {
+            schematic: schematicMap,
+            layout: layoutMap
         };
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
@@ -2349,80 +2498,74 @@ var Circuit;
 (function (Circuit) {
     var Component;
     (function (Component) {
-        let Local;
-        (function (Local) {
-            class Instance extends Component.Instance {
-                constructor(values) {
-                    super(values);
-                    this.tracks = [];
-                    this.connectorSets = [];
-                    this.rows = values.rows;
-                    this.columns = values.columns;
-                    this.trackBreaks = values.trackBreaks;
-                    this.joints = values.joints;
-                }
-                getProperties() {
-                    return Utility.deepCopy({
-                        name: this.name,
-                        rows: this.rows,
-                        columns: this.columns
-                    });
-                }
-                getState() {
-                    return Utility.deepCopy({
-                        joints: this.joints,
-                        disabled: this.disabled,
-                        trackBreaks: this.trackBreaks
-                    });
-                }
-                makeConnectors() {
-                    this.tracks.forEach(track => track.makeConnectors());
-                    this.tracks.forEach((track, trackIdx) => {
-                        let trackBreaks = this.trackBreaks.filter(trackBreak => trackBreak.track === trackIdx);
-                        track.connectorSets[0].forEach((hole, holeIdx) => {
-                            if (trackBreaks.some(trackBreak => trackBreak.hole === holeIdx)) {
-                                hole.type = "brokenhole";
-                            }
+        var _Stripboard;
+        (function (_Stripboard) {
+            var Classes;
+            (function (Classes) {
+                class Layout extends Component.Instance {
+                    constructor(values) {
+                        super(values);
+                        this.tracks = [];
+                        this.connectorSets = [];
+                        this.rows = values.rows;
+                        this.columns = values.columns;
+                        this.trackBreaks = values.trackBreaks;
+                        this.joints = values.joints;
+                    }
+                    getProperties() {
+                        return Utility.deepCopy({
+                            name: this.name,
+                            rows: this.rows,
+                            columns: this.columns
                         });
-                    });
+                    }
+                    getState() {
+                        return Utility.deepCopy({
+                            joints: this.joints,
+                            disabled: this.disabled,
+                            trackBreaks: this.trackBreaks
+                        });
+                    }
+                    makeConnectors() {
+                        this.tracks.forEach(track => track.makeConnectors());
+                        this.tracks.forEach((track, trackIdx) => {
+                            let trackBreaks = this.trackBreaks.filter(trackBreak => trackBreak.track === trackIdx);
+                            track.connectorSets[0].forEach((hole, holeIdx) => {
+                                if (trackBreaks.some(trackBreak => trackBreak.hole === holeIdx)) {
+                                    hole.type = "brokenhole";
+                                }
+                            });
+                        });
+                    }
+                    draw() {
+                        let rotation = vector(this.joints[0]).getAngleTo(this.joints[1]);
+                        this.tracks = _Stripboard.makeTracks(this);
+                        const gS = Constants.gridSpacing;
+                        const size = { width: (this.columns + 0.5) * gS, height: (this.rows + 0.5) * gS };
+                        const cornerRounding = { x: 3, y: 3 };
+                        this.group.append(Svg.Element.Rect.make(vector(0), size, cornerRounding, "body highlight").translate(this.joints[0]).rotate(rotation), this.tracks.map(t => t.group));
+                    }
+                    getConnections() {
+                        return Component.Generics.getComponentConnections(this, Circuit.manifest.layout);
+                    }
+                    insertInto(element) {
+                        Utility.Insert.first(this.group.element, element);
+                    }
+                    transferFunction() { return []; }
+                    ;
                 }
-                draw() {
-                    let rotation = vector(this.joints[0]).getAngleTo(this.joints[1]);
-                    this.tracks = makeTracks(this);
-                    const gS = Constants.gridSpacing;
-                    const size = { width: (this.columns + 0.5) * gS, height: (this.rows + 0.5) * gS };
-                    const cornerRounding = { x: 3, y: 3 };
-                    this.group.append(Svg.Element.Rect.make(vector(0), size, cornerRounding, "body highlight").translate(this.joints[0]).rotate(rotation), this.tracks.map(t => t.group));
-                }
-                insertInto(element) {
-                    Utility.Insert.first(this.group.element, element);
-                }
-                transferFunction() { return []; }
-                ;
-            }
-            Local.Instance = Instance;
-            const makeTracks = (parent) => {
-                let gS = Constants.gridSpacing;
-                let rotation = vector(parent.joints[0]).getAngleTo(parent.joints[1]);
-                let start = vector({
-                    x: -((parent.columns - 1) * gS / 2),
-                    y: -((parent.rows - 1) * gS / 2)
-                }).rotate(rotation).sumWith(parent.joints[0]);
-                let step = vector({ x: gS, y: 0 }).rotate(rotation);
-                let tracks = [];
-                for (let row = 0; row < parent.rows; row++) {
-                    let rowStart = start.sumWith(vector({ x: 0, y: row * gS }).rotate(rotation)).vector;
-                    let holeSpacings = [0].concat(Array(parent.columns - 1).fill(1));
-                    let track = Component.Addins.Board.Track.makeInstance({
-                        holeSpacings: holeSpacings,
-                        style: "stripboard",
-                        joints: [rowStart, step]
-                    }, false);
-                    tracks.push(track);
-                }
-                return tracks;
-            };
-            Local.defaulter = {
+                Classes.Layout = Layout;
+            })(Classes = _Stripboard.Classes || (_Stripboard.Classes = {}));
+        })(_Stripboard = Component._Stripboard || (Component._Stripboard = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Stripboard;
+        (function (_Stripboard) {
+            const defaulterLayout = {
                 name: Component.ValueCheck.validate("string", "stripboard"),
                 disabled: Component.ValueCheck.validate("boolean", false),
                 joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
@@ -2439,17 +2582,7 @@ var Circuit;
                 };
                 return result;
             }
-            Local.validateTrackBreaks = validateTrackBreaks;
-            Local.loadInstance = (raw) => {
-                const name = (raw.name);
-                const rows = (raw.rows);
-                const columns = (raw.columns);
-                const trackBreaks = (raw.trackBreaks);
-                const joints = (raw.joints);
-                return Local.makeInstance({ name, rows, columns, trackBreaks, joints }, true);
-            };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
-                $(component.group.element).addClass(component.name);
+            _Stripboard.makeLayout = Component.getMaker(_Stripboard.Classes.Layout, defaulterLayout, (component) => {
                 Component.Addins.Graphical.init(component);
                 Component.Addins.Board.init(component, true);
                 Component.Addins.Selectable.init(component);
@@ -2457,11 +2590,38 @@ var Circuit;
                 Component.Addins.Draggable.init(component);
                 Component.Addins.Rotatable.init(component);
             });
-        })(Local || (Local = {}));
-        Component.Stripboard = {
-            Instance: Local.Instance,
-            makeInstance: Local.makeInstance,
-            loadInstance: Local.loadInstance
+        })(_Stripboard = Component._Stripboard || (Component._Stripboard = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Stripboard;
+        (function (_Stripboard) {
+            _Stripboard.loadLayout = (raw) => {
+                const name = (raw.name);
+                const rows = (raw.rows);
+                const columns = (raw.columns);
+                const trackBreaks = (raw.trackBreaks);
+                const joints = (raw.joints);
+                return _Stripboard.makeLayout({ name, rows, columns, trackBreaks, joints }, true);
+            };
+        })(_Stripboard = Component._Stripboard || (Component._Stripboard = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        const layoutMap = {
+            savename: "makeLayoutStripboard",
+            instance: Component._Stripboard.Classes.Layout,
+            make: Component._Stripboard.makeLayout,
+            load: Component._Stripboard.loadLayout,
+        };
+        Component.stripboard = {
+            layout: layoutMap,
         };
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
@@ -2469,70 +2629,1048 @@ var Circuit;
 (function (Circuit) {
     var Component;
     (function (Component) {
-        let Local;
-        (function (Local) {
-            class Instance extends Component.Instance {
-                constructor(values) {
-                    super(values);
-                    $(this.group.element).addClass("component " + this.name);
-                    this.joints = values.joints;
-                    this.color = values.color;
+        var _Wire;
+        (function (_Wire) {
+            var Classes;
+            (function (Classes) {
+                class Base extends Component.Instance {
+                    getProperties() {
+                        return Utility.deepCopy({
+                            name: this.name
+                        });
+                    }
+                    transferFunction(from) {
+                        return Utility.flatten2d(this.connectorSets.map(connectorSet => connectorSet.filter(Utility.isNot(from))));
+                    }
                 }
-                getProperties() {
-                    return Utility.deepCopy({
-                        name: this.name
-                    });
+                class Schematic extends Base {
+                    constructor(values) {
+                        super(values);
+                        this.connectorSets = [];
+                        this.joints = values.joints;
+                    }
+                    getState() {
+                        return Utility.deepCopy({
+                            joints: this.joints,
+                            disabled: this.disabled
+                        });
+                    }
+                    draw() {
+                        this.group.prepend(_Wire.drawSchematic(this));
+                    }
+                    insertInto(element) {
+                        Utility.Insert.first(this.group.element, element);
+                    }
+                    makeConnectors() {
+                        const end1 = this.joints[0];
+                        const end2 = this.joints[this.joints.length - 1];
+                        this.connectorSets = [[
+                                Component.Generics.makeConnector(this, "", "node", end1),
+                                Component.Generics.makeConnector(this, "", "node", end2)
+                            ]
+                        ];
+                    }
+                    getConnections() {
+                        return Component.Generics.getComponentConnections(this, Circuit.manifest.schematic);
+                    }
                 }
-                getState() {
-                    return Utility.deepCopy({
-                        joints: this.joints,
-                        color: this.color,
-                        disabled: this.disabled
-                    });
+                Classes.Schematic = Schematic;
+                class Layout extends Base {
+                    constructor(values) {
+                        super(values);
+                        this.joints = values.joints;
+                        this.color = values.color;
+                    }
+                    getState() {
+                        return Utility.deepCopy({
+                            joints: this.joints,
+                            color: this.color,
+                            disabled: this.disabled
+                        });
+                    }
+                    draw() {
+                        this.group.prepend(_Wire.drawLayout(this));
+                    }
+                    insertInto(element) {
+                        Utility.Insert.last(this.group.element, element);
+                    }
+                    makeConnectors() {
+                        this.connectorSets = [[
+                                Component.Generics.makeConnector(this, "", "pin", this.joints[0]),
+                                Component.Generics.makeConnector(this, "", "pin", this.joints[this.joints.length - 1]),
+                            ]
+                        ];
+                    }
+                    getConnections() {
+                        return Component.Generics.getComponentConnections(this, Circuit.manifest.layout);
+                    }
                 }
-                draw() {
-                    let coverPath, leadPath = "";
-                    let coverRatio = 0.6;
-                    let joints = this.joints;
-                    coverPath = leadPath = "M " + joints[0].x + " " + this.joints[0].y;
-                    coverPath += getSegmentTowardsJointMid(joints[0], joints[1], -coverRatio);
-                    leadPath += getSegmentTowardsJointMid(joints[0], joints[1], 1);
-                    let pathMid = getBezierBetweenJoints(joints);
-                    coverPath += pathMid;
-                    leadPath += pathMid;
-                    coverPath += getSegmentTowardsJointMid(joints[joints.length - 2], joints[joints.length - 1], coverRatio);
-                    leadPath += getSegmentTowardsJointMid(joints[joints.length - 2], joints[joints.length - 1], 1);
-                    let cover = Svg.Element.Path.make(coverPath, "cover");
-                    this.group.prepend([
-                        Svg.Element.Path.make(leadPath, "lead"),
-                        Svg.Element.Path.make(coverPath, "leadhighlight highlight"),
-                        cover,
-                    ]);
-                    $(cover.element).css("stroke", this.color);
+                Classes.Layout = Layout;
+            })(Classes = _Wire.Classes || (_Wire.Classes = {}));
+        })(_Wire = Component._Wire || (Component._Wire = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Wire;
+        (function (_Wire) {
+            const defaulterSchematic = {
+                name: Component.ValueCheck.validate("string", "wire"),
+                disabled: Component.ValueCheck.validate("boolean", false),
+                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 10, y: 10 }], l => l >= 2)
+            };
+            _Wire.makeSchematic = Component.getMaker(_Wire.Classes.Schematic, defaulterSchematic, (component) => {
+                Component.Addins.Junctions.init(component);
+                Component.Addins.Selectable.init(component);
+                Component.Addins.Graphical.init(component);
+                if (Constants.schematicManipulationEnabled) {
+                    Component.Addins.Draggable.init(component);
+                    Component.Addins.Extendable.init(component, true, true);
                 }
-                makeConnectors() {
-                    this.connectorSets = [
-                        [Component.Generics.makeConnector(this, "", "pin", this.joints[0]),
-                            Component.Generics.makeConnector(this, "", "pin", this.joints[this.joints.length - 1]),]
-                    ];
-                }
-                transferFunction(from) {
-                    return Utility.flatten2d(this.connectorSets.map(connectorSet => connectorSet.filter(Utility.isNot(from))));
-                }
-            }
-            Local.Instance = Instance;
-            Local.defaulter = {
+            });
+        })(_Wire = Component._Wire || (Component._Wire = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Wire;
+        (function (_Wire) {
+            _Wire.loadSchematic = (raw) => {
+                const name = (raw.name);
+                const joints = (raw.joints);
+                return _Wire.makeSchematic({ name, joints, }, true);
+            };
+        })(_Wire = Component._Wire || (Component._Wire = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Wire;
+        (function (_Wire) {
+            const defaulterLayout = {
                 name: Component.ValueCheck.validate("string", "wire"),
                 disabled: Component.ValueCheck.validate("boolean", false),
                 joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 80, y: 0 }], l => l >= 2),
                 color: Component.ValueCheck.color("#545454")
             };
-            Local.loadInstance = (raw) => {
+            _Wire.makeLayout = Component.getMaker(_Wire.Classes.Layout, defaulterLayout, (component) => {
+                Component.Addins.Graphical.init(component);
+                Component.Addins.Draggable.init(component);
+                Component.Addins.Selectable.init(component);
+                Component.Addins.Extendable.init(component, true, true, true);
+                Component.Addins.ConnectionHighlights.init(component);
+                Component.Addins.Recolorable.init(component, () => getRecolorPosition(component));
+            });
+            function getRecolorPosition(component) {
+                const angle = vector(component.joints[0]).getAngleTo(component.joints[1]);
+                const offset = Utility.Polar.toVector(12, angle + 45);
+                return vector(component.joints[0]).sumWith(offset).vector;
+            }
+        })(_Wire = Component._Wire || (Component._Wire = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Wire;
+        (function (_Wire) {
+            _Wire.loadLayout = (raw) => {
                 const name = (raw.name);
                 const color = (raw.color || raw.colour);
                 const joints = (raw.joints);
-                return Local.makeInstance({ name, color, joints }, true);
+                return _Wire.makeLayout({ name, color, joints }, true);
             };
+        })(_Wire = Component._Wire || (Component._Wire = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        const schematicMap = {
+            savename: "makeWire",
+            instance: Component._Wire.Classes.Schematic,
+            make: Component._Wire.makeSchematic,
+            load: Component._Wire.loadSchematic
+        };
+        const layoutMap = {
+            savename: "makeLayoutWire",
+            instance: Component._Wire.Classes.Layout,
+            make: Component._Wire.makeLayout,
+            load: Component._Wire.loadLayout
+        };
+        Component.wire = {
+            schematic: schematicMap,
+            layout: layoutMap
+        };
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Bipolar;
+        (function (_Bipolar) {
+            function drawLayout(instance) {
+                const bodyGroup = Svg.Element.Group.make("body");
+                const emitterEnd = instance.joints[_Bipolar.INDEXEMITTER];
+                const collectorEnd = instance.joints[_Bipolar.INDEXCOLLECTOR];
+                const baseEnd = instance.joints[_Bipolar.INDEXBASE];
+                const centre = vector(emitterEnd, collectorEnd, baseEnd).centre().vector;
+                const rotation = vector(emitterEnd).getAngleTo(baseEnd);
+                const [emitterStart, collectorStart, baseStart] = vector({ x: -12, y: 3 }, { x: 0, y: 3 }, { x: 12, y: 3 }).rotate(rotation).sumWith(centre).vectors;
+                const joints = [
+                    [emitterStart, emitterEnd],
+                    [collectorStart, collectorEnd],
+                    [baseStart, baseEnd],
+                ];
+                const semiCircleString = "M " + (16) + " " + (4) +
+                    "a " + (1) + " " + (1) + " " + (0) + " " + (0) + " " + (0) + " " + (-32) + " " + (0) +
+                    "v " + (3) +
+                    "h " + (32) +
+                    "v " + (-3) +
+                    "Z";
+                bodyGroup.append(Svg.Element.Path.make(semiCircleString, "body highlight"), Svg.Element.Text.make(instance.type, { x: 0, y: 4 }, "text"));
+                return [
+                    Svg.Element.Path.make(joints, "lead"),
+                    bodyGroup.translate(centre).rotate(rotation)
+                ];
+            }
+            _Bipolar.drawLayout = drawLayout;
+        })(_Bipolar = Component._Bipolar || (Component._Bipolar = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Bipolar;
+        (function (_Bipolar) {
+            function drawSchematic(instance) {
+                const bodyGroup = Svg.Element.Group.make("body");
+                const emitterEnd = instance.joints[_Bipolar.INDEXEMITTER];
+                const collectorEnd = instance.joints[_Bipolar.INDEXCOLLECTOR];
+                const baseEnd = instance.joints[_Bipolar.INDEXBASE];
+                const arrowJoints = (instance.type === "PNP")
+                    ? [{ x: 15, y: -18 }, { x: 9, y: -7.5 }, { x: 24, y: -5.5 }, { x: 15, y: -18 }]
+                    : [{ x: 9, y: -7.5 }, { x: 15, y: -18 }, { x: 0, y: -20 }, { x: 9, y: -7.5 }];
+                bodyGroup.append(Svg.Element.Circle.make({ x: 10, y: 0 }, 30, "extrathick highlight"), Svg.Element.Line.make({ x: 25, y: -15 }, { x: 25, y: +15 }, "line medium-thick nocap"), Svg.Element.Line.make({ x: 25, y: -5 }, { x: 0, y: -20 }, "line thin"), Svg.Element.Line.make({ x: 25, y: 5 }, { x: 0, y: 20 }, "line thin"), Svg.Element.Line.make({ x: 25, y: 0 }, { x: 40, y: 0 }, "line thin"), Svg.Element.Line.make({ x: 0, y: -20 }, { x: 0, y: -28 }, "line thin"), Svg.Element.Line.make({ x: 0, y: 20 }, { x: 0, y: 28 }, "line thin"), Svg.Element.Path.make(arrowJoints, "body black thin"), Svg.Element.Circle.make({ x: 10, y: 0 }, 30, "line medium nofill"));
+                const centre = vector(emitterEnd, collectorEnd).centre().vector;
+                const angleCentreBase = vector(centre).getAngleTo(baseEnd);
+                const angleEmitterCollector = vector(emitterEnd).getAngleTo(collectorEnd);
+                const rotation = angleEmitterCollector - 90;
+                const scale = (((angleEmitterCollector - angleCentreBase + 360) % 360) > 180)
+                    ? { x: -1 }
+                    : { x: 1 };
+                const [emitterStart, collectorStart, baseStart] = vector({ x: 0, y: -28 }, { x: 0, y: 28 }, { x: 40, y: 0 }).scaleWith(scale).rotate(rotation).sumWith(centre).vectors;
+                const joints = [
+                    [emitterStart, emitterEnd],
+                    [collectorStart, collectorEnd],
+                    [baseStart, baseEnd],
+                ];
+                const text = Utility.getStandardForm(instance.currentGain, '');
+                const textEl = Svg.Element.Text.make(text, vector({ x: -40, y: 0 }).scaleWith(scale), "text");
+                return [
+                    bodyGroup.translate(centre).rotate(rotation).scale(scale, false),
+                    Svg.Element.Path.make(joints, "line thin"),
+                    textEl.translate(centre).rotatePosition(rotation),
+                ];
+            }
+            _Bipolar.drawSchematic = drawSchematic;
+        })(_Bipolar = Component._Bipolar || (Component._Bipolar = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Bipolar;
+        (function (_Bipolar) {
+            _Bipolar.INDEXEMITTER = 0;
+            _Bipolar.INDEXCOLLECTOR = 1;
+            _Bipolar.INDEXBASE = 2;
+        })(_Bipolar = Component._Bipolar || (Component._Bipolar = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Breadboard;
+        (function (_Breadboard) {
+            function drawLarge(instance) {
+                const bodyGroup = Svg.Element.Group.make("body");
+                const centre = instance.joints[_Breadboard.INDEXCENTRE];
+                const rotationPoint = instance.joints[_Breadboard.INDEXROTATION];
+                let rotation = vector(centre).getAngleTo(rotationPoint);
+                const gS = Constants.gridSpacing;
+                const railPairPathString = [
+                    "M" + (gS * -29.7) + " " + (gS * -10.5),
+                    "H" + (gS * -1),
+                    "M" + (gS * +29.7) + " " + (gS * -10.5),
+                    "H" + (gS * 1),
+                    "M" + (gS * -29.7) + " " + (gS * 7.5),
+                    "H" + (gS * -1),
+                    "M" + (gS * +29.7) + " " + (gS * 7.5),
+                    "H" + (gS * 1)
+                ].join();
+                const plus = "m-5 0 h10 m-5 -5 v10 m0 -5";
+                const plussesPathString = [
+                    "M" + (gS * -30.5) + " " + (gS * -10),
+                    "M" + (gS * 30.5) + " " + (gS * -10),
+                    "M" + (gS * -30.5) + " " + (gS * 8),
+                    "M" + (gS * 30.5) + " " + (gS * 8),
+                    ""
+                ].join(plus);
+                const minus = "m0 -5 v10 m0 -5";
+                const minusesPathString = [
+                    "M" + (gS * -30.5) + " " + (gS * -11),
+                    "M" + (gS * 30.5) + " " + (gS * -11),
+                    "M" + (gS * -30.5) + " " + (gS * 7),
+                    "M" + (gS * 30.5) + " " + (gS * 7),
+                    ""
+                ].join(minus);
+                const size = {
+                    width: 67 * gS,
+                    height: 22 * gS
+                };
+                bodyGroup.append([
+                    Svg.Element.Rect.make({ x: 0, y: 0 }, size, { x: 4, y: 4 }, "body"),
+                    Svg.Element.Rect.make({ x: 0, y: 0 }, { width: size.width, height: gS * 0.75, }, { x: 0, y: 0 }, "rut"),
+                    Svg.Element.Rect.make({ x: 0, y: 0 }, size, { x: 4, y: 4 }, "body highlight"),
+                    Svg.Element.Path.make(railPairPathString + plussesPathString, "rail positive"),
+                    Svg.Element.Path.make(railPairPathString + minusesPathString, "rail negative").translate({ x: 0, y: gS * 3 }),
+                    Svg.Element.Group.TextSequence.make({ x: 31.5 * gS - gS / 6, y: -6.5 * gS }, { x: 0, y: gS }, { start: 1, length: 64 }).rotate(90),
+                    Svg.Element.Group.TextSequence.make({ x: 31.5 * gS - gS / 6, y: 6.5 * gS }, { x: 0, y: gS }, { start: 1, length: 64 }).rotate(90),
+                    Svg.Element.Group.TextSequence.make({ x: 32.5 * gS - gS / 4, y: -5.5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90),
+                    Svg.Element.Group.TextSequence.make({ x: -32.5 * gS, y: -5.5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90),
+                    Svg.Element.Group.TextSequence.make({ x: 32.5 * gS - gS / 4, y: 5.5 * gS }, { x: -gS, y: 0 }, "jihgf").rotate(90),
+                    Svg.Element.Group.TextSequence.make({ x: -32.5 * gS, y: 5.5 * gS }, { x: -gS, y: 0 }, "jihgf").rotate(90),
+                ]);
+                return [
+                    bodyGroup.translate(centre).rotate(rotation)
+                ];
+            }
+            _Breadboard.drawLarge = drawLarge;
+        })(_Breadboard = Component._Breadboard || (Component._Breadboard = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Breadboard;
+        (function (_Breadboard) {
+            function drawSmall(instance) {
+                const bodyGroup = Svg.Element.Group.make("body");
+                const centre = instance.joints[_Breadboard.INDEXCENTRE];
+                const rotationPoint = instance.joints[_Breadboard.INDEXROTATION];
+                let rotation = vector(centre).getAngleTo(rotationPoint);
+                const gS = Constants.gridSpacing;
+                const railPairPathString = [
+                    "M" + (gS * -14.2) + " " + (gS * -10.5),
+                    "H" + (gS * 14.2),
+                    "M" + (gS * -14.2) + " " + (gS * 7.5),
+                    "H" + (gS * 14.2)
+                ].join();
+                const plus = "m-5 0 h10 m-5 -5 v10 m0 -5";
+                const plussesPathString = [
+                    "M" + (gS * -15) + " " + (gS * -10),
+                    "M" + (gS * 15) + " " + (gS * -10),
+                    "M" + (gS * -15) + " " + (gS * 8),
+                    "M" + (gS * 15) + " " + (gS * 8),
+                    ""
+                ].join(plus);
+                const minus = "m0 -5 v10 m0 -5";
+                const minusesPathString = [
+                    "M" + (gS * -15) + " " + (gS * -11),
+                    "M" + (gS * 15) + " " + (gS * -11),
+                    "M" + (gS * -15) + " " + (gS * 7),
+                    "M" + (gS * 15) + " " + (gS * 7),
+                    ""
+                ].join(minus);
+                const size = {
+                    width: 32 * gS,
+                    height: 22 * gS
+                };
+                bodyGroup.append([
+                    Svg.Element.Rect.make({ x: 0, y: 0 }, size, { x: 4, y: 4 }, "body"),
+                    Svg.Element.Rect.make({ x: 0, y: 0 }, { width: size.width, height: gS * 0.75, }, { x: 0, y: 0 }, "rut"),
+                    Svg.Element.Rect.make({ x: 0, y: 0 }, size, { x: 4, y: 4 }, "body highlight"),
+                    Svg.Element.Path.make(railPairPathString + plussesPathString, "rail positive"),
+                    Svg.Element.Path.make(railPairPathString + minusesPathString, "rail negative").translate({ x: 0, y: gS * 3 }),
+                    Svg.Element.Group.TextSequence.make({ x: 14.5 * gS - gS / 6, y: -6.5 * gS }, { x: 0, y: gS }, { start: 1, length: 30 }).rotate(90),
+                    Svg.Element.Group.TextSequence.make({ x: 14.5 * gS - gS / 6, y: 6.5 * gS }, { x: 0, y: gS }, { start: 1, length: 30 }).rotate(90),
+                    Svg.Element.Group.TextSequence.make({ x: 15.5 * gS - gS / 4, y: -5.5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90),
+                    Svg.Element.Group.TextSequence.make({ x: -15.5 * gS, y: -5.5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90),
+                    Svg.Element.Group.TextSequence.make({ x: 15.5 * gS - gS / 4, y: 5.5 * gS }, { x: -gS, y: 0 }, "jihgf").rotate(90),
+                    Svg.Element.Group.TextSequence.make({ x: -15.5 * gS, y: 5.5 * gS }, { x: -gS, y: 0 }, "jihgf").rotate(90),
+                ]);
+                return [
+                    bodyGroup.translate(centre).rotate(rotation)
+                ];
+            }
+            _Breadboard.drawSmall = drawSmall;
+        })(_Breadboard = Component._Breadboard || (Component._Breadboard = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Breadboard;
+        (function (_Breadboard) {
+            function makeTracks(parent, size) {
+                return (size === "small") ? makeTracksSmall(parent) : makeTracksLarge(parent);
+            }
+            _Breadboard.makeTracks = makeTracks;
+            function makeTracksSmall(parent) {
+                let tracks = [];
+                let gS = Constants.gridSpacing;
+                let rotation = vector(parent.joints[0]).getAngleTo(parent.joints[1]);
+                let powerTrackYPositions = [-9.5, -8.5, 8.5, 9.5];
+                for (let y of powerTrackYPositions) {
+                    const start = vector({ x: gS * -14, y: y * gS })
+                        .rotate(rotation)
+                        .sumWith(parent.joints[0]);
+                    const step = vector({ x: gS, y: 0 }).rotate(rotation);
+                    let track = Component.Addins.Board.Track.make({
+                        holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1],
+                        joints: [start, step]
+                    }, false);
+                    tracks.push(track);
+                }
+                let mainGridTrackXPositions = [...Array(30).keys()];
+                let mainGridTrackYPositions = [-5.5, +1.5];
+                for (let x of mainGridTrackXPositions) {
+                    for (let y of mainGridTrackYPositions) {
+                        const start = vector({ x: (x - 14.5) * gS, y: y * gS })
+                            .rotate(rotation)
+                            .sumWith(parent.joints[0]);
+                        const step = vector({ x: 0, y: gS }).rotate(rotation);
+                        let track = Component.Addins.Board.Track.make({
+                            holeSpacings: [0, 1, 1, 1, 1],
+                            joints: [start, step]
+                        });
+                        tracks.push(track);
+                    }
+                }
+                return tracks;
+            }
+            function makeTracksLarge(parent) {
+                let tracks = [];
+                let gS = Constants.gridSpacing;
+                let rotation = vector(parent.joints[0]).getAngleTo(parent.joints[1]);
+                let powerTrackYPositions = [-9.5, -8.5, 8.5, 9.5];
+                let powerTrackXPositions = [-29.5, 1.5];
+                for (let x of powerTrackXPositions) {
+                    for (let y of powerTrackYPositions) {
+                        const start = vector({ x: x * gS, y: y * gS })
+                            .rotate(rotation)
+                            .sumWith(parent.joints[0]);
+                        const step = vector({ x: gS, y: 0 }).rotate(rotation);
+                        let track = Component.Addins.Board.Track.make({
+                            holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1],
+                            joints: [start, step]
+                        }, false);
+                        tracks.push(track);
+                    }
+                }
+                let mainGridTrackXPositions = [...Array(64).keys()];
+                let mainGridTrackYPositions = [-5.5, +1.5];
+                for (let x of mainGridTrackXPositions) {
+                    for (let y of mainGridTrackYPositions) {
+                        const start = vector({ x: (x - 31.5) * gS, y: y * gS })
+                            .rotate(rotation)
+                            .sumWith(parent.joints[0]);
+                        const step = vector({ x: 0, y: gS }).rotate(rotation);
+                        let track = Component.Addins.Board.Track.make({
+                            holeSpacings: [0, 1, 1, 1, 1],
+                            joints: [start, step]
+                        }, false);
+                        tracks.push(track);
+                    }
+                }
+                return tracks;
+            }
+        })(_Breadboard = Component._Breadboard || (Component._Breadboard = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Breadboard;
+        (function (_Breadboard) {
+            _Breadboard.INDEXCENTRE = 0;
+            _Breadboard.INDEXROTATION = 1;
+        })(_Breadboard = Component._Breadboard || (Component._Breadboard = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Capacitor;
+        (function (_Capacitor) {
+            function drawLayout(instance) {
+                const bodyGroup = Svg.Element.Group.make("body");
+                const cathodeEnd = instance.joints[_Capacitor.INDEXCATHODE];
+                const anodeEnd = instance.joints[_Capacitor.INDEXANODE];
+                const centre = vector(cathodeEnd, anodeEnd).centre().vector;
+                const rotation = vector(cathodeEnd).getAngleTo(anodeEnd);
+                const text = Utility.getStandardForm(instance.capacitance, 'F');
+                if (instance.isPolarised) {
+                    $(bodyGroup.element).addClass("electrolytic");
+                    const bodyArcEndPoint = 14 / Math.SQRT2;
+                    const textArcEndPoint = 12.5 / Math.SQRT2;
+                    const bodyPathString = "m14 0 A14 14 0 1 0 " + (bodyArcEndPoint) + " " + (bodyArcEndPoint);
+                    const minusPathString = "m14 0 A14 14 0 0 1 " + (bodyArcEndPoint) + " " + (bodyArcEndPoint);
+                    const pathForTextString = "m" + (textArcEndPoint) + " " + (textArcEndPoint) + "A12.5 12.5 0 1 1 12.5 0";
+                    bodyGroup.append(Svg.Element.Circle.make({ x: 0, y: 0 }, 16, "highlight nofill"), Svg.Element.Path.make(bodyPathString, "body").rotate(157.5), Svg.Element.Path.make(minusPathString, "minus").rotate(157.5), Svg.Element.Text.make(text, { x: 1, y: 0 }, "text").followPath(pathForTextString).rotate(157.5));
+                }
+                else {
+                    $(bodyGroup.element).addClass("ceramic");
+                    bodyGroup.append(Svg.Element.Ellipse.make({ x: 0, y: 0 }, { x: 16, y: 8 }, "body highlight nofill"), Svg.Element.Text.make(text, { x: 0, y: 0 }, "text"));
+                }
+                return [
+                    Svg.Element.Path.make([cathodeEnd, anodeEnd], "lead"),
+                    bodyGroup.translate(centre).rotate(rotation)
+                ];
+            }
+            _Capacitor.drawLayout = drawLayout;
+        })(_Capacitor = Component._Capacitor || (Component._Capacitor = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Capacitor;
+        (function (_Capacitor) {
+            function drawSchematic(instance) {
+                const bodyGroup = Svg.Element.Group.make("body");
+                const cathodeEnd = instance.joints[_Capacitor.INDEXCATHODE];
+                const anodeEnd = instance.joints[_Capacitor.INDEXANODE];
+                let centre = vector(cathodeEnd, anodeEnd).centre().vector;
+                let rotation = vector(cathodeEnd).getAngleTo(anodeEnd);
+                let [cathodeStart, anodeStart] = vector({ x: -6, y: 0 }, { x: 6, y: 0 }).rotate(rotation).sumWith(centre).vectors;
+                let text = Utility.getStandardForm(instance.capacitance, 'F');
+                bodyGroup.append(Svg.Element.Rect.make(vector(0), { width: 15, height: 30 }, vector(2), "highlight highlightwithfill extrathick"), Svg.Element.Line.make({ x: -4, y: -15 }, { x: -4, y: +15 }, "line thick nocap"), Svg.Element.Line.make({ x: +4, y: -15 }, { x: +4, y: +15 }, "line thick nocap"));
+                if (instance.isPolarised) {
+                    bodyGroup.append(Svg.Element.Path.make([
+                        [{ x: +15, y: -10 }, { x: +7, y: -10 }],
+                        [{ x: +11, y: -6 }, { x: +11, y: -14 }]
+                    ], "line thin"));
+                }
+                return [
+                    Svg.Element.Path.make([[cathodeStart, cathodeEnd], [anodeStart, anodeEnd]], "line thin"),
+                    bodyGroup.translate(centre).rotate(rotation),
+                    Svg.Element.Text.make(text, { x: 0, y: -20 }, "text").translate(centre).rotatePosition(rotation)
+                ];
+            }
+            _Capacitor.drawSchematic = drawSchematic;
+        })(_Capacitor = Component._Capacitor || (Component._Capacitor = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Capacitor;
+        (function (_Capacitor) {
+            _Capacitor.INDEXCATHODE = 0;
+            _Capacitor.INDEXANODE = 1;
+        })(_Capacitor = Component._Capacitor || (Component._Capacitor = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Diode;
+        (function (_Diode) {
+            function drawLayout(instance) {
+                const bodyGroup = Svg.Element.Group.make("body");
+                const cathodeEnd = instance.joints[_Diode.INDEXCATHODE];
+                const anodeEnd = instance.joints[_Diode.INDEXANODE];
+                const centre = vector(cathodeEnd, anodeEnd).centre().vector;
+                const rotation = vector(cathodeEnd).getAngleTo(anodeEnd);
+                if (instance.color === "N/A") {
+                    bodyGroup.append(Svg.Element.Rect.make({ x: -5.5, y: 0 }, { width: 29, height: 15 }, { x: 0, y: 0 }, "body"), Svg.Element.Rect.make({ x: 17.5, y: 0 }, { width: 5, height: 15 }, { x: 0, y: 0 }, "body"), Svg.Element.Rect.make({ x: 12, y: 0 }, { width: 6, height: 15 }, { x: 0, y: 0 }, "cathode"), Svg.Element.Rect.make({ x: 0, y: 0 }, { width: 40, height: 15 }, { x: 1, y: 1 }, "highlight nofill"));
+                }
+                else {
+                    $(bodyGroup.element).addClass("led");
+                    const bodyString = "M " + (10) + " " + (15) +
+                        "a " + (18) + " " + (18) + " " + (0) + " " + (1) + " " + (0) + " " + (-20) + " " + (0) +
+                        "Z";
+                    const highlightString = "M " + (10) + " " + (16) +
+                        "a " + (18.8) + " " + (18.8) + " " + (0) + " " + (1) + " " + (0) + " " + (-20) + " " + (0) +
+                        "Z";
+                    const edge = Svg.Element.Path.make(bodyString, "edge");
+                    const middle = Svg.Element.Circle.make({ x: 0, y: 0 }, 14, "centre");
+                    $([edge.element, middle.element]).css("fill", instance.color);
+                    bodyGroup.append(edge, Svg.Element.Path.make(bodyString, "darkener"), middle, Svg.Element.Circle.make({ x: 0, y: 0 }, 8, "lightener"), Svg.Element.Path.make(highlightString, "nofill highlight")).rotate(-90);
+                }
+                return [
+                    Svg.Element.Path.make([cathodeEnd, anodeEnd], "lead"),
+                    bodyGroup.translate(centre).rotate(rotation)
+                ];
+            }
+            _Diode.drawLayout = drawLayout;
+        })(_Diode = Component._Diode || (Component._Diode = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Diode;
+        (function (_Diode) {
+            function drawSchematic(instance) {
+                const bodyGroup = Svg.Element.Group.make("body");
+                const cathodeEnd = instance.joints[_Diode.INDEXCATHODE];
+                const anodeEnd = instance.joints[_Diode.INDEXANODE];
+                const centre = vector(cathodeEnd, anodeEnd).centre().vector;
+                const rotation = vector(cathodeEnd).getAngleTo(anodeEnd);
+                let [cathodeStart, anodeStart] = vector({ x: -12, y: 0 }, { x: 12, y: 0 }).rotate(rotation).sumWith(centre).vectors;
+                let text = (instance.breakdownVoltage < 51)
+                    ? Utility.getStandardForm(instance.breakdownVoltage, 'V')
+                    : Utility.getStandardForm(instance.saturationCurrent, 'A');
+                const bodyPath = 'M 12 0 L -12 12 L -12 -12 L 12 0 Z';
+                bodyGroup.append(Svg.Element.Path.make(bodyPath, "body highlight highlightwithfill extrathick"), Svg.Element.Path.make(bodyPath, "body black"));
+                if (instance.color === "N/A") {
+                    if (instance.breakdownVoltage < 51) {
+                        bodyGroup.append(Svg.Element.Path.make('M 18 -12 L 12 -12 L 12 12 L 6 12', "line medium"));
+                    }
+                    else {
+                        bodyGroup.append(Svg.Element.Path.make('M 12 -12 L 12 12', "line medium"));
+                    }
+                }
+                else {
+                    const arrowJointsBase = vector([{ x: 0, y: 3 }, { x: -4, y: 0 }, { x: 0, y: -3 }, { x: -4, y: 0 }, { x: 8, y: 0 }]);
+                    const arrowJoints1 = arrowJointsBase.sumWith({ x: -16, y: -10 }).rotate(-116.43).vectors;
+                    const arrowJoints2 = arrowJointsBase.sumWith({ x: -16, y: 0 }).rotate(-116.43).vectors;
+                    const colorCircle = Svg.Element.Circle.make({ x: -4, y: 0 }, 4, "line thin");
+                    $(colorCircle.element).css("fill", instance.color);
+                    $(colorCircle.element).css("stroke", instance.color);
+                    bodyGroup.append(Svg.Element.Path.make(arrowJoints1, "line black thin"), Svg.Element.Path.make(arrowJoints2, "line black thin"), colorCircle);
+                }
+                const textEl = Svg.Element.Text.make(text, { x: 0, y: -15 }, "text");
+                return [
+                    Svg.Element.Path.make([[cathodeStart, cathodeEnd], [anodeStart, anodeEnd]], "line thin"),
+                    bodyGroup.translate(centre).rotate(rotation),
+                    textEl.translate(centre).rotatePosition(rotation),
+                ];
+            }
+            _Diode.drawSchematic = drawSchematic;
+        })(_Diode = Component._Diode || (Component._Diode = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Diode;
+        (function (_Diode) {
+            _Diode.INDEXCATHODE = 0;
+            _Diode.INDEXANODE = 1;
+        })(_Diode = Component._Diode || (Component._Diode = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Inductor;
+        (function (_Inductor) {
+            function drawLayout(instance) {
+                const bodyGroup = Svg.Element.Group.make("body");
+                const end1 = instance.joints[_Inductor.INDEXEND1];
+                const end2 = instance.joints[_Inductor.INDEXEND2];
+                let centre = vector(end1, end2).centre().vector;
+                let rotation = vector(end1).getAngleTo(end2);
+                const nCoils = 4;
+                const wireWidth = 8;
+                const coilTop = -15;
+                const coilBottom = 15;
+                const coilStart = (-(nCoils * wireWidth) / 2 + wireWidth / 4);
+                let bodyPath = "M" + (coilStart) + " " + (coilBottom);
+                let bodyEdgePath = "";
+                for (let i = 1; i < nCoils; i++) {
+                    let x0 = coilStart + wireWidth * (i - 0.5);
+                    let x1 = coilStart + wireWidth * (i);
+                    bodyPath += "L" + (x0) + " " + (coilTop) + "L" + (x1) + " " + (coilBottom);
+                    bodyEdgePath += "M" + (x0) + " " + (coilBottom) + "L" + (x1) + " " + (coilTop);
+                }
+                bodyPath += "L" + (-coilStart) + " " + (coilTop);
+                bodyGroup.append(Svg.Element.Path.make(bodyPath, "highlight highlightwithfill"), Svg.Element.Path.make(bodyPath, "body"), Svg.Element.Path.make(bodyEdgePath, "bodyEdge"));
+                return [
+                    Svg.Element.Path.make([end1, end2], "lead"),
+                    bodyGroup.translate(centre).rotate(rotation)
+                ];
+            }
+            _Inductor.drawLayout = drawLayout;
+        })(_Inductor = Component._Inductor || (Component._Inductor = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Inductor;
+        (function (_Inductor) {
+            function drawSchematic(instance) {
+                const bodyGroup = Svg.Element.Group.make("body");
+                const end1 = instance.joints[_Inductor.INDEXEND1];
+                const end2 = instance.joints[_Inductor.INDEXEND2];
+                let centre = vector(end1, end2).centre().vector;
+                let rotation = vector(end1).getAngleTo(end2);
+                let [start1, start2] = vector({ x: -20, y: 0 }, { x: 20, y: 0 }).rotate(rotation).sumWith(centre).vectors;
+                let text = Utility.getStandardForm(instance.inductance, 'H');
+                bodyGroup.append(Svg.Element.Rect.make({ x: 0, y: -2 }, { width: 40, height: 12 }, vector(2), "highlight highlightwithfill extrathick"), Svg.Element.Path.make('M-20 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0', "line medium"));
+                let textEl = Svg.Element.Text.make(text, { x: 0, y: -13 }, "text");
+                return [
+                    Svg.Element.Path.make([[start1, end1], [start2, end2]], "line thin"),
+                    bodyGroup.translate(centre).rotate(rotation),
+                    textEl.translate(centre).rotatePosition(rotation),
+                ];
+            }
+            _Inductor.drawSchematic = drawSchematic;
+        })(_Inductor = Component._Inductor || (Component._Inductor = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Inductor;
+        (function (_Inductor) {
+            _Inductor.INDEXEND1 = 0;
+            _Inductor.INDEXEND2 = 1;
+        })(_Inductor = Component._Inductor || (Component._Inductor = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _OpAmp;
+        (function (_OpAmp) {
+            function drawLayout(instance) {
+                const centre = instance.joints[_OpAmp.INDEXCENTRE];
+                const rotationPoint = instance.joints[_OpAmp.INDEXROTATION];
+                const rotation = vector(centre).getAngleTo(rotationPoint);
+                if (instance.isDual) {
+                    return Svg.Element.Group.Dip.make(4, "", "TL072", "").translate(vector(-30)).rotate(rotation, vector(30)).translate(centre);
+                }
+                else {
+                    return Svg.Element.Group.Dip.make(4, "", "TL071", "").translate(vector(-30)).rotate(rotation, vector(30)).translate(centre);
+                }
+            }
+            _OpAmp.drawLayout = drawLayout;
+        })(_OpAmp = Component._OpAmp || (Component._OpAmp = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _OpAmp;
+        (function (_OpAmp) {
+            function drawSchematic(instance) {
+                const bodyGroup = Svg.Element.Group.make("body");
+                const inPEnd = instance.joints[_OpAmp.INDEXINPOS];
+                const inNEnd = instance.joints[_OpAmp.INDEXINNEG];
+                const outEnd = instance.joints[_OpAmp.INDEXOUT];
+                const pow1End = instance.joints[_OpAmp.INDEXPOW1];
+                const pow2End = instance.joints[_OpAmp.INDEXPOW2];
+                const bodyJoints = [{ x: -25, y: -25 }, { x: 25, y: 0 }, { x: -25, y: 25 }, { x: -25, y: -25 }];
+                bodyGroup.append(Svg.Element.Path.make(bodyJoints, "highlight highlightwithfill extrathick"), Svg.Element.Path.make(bodyJoints, "body white"), Svg.Element.Line.make({ x: -22, y: -10 }, { x: -14, y: -10 }, "line thin"), Svg.Element.Line.make({ x: -18, y: -6 }, { x: -18, y: -14 }, "line thin"), Svg.Element.Line.make({ x: -22, y: +10 }, { x: -14, y: +10 }, "line thin"));
+                let centre = vector(pow1End, pow2End).centre().vector;
+                let angleCentreBase = vector(centre).getAngleTo(outEnd);
+                let angleInPInN = vector(pow1End).getAngleTo(pow2End);
+                let rotation = angleInPInN - 90;
+                let scale = (((angleInPInN - angleCentreBase + 360) % 360) > 180)
+                    ? { x: -1 }
+                    : { x: 1 };
+                let [inPStart, inNStart, outStart, powPStart, powNStart] = vector({ x: -25, y: -10 }, { x: -25, y: 10 }, { x: 25, y: 0 }, { x: 0, y: -13 }, { x: 0, y: 13 }).scaleWith(scale).rotate(rotation).sumWith(centre).vectors;
+                let joints = [
+                    [inPStart, inPEnd],
+                    [inNStart, inNEnd],
+                    [outStart, outEnd],
+                    [powPStart, pow1End],
+                    [powNStart, pow2End],
+                ];
+                return [
+                    bodyGroup.translate(centre).rotate(rotation).scale(scale, false),
+                    Svg.Element.Path.make(joints, "line thin"),
+                ];
+            }
+            _OpAmp.drawSchematic = drawSchematic;
+        })(_OpAmp = Component._OpAmp || (Component._OpAmp = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _OpAmp;
+        (function (_OpAmp) {
+            _OpAmp.INDEXINPOS = 0;
+            _OpAmp.INDEXINNEG = 1;
+            _OpAmp.INDEXOUT = 2;
+            _OpAmp.INDEXPOW1 = 3;
+            _OpAmp.INDEXPOW2 = 4;
+            _OpAmp.INDEXCENTRE = 0;
+            _OpAmp.INDEXROTATION = 1;
+        })(_OpAmp = Component._OpAmp || (Component._OpAmp = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Power;
+        (function (_Power) {
+            function drawLayout(instance) {
+                const bodyGroup = Svg.Element.Group.make("body");
+                const text = instance.voltage.toFixed(1);
+                bodyGroup.append(Svg.Element.Rect.make({ x: 0, y: -35 }, { width: 180, height: 95 }, { x: 10, y: 10 }, "body highlight"), Svg.Element.Rect.make({ x: 0, y: -45 }, { width: 160, height: 65 }, { x: 10, y: 10 }, "screen"), Svg.Element.Text.make("8".repeat(text.length - 1), { x: 0, y: -20 }, "screentext off"), Svg.Element.Text.make(text, { x: 0, y: -20 }, "screentext on"), Svg.Element.Circle.make({ x: 0, y: 0 }, 5, "hole"));
+                return [
+                    bodyGroup.translate(instance.joints[_Power.INDEXCONNECTION])
+                ];
+            }
+            _Power.drawLayout = drawLayout;
+        })(_Power = Component._Power || (Component._Power = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Power;
+        (function (_Power) {
+            function drawSchematic(instance) {
+                const bodyGroup = Svg.Element.Group.make("body");
+                if (instance.voltage < 0) {
+                    bodyGroup.append(powerNegativeGraphics(instance.voltage));
+                }
+                else if (instance.voltage > 0) {
+                    bodyGroup.append(powerPositiveGraphics(instance.voltage));
+                }
+                else {
+                    bodyGroup.append(powerGroundGraphics());
+                }
+                return [
+                    bodyGroup.translate(instance.joints[_Power.INDEXCONNECTION])
+                ];
+            }
+            _Power.drawSchematic = drawSchematic;
+            function powerNegativeGraphics(voltage) {
+                const text = Utility.getStandardForm(voltage, "V");
+                return [
+                    Svg.Element.Rect.make({ x: 0, y: 18 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
+                    Svg.Element.Line.make({ x: -12, y: 15 }, { x: 12, y: 15 }, "line medium"),
+                    Svg.Element.Text.make(text, { x: 0, y: 27 }, "text bold"),
+                    Svg.Element.Line.make({ x: 0, y: 15 }, { x: 0, y: 0 }, "line thin")
+                ];
+            }
+            function powerPositiveGraphics(voltage) {
+                const text = Utility.getStandardForm(voltage, "V");
+                return [
+                    Svg.Element.Rect.make({ x: 0, y: -18 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
+                    Svg.Element.Line.make({ x: -12, y: -15 }, { x: 12, y: -15 }, "line medium"),
+                    Svg.Element.Text.make(text, { x: 0, y: -17 }, "text bold"),
+                    Svg.Element.Line.make({ x: 0, y: -15 }, { x: 0, y: 0 }, "line thin")
+                ];
+            }
+            function powerGroundGraphics() {
+                return [
+                    Svg.Element.Rect.make({ x: 0, y: 15 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
+                    Svg.Element.Line.make({ x: -18, y: 10 }, { x: 18, y: 10 }, "line medium"),
+                    Svg.Element.Line.make({ x: -12, y: 15 }, { x: 12, y: 15 }, "line medium"),
+                    Svg.Element.Line.make({ x: -6, y: 20 }, { x: 6, y: 20 }, "line medium"),
+                    Svg.Element.Line.make({ x: 0, y: 10 }, { x: 0, y: 0 }, "line thin")
+                ];
+            }
+        })(_Power = Component._Power || (Component._Power = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Power;
+        (function (_Power) {
+            _Power.INDEXCONNECTION = 0;
+        })(_Power = Component._Power || (Component._Power = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Resistor;
+        (function (_Resistor) {
+            function drawLayout(instance) {
+                const bodyGroup = Svg.Element.Group.make("body");
+                const end1 = instance.joints[_Resistor.INDEXEND1];
+                const end2 = instance.joints[_Resistor.INDEXEND2];
+                let centre = vector(end1, end2).centre().vector;
+                let rotation = vector(end1).getAngleTo(end2);
+                let bodyPath = "m-12.5 -6" + "h25" + "c15 -8 15 20 0 12" + "h-25" + "c-15 +8 -15 -20 0 -12" + "Z";
+                bodyGroup.append(Svg.Element.Path.make(bodyPath, "body"), getBands(instance.resistance), Svg.Element.Path.make(bodyPath, "highlight nofill"));
+                return [
+                    Svg.Element.Path.make([end1, end2], "lead"),
+                    bodyGroup.translate(centre).rotate(rotation)
+                ];
+            }
+            _Resistor.drawLayout = drawLayout;
+            function getBands(num) {
+                let exp = num.toExponential(1);
+                let sigFig1 = exp.slice(exp.indexOf(".") - 1)[0];
+                let sigFig2 = exp.slice(exp.indexOf(".") + 1)[0];
+                let multiplier = (parseInt(exp.slice(exp.indexOf("e") + 1), 10) - 1).toString();
+                let colours = {
+                    "-3": "pink",
+                    "-2": "silver",
+                    "-1": "gold",
+                    "0": "black",
+                    "1": "brown",
+                    "2": "red",
+                    "3": "#FF7F26",
+                    "4": "yellow",
+                    "5": "green",
+                    "6": "blue",
+                    "7": "violet",
+                    "8": "grey",
+                    "9": "white"
+                };
+                let b1 = Svg.Element.Rect.make({ x: -17.5, y: 0 }, { width: 3, height: 18 }, undefined, "band1");
+                let b2 = Svg.Element.Rect.make({ x: -11, y: 0 }, { width: 3, height: 12 }, undefined, "band2");
+                let b3 = Svg.Element.Rect.make({ x: -4, y: 0 }, { width: 3, height: 12 }, undefined, "band3");
+                let b4 = Svg.Element.Rect.make({ x: 3.5, y: 0 }, { width: 4, height: 12 }, undefined, "band4");
+                $(b1.element).css("fill", colours[sigFig1]);
+                $(b2.element).css("fill", colours[sigFig2]);
+                $(b3.element).css("fill", colours[multiplier]);
+                $(b4.element).css("fill", "transparent");
+                return [b1, b2, b3, b4];
+            }
+        })(_Resistor = Component._Resistor || (Component._Resistor = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Resistor;
+        (function (_Resistor) {
+            function drawSchematic(instance) {
+                const bodyGroup = Svg.Element.Group.make("body");
+                const end1 = instance.joints[_Resistor.INDEXEND1];
+                const end2 = instance.joints[_Resistor.INDEXEND2];
+                let centre = vector(end1, end2).centre().vector;
+                let rotation = vector(end1).getAngleTo(end2);
+                let [start1, start2] = vector({ x: -24, y: 0 }, { x: 24, y: 0 }).rotate(rotation).sumWith(centre).vectors;
+                let text = Utility.getStandardForm(instance.resistance, 'Ω');
+                bodyGroup.append(Svg.Element.Rect.make(vector(0), { width: 46, height: 18 }, vector(2), "highlight highlightwithfill extrathick"), Svg.Element.Rect.make(vector(0), { width: 46, height: 18 }, vector(2), "body white"));
+                let textEl = Svg.Element.Text.make(text, { x: 0, y: -15 }, "text");
+                return [
+                    Svg.Element.Path.make([[start1, end1], [start2, end2]], "line thin"),
+                    bodyGroup.translate(centre).rotate(rotation),
+                    textEl.translate(centre).rotatePosition(rotation),
+                ];
+            }
+            _Resistor.drawSchematic = drawSchematic;
+        })(_Resistor = Component._Resistor || (Component._Resistor = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Resistor;
+        (function (_Resistor) {
+            _Resistor.INDEXEND1 = 0;
+            _Resistor.INDEXEND2 = 1;
+        })(_Resistor = Component._Resistor || (Component._Resistor = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Stripboard;
+        (function (_Stripboard) {
+            function makeTracks(parent) {
+                let gS = Constants.gridSpacing;
+                let rotation = vector(parent.joints[0]).getAngleTo(parent.joints[1]);
+                let start = vector({
+                    x: -((parent.columns - 1) * gS / 2),
+                    y: -((parent.rows - 1) * gS / 2)
+                }).rotate(rotation).sumWith(parent.joints[0]);
+                let step = vector({ x: gS, y: 0 }).rotate(rotation);
+                let tracks = [];
+                for (let row = 0; row < parent.rows; row++) {
+                    let rowStart = start.sumWith(vector({ x: 0, y: row * gS }).rotate(rotation)).vector;
+                    let holeSpacings = [0].concat(Array(parent.columns - 1).fill(1));
+                    let track = Component.Addins.Board.Track.make({
+                        holeSpacings: holeSpacings,
+                        style: "stripboard",
+                        joints: [rowStart, step]
+                    }, false);
+                    tracks.push(track);
+                }
+                return tracks;
+            }
+            _Stripboard.makeTracks = makeTracks;
+        })(_Stripboard = Component._Stripboard || (Component._Stripboard = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Stripboard;
+        (function (_Stripboard) {
+            _Stripboard.INDEXCENTRE = 0;
+            _Stripboard.INDEXROTATION = 1;
+        })(_Stripboard = Component._Stripboard || (Component._Stripboard = {}));
+    })(Component = Circuit.Component || (Circuit.Component = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var Component;
+    (function (Component) {
+        var _Wire;
+        (function (_Wire) {
+            function drawLayout(instance) {
+                const bodyGroup = Svg.Element.Group.make("body");
+                const joints = instance.joints;
+                let coverPath, leadPath = "";
+                let coverRatio = 0.6;
+                coverPath = leadPath = "M " + joints[0].x + " " + joints[0].y;
+                coverPath += getSegmentTowardsJointMid(joints[0], joints[1], -coverRatio);
+                leadPath += getSegmentTowardsJointMid(joints[0], joints[1], 1);
+                let pathMid = getBezierBetweenJoints(joints);
+                coverPath += pathMid;
+                leadPath += pathMid;
+                coverPath += getSegmentTowardsJointMid(joints[joints.length - 2], joints[joints.length - 1], coverRatio);
+                leadPath += getSegmentTowardsJointMid(joints[joints.length - 2], joints[joints.length - 1], 1);
+                let cover = Svg.Element.Path.make(coverPath, "cover");
+                $(cover.element).css("stroke", instance.color);
+                bodyGroup.append(Svg.Element.Path.make(leadPath, "lead"), Svg.Element.Path.make(coverPath, "leadhighlight highlight"), cover);
+                return bodyGroup;
+            }
+            _Wire.drawLayout = drawLayout;
             function getBezierBetweenJoints(joints) {
                 let path = "";
                 for (let j = 1; j < joints.length - 1; j++) {
@@ -2560,99 +3698,105 @@ var Circuit;
                         'l' + (changeMid.x * ratio) + " " + (changeMid.y * ratio);
                 }
             }
-            function getRecolorPosition(component) {
-                const angle = vector(component.joints[0]).getAngleTo(component.joints[1]);
-                const offset = Utility.Polar.toVector(12, angle + 45);
-                return vector(component.joints[0]).sumWith(offset).vector;
-            }
-            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
-                $(component.group.element).addClass("component " + component.name);
-                Component.Addins.Graphical.init(component);
-                Component.Addins.Draggable.init(component);
-                Component.Addins.Selectable.init(component);
-                Component.Addins.Extendable.init(component, true, true, true);
-                Component.Addins.ConnectionHighlights.init(component);
-                Component.Addins.Recolorable.init(component, () => getRecolorPosition(component));
-            });
-        })(Local || (Local = {}));
-        Component.WireLayout = {
-            Instance: Local.Instance,
-            makeInstance: Local.makeInstance,
-            loadInstance: Local.loadInstance
-        };
+        })(_Wire = Component._Wire || (Component._Wire = {}));
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
 var Circuit;
 (function (Circuit) {
     var Component;
     (function (Component) {
-        let Local;
-        (function (Local) {
-            class Instance extends Component.Instance {
-                constructor(values) {
-                    super(values);
-                    this.connectorSets = [];
-                    $(this.group.element).addClass("component " + this.name);
-                    this.joints = values.joints;
-                }
-                getProperties() {
-                    return Utility.deepCopy({
-                        name: this.name
-                    });
-                }
-                getState() {
-                    return Utility.deepCopy({
-                        joints: this.joints,
-                        disabled: this.disabled
-                    });
-                }
-                draw() {
-                    this.group.prepend(Svg.Element.Path.make(this.joints, "line thin"));
-                }
-                makeConnectors() {
-                    let end1 = this.joints[0];
-                    let end2 = this.joints[this.joints.length - 1];
-                    this.connectorSets = [
-                        [Component.Generics.makeConnector(this, "", "node", end1),
-                            Component.Generics.makeConnector(this, "", "node", end2)]
-                    ];
-                }
-                insertInto(element) {
-                    Utility.Insert.first(this.group.element, element);
-                }
-                transferFunction(from) {
-                    return Utility.flatten2d(this.connectorSets.map(connectorSet => connectorSet.filter(Utility.isNot(from))));
-                }
+        var _Wire;
+        (function (_Wire) {
+            function drawSchematic(instance) {
+                return [
+                    Svg.Element.Path.make(instance.joints, "line thin")
+                ];
             }
-            Local.Instance = Instance;
-            Local.defaulter = {
-                name: Component.ValueCheck.validate("string", "wire"),
-                disabled: Component.ValueCheck.validate("boolean", false),
-                joints: Component.ValueCheck.joints([{ x: 0, y: 0 }, { x: 10, y: 10 }], l => l >= 2),
-            };
-            Local.loadInstance = (raw) => {
-                const name = (raw.name);
-                const joints = (raw.joints);
-                return Local.makeInstance({ name, joints, }, true);
-            };
-            Local.makeInstance = Component.getMaker(Instance, Local.defaulter, (component) => {
-                $(component.group.element).addClass("component " + component.name);
-                Component.Addins.Junctions.init(component);
-                Component.Addins.Selectable.init(component);
-                Component.Addins.Graphical.init(component);
-                if (Constants.schematicManipulationEnabled) {
-                    Component.Addins.Draggable.init(component);
-                    Component.Addins.Extendable.init(component, true, true);
-                }
-            });
-        })(Local || (Local = {}));
-        Component.WireSchematic = {
-            makeInstance: Local.makeInstance,
-            loadInstance: Local.loadInstance,
-            Instance: Local.Instance
-        };
+            _Wire.drawSchematic = drawSchematic;
+        })(_Wire = Component._Wire || (Component._Wire = {}));
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
+var Svg;
+(function (Svg) {
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var Wire;
+            (function (Wire) {
+                var Layout;
+                (function (Layout) {
+                    function make(joints, color, classes = "") {
+                        const bodyGroup = Group.make(classes);
+                        let coverPath, leadPath = "";
+                        let coverRatio = 0.6;
+                        coverPath = leadPath = "M " + joints[0].x + " " + joints[0].y;
+                        coverPath += getSegmentTowardsJointMid(joints[0], joints[1], -coverRatio);
+                        leadPath += getSegmentTowardsJointMid(joints[0], joints[1], 1);
+                        let pathMid = getBezierBetweenJoints(joints);
+                        coverPath += pathMid;
+                        leadPath += pathMid;
+                        coverPath += getSegmentTowardsJointMid(joints[joints.length - 2], joints[joints.length - 1], coverRatio);
+                        leadPath += getSegmentTowardsJointMid(joints[joints.length - 2], joints[joints.length - 1], 1);
+                        let cover = Svg.Element.Path.make(coverPath, "cover");
+                        $(cover.element).css("stroke", color);
+                        bodyGroup.append(Svg.Element.Path.make(leadPath, "lead"), Svg.Element.Path.make(coverPath, "leadhighlight highlight"), cover);
+                        return bodyGroup;
+                    }
+                    Layout.make = make;
+                    function getBezierBetweenJoints(joints) {
+                        let path = "";
+                        for (let j = 1; j < joints.length - 1; j++) {
+                            let p3 = {
+                                x: (joints[j + 1].x + joints[j].x) / 2,
+                                y: (joints[j + 1].y + joints[j].y) / 2
+                            };
+                            path += "Q " + joints[j].x + " " + joints[j].y +
+                                " " + p3.x + " " + p3.y;
+                        }
+                        return path;
+                    }
+                    function getSegmentTowardsJointMid(j0, j1, ratio) {
+                        let changeMid = {
+                            x: (j1.x - j0.x) / 2,
+                            y: (j1.y - j0.y) / 2
+                        };
+                        if (Math.sign(ratio) >= 0) {
+                            return 'l' + (changeMid.x * ratio) + " " + (changeMid.y * ratio) +
+                                'm' + (changeMid.x * (1 - ratio)) + " " + (changeMid.y * (1 - ratio));
+                        }
+                        else {
+                            ratio = Math.abs(ratio);
+                            return 'm' + (changeMid.x * (1 - ratio)) + " " + (changeMid.y * (1 - ratio)) +
+                                'l' + (changeMid.x * ratio) + " " + (changeMid.y * ratio);
+                        }
+                    }
+                })(Layout = Wire.Layout || (Wire.Layout = {}));
+            })(Wire = Group.Wire || (Group.Wire = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
+})(Svg || (Svg = {}));
+var Svg;
+(function (Svg) {
+    var Element;
+    (function (Element) {
+        var Group;
+        (function (Group) {
+            var Wire;
+            (function (Wire) {
+                var Schematic;
+                (function (Schematic) {
+                    function make(joints, classes = "") {
+                        return [
+                            Svg.Element.Path.make(joints, "line thin")
+                        ];
+                    }
+                    Schematic.make = make;
+                })(Schematic = Wire.Schematic || (Wire.Schematic = {}));
+            })(Wire = Group.Wire || (Group.Wire = {}));
+        })(Group = Element.Group || (Element.Group = {}));
+    })(Element = Svg.Element || (Svg.Element = {}));
+})(Svg || (Svg = {}));
 var Circuit;
 (function (Circuit) {
     var Component;
@@ -2727,6 +3871,12 @@ var Circuit;
                                 this.connectorSets[0].push(Component.Generics.makeConnector(this, "", "hole", holePos));
                             });
                         }
+                        getConnections() {
+                            return Component.Generics.getComponentConnections(this, Circuit.manifest.layout);
+                        }
+                        insertInto(element) {
+                            Utility.Insert.last(this.group.element, element);
+                        }
                         transferFunction(from) {
                             let fromIdx = this.connectorSets[0].indexOf(from);
                             let connected = [];
@@ -2791,8 +3941,8 @@ var Circuit;
                     });
                 })(Local || (Local = {}));
                 Board.Track = {
-                    Instance: Local.Instance,
-                    makeInstance: Local.makeInstance,
+                    instance: Local.Instance,
+                    make: Local.makeInstance,
                 };
                 let Reversible;
                 (function (Reversible) {
@@ -3271,14 +4421,17 @@ var Circuit;
                     return (selectionElementIsSelected || elementSelectsComponent);
                 };
                 const setSelectTrigger = (component) => {
-                    $(document).one("mousedown", e => {
-                        if (elementSelectsComponent(e.target, component)) {
-                            $(component.group.element).trigger(Circuit.Events.select);
-                            setDeselectTrigger(component);
-                        }
-                        else {
-                            setSelectTrigger(component);
-                        }
+                    $(component.group.element).one("mousedown", () => {
+                        console.groupCollapsed("Selected", component.group.element);
+                        console.log("Primary: %o", component);
+                        const otherComponents = Circuit.manifest.findCorresponding(component);
+                        console.log("Secondaries: %o", otherComponents);
+                        const selectComponents = otherComponents.concat(component);
+                        selectComponents.forEach(selectComponent => {
+                            $(selectComponent.group.element).trigger(Circuit.Events.select);
+                            setDeselectTrigger(selectComponent);
+                        });
+                        console.groupEnd();
                     });
                 };
                 const setDeselectTrigger = (component) => {
@@ -3294,7 +4447,6 @@ var Circuit;
                 };
                 const setDisplayHandlers = (component) => {
                     $(component.group.element).on(Circuit.Events.select, () => {
-                        console.log("Selected: %o", component);
                         $(component.group.element).addClass("selected");
                         component.insertInto(component.group.element);
                     });
@@ -3344,7 +4496,7 @@ var Circuit;
                     });
                 };
                 const createWireAtPoint = (vector) => {
-                    const wire = Component.WireLayout.makeInstance({
+                    const wire = Component.wire.layout.make({
                         joints: [{ x: vector.x, y: vector.y }, { x: vector.x, y: vector.y }],
                     });
                     Circuit.manifest.addComponent(Circuit.manifest.layout, wire);
@@ -3470,8 +4622,9 @@ var FileIO;
                             NodeElements.fileStatusText.innerText = "File:\r\n\"" + filename + "\"\r\nLoaded Successfully";
                             console.groupEnd();
                             if (savedManifest) {
+                                Circuit.History.init([]);
                                 Circuit.manifest.constructFrom(savedManifest);
-                                Circuit.History.init(Circuit.manifest.layout);
+                                Circuit.history.add(...Circuit.manifest.layout);
                             }
                             else {
                                 console.error("savedManifest is undefined");
@@ -21105,753 +22258,6 @@ var Svg;
         })(Group = Element.Group || (Element.Group = {}));
     })(Element = Svg.Element || (Svg.Element = {}));
 })(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Element;
-    (function (Element) {
-        var Group;
-        (function (Group) {
-            var Bipolar;
-            (function (Bipolar) {
-                var Layout;
-                (function (Layout) {
-                    function make(text, emitterEnd, collectorEnd, baseEnd, classes = "") {
-                        const bodyGroup = Group.make(classes);
-                        let centre = vector(emitterEnd, collectorEnd, baseEnd).centre().vector;
-                        let rotation = vector(emitterEnd).getAngleTo(baseEnd);
-                        let [emitterStart, collectorStart, baseStart] = vector({ x: -12, y: 3 }, { x: 0, y: 3 }, { x: 12, y: 3 }).rotate(rotation).sumWith(centre).vectors;
-                        let joints = [
-                            [emitterStart, emitterEnd],
-                            [collectorStart, collectorEnd],
-                            [baseStart, baseEnd],
-                        ];
-                        let semiCircleString = "M " + (16) + " " + (4) +
-                            "a " + (1) + " " + (1) + " " + (0) + " " + (0) + " " + (0) + " " + (-32) + " " + (0) +
-                            "v " + (3) +
-                            "h " + (32) +
-                            "v " + (-3) +
-                            "Z";
-                        bodyGroup.append(Svg.Element.Path.make(semiCircleString, "body highlight"), Svg.Element.Text.make(text, { x: 0, y: 4 }, "text"));
-                        return [
-                            Svg.Element.Path.make(joints, "lead"),
-                            bodyGroup.translate(centre).rotate(rotation)
-                        ];
-                    }
-                    Layout.make = make;
-                })(Layout = Bipolar.Layout || (Bipolar.Layout = {}));
-            })(Bipolar = Group.Bipolar || (Group.Bipolar = {}));
-        })(Group = Element.Group || (Element.Group = {}));
-    })(Element = Svg.Element || (Svg.Element = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Element;
-    (function (Element) {
-        var Group;
-        (function (Group) {
-            var Bipolar;
-            (function (Bipolar) {
-                var Schematic;
-                (function (Schematic) {
-                    function make(type, currentGain, emitterEnd, collectorEnd, baseEnd, classes = "") {
-                        const bodyGroup = Group.make(classes);
-                        let arrowJoints = (type === "PNP")
-                            ? [{ x: 15, y: -18 }, { x: 9, y: -7.5 }, { x: 24, y: -5.5 }, { x: 15, y: -18 }]
-                            : [{ x: 9, y: -7.5 }, { x: 15, y: -18 }, { x: 0, y: -20 }, { x: 9, y: -7.5 }];
-                        bodyGroup.append(Svg.Element.Circle.make({ x: 10, y: 0 }, 30, "extrathick highlight"), Svg.Element.Line.make({ x: 25, y: -15 }, { x: 25, y: +15 }, "line medium-thick nocap"), Svg.Element.Line.make({ x: 25, y: -5 }, { x: 0, y: -20 }, "line thin"), Svg.Element.Line.make({ x: 25, y: 5 }, { x: 0, y: 20 }, "line thin"), Svg.Element.Line.make({ x: 25, y: 0 }, { x: 40, y: 0 }, "line thin"), Svg.Element.Line.make({ x: 0, y: -20 }, { x: 0, y: -28 }, "line thin"), Svg.Element.Line.make({ x: 0, y: 20 }, { x: 0, y: 28 }, "line thin"), Svg.Element.Path.make(arrowJoints, "body black thin"), Svg.Element.Circle.make({ x: 10, y: 0 }, 30, "line medium nofill"));
-                        let centre = vector(emitterEnd, collectorEnd).centre().vector;
-                        let angleCentreBase = vector(centre).getAngleTo(baseEnd);
-                        let angleEmitterCollector = vector(emitterEnd).getAngleTo(collectorEnd);
-                        let rotation = angleEmitterCollector - 90;
-                        let scale = (((angleEmitterCollector - angleCentreBase + 360) % 360) > 180)
-                            ? { x: -1 }
-                            : { x: 1 };
-                        let [emitterStart, collectorStart, baseStart] = vector({ x: 0, y: -28 }, { x: 0, y: 28 }, { x: 40, y: 0 }).scaleWith(scale).rotate(rotation).sumWith(centre).vectors;
-                        let joints = [
-                            [emitterStart, emitterEnd],
-                            [collectorStart, collectorEnd],
-                            [baseStart, baseEnd],
-                        ];
-                        let text = Utility.getStandardForm(currentGain, '');
-                        let textEl = Svg.Element.Text.make(text, vector({ x: -40, y: 0 }).scaleWith(scale), "text");
-                        return [
-                            bodyGroup.translate(centre).rotate(rotation).scale(scale, false),
-                            Svg.Element.Path.make(joints, "line thin"),
-                            textEl.translate(centre).rotatePosition(rotation),
-                        ];
-                    }
-                    Schematic.make = make;
-                })(Schematic = Bipolar.Schematic || (Bipolar.Schematic = {}));
-            })(Bipolar = Group.Bipolar || (Group.Bipolar = {}));
-        })(Group = Element.Group || (Element.Group = {}));
-    })(Element = Svg.Element || (Svg.Element = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Element;
-    (function (Element) {
-        var Group;
-        (function (Group) {
-            var Breadboard;
-            (function (Breadboard) {
-                var LargeLayout;
-                (function (LargeLayout) {
-                    function make(centre, rotationJoint, classes = "") {
-                        const bodyGroup = Group.make(classes);
-                        let rotation = vector(centre).getAngleTo(rotationJoint);
-                        const gS = Constants.gridSpacing;
-                        const railPairPathString = [
-                            "M" + (gS * -29.7) + " " + (gS * -10.5),
-                            "H" + (gS * -1),
-                            "M" + (gS * +29.7) + " " + (gS * -10.5),
-                            "H" + (gS * 1),
-                            "M" + (gS * -29.7) + " " + (gS * 7.5),
-                            "H" + (gS * -1),
-                            "M" + (gS * +29.7) + " " + (gS * 7.5),
-                            "H" + (gS * 1)
-                        ].join();
-                        const plus = "m-5 0 h10 m-5 -5 v10 m0 -5";
-                        const plussesPathString = [
-                            "M" + (gS * -30.5) + " " + (gS * -10),
-                            "M" + (gS * 30.5) + " " + (gS * -10),
-                            "M" + (gS * -30.5) + " " + (gS * 8),
-                            "M" + (gS * 30.5) + " " + (gS * 8),
-                            ""
-                        ].join(plus);
-                        const minus = "m0 -5 v10 m0 -5";
-                        const minusesPathString = [
-                            "M" + (gS * -30.5) + " " + (gS * -11),
-                            "M" + (gS * 30.5) + " " + (gS * -11),
-                            "M" + (gS * -30.5) + " " + (gS * 7),
-                            "M" + (gS * 30.5) + " " + (gS * 7),
-                            ""
-                        ].join(minus);
-                        const size = {
-                            width: 67 * gS,
-                            height: 22 * gS
-                        };
-                        bodyGroup.append([
-                            Svg.Element.Rect.make({ x: 0, y: 0 }, size, { x: 4, y: 4 }, "body"),
-                            Svg.Element.Rect.make({ x: 0, y: 0 }, { width: size.width, height: gS * 0.75, }, { x: 0, y: 0 }, "rut"),
-                            Svg.Element.Rect.make({ x: 0, y: 0 }, size, { x: 4, y: 4 }, "body highlight"),
-                            Svg.Element.Path.make(railPairPathString + plussesPathString, "rail positive"),
-                            Svg.Element.Path.make(railPairPathString + minusesPathString, "rail negative").translate({ x: 0, y: gS * 3 }),
-                            Svg.Element.Group.TextSequence.make({ x: 31.5 * gS - gS / 6, y: -6.5 * gS }, { x: 0, y: gS }, { start: 1, length: 64 }).rotate(90),
-                            Svg.Element.Group.TextSequence.make({ x: 31.5 * gS - gS / 6, y: 6.5 * gS }, { x: 0, y: gS }, { start: 1, length: 64 }).rotate(90),
-                            Svg.Element.Group.TextSequence.make({ x: 32.5 * gS - gS / 4, y: -5.5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90),
-                            Svg.Element.Group.TextSequence.make({ x: -32.5 * gS, y: -5.5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90),
-                            Svg.Element.Group.TextSequence.make({ x: 32.5 * gS - gS / 4, y: 5.5 * gS }, { x: -gS, y: 0 }, "jihgf").rotate(90),
-                            Svg.Element.Group.TextSequence.make({ x: -32.5 * gS, y: 5.5 * gS }, { x: -gS, y: 0 }, "jihgf").rotate(90),
-                        ]);
-                        return [
-                            bodyGroup.translate(centre).rotate(rotation)
-                        ];
-                    }
-                    LargeLayout.make = make;
-                })(LargeLayout = Breadboard.LargeLayout || (Breadboard.LargeLayout = {}));
-            })(Breadboard = Group.Breadboard || (Group.Breadboard = {}));
-        })(Group = Element.Group || (Element.Group = {}));
-    })(Element = Svg.Element || (Svg.Element = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Element;
-    (function (Element) {
-        var Group;
-        (function (Group) {
-            var Breadboard;
-            (function (Breadboard) {
-                var SmallLayout;
-                (function (SmallLayout) {
-                    function make(centre, rotationJoint, classes = "") {
-                        const bodyGroup = Group.make(classes);
-                        let rotation = vector(centre).getAngleTo(rotationJoint);
-                        const gS = Constants.gridSpacing;
-                        const railPairPathString = [
-                            "M" + (gS * -14.2) + " " + (gS * -10.5),
-                            "H" + (gS * 14.2),
-                            "M" + (gS * -14.2) + " " + (gS * 7.5),
-                            "H" + (gS * 14.2)
-                        ].join();
-                        const plus = "m-5 0 h10 m-5 -5 v10 m0 -5";
-                        const plussesPathString = [
-                            "M" + (gS * -15) + " " + (gS * -10),
-                            "M" + (gS * 15) + " " + (gS * -10),
-                            "M" + (gS * -15) + " " + (gS * 8),
-                            "M" + (gS * 15) + " " + (gS * 8),
-                            ""
-                        ].join(plus);
-                        const minus = "m0 -5 v10 m0 -5";
-                        const minusesPathString = [
-                            "M" + (gS * -15) + " " + (gS * -11),
-                            "M" + (gS * 15) + " " + (gS * -11),
-                            "M" + (gS * -15) + " " + (gS * 7),
-                            "M" + (gS * 15) + " " + (gS * 7),
-                            ""
-                        ].join(minus);
-                        const size = {
-                            width: 32 * gS,
-                            height: 22 * gS
-                        };
-                        bodyGroup.append([
-                            Svg.Element.Rect.make({ x: 0, y: 0 }, size, { x: 4, y: 4 }, "body"),
-                            Svg.Element.Rect.make({ x: 0, y: 0 }, { width: size.width, height: gS * 0.75, }, { x: 0, y: 0 }, "rut"),
-                            Svg.Element.Rect.make({ x: 0, y: 0 }, size, { x: 4, y: 4 }, "body highlight"),
-                            Svg.Element.Path.make(railPairPathString + plussesPathString, "rail positive"),
-                            Svg.Element.Path.make(railPairPathString + minusesPathString, "rail negative").translate({ x: 0, y: gS * 3 }),
-                            Svg.Element.Group.TextSequence.make({ x: 14.5 * gS - gS / 6, y: -6.5 * gS }, { x: 0, y: gS }, { start: 1, length: 30 }).rotate(90),
-                            Svg.Element.Group.TextSequence.make({ x: 14.5 * gS - gS / 6, y: 6.5 * gS }, { x: 0, y: gS }, { start: 1, length: 30 }).rotate(90),
-                            Svg.Element.Group.TextSequence.make({ x: 15.5 * gS - gS / 4, y: -5.5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90),
-                            Svg.Element.Group.TextSequence.make({ x: -15.5 * gS, y: -5.5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90),
-                            Svg.Element.Group.TextSequence.make({ x: 15.5 * gS - gS / 4, y: 5.5 * gS }, { x: -gS, y: 0 }, "jihgf").rotate(90),
-                            Svg.Element.Group.TextSequence.make({ x: -15.5 * gS, y: 5.5 * gS }, { x: -gS, y: 0 }, "jihgf").rotate(90),
-                        ]);
-                        return [
-                            bodyGroup.translate(centre).rotate(rotation)
-                        ];
-                    }
-                    SmallLayout.make = make;
-                })(SmallLayout = Breadboard.SmallLayout || (Breadboard.SmallLayout = {}));
-            })(Breadboard = Group.Breadboard || (Group.Breadboard = {}));
-        })(Group = Element.Group || (Element.Group = {}));
-    })(Element = Svg.Element || (Svg.Element = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Element;
-    (function (Element) {
-        var Group;
-        (function (Group) {
-            var Capacitor;
-            (function (Capacitor) {
-                var Layout;
-                (function (Layout) {
-                    let Ceramic;
-                    (function (Ceramic) {
-                        function make(value, start, end, classes = "") {
-                            const bodyGroup = Group.make(classes);
-                            let centre = vector(start, end).centre().vector;
-                            let rotation = vector(start).getAngleTo(end);
-                            const text = Utility.getStandardForm(value, 'F');
-                            bodyGroup.append(Svg.Element.Ellipse.make({ x: 0, y: 0 }, { x: 16, y: 8 }, "body highlight nofill"), Svg.Element.Text.make(text, { x: 0, y: 0 }, "text"));
-                            return [
-                                Svg.Element.Path.make([start, end], "lead"),
-                                bodyGroup.translate(centre).rotate(rotation)
-                            ];
-                        }
-                        Ceramic.make = make;
-                    })(Ceramic = Layout.Ceramic || (Layout.Ceramic = {}));
-                    let Electrolytic;
-                    (function (Electrolytic) {
-                        function make(value, start, end, classes = "") {
-                            const bodyGroup = Group.make(classes);
-                            let centre = vector(start, end).centre().vector;
-                            let rotation = vector(start).getAngleTo(end);
-                            const text = Utility.getStandardForm(value, 'F');
-                            const bodyArcEndPoint = 14 / Math.SQRT2;
-                            const textArcEndPoint = 12.5 / Math.SQRT2;
-                            const bodyPathString = "m14 0 A14 14 0 1 0 " + (bodyArcEndPoint) + " " + (bodyArcEndPoint);
-                            const minusPathString = "m14 0 A14 14 0 0 1 " + (bodyArcEndPoint) + " " + (bodyArcEndPoint);
-                            const pathForTextString = "m" + (textArcEndPoint) + " " + (textArcEndPoint) + "A12.5 12.5 0 1 1 12.5 0";
-                            bodyGroup.append(Svg.Element.Circle.make({ x: 0, y: 0 }, 16, "highlight nofill"), Element.Path.make(bodyPathString, "body").rotate(157.5), Element.Path.make(minusPathString, "minus").rotate(157.5), Element.Text.make(text, { x: 1, y: 0 }, "text").followPath(pathForTextString).rotate(157.5));
-                            return [
-                                Svg.Element.Path.make([start, end], "lead"),
-                                bodyGroup.translate(centre).rotate(rotation)
-                            ];
-                        }
-                        Electrolytic.make = make;
-                    })(Electrolytic = Layout.Electrolytic || (Layout.Electrolytic = {}));
-                })(Layout = Capacitor.Layout || (Capacitor.Layout = {}));
-            })(Capacitor = Group.Capacitor || (Group.Capacitor = {}));
-        })(Group = Element.Group || (Element.Group = {}));
-    })(Element = Svg.Element || (Svg.Element = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Element;
-    (function (Element) {
-        var Group;
-        (function (Group) {
-            var Capacitor;
-            (function (Capacitor) {
-                var Schematic;
-                (function (Schematic) {
-                    function make(capacitance, isPolarised, end1, end2, classes = "") {
-                        const bodyGroup = Group.make(classes);
-                        let centre = vector(end1, end2).centre().vector;
-                        let rotation = vector(end1).getAngleTo(end2);
-                        let [start1, start2] = vector({ x: -6, y: 0 }, { x: 6, y: 0 }).rotate(rotation).sumWith(centre).vectors;
-                        let text = Utility.getStandardForm(capacitance, 'F');
-                        bodyGroup.append(Svg.Element.Rect.make(vector(0), { width: 15, height: 30 }, vector(2), "highlight highlightwithfill extrathick"), Svg.Element.Line.make({ x: -4, y: -15 }, { x: -4, y: +15 }, "line thick nocap"), Svg.Element.Line.make({ x: +4, y: -15 }, { x: +4, y: +15 }, "line thick nocap"));
-                        if (isPolarised) {
-                            bodyGroup.append(Svg.Element.Path.make([
-                                [{ x: +15, y: -10 }, { x: +7, y: -10 }],
-                                [{ x: +11, y: -6 }, { x: +11, y: -14 }]
-                            ], "line thin"));
-                        }
-                        let textEl = Svg.Element.Text.make(text, { x: 0, y: -20 }, "text");
-                        return [
-                            Svg.Element.Path.make([[start1, end1], [start2, end2]], "line thin"),
-                            bodyGroup.translate(centre).rotate(rotation),
-                            textEl.translate(centre).rotatePosition(rotation),
-                        ];
-                    }
-                    Schematic.make = make;
-                })(Schematic = Capacitor.Schematic || (Capacitor.Schematic = {}));
-            })(Capacitor = Group.Capacitor || (Group.Capacitor = {}));
-        })(Group = Element.Group || (Element.Group = {}));
-    })(Element = Svg.Element || (Svg.Element = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Element;
-    (function (Element) {
-        var Group;
-        (function (Group) {
-            var Diode;
-            (function (Diode) {
-                var Layout;
-                (function (Layout) {
-                    function make(value, start, end, classes = "") {
-                        const bodyGroup = Group.make(classes);
-                        let centre = vector(start, end).centre().vector;
-                        let rotation = vector(start).getAngleTo(end);
-                        bodyGroup.append(Svg.Element.Rect.make({ x: -5.5, y: 0 }, { width: 29, height: 15 }, { x: 0, y: 0 }, "body"), Svg.Element.Rect.make({ x: 17.5, y: 0 }, { width: 5, height: 15 }, { x: 0, y: 0 }, "body"), Svg.Element.Rect.make({ x: 12, y: 0 }, { width: 6, height: 15 }, { x: 0, y: 0 }, "cathode"), Svg.Element.Rect.make({ x: 0, y: 0 }, { width: 40, height: 15 }, { x: 1, y: 1 }, "highlight nofill"));
-                        return [
-                            Svg.Element.Path.make([start, end], "lead"),
-                            bodyGroup.translate(centre).rotate(rotation)
-                        ];
-                    }
-                    Layout.make = make;
-                })(Layout = Diode.Layout || (Diode.Layout = {}));
-            })(Diode = Group.Diode || (Group.Diode = {}));
-        })(Group = Element.Group || (Element.Group = {}));
-    })(Element = Svg.Element || (Svg.Element = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Element;
-    (function (Element) {
-        var Group;
-        (function (Group) {
-            var Diode;
-            (function (Diode) {
-                var Schematic;
-                (function (Schematic) {
-                    function make(breakdownVoltage, saturationCurrent, end1, end2, classes = "") {
-                        const bodyGroup = Group.make(classes);
-                        let centre = vector(end1, end2).centre().vector;
-                        let rotation = vector(end1).getAngleTo(end2);
-                        let [start1, start2] = vector({ x: -12, y: 0 }, { x: 12, y: 0 }).rotate(rotation).sumWith(centre).vectors;
-                        let text = (breakdownVoltage < 51)
-                            ? Utility.getStandardForm(breakdownVoltage, 'V')
-                            : Utility.getStandardForm(saturationCurrent, 'A');
-                        let bodyPath = 'M 12 0 L -12 12 L -12 -12 L 12 0 Z';
-                        bodyGroup.append(Svg.Element.Path.make(bodyPath, "body highlight highlightwithfill extrathick"), Svg.Element.Path.make(bodyPath, "body black"));
-                        if (breakdownVoltage < 51) {
-                            bodyGroup.append(Svg.Element.Path.make('M 18 -12 L 12 -12 L 12 12 L 6 12', "line medium"));
-                        }
-                        else {
-                            bodyGroup.append(Svg.Element.Path.make('M 12 -12 L 12 12', "line medium"));
-                        }
-                        let textEl = Svg.Element.Text.make(text, { x: 0, y: -15 }, "text");
-                        return [
-                            Svg.Element.Path.make([[start1, end1], [start2, end2]], "line thin"),
-                            bodyGroup.translate(centre).rotate(rotation),
-                            textEl.translate(centre).rotatePosition(rotation),
-                        ];
-                    }
-                    Schematic.make = make;
-                })(Schematic = Diode.Schematic || (Diode.Schematic = {}));
-            })(Diode = Group.Diode || (Group.Diode = {}));
-        })(Group = Element.Group || (Element.Group = {}));
-    })(Element = Svg.Element || (Svg.Element = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Element;
-    (function (Element) {
-        var Group;
-        (function (Group) {
-            var Inductor;
-            (function (Inductor) {
-                var Layout;
-                (function (Layout) {
-                    function make(value, start, end, classes = "") {
-                        const bodyGroup = Group.make(classes);
-                        let centre = vector(start, end).centre().vector;
-                        let rotation = vector(start).getAngleTo(end);
-                        const nCoils = 4;
-                        const wireWidth = 8;
-                        const coilTop = -15;
-                        const coilBottom = 15;
-                        const coilStart = (-(nCoils * wireWidth) / 2 + wireWidth / 4);
-                        let bodyPath = "M" + (coilStart) + " " + (coilBottom);
-                        let bodyEdgePath = "";
-                        for (let i = 1; i < nCoils; i++) {
-                            let x0 = coilStart + wireWidth * (i - 0.5);
-                            let x1 = coilStart + wireWidth * (i);
-                            bodyPath += "L" + (x0) + " " + (coilTop) + "L" + (x1) + " " + (coilBottom);
-                            bodyEdgePath += "M" + (x0) + " " + (coilBottom) + "L" + (x1) + " " + (coilTop);
-                        }
-                        bodyPath += "L" + (-coilStart) + " " + (coilTop);
-                        bodyGroup.append(Svg.Element.Path.make(bodyPath, "highlight highlightwithfill"), Svg.Element.Path.make(bodyPath, "body"), Svg.Element.Path.make(bodyEdgePath, "bodyEdge"));
-                        return [
-                            Svg.Element.Path.make([start, end], "lead"),
-                            bodyGroup.translate(centre).rotate(rotation)
-                        ];
-                    }
-                    Layout.make = make;
-                })(Layout = Inductor.Layout || (Inductor.Layout = {}));
-            })(Inductor = Group.Inductor || (Group.Inductor = {}));
-        })(Group = Element.Group || (Element.Group = {}));
-    })(Element = Svg.Element || (Svg.Element = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Element;
-    (function (Element) {
-        var Group;
-        (function (Group) {
-            var Inductor;
-            (function (Inductor) {
-                var Schematic;
-                (function (Schematic) {
-                    function make(inductance, end1, end2, classes = "") {
-                        const bodyGroup = Group.make(classes);
-                        let centre = vector(end1, end2).centre().vector;
-                        let rotation = vector(end1).getAngleTo(end2);
-                        let [start1, start2] = vector({ x: -20, y: 0 }, { x: 20, y: 0 }).rotate(rotation).sumWith(centre).vectors;
-                        let text = Utility.getStandardForm(inductance, 'H');
-                        bodyGroup.append(Svg.Element.Rect.make({ x: 0, y: -2 }, { width: 40, height: 12 }, vector(2), "highlight highlightwithfill extrathick"), Svg.Element.Path.make('M-20 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0', "line medium"));
-                        let textEl = Svg.Element.Text.make(text, { x: 0, y: -13 }, "text");
-                        return [
-                            Svg.Element.Path.make([[start1, end1], [start2, end2]], "line thin"),
-                            bodyGroup.translate(centre).rotate(rotation),
-                            textEl.translate(centre).rotatePosition(rotation),
-                        ];
-                    }
-                    Schematic.make = make;
-                })(Schematic = Inductor.Schematic || (Inductor.Schematic = {}));
-            })(Inductor = Group.Inductor || (Group.Inductor = {}));
-        })(Group = Element.Group || (Element.Group = {}));
-    })(Element = Svg.Element || (Svg.Element = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Element;
-    (function (Element) {
-        var Group;
-        (function (Group) {
-            var Led;
-            (function (Led) {
-                var Layout;
-                (function (Layout) {
-                    function make(value, color, start, end, classes = "") {
-                        const bodyGroup = Group.make(classes);
-                        let centre = vector(start, end).centre().vector;
-                        let rotation = vector(start).getAngleTo(end);
-                        let bodyString = "M " + (10) + " " + (15) +
-                            "a " + (18) + " " + (18) + " " + (0) + " " + (1) + " " + (0) + " " + (-20) + " " + (0) +
-                            "Z";
-                        let highlightString = "M " + (10) + " " + (16) +
-                            "a " + (18.8) + " " + (18.8) + " " + (0) + " " + (1) + " " + (0) + " " + (-20) + " " + (0) +
-                            "Z";
-                        let edge = Svg.Element.Path.make(bodyString, "edge");
-                        let middle = Svg.Element.Circle.make({ x: 0, y: 0 }, 14, "centre");
-                        $([edge.element, middle.element]).css("fill", color);
-                        bodyGroup.append(edge, Svg.Element.Path.make(bodyString, "darkener"), middle, Svg.Element.Circle.make({ x: 0, y: 0 }, 8, "lightener"), Svg.Element.Path.make(highlightString, "nofill highlight"));
-                        return [
-                            Svg.Element.Path.make([start, end], "lead"),
-                            bodyGroup.translate(centre).rotate(rotation - 90)
-                        ];
-                    }
-                    Layout.make = make;
-                })(Layout = Led.Layout || (Led.Layout = {}));
-            })(Led = Group.Led || (Group.Led = {}));
-        })(Group = Element.Group || (Element.Group = {}));
-    })(Element = Svg.Element || (Svg.Element = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Element;
-    (function (Element) {
-        var Group;
-        (function (Group) {
-            var Led;
-            (function (Led) {
-                var Schematic;
-                (function (Schematic) {
-                    function make(breakdownVoltage, saturationCurrent, color, end1, end2, classes = "") {
-                        const bodyGroup = Group.make(classes);
-                        let centre = vector(end1, end2).centre().vector;
-                        let rotation = vector(end1).getAngleTo(end2);
-                        let [start1, start2] = vector({ x: -12, y: 0 }, { x: 12, y: 0 }).rotate(rotation).sumWith(centre).vectors;
-                        let text = (breakdownVoltage < 51)
-                            ? Utility.getStandardForm(breakdownVoltage, 'V')
-                            : Utility.getStandardForm(saturationCurrent, 'A');
-                        let bodyPath = 'M 12 0 L -12 12 L -12 -12 L 12 0 Z';
-                        let arrowJointsBase = vector([{ x: 0, y: 3 }, { x: -4, y: 0 }, { x: 0, y: -3 }, { x: -4, y: 0 }, { x: 8, y: 0 }]);
-                        let arrowJoints1 = arrowJointsBase.sumWith({ x: -16, y: -10 }).rotate(-116.43).vectors;
-                        let arrowJoints2 = arrowJointsBase.sumWith({ x: -16, y: 0 }).rotate(-116.43).vectors;
-                        let colorCircle = Svg.Element.Circle.make({ x: -4, y: 0 }, 4, "line thin");
-                        $(colorCircle.element).css("fill", color);
-                        $(colorCircle.element).css("stroke", color);
-                        $(colorCircle.element).css("stroke-opacity", "0.7");
-                        bodyGroup.append(Svg.Element.Path.make(bodyPath, "body highlight highlightwithfill extrathick"), Svg.Element.Path.make(bodyPath, "body black"), Svg.Element.Path.make(arrowJoints1, "line black thin"), Svg.Element.Path.make(arrowJoints2, "line black thin"), colorCircle);
-                        if (breakdownVoltage < 51) {
-                            bodyGroup.append(Svg.Element.Path.make('M 18 -12 L 12 -12 L 12 12 L 6 12', "line medium"));
-                        }
-                        else {
-                            bodyGroup.append(Svg.Element.Path.make('M 12 -12 L 12 12', "line medium"));
-                        }
-                        let textEl = Svg.Element.Text.make(text, { x: 0, y: -15 }, "text");
-                        return [
-                            Svg.Element.Path.make([[start1, end1], [start2, end2]], "line thin"),
-                            bodyGroup.translate(centre).rotate(rotation),
-                            textEl.translate(centre).rotatePosition(rotation),
-                        ];
-                    }
-                    Schematic.make = make;
-                })(Schematic = Led.Schematic || (Led.Schematic = {}));
-            })(Led = Group.Led || (Group.Led = {}));
-        })(Group = Element.Group || (Element.Group = {}));
-    })(Element = Svg.Element || (Svg.Element = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Element;
-    (function (Element) {
-        var Group;
-        (function (Group) {
-            var OpAmp;
-            (function (OpAmp) {
-                var Layout;
-                (function (Layout) {
-                    function make(isDual, centre, rotationPoint, classes = "") {
-                        let rotation = vector(centre).getAngleTo(rotationPoint);
-                        if (isDual) {
-                            return Svg.Element.Group.Dip.make(4, "", "TL072", "").translate(vector(-30)).rotate(rotation, vector(30)).translate(centre);
-                        }
-                        else {
-                            return Svg.Element.Group.Dip.make(4, "", "TL071", "").translate(vector(-30)).rotate(rotation, vector(30)).translate(centre);
-                        }
-                    }
-                    Layout.make = make;
-                })(Layout = OpAmp.Layout || (OpAmp.Layout = {}));
-            })(OpAmp = Group.OpAmp || (Group.OpAmp = {}));
-        })(Group = Element.Group || (Element.Group = {}));
-    })(Element = Svg.Element || (Svg.Element = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Element;
-    (function (Element) {
-        var Group;
-        (function (Group) {
-            var OpAmp;
-            (function (OpAmp) {
-                var Schematic;
-                (function (Schematic) {
-                    function make(inPEnd, inNEnd, outEnd, powPEnd, powNEnd, classes = "") {
-                        const bodyGroup = Group.make(classes);
-                        let bodyJoints = [{ x: -25, y: -25 }, { x: 25, y: 0 }, { x: -25, y: 25 }, { x: -25, y: -25 }];
-                        bodyGroup.append(Svg.Element.Path.make(bodyJoints, "highlight highlightwithfill extrathick"), Svg.Element.Path.make(bodyJoints, "body white"), Svg.Element.Line.make({ x: -22, y: -10 }, { x: -14, y: -10 }, "line thin"), Svg.Element.Line.make({ x: -18, y: -6 }, { x: -18, y: -14 }, "line thin"), Svg.Element.Line.make({ x: -22, y: +10 }, { x: -14, y: +10 }, "line thin"));
-                        let centre = vector(powPEnd, powNEnd).centre().vector;
-                        let angleCentreBase = vector(centre).getAngleTo(outEnd);
-                        let angleInPInN = vector(powPEnd).getAngleTo(powNEnd);
-                        let rotation = angleInPInN - 90;
-                        let scale = (((angleInPInN - angleCentreBase + 360) % 360) > 180)
-                            ? { x: -1 }
-                            : { x: 1 };
-                        let [inPStart, inNStart, outStart, powPStart, powNStart] = vector({ x: -25, y: -10 }, { x: -25, y: 10 }, { x: 25, y: 0 }, { x: 0, y: -13 }, { x: 0, y: 13 }).scaleWith(scale).rotate(rotation).sumWith(centre).vectors;
-                        let joints = [
-                            [inPStart, inPEnd],
-                            [inNStart, inNEnd],
-                            [outStart, outEnd],
-                            [powPStart, powPEnd],
-                            [powNStart, powNEnd],
-                        ];
-                        return [
-                            bodyGroup.translate(centre).rotate(rotation).scale(scale, false),
-                            Svg.Element.Path.make(joints, "line thin"),
-                        ];
-                    }
-                    Schematic.make = make;
-                })(Schematic = OpAmp.Schematic || (OpAmp.Schematic = {}));
-            })(OpAmp = Group.OpAmp || (Group.OpAmp = {}));
-        })(Group = Element.Group || (Element.Group = {}));
-    })(Element = Svg.Element || (Svg.Element = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Element;
-    (function (Element) {
-        var Group;
-        (function (Group) {
-            var Power;
-            (function (Power) {
-                var Layout;
-                (function (Layout) {
-                    function make(voltage, connection, classes = "") {
-                        const bodyGroup = Group.make(classes);
-                        let text = voltage.toFixed(1);
-                        bodyGroup.append(Svg.Element.Rect.make({ x: 0, y: -35 }, { width: 180, height: 95 }, { x: 10, y: 10 }, "body highlight"), Svg.Element.Rect.make({ x: 0, y: -45 }, { width: 160, height: 65 }, { x: 10, y: 10 }, "screen"), Svg.Element.Text.make("8".repeat(text.length - 1), { x: 0, y: -20 }, "screentext off"), Svg.Element.Text.make(text, { x: 0, y: -20 }, "screentext on"), Svg.Element.Circle.make({ x: 0, y: 0 }, 5, "hole"));
-                        return [
-                            bodyGroup.translate(connection)
-                        ];
-                    }
-                    Layout.make = make;
-                })(Layout = Power.Layout || (Power.Layout = {}));
-            })(Power = Group.Power || (Group.Power = {}));
-        })(Group = Element.Group || (Element.Group = {}));
-    })(Element = Svg.Element || (Svg.Element = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Element;
-    (function (Element) {
-        var Group;
-        (function (Group) {
-            var Power;
-            (function (Power) {
-                var Schematic;
-                (function (Schematic) {
-                    function make(voltage, connection, classes = "") {
-                        const bodyGroup = Group.make(classes);
-                        if (voltage < 0) {
-                            bodyGroup.append(powerNegativeGraphics(voltage));
-                        }
-                        else if (voltage > 0) {
-                            bodyGroup.append(powerPositiveGraphics(voltage));
-                        }
-                        else {
-                            bodyGroup.append(powerGroundGraphics());
-                        }
-                        return [
-                            bodyGroup.translate(connection)
-                        ];
-                    }
-                    Schematic.make = make;
-                })(Schematic = Power.Schematic || (Power.Schematic = {}));
-            })(Power = Group.Power || (Group.Power = {}));
-        })(Group = Element.Group || (Element.Group = {}));
-    })(Element = Svg.Element || (Svg.Element = {}));
-})(Svg || (Svg = {}));
-function powerNegativeGraphics(voltage) {
-    let text = Utility.getStandardForm(voltage, "V");
-    return [
-        Svg.Element.Rect.make({ x: 0, y: 18 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
-        Svg.Element.Line.make({ x: -12, y: 15 }, { x: 12, y: 15 }, "line medium"),
-        Svg.Element.Text.make(text, { x: 0, y: 27 }, "text bold"),
-        Svg.Element.Line.make({ x: 0, y: 15 }, { x: 0, y: 0 }, "line thin")
-    ];
-}
-function powerPositiveGraphics(voltage) {
-    let text = Utility.getStandardForm(voltage, "V");
-    return [
-        Svg.Element.Rect.make({ x: 0, y: -18 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
-        Svg.Element.Line.make({ x: -12, y: -15 }, { x: 12, y: -15 }, "line medium"),
-        Svg.Element.Text.make(text, { x: 0, y: -17 }, "text bold"),
-        Svg.Element.Line.make({ x: 0, y: -15 }, { x: 0, y: 0 }, "line thin")
-    ];
-}
-function powerGroundGraphics() {
-    return [
-        Svg.Element.Rect.make({ x: 0, y: 15 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
-        Svg.Element.Line.make({ x: -18, y: 10 }, { x: 18, y: 10 }, "line medium"),
-        Svg.Element.Line.make({ x: -12, y: 15 }, { x: 12, y: 15 }, "line medium"),
-        Svg.Element.Line.make({ x: -6, y: 20 }, { x: 6, y: 20 }, "line medium"),
-        Svg.Element.Line.make({ x: 0, y: 10 }, { x: 0, y: 0 }, "line thin")
-    ];
-}
-var Svg;
-(function (Svg) {
-    var Element;
-    (function (Element) {
-        var Group;
-        (function (Group) {
-            var Resistor;
-            (function (Resistor) {
-                var Layout;
-                (function (Layout) {
-                    function make(value, start, end, classes = "") {
-                        const bodyGroup = Group.make(classes);
-                        let centre = vector(start, end).centre().vector;
-                        let rotation = vector(start).getAngleTo(end);
-                        let bodyPath = "m-12.5 -6" + "h25" + "c15 -8 15 20 0 12" + "h-25" + "c-15 +8 -15 -20 0 -12" + "Z";
-                        bodyGroup.append(Svg.Element.Path.make(bodyPath, "body"), getBands(value), Svg.Element.Path.make(bodyPath, "highlight nofill"));
-                        return [
-                            Svg.Element.Path.make([start, end], "lead"),
-                            bodyGroup.translate(centre).rotate(rotation)
-                        ];
-                    }
-                    Layout.make = make;
-                    function getBands(num) {
-                        let exp = num.toExponential(1);
-                        let sigFig1 = exp.slice(exp.indexOf(".") - 1)[0];
-                        let sigFig2 = exp.slice(exp.indexOf(".") + 1)[0];
-                        let multiplier = (parseInt(exp.slice(exp.indexOf("e") + 1), 10) - 1).toString();
-                        let colours = {
-                            "-3": "pink",
-                            "-2": "silver",
-                            "-1": "gold",
-                            "0": "black",
-                            "1": "brown",
-                            "2": "red",
-                            "3": "#FF7F26",
-                            "4": "yellow",
-                            "5": "green",
-                            "6": "blue",
-                            "7": "violet",
-                            "8": "grey",
-                            "9": "white"
-                        };
-                        let b1 = Svg.Element.Rect.make({ x: -17.5, y: 0 }, { width: 3, height: 18 }, undefined, "band1");
-                        let b2 = Svg.Element.Rect.make({ x: -11, y: 0 }, { width: 3, height: 12 }, undefined, "band2");
-                        let b3 = Svg.Element.Rect.make({ x: -4, y: 0 }, { width: 3, height: 12 }, undefined, "band3");
-                        let b4 = Svg.Element.Rect.make({ x: 3.5, y: 0 }, { width: 4, height: 12 }, undefined, "band4");
-                        $(b1.element).css("fill", colours[sigFig1]);
-                        $(b2.element).css("fill", colours[sigFig2]);
-                        $(b3.element).css("fill", colours[multiplier]);
-                        $(b4.element).css("fill", "transparent");
-                        return [b1, b2, b3, b4];
-                    }
-                })(Layout = Resistor.Layout || (Resistor.Layout = {}));
-            })(Resistor = Group.Resistor || (Group.Resistor = {}));
-        })(Group = Element.Group || (Element.Group = {}));
-    })(Element = Svg.Element || (Svg.Element = {}));
-})(Svg || (Svg = {}));
-var Svg;
-(function (Svg) {
-    var Element;
-    (function (Element) {
-        var Group;
-        (function (Group) {
-            var Resistor;
-            (function (Resistor) {
-                var Schematic;
-                (function (Schematic) {
-                    function make(resistance, end1, end2, classes = "") {
-                        const bodyGroup = Group.make(classes);
-                        let centre = vector(end1, end2).centre().vector;
-                        let rotation = vector(end1).getAngleTo(end2);
-                        let [start1, start2] = vector({ x: -24, y: 0 }, { x: 24, y: 0 }).rotate(rotation).sumWith(centre).vectors;
-                        let text = Utility.getStandardForm(resistance, 'Ω');
-                        bodyGroup.append(Svg.Element.Rect.make(vector(0), { width: 46, height: 18 }, vector(2), "highlight highlightwithfill extrathick"), Svg.Element.Rect.make(vector(0), { width: 46, height: 18 }, vector(2), "body white"));
-                        let textEl = Svg.Element.Text.make(text, { x: 0, y: -15 }, "text");
-                        return [
-                            Svg.Element.Path.make([[start1, end1], [start2, end2]], "line thin"),
-                            bodyGroup.translate(centre).rotate(rotation),
-                            textEl.translate(centre).rotatePosition(rotation),
-                        ];
-                    }
-                    Schematic.make = make;
-                })(Schematic = Resistor.Schematic || (Resistor.Schematic = {}));
-            })(Resistor = Group.Resistor || (Group.Resistor = {}));
-        })(Group = Element.Group || (Element.Group = {}));
-    })(Element = Svg.Element || (Svg.Element = {}));
-})(Svg || (Svg = {}));
 var Ui;
 (function (Ui) {
     function init() {
@@ -21970,7 +22376,7 @@ var Ui;
             if (rows && columns &&
                 rows >= parseInt(rowElement.min) && columns >= parseInt(columnElement.min) &&
                 rows <= parseInt(rowElement.max) && columns <= parseInt(columnElement.max)) {
-                addBoard(Circuit.Component.Stripboard.makeInstance({
+                addBoard(Circuit.Component.stripboard.layout.make({
                     rows: rows,
                     columns: columns
                 }));
@@ -21978,11 +22384,11 @@ var Ui;
         }
         Events.makeStripBoardButtonPress = makeStripBoardButtonPress;
         function makeBreadBoardSmallButtonPress() {
-            addBoard(Circuit.Component.BreadboardSmall.makeInstance({}));
+            addBoard(Circuit.Component.Breadboard.layoutSmall.make({}));
         }
         Events.makeBreadBoardSmallButtonPress = makeBreadBoardSmallButtonPress;
         function makeBreadBoardLargeButtonPress() {
-            addBoard(Circuit.Component.BreadboardLarge.makeInstance({}));
+            addBoard(Circuit.Component.Breadboard.layoutLarge.make({}));
         }
         Events.makeBreadBoardLargeButtonPress = makeBreadBoardLargeButtonPress;
         function addBoard(board) {
@@ -22204,6 +22610,20 @@ var Utility;
             }
         }
         Insert.before = before;
+        function after(element, targetOrRef, referenceSelector = "*") {
+            let target = (typeof targetOrRef === "string") ? undefined : targetOrRef;
+            referenceSelector = (typeof targetOrRef === "string") ? targetOrRef : referenceSelector;
+            if (element === target || target === undefined) {
+                $(element).insertAfter($(element).siblings(referenceSelector).last());
+            }
+            else if ($(target).children(referenceSelector).length) {
+                $(element).insertAfter($(target).children(referenceSelector).last());
+            }
+            else {
+                $(element).prependTo($(target));
+            }
+        }
+        Insert.after = after;
     })(Insert = Utility.Insert || (Utility.Insert = {}));
 })(Utility || (Utility = {}));
 var Utility;

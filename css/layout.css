@@ -6,7 +6,7 @@
    --defaultWireColour: red;
 }
 
-.layout .wire>.cover {
+.layout .wire>.body>.cover {
    stroke-width: 7;
    stroke: var(--defaultWireColour);
    stroke-linejoin: round;
@@ -55,33 +55,33 @@
    fill: gold;
 }
 
-.layout .capacitor>.bodyelectrolytic {
+.layout .capacitor>.body.electrolytic {
    stroke-width: 6;
 }
 
-.layout .capacitor>.bodyelectrolytic>.body {
+.layout .capacitor>.body.electrolytic>.body {
    stroke: #626262;
    fill: rgb(216, 216, 216);
 }
 
-.layout .capacitor>.bodyelectrolytic>.minus {
+.layout .capacitor>.body.electrolytic>.minus {
    stroke: #a7b4b8;
    fill: none;
 }
 
-.layout .capacitor>.bodyelectrolytic>.text {
+.layout .capacitor>.body.electrolytic>.text {
    font-family: monospace;
    font-size: 6px;
    font-weight: 700;
    fill: #f6f6f6;
 }
 
-.layout .capacitor>.bodyceramic>.body {
+.layout .capacitor>.body.ceramic>.body {
    stroke-width: 2;
    fill: #edb256;
 }
 
-.layout .capacitor>.bodyceramic>.text {
+.layout .capacitor>.body.ceramic>.text {
    font-family: monospace;
    font-size: 8px;
    font-weight: 700;
@@ -337,7 +337,7 @@
    text-anchor: middle;
    pointer-events: none;
    font-family: consolas;
-   font-size: 4px;
+   font-size: 6px;
    dominant-baseline: central;
    opacity: 0.9;
 }

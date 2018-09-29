@@ -3,39 +3,39 @@ namespace Circuit {
    const mappingsBuilder = (() => {
 
       const schematicComponents = {
-         "makeWire": Component.WireSchematic,
-         "makeResistor": Component.ResistorSchematic,
-         "makeCapacitor": Component.CapacitorSchematic,
-         "makeInductor": Component.InductorSchematic,
-         "makeDiode": Component.DiodeSchematic,
-         "makeOpAmp": Component.OpAmpSchematic,
-         "makePower": Component.PowerSchematic,
-         "makeBipolar": Component.BipolarSchematic,
+         "makeWire": Component.wire.schematic,
+         "makeResistor": Component.resistor.schematic,
+         "makeCapacitor": Component.capacitor.schematic,
+         "makeInductor": Component.inductor.schematic,
+         "makeDiode": Component.diode.schematic,
+         "makeOpAmp": Component.opAmp.schematic,
+         "makePower": Component.power.schematic,
+         "makeBipolar": Component.bipolar.schematic,
       };
 
       const layoutComponents = {
-         "makeLayoutWire": Component.WireLayout,
-         "makeLayoutResistor": Component.ResistorLayout,
-         "makeLayoutCapacitor": Component.CapacitorLayout,
-         "makeLayoutInductor": Component.InductorLayout,
-         "makeLayoutDiode": Component.DiodeLayout,
-         "makeLayoutOpAmp": Component.OpAmpLayout,
-         "makeLayoutPower": Component.PowerLayout,
-         "makeLayoutBipolar": Component.BipolarLayout,
-         "makeLayoutStripboard": Component.Stripboard,
-         "makeLayoutBreadboardSmall": Component.BreadboardSmall,
-         "makeLayoutBreadboardLarge": Component.BreadboardLarge,
+         "makeLayoutWire": Component.wire.layout,
+         "makeLayoutResistor": Component.resistor.layout,
+         "makeLayoutCapacitor": Component.capacitor.layout,
+         "makeLayoutInductor": Component.inductor.layout,
+         "makeLayoutDiode": Component.diode.layout,
+         "makeLayoutOpAmp": Component.opAmp.layout,
+         "makeLayoutPower": Component.power.layout,
+         "makeLayoutBipolar": Component.bipolar.layout,
+         "makeLayoutStripboard": Component.stripboard.layout,
+         "makeLayoutBreadboardSmall": Component.Breadboard.layoutSmall,
+         "makeLayoutBreadboardLarge": Component.Breadboard.layoutLarge,
       };
 
       type componentLoaderName = keyof (typeof schematicComponents & typeof layoutComponents);
-      type componentLoaderList = { [key: string]: { loadInstance: Component.Types.loadFunction } };
+      type componentLoaderList = { [key: string]: { load: Component.Types.loadFunction } };
       const getComponentLoader = (name: componentLoaderName): Component.Types.loadFunction => {
          let schematicLoaders = schematicComponents as componentLoaderList;
          let layoutLoaders = layoutComponents as componentLoaderList;
          if (schematicLoaders[name]) {
-            return schematicLoaders[name].loadInstance;
+            return schematicLoaders[name].load;
          } else if (layoutLoaders[name]) {
-            return layoutLoaders[name].loadInstance;
+            return layoutLoaders[name].load;
          }
 
          throw new Error("Component loader missing!")
@@ -53,13 +53,13 @@ namespace Circuit {
          }
       };
 
-      type componentInstanceList = { [key: string]: { Instance: typeof Component.Instance } };
+      type componentInstanceList = { [key: string]: { instance: typeof Component.Instance } };
       function getSaveName<C extends Component.Instance>(component: C): string {
          let loaders = Object.assign({}, schematicComponents, layoutComponents) as componentInstanceList;
          let constructor = component["constructor"] as typeof Component.Instance
 
          for (let key in loaders) {
-            if (loaders.hasOwnProperty(key) && (constructor === loaders[key].Instance)) {
+            if (loaders.hasOwnProperty(key) && (constructor === loaders[key].instance)) {
                return key;
             }
          }
@@ -82,13 +82,13 @@ namespace Circuit {
             V extends (v: P) => Component.Instance>(key: { new(values: P & S): C }) => V;
       } = new Map() as any; //TODO
       schematicToLayoutMap
-         .set(Component.ResistorSchematic.Instance, Component.ResistorLayout.makeInstance)
-         .set(Component.CapacitorSchematic.Instance, Component.CapacitorLayout.makeInstance)
-         .set(Component.InductorSchematic.Instance, Component.InductorLayout.makeInstance)
-         .set(Component.DiodeSchematic.Instance, Component.DiodeLayout.makeInstance)
-         .set(Component.OpAmpSchematic.Instance, Component.OpAmpLayout.makeInstance)
-         .set(Component.PowerSchematic.Instance, Component.PowerLayout.makeInstance)
-         .set(Component.BipolarSchematic.Instance, Component.BipolarLayout.makeInstance);
+         .set(Component.resistor.schematic.instance, Component.resistor.layout.make)
+         .set(Component.capacitor.schematic.instance, Component.capacitor.layout.make)
+         .set(Component.inductor.schematic.instance, Component.inductor.layout.make)
+         .set(Component.diode.schematic.instance, Component.diode.layout.make)
+         .set(Component.opAmp.schematic.instance, Component.opAmp.layout.make)
+         .set(Component.power.schematic.instance, Component.power.layout.make)
+         .set(Component.bipolar.schematic.instance, Component.bipolar.layout.make);
 
       function getLayoutInstanceFromSchematic<
          C extends Component.Instance,

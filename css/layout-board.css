@@ -1,4 +1,7 @@
-.breadboard {
+/* TODO Remove all the repetition */
+
+.breadboardsmall,
+.breadboardlarge {
    --bodyColour: #EAEBE3;
    --bodyEdgeColour: black;
    --centreChannelColour: #C2C5BA;
@@ -10,36 +13,43 @@
    --railNegativeColour: #8BE3F4;
 }
 
-.breadboard>.body>.body {
+.breadboardsmall .body>.body,
+.breadboardlarge .body>.body {
    fill: var(--bodyColour);
    stroke-width: 2;
 }
 
-.breadboard>.body>.body.highlight {
+.breadboardsmall .body>.body.highlight,
+.breadboardlarge .body>.body.highlight {
    fill: none;
    stroke-width: 2;
 }
 
-.breadboard .rut {
+.breadboardsmall .rut,
+.breadboardlarge .rut {
    fill: var(--centreChannelColour);
    /*Half the size of the body stroke width*/
    clip-path: inset(0 0.5px 0 0.5px)
 }
 
-.breadboard .rail {
+.breadboardsmall .rail,
+.breadboardlarge .rail {
    stroke-width: 2;
    stroke-linecap: round;
 }
 
-.breadboard .rail.positive {
+.breadboardsmall .rail.positive,
+.breadboardlarge .rail.positive {
    stroke: var(--railPositiveColour);
 }
 
-.breadboard .rail.negative {
+.breadboardsmall .rail.negative,
+.breadboardlarge .rail.negative {
    stroke: var(--railNegativeColour);
 }
 
-.breadboard .text {
+.breadboardsmall .text,
+.breadboardlarge .text {
    text-anchor: middle;
    font-size: 10px;
    font-family: arial;
@@ -47,13 +57,15 @@
    fill: black;
 }
 
-.breadboard .track>.body {
+.breadboardsmall .track>.body,
+.breadboardlarge .track>.body {
    stroke-width: 1;
    stroke: var(--trackEdgeColour);
    fill: var(--trackColour);
 }
 
-.breadboard .track .hole {
+.breadboardsmall .track .hole,
+.breadboardlarge .track .hole {
    fill: var(--holeColour);
    stroke-width: 3;
    stroke: var(--holeEdgeColour);

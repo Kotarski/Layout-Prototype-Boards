@@ -48,8 +48,9 @@ namespace FileIO.Load {
                         NodeElements.fileStatusText.innerText = "File:\r\n\"" + filename + "\"\r\nLoaded Successfully";
                         console.groupEnd();
                         if (savedManifest) {
+                           Circuit.History.init([]);
                            Circuit.manifest.constructFrom(savedManifest);
-                           Circuit.History.init(Circuit.manifest.layout);
+                           Circuit.history.add(...Circuit.manifest.layout);
                         } else {
                            console.error("savedManifest is undefined");
                         }
