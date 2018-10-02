@@ -5,25 +5,24 @@
 /// <reference path="_Bipolar/-loadLayout.ts" />
 
 namespace Circuit.Component {
-   const schematicMap: Component.Types.map = {
+   const schematicMap = {
       savename: "makeBipolar",
+      diagramType: "schematic" as "schematic",
       instance: _Bipolar.Classes.Schematic,
       make: _Bipolar.makeSchematic,
       load: _Bipolar.loadSchematic,
    }
 
-   const layoutMap: Component.Types.map = {
+   const layoutMap = {
       savename: "makeLayoutBipolar",
+      diagramType: "layout" as "layout",
       instance: _Bipolar.Classes.Layout,
       make: _Bipolar.makeLayout,
       load: _Bipolar.loadLayout,
    }
 
-   schematicMap.correspondsTo = layoutMap;
-   layoutMap.correspondsTo = schematicMap;
-
    export const bipolar = {
-      schematic: schematicMap,
-      layout: layoutMap
+      schematic: Component.makeMap(schematicMap, layoutMap),
+      layout: Component.makeMap(layoutMap, schematicMap)
    }
 }

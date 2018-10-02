@@ -5,27 +5,24 @@
 /// <reference path="_Wire/-loadLayout.ts" />
 
 namespace Circuit.Component {
-   const schematicMap: Component.Types.map = {
+   const schematicMap = {
       savename: "makeWire",
+      diagramType: "schematic" as "schematic",
       instance: _Wire.Classes.Schematic,
       make: _Wire.makeSchematic,
       load: _Wire.loadSchematic
    }
 
-   //TODO Find a way to make typescript infer the correct type of makelayout
-   type layoutMap = Component.Types.map & {
-      make: typeof _Wire.makeLayout;
-   }
-
-   const layoutMap: layoutMap = {
+   const layoutMap = {
       savename: "makeLayoutWire",
+      diagramType: "layout" as "layout",
       instance: _Wire.Classes.Layout,
       make: _Wire.makeLayout,
       load: _Wire.loadLayout
    }
 
    export const wire = {
-      schematic: schematicMap,
-      layout: layoutMap
+      schematic: Component.makeMap(schematicMap),
+      layout: Component.makeMap(layoutMap)
    }
 }

@@ -10,17 +10,18 @@ namespace FileIO.Load.Dasim {
       }
 
       for (let rawComponent of rawComponents) {
-         const sectionName = Circuit.mappings.sortComponentByName(rawComponent.func);
-         if (sectionName === "none") {
-            console.log("I don't know how to build %o yet!", rawComponent);
+         const componentMap = Circuit.mappings.getComponentMap(rawComponent.func);
+
+         if (componentMap === undefined) {
+            console.error("I don't know how to build %o yet!", rawComponent);
             continue;
          }
 
+         const sectionName = componentMap.diagramType;
+
          let manifestSection = (sectionName === "schematic") ? manifest.schematic : manifest.layout;
 
-         let componentLoadFunction = Circuit.mappings.getComponentLoader(rawComponent.func);
-
-         let newComponents = componentLoadFunction(rawComponent);
+         let newComponents = componentMap.load(rawComponent);
          if (Array.isArray(newComponents)) {
             manifestSection.push(...newComponents);
          } else {

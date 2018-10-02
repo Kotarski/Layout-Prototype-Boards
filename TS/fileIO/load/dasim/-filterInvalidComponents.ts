@@ -24,7 +24,7 @@ namespace FileIO.Load.Dasim {
          }
 
          // If object is in the supportedComponentList
-         if (Circuit.mappings.sortComponentByName(circuitObject.func) !== "none") {
+         if (Circuit.mappings.getComponentMap(circuitObject.func)) {
             // Add to drawableComponents
             validComponents.push(circuitObject);
          }

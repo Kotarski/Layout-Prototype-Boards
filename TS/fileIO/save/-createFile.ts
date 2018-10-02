@@ -3,8 +3,14 @@ namespace FileIO.Save {
       let componentStrings: string[] = [];
       Circuit.manifest.layout.concat(Circuit.manifest.schematic).forEach(component => {
          try {
+            const componentMap = Circuit.mappings.getComponentMap(component);
+            if (componentMap === undefined) {
+               console.error("No component map found!", component);
+               throw new Error("Could not save component")
+            }
+
             let componentObject = {
-               func: Circuit.mappings.getSaveName(component),
+               func: Circuit.mappings.getComponentMap(component),
                ...component.getProperties(),
                ...component.getState()
             }

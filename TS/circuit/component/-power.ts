@@ -6,31 +6,25 @@
 
 namespace Circuit.Component {
 
-   //TODO Find a way to make typescript infer the correct type of makelayout
-   type schematicMap = Component.Types.map & {
-      make: typeof _Power.makeSchematic;
-   }
-
-   const schematicMap: schematicMap = {
+   const schematicMap = {
       savename: "makePower",
+      diagramType: "schematic" as "schematic",
       instance: _Power.Classes.Schematic,
       make: _Power.makeSchematic,
       load: _Power.loadSchematic,
    }
 
-   const layoutMap: Component.Types.map = {
+   const layoutMap = {
       savename: "makeLayoutPower",
+      diagramType: "layout" as "layout",
       instance: _Power.Classes.Layout,
       make: _Power.makeLayout,
       load: _Power.loadLayout,
       isUnique: true
    }
 
-   schematicMap.correspondsTo = layoutMap;
-   layoutMap.correspondsTo = schematicMap;
-
    export const power = {
-      schematic: schematicMap,
-      layout: layoutMap
+      schematic: Component.makeMap(schematicMap, layoutMap),
+      layout: Component.makeMap(layoutMap, schematicMap)
    }
 }

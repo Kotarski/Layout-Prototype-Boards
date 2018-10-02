@@ -25,6 +25,7 @@ namespace Circuit.Component {
 
       export interface map {
          savename: string;
+         diagramType: "layout" | "schematic";
          instance: { new(values: any): Component.Instance };
          make: ReturnType<typeof Component.getMaker>;
          load: Component.Types.loadFunction<Component.Instance | Component.Instance[]>;
@@ -143,6 +144,11 @@ namespace Circuit.Component {
       }, {}) as T;
 
       return result;
+   }
+
+   export function makeMap<T extends Types.map, CT extends Types.map>
+      (map: T, correspondsTo?: CT): T & { correspondsTo?: CT, isUnique?: boolean, isBoard?: boolean } {
+      return Object.assign(map, { correspondsTo });
    }
 }
 

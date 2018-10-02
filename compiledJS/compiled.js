@@ -479,6 +479,10 @@ var Circuit;
             }, {});
             return result;
         }
+        function makeMap(map, correspondsTo) {
+            return Object.assign(map, { correspondsTo });
+        }
+        Component.makeMap = makeMap;
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
 var Circuit;
@@ -627,7 +631,7 @@ var Circuit;
             Circuit.manifest.layout = savedManifest.layout;
             if (!savedManifest.layout || savedManifest.layout.length === 0)
                 completeManifestLayout();
-            Circuit.manifest.activeBoard = Circuit.manifest.layout.find(component => Circuit.mappings.isBoard(component));
+            Circuit.manifest.activeBoard = Circuit.manifest.layout.find(component => Circuit.mappings.getComponentMapSafe(component).isBoard === true);
             draw();
         };
         const addComponent = (manifestSection, ...components) => {
@@ -664,7 +668,7 @@ var Circuit;
             });
         };
         const findCorresponding = (component) => {
-            if (!Circuit.mappings.isCorresponder(component))
+            if (!Circuit.mappings.getComponentMapSafe(component).correspondsTo)
                 return [];
             if (Circuit.manifest.layout.includes(component)) {
                 return Circuit.manifest.schematic.filter(areComponentsSimilar(component));
@@ -678,8 +682,8 @@ var Circuit;
         };
         const checkAll = () => {
             console.groupCollapsed("Check Data");
-            let layComponents = Circuit.manifest.layout.filter(Circuit.mappings.isCorresponder);
-            let schComponents = Circuit.manifest.schematic.filter(Circuit.mappings.isCorresponder);
+            let layComponents = Circuit.manifest.layout.filter(c => Circuit.mappings.getComponentMapSafe(c).correspondsTo);
+            let schComponents = Circuit.manifest.schematic.filter(c => Circuit.mappings.getComponentMapSafe(c).correspondsTo);
             let schConnectorData = schComponents.map(schComponent => ({
                 component: schComponent,
                 connectorSets: getMinConnections(schComponent)
@@ -689,7 +693,7 @@ var Circuit;
                     return false;
                 let layConnectorSets = getMinConnections(layComponent);
                 let schConnectorMinData = schConnectorData.filter(datum => areComponentsSimilar(layComponent)(datum.component));
-                const componentIsUnique = Circuit.mappings.isUnique(layComponent);
+                const componentIsUnique = Circuit.mappings.getComponentMapSafe(layComponent).isUnique;
                 if (componentIsUnique) {
                     let merged = mergeConnectorsSets(schConnectorMinData.map(datum => datum.connectorSets));
                     schConnectorMinData.forEach(datum => {
@@ -753,15 +757,17 @@ var Circuit;
             let properties = schematicElement.getProperties();
             let match = layoutCopy.find(layoutElement => arePropertiesEqual(properties, layoutElement.getProperties()));
             if (match) {
-                if (!Circuit.mappings.isUnique(match)) {
+                if (!Circuit.mappings.getComponentMapSafe(match).isUnique) {
                     layoutCopy = layoutCopy.filter(Utility.is(match));
                 }
             }
             else {
-                if (Circuit.mappings.isCorresponder(schematicElement)) {
-                    let newComponent = Circuit.mappings.getLayoutInstanceFromSchematic(schematicElement);
+                const correspondsTo = Circuit.mappings.getComponentMapSafe(schematicElement).correspondsTo;
+                if (correspondsTo !== undefined) {
+                    const newComponentMaker = correspondsTo.make;
+                    const newComponent = newComponentMaker(schematicElement.getProperties());
                     Circuit.manifest.layout.push(newComponent);
-                    if (Circuit.mappings.isUnique(newComponent)) {
+                    if (Circuit.mappings.getComponentMapSafe(newComponent).isUnique) {
                         layoutCopy.push(newComponent);
                     }
                 }
@@ -819,12 +825,12 @@ var Circuit;
             return (connectorSet.map(connections => {
                 let connectorName = connections[0].name;
                 connections.shift();
-                let blackHole = connections.find(connection => Circuit.mappings.isUnique(connection.component));
+                let blackHole = connections.find(connection => Circuit.mappings.getComponentMapSafe(connection.component).isUnique === true);
                 if (blackHole)
                     connections = connections.filter(Utility.is(blackHole));
                 return {
                     name: connectorName,
-                    connections: connections.filter((connection) => Circuit.mappings.isCorresponder(connection.component))
+                    connections: connections.filter((connection) => Circuit.mappings.getComponentMapSafe(connection.component).correspondsTo)
                 };
             })).filter(c => c.connections.length !== 0);
         }));
@@ -850,85 +856,23 @@ var Circuit;
 var Circuit;
 (function (Circuit) {
     const mappingsBuilder = (() => {
-        const schematicComponents = {
-            "makeWire": Circuit.Component.wire.schematic,
-            "makeResistor": Circuit.Component.resistor.schematic,
-            "makeCapacitor": Circuit.Component.capacitor.schematic,
-            "makeInductor": Circuit.Component.inductor.schematic,
-            "makeDiode": Circuit.Component.diode.schematic,
-            "makeOpAmp": Circuit.Component.opAmp.schematic,
-            "makePower": Circuit.Component.power.schematic,
-            "makeBipolar": Circuit.Component.bipolar.schematic,
-        };
-        const layoutComponents = {
-            "makeLayoutWire": Circuit.Component.wire.layout,
-            "makeLayoutResistor": Circuit.Component.resistor.layout,
-            "makeLayoutCapacitor": Circuit.Component.capacitor.layout,
-            "makeLayoutInductor": Circuit.Component.inductor.layout,
-            "makeLayoutDiode": Circuit.Component.diode.layout,
-            "makeLayoutOpAmp": Circuit.Component.opAmp.layout,
-            "makeLayoutPower": Circuit.Component.power.layout,
-            "makeLayoutBipolar": Circuit.Component.bipolar.layout,
-            "makeLayoutStripboard": Circuit.Component.stripboard.layout,
-            "makeLayoutBreadboardSmall": Circuit.Component.Breadboard.layoutSmall,
-            "makeLayoutBreadboardLarge": Circuit.Component.Breadboard.layoutLarge,
-        };
-        const getComponentLoader = (name) => {
-            let schematicLoaders = schematicComponents;
-            let layoutLoaders = layoutComponents;
-            if (schematicLoaders[name]) {
-                return schematicLoaders[name].load;
-            }
-            else if (layoutLoaders[name]) {
-                return layoutLoaders[name].load;
-            }
-            throw new Error("Component loader missing!");
-        };
-        const sortComponentByName = (name) => {
-            const schematicKeys = Object.keys(schematicComponents);
-            const layoutKeys = Object.keys(layoutComponents);
-            if (schematicKeys.includes(name)) {
-                return "schematic";
-            }
-            else if (layoutKeys.includes(name)) {
-                return "layout";
+        const componentMaps = Utility.tuple(Circuit.Component.wire.schematic, Circuit.Component.resistor.schematic, Circuit.Component.capacitor.schematic, Circuit.Component.inductor.schematic, Circuit.Component.diode.schematic, Circuit.Component.opAmp.schematic, Circuit.Component.power.schematic, Circuit.Component.bipolar.schematic, Circuit.Component.wire.layout, Circuit.Component.resistor.layout, Circuit.Component.capacitor.layout, Circuit.Component.inductor.layout, Circuit.Component.diode.layout, Circuit.Component.opAmp.layout, Circuit.Component.power.layout, Circuit.Component.bipolar.layout, Circuit.Component.stripboard.layout, Circuit.Component.Breadboard.layoutSmall, Circuit.Component.Breadboard.layoutLarge);
+        function getComponentMapSafe(data) {
+            const result = (typeof data === "string")
+                ? componentMaps.find(map => map.savename === data)
+                : componentMaps.find(map => map.instance === data["constructor"]);
+            if (result !== undefined) {
+                return result;
             }
             else {
-                return "none";
+                console.error("Component map not found with data %o", data);
+                throw new Error("Component map does not exist!");
             }
-        };
-        function getSaveName(component) {
-            let loaders = Object.assign({}, schematicComponents, layoutComponents);
-            let constructor = component["constructor"];
-            for (let key in loaders) {
-                if (loaders.hasOwnProperty(key) && (constructor === loaders[key].instance)) {
-                    return key;
-                }
-            }
-            throw new Error("Component savename missing!");
         }
-        const schematicToLayoutMap = new Map();
-        schematicToLayoutMap
-            .set(Circuit.Component.resistor.schematic.instance, Circuit.Component.resistor.layout.make)
-            .set(Circuit.Component.capacitor.schematic.instance, Circuit.Component.capacitor.layout.make)
-            .set(Circuit.Component.inductor.schematic.instance, Circuit.Component.inductor.layout.make)
-            .set(Circuit.Component.diode.schematic.instance, Circuit.Component.diode.layout.make)
-            .set(Circuit.Component.opAmp.schematic.instance, Circuit.Component.opAmp.layout.make)
-            .set(Circuit.Component.power.schematic.instance, Circuit.Component.power.layout.make)
-            .set(Circuit.Component.bipolar.schematic.instance, Circuit.Component.bipolar.layout.make);
-        function getLayoutInstanceFromSchematic(schematic) {
-            let constructor = schematic["constructor"];
-            let properties = schematic.getProperties();
-            return schematicToLayoutMap.get(constructor)(properties);
-        }
-        function isCorresponder(component) {
-            return ["resistor", "capacitor", "power", "opAmp", "diode", "inductor", "bipolar"].includes(component.name);
-        }
-        function isUnique(component) {
-            return ["power"].includes(component.name);
-        }
-        function isBoard(component) {
-            return ["stripboard", "breadboardsmall", "breadboardlarge"].includes(component.name);
+        function getComponentMap(data) {
+            return (typeof data === "string")
+                ? componentMaps.find(map => map.savename === data)
+                : componentMaps.find(map => map.instance === data["constructor"]);
         }
         const connectorAcceptedTypes = {
             "pin": ["hole"],
@@ -937,14 +881,9 @@ var Circuit;
             "node": ["node"],
         };
         return {
-            getComponentLoader: getComponentLoader,
-            sortComponentByName: sortComponentByName,
-            getLayoutInstanceFromSchematic: getLayoutInstanceFromSchematic,
-            isUnique: isUnique,
-            getSaveName: getSaveName,
+            getComponentMap: getComponentMap,
+            getComponentMapSafe: getComponentMapSafe,
             connectorAcceptedTypes: connectorAcceptedTypes,
-            isCorresponder: isCorresponder,
-            isBoard: isBoard
         };
     });
     let Mappings;
@@ -1123,21 +1062,21 @@ var Circuit;
     (function (Component) {
         const schematicMap = {
             savename: "makeBipolar",
+            diagramType: "schematic",
             instance: Component._Bipolar.Classes.Schematic,
             make: Component._Bipolar.makeSchematic,
             load: Component._Bipolar.loadSchematic,
         };
         const layoutMap = {
             savename: "makeLayoutBipolar",
+            diagramType: "layout",
             instance: Component._Bipolar.Classes.Layout,
             make: Component._Bipolar.makeLayout,
             load: Component._Bipolar.loadLayout,
         };
-        schematicMap.correspondsTo = layoutMap;
-        layoutMap.correspondsTo = schematicMap;
         Component.bipolar = {
-            schematic: schematicMap,
-            layout: layoutMap
+            schematic: Component.makeMap(schematicMap, layoutMap),
+            layout: Component.makeMap(layoutMap, schematicMap)
         };
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
@@ -1272,19 +1211,23 @@ var Circuit;
     (function (Component) {
         const smallMap = {
             savename: "makeLayoutBreadboardSmall",
+            diagramType: "layout",
             instance: Component._Breadboard.Classes.Small,
             make: Component._Breadboard.makeSmall,
             load: Component._Breadboard.loadSmall,
+            isBoard: true
         };
         const largeMap = {
             savename: "makeLayoutBreadboardLarge",
+            diagramType: "layout",
             instance: Component._Breadboard.Classes.Large,
             make: Component._Breadboard.makeLarge,
             load: Component._Breadboard.loadLarge,
+            isBoard: true
         };
         Component.Breadboard = {
-            layoutSmall: smallMap,
-            layoutLarge: largeMap
+            layoutSmall: Component.makeMap(smallMap),
+            layoutLarge: Component.makeMap(largeMap)
         };
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
@@ -1474,21 +1417,21 @@ var Circuit;
     (function (Component) {
         const schematicMap = {
             savename: "makeCapacitor",
+            diagramType: "schematic",
             instance: Component._Capacitor.Classes.Schematic,
             make: Component._Capacitor.makeSchematic,
             load: Component._Capacitor.loadSchematic,
         };
         const layoutMap = {
             savename: "makeLayoutCapacitor",
+            diagramType: "layout",
             instance: Component._Capacitor.Classes.Layout,
             make: Component._Capacitor.makeLayout,
             load: Component._Capacitor.loadLayout,
         };
-        schematicMap.correspondsTo = layoutMap;
-        layoutMap.correspondsTo = schematicMap;
         Component.capacitor = {
-            schematic: schematicMap,
-            layout: layoutMap
+            schematic: Component.makeMap(schematicMap, layoutMap),
+            layout: Component.makeMap(layoutMap, schematicMap)
         };
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
@@ -1664,21 +1607,21 @@ var Circuit;
     (function (Component) {
         const schematicMap = {
             savename: "makeDiode",
+            diagramType: "schematic",
             instance: Component._Diode.Classes.Schematic,
             make: Component._Diode.makeSchematic,
             load: Component._Diode.loadSchematic,
         };
         const layoutMap = {
             savename: "makeLayoutDiode",
+            diagramType: "layout",
             instance: Component._Diode.Classes.Layout,
             make: Component._Diode.makeLayout,
             load: Component._Diode.loadLayout,
         };
-        schematicMap.correspondsTo = layoutMap;
-        layoutMap.correspondsTo = schematicMap;
         Component.diode = {
-            schematic: schematicMap,
-            layout: layoutMap
+            schematic: Component.makeMap(schematicMap, layoutMap),
+            layout: Component.makeMap(layoutMap, schematicMap)
         };
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
@@ -1842,21 +1785,21 @@ var Circuit;
     (function (Component) {
         const schematicMap = {
             savename: "makeInductor",
+            diagramType: "schematic",
             instance: Component._Inductor.Classes.Schematic,
             make: Component._Inductor.makeSchematic,
             load: Component._Inductor.loadSchematic,
         };
         const layoutMap = {
             savename: "makeLayoutInductor",
+            diagramType: "layout",
             instance: Component._Inductor.Classes.Layout,
             make: Component._Inductor.makeLayout,
             load: Component._Inductor.loadLayout,
         };
-        schematicMap.correspondsTo = layoutMap;
-        layoutMap.correspondsTo = schematicMap;
         Component.inductor = {
-            schematic: schematicMap,
-            layout: layoutMap
+            schematic: Component.makeMap(schematicMap, layoutMap),
+            layout: Component.makeMap(layoutMap, schematicMap)
         };
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
@@ -2110,21 +2053,21 @@ var Circuit;
     (function (Component) {
         const schematicMap = {
             savename: "makeOpAmp",
+            diagramType: "schematic",
             instance: Component._OpAmp.Classes.Schematic,
             make: Component._OpAmp.makeSchematic,
             load: Component._OpAmp.loadSchematic,
         };
         const layoutMap = {
             savename: "makeLayoutOpAmp",
+            diagramType: "layout",
             instance: Component._OpAmp.Classes.Layout,
             make: Component._OpAmp.makeLayout,
             load: Component._OpAmp.loadLayout,
         };
-        schematicMap.correspondsTo = layoutMap;
-        layoutMap.correspondsTo = schematicMap;
         Component.opAmp = {
-            schematic: schematicMap,
-            layout: layoutMap
+            schematic: Component.makeMap(schematicMap, layoutMap),
+            layout: Component.makeMap(layoutMap, schematicMap)
         };
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
@@ -2297,22 +2240,22 @@ var Circuit;
     (function (Component) {
         const schematicMap = {
             savename: "makePower",
+            diagramType: "schematic",
             instance: Component._Power.Classes.Schematic,
             make: Component._Power.makeSchematic,
             load: Component._Power.loadSchematic,
         };
         const layoutMap = {
             savename: "makeLayoutPower",
+            diagramType: "layout",
             instance: Component._Power.Classes.Layout,
             make: Component._Power.makeLayout,
             load: Component._Power.loadLayout,
             isUnique: true
         };
-        schematicMap.correspondsTo = layoutMap;
-        layoutMap.correspondsTo = schematicMap;
         Component.power = {
-            schematic: schematicMap,
-            layout: layoutMap
+            schematic: Component.makeMap(schematicMap, layoutMap),
+            layout: Component.makeMap(layoutMap, schematicMap)
         };
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
@@ -2476,21 +2419,21 @@ var Circuit;
     (function (Component) {
         const schematicMap = {
             savename: "makeResistor",
+            diagramType: "schematic",
             instance: Component._Resistor.Classes.Schematic,
             make: Component._Resistor.makeSchematic,
             load: Component._Resistor.loadSchematic,
         };
         const layoutMap = {
             savename: "makeLayoutResistor",
+            diagramType: "layout",
             instance: Component._Resistor.Classes.Layout,
             make: Component._Resistor.makeLayout,
             load: Component._Resistor.loadLayout,
         };
-        schematicMap.correspondsTo = layoutMap;
-        layoutMap.correspondsTo = schematicMap;
         Component.resistor = {
-            schematic: schematicMap,
-            layout: layoutMap
+            schematic: Component.makeMap(schematicMap, layoutMap),
+            layout: Component.makeMap(layoutMap, schematicMap)
         };
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
@@ -2616,12 +2559,14 @@ var Circuit;
     (function (Component) {
         const layoutMap = {
             savename: "makeLayoutStripboard",
+            diagramType: "layout",
             instance: Component._Stripboard.Classes.Layout,
             make: Component._Stripboard.makeLayout,
             load: Component._Stripboard.loadLayout,
+            isBoard: true
         };
         Component.stripboard = {
-            layout: layoutMap,
+            layout: Component.makeMap(layoutMap),
         };
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
@@ -2796,19 +2741,21 @@ var Circuit;
     (function (Component) {
         const schematicMap = {
             savename: "makeWire",
+            diagramType: "schematic",
             instance: Component._Wire.Classes.Schematic,
             make: Component._Wire.makeSchematic,
             load: Component._Wire.loadSchematic
         };
         const layoutMap = {
             savename: "makeLayoutWire",
+            diagramType: "layout",
             instance: Component._Wire.Classes.Layout,
             make: Component._Wire.makeLayout,
             load: Component._Wire.loadLayout
         };
         Component.wire = {
-            schematic: schematicMap,
-            layout: layoutMap
+            schematic: Component.makeMap(schematicMap),
+            layout: Component.makeMap(layoutMap)
         };
     })(Component = Circuit.Component || (Circuit.Component = {}));
 })(Circuit || (Circuit = {}));
@@ -4669,14 +4616,14 @@ var FileIO;
                     layout: []
                 };
                 for (let rawComponent of rawComponents) {
-                    const sectionName = Circuit.mappings.sortComponentByName(rawComponent.func);
-                    if (sectionName === "none") {
-                        console.log("I don't know how to build %o yet!", rawComponent);
+                    const componentMap = Circuit.mappings.getComponentMap(rawComponent.func);
+                    if (componentMap === undefined) {
+                        console.error("I don't know how to build %o yet!", rawComponent);
                         continue;
                     }
+                    const sectionName = componentMap.diagramType;
                     let manifestSection = (sectionName === "schematic") ? manifest.schematic : manifest.layout;
-                    let componentLoadFunction = Circuit.mappings.getComponentLoader(rawComponent.func);
-                    let newComponents = componentLoadFunction(rawComponent);
+                    let newComponents = componentMap.load(rawComponent);
                     if (Array.isArray(newComponents)) {
                         manifestSection.push(...newComponents);
                     }
@@ -4707,7 +4654,7 @@ var FileIO;
                         console.error("Object %o format is incorrect", [circuitObject]);
                         deferred.reject("Object format is incorrect");
                     }
-                    if (Circuit.mappings.sortComponentByName(circuitObject.func) !== "none") {
+                    if (Circuit.mappings.getComponentMap(circuitObject.func)) {
                         validComponents.push(circuitObject);
                     }
                     else if (discardableObjects.some(dO => dO === circuitObject.func)) {
@@ -4841,7 +4788,12 @@ var FileIO;
             let componentStrings = [];
             Circuit.manifest.layout.concat(Circuit.manifest.schematic).forEach(component => {
                 try {
-                    let componentObject = Object.assign({ func: Circuit.mappings.getSaveName(component) }, component.getProperties(), component.getState());
+                    const componentMap = Circuit.mappings.getComponentMap(component);
+                    if (componentMap === undefined) {
+                        console.error("No component map found!", component);
+                        throw new Error("Could not save component");
+                    }
+                    let componentObject = Object.assign({ func: Circuit.mappings.getComponentMap(component) }, component.getProperties(), component.getState());
                     if (componentObject.disabled === false) {
                         delete componentObject.disabled;
                         componentStrings.push(JSON.stringify(componentObject));
@@ -22567,6 +22519,13 @@ var Utility;
         return { passes: passes, fails: fails };
     }
     Utility.split = split;
+})(Utility || (Utility = {}));
+var Utility;
+(function (Utility) {
+    function tuple(...args) {
+        return args;
+    }
+    Utility.tuple = tuple;
 })(Utility || (Utility = {}));
 var Utility;
 (function (Utility) {
