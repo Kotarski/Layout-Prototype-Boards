@@ -18,6 +18,7 @@ var _vector;
                 return { x: inVector[0], y: inVector[1] };
             }
             else {
+                console.error("IS NOT A VECTOR");
                 return { x: NaN, y: NaN };
             }
         });
@@ -349,9 +350,12 @@ var Utility;
                 : test);
         const validator = (value) => {
             if (predicate(value)) {
+                console.log(`Value '%o' passed test '%o`, value, test);
                 return value;
             }
             else {
+                console.log(`Validation failure, value '%o' did not pass test '%o',
+             fallback '%o' used.`, value, test, fallback);
                 return fallback;
             }
         };
@@ -438,12 +442,17 @@ var Circuit;
         Component.Instance = Instance;
         function getMaker(instanceClass, defaulter, initialiser) {
             return (partialValues) => {
+                console.groupCollapsed("Loading...");
                 const values = loadObjectWithDefaults(defaulter, partialValues);
+                console.groupEnd();
                 const component = new instanceClass(values);
                 if (initialiser)
                     initialiser(component);
                 component.draw();
                 component.makeConnectors();
+                console.groupCollapsed("%s: %o", component.name, component.group.element);
+                console.log(component);
+                console.groupEnd();
                 $(component.group.element).addClass(component.name);
                 return component;
             };
@@ -451,9 +460,11 @@ var Circuit;
         Component.getMaker = getMaker;
         function loadObjectWithDefaults(defaulter, partial) {
             const result = Object.keys(defaulter).reduce((acc, key) => {
+                console.group(key);
                 const defaultFn = defaulter[key];
                 const partialValue = (partial) ? partial[key] : undefined;
                 acc[key] = defaultFn(partialValue);
+                console.groupEnd();
                 return acc;
             }, {});
             return result;
@@ -660,6 +671,7 @@ var Circuit;
             }
         };
         const checkAll = () => {
+            console.groupCollapsed("Check Data");
             let layComponents = Circuit.manifest.layout.filter(c => Circuit.mappings.getComponentMapSafe(c).correspondsTo);
             let schComponents = Circuit.manifest.schematic.filter(c => Circuit.mappings.getComponentMapSafe(c).correspondsTo);
             let schConnectorData = schComponents.map(schComponent => ({
@@ -681,12 +693,17 @@ var Circuit;
                 let found = schConnectorMinData.filter(datum => connectorSetsHaveMatch(layConnectorSets, datum.connectorSets));
                 if (componentIsUnique) {
                     schConnectorData = schConnectorData.filter(datum => !found.includes(datum));
+                    console.log("Layout %s '%o, matched with '%o'", layComponent.name, [layComponent], found);
                 }
                 else {
                     schConnectorData = schConnectorData.filter(datum => datum !== found[0]);
+                    console.log("Layout %s '%o, matched with '%o'", layComponent.name, [layComponent], [found[0]]);
                 }
                 return found.length > 0;
             });
+            console.log("Unmatched schematic components: %o", schConnectorData.map(datum => datum.component));
+            console.log("Unmatched layout components: %o", split.fails);
+            console.groupEnd();
             return {
                 corrects: split.passes,
                 incorrects: split.fails
@@ -838,6 +855,7 @@ var Circuit;
                 return result;
             }
             else {
+                console.error("Component map not found with data %o", data);
                 throw new Error("Component map does not exist!");
             }
         }
@@ -3773,6 +3791,7 @@ var Circuit;
                                 drawStripboard(this);
                             }
                             else {
+                                console.error("Style \"%s\" is invalid", this.style);
                             }
                         }
                         makeConnectors() {
@@ -4340,12 +4359,16 @@ var Circuit;
                 };
                 const setSelectTrigger = (component) => {
                     $(component.group.element).one("mousedown", () => {
+                        console.groupCollapsed("Selected", component.group.element);
+                        console.log("Primary: %o", component);
                         const otherComponents = Circuit.manifest.findCorresponding(component);
+                        console.log("Secondaries: %o", otherComponents);
                         const selectComponents = otherComponents.concat(component);
                         selectComponents.forEach(selectComponent => {
                             $(selectComponent.group.element).trigger(Circuit.Events.select);
                             setDeselectTrigger(selectComponent);
                         });
+                        console.groupEnd();
                     });
                 };
                 const setDeselectTrigger = (component) => {
@@ -4520,6 +4543,7 @@ var FileIO;
             if (fileInput.value.length == 0) {
             }
             else {
+                console.groupCollapsed("File Load Data");
                 $.Deferred().resolve(fileInput)
                     .then(() => Load.getStringFromFileInput(fileInput))
                     .then((file, fileString) => {
@@ -4533,28 +4557,34 @@ var FileIO;
                             .then((rawComponents) => Load.Dasim.buildComponents(rawComponents))
                             .then((savedManifest) => {
                             NodeElements.fileStatusText.innerText = "File:\r\n\"" + filename + "\"\r\nLoaded Successfully";
+                            console.groupEnd();
                             if (savedManifest) {
                                 Circuit.History.init([]);
                                 Circuit.manifest.constructFrom(savedManifest);
                                 Circuit.history.add(...Circuit.manifest.layout);
                             }
                             else {
+                                console.error("savedManifest is undefined");
                             }
                             Ui.Events.schematicPaneResize();
                             Ui.Events.layoutPaneResize();
                         })
                             .fail((failText) => {
+                            console.warn("Failed to load circuit: ", failText);
                             NodeElements.fileStatusText.innerText = "Failed to load file:\r\n\""
                                 + "" + filename + "\"\r\n"
                                 + "Error:\r\n\"" +
                                 failText + "\"";
+                            console.groupEnd();
                         });
                     }
                     else {
+                        console.error("Failed to load circuit: Incorrect file extenstion %o", fileExtension);
                         NodeElements.fileStatusText.innerText = "Failed to load file:\r\n\""
                             + "" + filename + "\"\r\n"
                             + "Error:\r\n\"" +
                             "Incorrect file extenstion: \"." + fileExtension + "\"\"";
+                        console.groupEnd();
                     }
                     $(fileInput).val("");
                 });
@@ -4570,6 +4600,7 @@ var FileIO;
         var Dasim;
         (function (Dasim) {
             function buildComponents(rawComponents) {
+                console.groupCollapsed("Component Load Data");
                 let manifest = {
                     schematic: [],
                     layout: []
@@ -4577,6 +4608,7 @@ var FileIO;
                 for (let rawComponent of rawComponents) {
                     const componentMap = Circuit.mappings.getComponentMap(rawComponent.func);
                     if (componentMap === undefined) {
+                        console.error("I don't know how to build %o yet!", rawComponent);
                         continue;
                     }
                     const sectionName = componentMap.diagramType;
@@ -4589,6 +4621,7 @@ var FileIO;
                         manifestSection.push(newComponents);
                     }
                 }
+                console.groupEnd();
                 return manifest;
             }
             Dasim.buildComponents = buildComponents;
@@ -4608,6 +4641,7 @@ var FileIO;
                 let unknownInvalidComponents = [];
                 for (let circuitObject of circuitObjects) {
                     if (!("func" in circuitObject)) {
+                        console.error("Object %o format is incorrect", [circuitObject]);
                         deferred.reject("Object format is incorrect");
                     }
                     if (Circuit.mappings.getComponentMap(circuitObject.func)) {
@@ -4621,9 +4655,12 @@ var FileIO;
                     }
                 }
                 if (knownInvalidComponents.length) {
+                    console.debug("Sim objects %o have been safely removed", [knownInvalidComponents]);
                 }
                 if (unknownInvalidComponents.length) {
+                    console.warn("Components %o are either not supported or not valid", [unknownInvalidComponents]);
                 }
+                console.info("Components %o successfully retrieved", [validComponents]);
                 deferred.resolve(validComponents);
                 return deferred.promise();
             }
@@ -4661,7 +4698,8 @@ var FileIO;
                 }
                 catch (e) {
                     if (e instanceof SyntaxError)
-                        deferred.reject("Error in file list format");
+                        console.error("Error in file list format: %o ", [e]);
+                    deferred.reject("Error in file list format");
                 }
                 return deferred.promise();
             }
@@ -4673,11 +4711,13 @@ var FileIO;
                         let circuitObject = JSON.parse(circuitObjectString);
                         circuitObjects.push(circuitObject);
                     }
+                    console.info("Circuit objects %o successfully parsed", [circuitObjects]);
                     deferred.resolve(circuitObjects);
                 }
                 catch (e) {
                     if (e instanceof SyntaxError)
-                        deferred.reject("Error in file object format");
+                        console.error("Error in file object format: %o", [e]);
+                    deferred.reject("Error in file object format");
                 }
                 return deferred.promise();
             }
@@ -4693,14 +4733,18 @@ var FileIO;
             let reader = new FileReader;
             let files = fileInput.files;
             reader.onloadstart = function (event) {
+                console.debug("Read of %o started with %o", [this.result], [event]);
             };
             reader.onabort = function (event) {
+                console.error("Read of %o aborted with %o", [this.result], [event]);
                 deferred.reject("File read aborted");
             };
             reader.onerror = function (event) {
+                console.error("Read of %o failed with %o", [this.result], [event]);
                 deferred.reject("File could not be read");
             };
             reader.onload = function (event) {
+                console.info("Read of %o successfully complete with %o", [this.result], [event]);
                 let fileString = reader.result;
                 if (files && files[0]) {
                     deferred.resolve(files[0], fileString);
@@ -4714,6 +4758,7 @@ var FileIO;
                     reader.readAsText(files[0]);
                 }
                 catch (e) {
+                    console.error("Read of %o failed with %o", [files[0]], [e]);
                     deferred.reject("File could not be read as string");
                 }
             }
@@ -4735,6 +4780,7 @@ var FileIO;
                 try {
                     const componentMap = Circuit.mappings.getComponentMap(component);
                     if (componentMap === undefined) {
+                        console.error("No component map found!", component);
                         throw new Error("Could not save component");
                     }
                     let componentObject = Object.assign({ func: Circuit.mappings.getComponentMap(component) }, component.getProperties(), component.getState());
@@ -4744,6 +4790,7 @@ var FileIO;
                     }
                 }
                 catch (e) {
+                    console.error("Item %o cannot be saved (check mappings) with error %o", component, e);
                 }
             });
             return JSON.stringify(componentStrings, undefined, 2);
