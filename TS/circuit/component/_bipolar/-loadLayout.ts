@@ -5,6 +5,6 @@ namespace Circuit.Component._Bipolar {
       const type = (raw.type);
       const joints = (raw.joints);
 
-      return makeLayout({ name, currentGain, type, joints }, true);
+      return makeLayout({ name, currentGain, type, joints });
    }
 }

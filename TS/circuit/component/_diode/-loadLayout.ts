@@ -6,6 +6,6 @@ namespace Circuit.Component._Diode {
       const color = (raw.color);
       const joints = (raw.joints);
 
-      return makeLayout({ name, breakdownVoltage, saturationCurrent, color, joints }, true);
+      return makeLayout({ name, breakdownVoltage, saturationCurrent, color, joints });
    }
 }

@@ -32,7 +32,7 @@ namespace Circuit {
          if (result !== undefined) {
             return result;
          } else {
-            console.error("Component map not found with data %o", data);
+            /*LOGSTART*/console.error("Component map not found with data %o", data);/*LOGEND*/
             throw new Error("Component map does not exist!");
          }
       }

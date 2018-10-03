@@ -4,6 +4,6 @@ namespace Circuit.Component._Power {
       const voltage = (raw.voltage);
       const joints = (raw.joints);
 
-      return makeLayout({ name, voltage, joints }, true);
+      return makeLayout({ name, voltage, joints });
    }
 }

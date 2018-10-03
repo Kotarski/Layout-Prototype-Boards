@@ -108,23 +108,24 @@ namespace Circuit.Component {
          defaulter: ValueCheck.Defaulter<V>,
          initialiser: (component: C) => void) {
       return (
-         partialValues: Global.Types.DeepPartial<V>,
-         log = false
+         partialValues: Global.Types.DeepPartial<V>
       ): C => {
-         if (log) console.groupCollapsed("Loading...");
-         const values = loadObjectWithDefaults(defaulter, partialValues, log);
-         if (log) console.groupEnd();
+         /*LOGSTART*/console.groupCollapsed("Loading...");/*LOGEND*/
+         const values = loadObjectWithDefaults(defaulter, partialValues);
+         /*LOGSTART*/console.groupEnd();/*LOGEND*/
 
          const component = new instanceClass(values) as C;
          if (initialiser) initialiser(component);
          component.draw();
          component.makeConnectors();
 
-         if (log) {
-            console.groupCollapsed("%s: %o", component.name, component.group.element);
-            console.log(component);
-            console.groupEnd();
-         }
+
+         /*LOGSTART*/
+         console.groupCollapsed("%s: %o", component.name, component.group.element);
+         console.log(component);
+         console.groupEnd();
+         /*LOGEND*/
+
 
          $(component.group.element).addClass(component.name)
 
@@ -132,14 +133,14 @@ namespace Circuit.Component {
       }
    }
 
-   function loadObjectWithDefaults<T>(defaulter: ValueCheck.Defaulter<T>, partial: any, log = true): T {
+   function loadObjectWithDefaults<T>(defaulter: ValueCheck.Defaulter<T>, partial: any): T {
       //TS just needs to trust me here...
       const result: T = Object.keys(defaulter).reduce((acc, key) => {
-         if (log) console.group(key);
+         /*LOGSTART*/console.group(key);/*LOGEND*/
          const defaultFn: ValueCheck.validater<any> = (defaulter as any)[key];
          const partialValue = (partial) ? partial[key] : undefined;
-         (acc as any)[key] = defaultFn(partialValue, log)
-         if (log) console.groupEnd();
+         (acc as any)[key] = defaultFn(partialValue)
+         /*LOGSTART*/console.groupEnd();/*LOGEND*/
          return acc;
       }, {}) as T;
 

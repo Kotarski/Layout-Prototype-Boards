@@ -1,7 +1,7 @@
 /// <reference path="../Utility/-is.ts" />
 namespace Utility {
 
-   export type checkfunction<T> = (value: unknown, log?: boolean) => T;
+   export type checkfunction<T> = (value: unknown) => T;
 
    type genericValidate<T, OT=T> = (test: T, fallback: OT) => checkfunction<OT>;
 
@@ -25,17 +25,13 @@ namespace Utility {
             : test
       );
 
-      const validator: checkfunction<T> = (value, log = true) => {
+      const validator: checkfunction<T> = (value) => {
          if (predicate(value)) {
-            if (log) {
-               console.log(`Value '%o' passed test '%o`, value, test);
-            }
+            /*LOGSTART*/console.log(`Value '%o' passed test '%o`, value, test);/*LOGEND*/
             return value as T;
          } else {
-            if (log) {
-               console.log(`Validation failure, value '%o' did not pass test '%o',
-                fallback '%o' used.`, value, test, fallback);
-            }
+            /*LOGSTART*/console.log(`Validation failure, value '%o' did not pass test '%o',
+             fallback '%o' used.`, value, test, fallback);/*LOGEND*/
             return fallback;
          }
       }

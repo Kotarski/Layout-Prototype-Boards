@@ -40,7 +40,7 @@ namespace FileIO.Load.Dasim {
       } catch (e) {
          // Almost definitely a file format issue
          if (e instanceof SyntaxError)
-            console.error("Error in file list format: %o ", [e]);
+            /*LOGSTART*/console.error("Error in file list format: %o ", [e]);/*LOGEND*/
          // Function failed, return error text
          deferred.reject("Error in file list format")
       }
@@ -68,13 +68,13 @@ namespace FileIO.Load.Dasim {
          }
 
          // Function complete, return array of objects
-         console.info("Circuit objects %o successfully parsed", [circuitObjects])
+         /*LOGSTART*/console.info("Circuit objects %o successfully parsed", [circuitObjects])/*LOGEND*/
          deferred.resolve(circuitObjects)
 
       } catch (e) {
          // Almost definitely a file format issue
          if (e instanceof SyntaxError)
-            console.error("Error in file object format: %o", [e]);
+            /*LOGSTART*/console.error("Error in file object format: %o", [e]);/*LOGEND*/
          // Function failed, return error text
          deferred.reject("Error in file object format")
       }

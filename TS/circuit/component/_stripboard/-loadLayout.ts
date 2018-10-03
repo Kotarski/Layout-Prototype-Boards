@@ -6,6 +6,6 @@ namespace Circuit.Component._Stripboard {
       const trackBreaks = (raw.trackBreaks);
       const joints = (raw.joints);
 
-      return makeLayout({ name, rows, columns, trackBreaks, joints }, true);
+      return makeLayout({ name, rows, columns, trackBreaks, joints });
    }
 }

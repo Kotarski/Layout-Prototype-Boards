@@ -4,6 +4,6 @@ namespace Circuit.Component._Inductor {
       const inductance = (raw.inductance);
       const joints = (raw.joints);
 
-      return makeLayout({ name, inductance, joints }, true);
+      return makeLayout({ name, inductance, joints });
    }
 }

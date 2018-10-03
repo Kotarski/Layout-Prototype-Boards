@@ -4,11 +4,11 @@ namespace Circuit.Component._Bipolar {
       const currentGain = (raw.currentGain);
       const type = (raw.type);
       // Joints Block
-      const orientation = ValueCheck.validate<"LR" | "RL">(["LR", "RL"], "LR")(raw.orientation, false);
-      const where = ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
+      const orientation = ValueCheck.validate<"LR" | "RL">(["LR", "RL"], "LR")(raw.orientation);
+      const where = ValueCheck.where({ x: 0, y: 0 })(raw.where);
       const joints = (raw.joints || deriveJoints(orientation, type, where));
 
-      return makeSchematic({ name, currentGain, type, joints }, true);
+      return makeSchematic({ name, currentGain, type, joints });
    }
 
    const deriveJoints = (orientation: "LR" | "RL", type: "NPN" | "PNP", where: Vector) => {

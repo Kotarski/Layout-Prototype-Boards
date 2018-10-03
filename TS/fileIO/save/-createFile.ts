@@ -5,7 +5,7 @@ namespace FileIO.Save {
          try {
             const componentMap = Circuit.mappings.getComponentMap(component);
             if (componentMap === undefined) {
-               console.error("No component map found!", component);
+               /*LOGSTART*/console.error("No component map found!", component);/*LOGEND*/
                throw new Error("Could not save component")
             }
 
@@ -21,7 +21,7 @@ namespace FileIO.Save {
                componentStrings.push(JSON.stringify(componentObject));
             }
          } catch (e) {
-            console.error("Item %o cannot be saved (check mappings) with error %o", component, e);
+            /*LOGSTART*/console.error("Item %o cannot be saved (check mappings) with error %o", component, e);/*LOGEND*/
          }
 
       });

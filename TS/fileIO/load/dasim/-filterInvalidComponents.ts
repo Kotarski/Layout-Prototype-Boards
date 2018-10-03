@@ -19,7 +19,7 @@ namespace FileIO.Load.Dasim {
          // If object does not have property 'func' (as all should)
          if (!("func" in circuitObject)) {
             // Reject as there is a file format issue
-            console.error("Object %o format is incorrect", [circuitObject]);
+            /*LOGSTART*/console.error("Object %o format is incorrect", [circuitObject]);/*LOGEND*/
             deferred.reject("Object format is incorrect");
          }
 
@@ -40,14 +40,14 @@ namespace FileIO.Load.Dasim {
       }
 
       if (knownInvalidComponents.length) {
-         console.debug("Sim objects %o have been safely removed", [knownInvalidComponents])
+         /*LOGSTART*/console.debug("Sim objects %o have been safely removed", [knownInvalidComponents])/*LOGEND*/
       }
 
       if (unknownInvalidComponents.length) {
-         console.warn("Components %o are either not supported or not valid", [unknownInvalidComponents]);
+         /*LOGSTART*/console.warn("Components %o are either not supported or not valid", [unknownInvalidComponents]);/*LOGEND*/
       }
 
-      console.info("Components %o successfully retrieved", [validComponents]);
+      /*LOGSTART*/console.info("Components %o successfully retrieved", [validComponents]);/*LOGEND*/
       deferred.resolve(validComponents);
 
       // Allow caller to see when function completes

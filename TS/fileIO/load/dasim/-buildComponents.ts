@@ -2,7 +2,7 @@ namespace FileIO.Load.Dasim {
    type savedManifist = { schematic: Circuit.Component.Instance[], layout: Circuit.Component.Instance[] };
 
    export function buildComponents(rawComponents: any[]): savedManifist {
-      console.groupCollapsed("Component Load Data");
+      /*LOGSTART*/console.groupCollapsed("Component Load Data");/*LOGEND*/
 
       let manifest: savedManifist = {
          schematic: [],
@@ -13,7 +13,7 @@ namespace FileIO.Load.Dasim {
          const componentMap = Circuit.mappings.getComponentMap(rawComponent.func);
 
          if (componentMap === undefined) {
-            console.error("I don't know how to build %o yet!", rawComponent);
+            /*LOGSTART*/console.error("I don't know how to build %o yet!", rawComponent);/*LOGEND*/
             continue;
          }
 
@@ -29,7 +29,7 @@ namespace FileIO.Load.Dasim {
          }
 
       }
-      console.groupEnd();
+      /*LOGSTART*/console.groupEnd();/*LOGEND*/
       return manifest;
    }
 }

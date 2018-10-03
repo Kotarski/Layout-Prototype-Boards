@@ -7,13 +7,13 @@ namespace Circuit.Component._OpAmp {
 
       //Joints Block
       const orientations: ["LR", "RL"] = ["LR", "RL"];
-      const orientation = ValueCheck.validate(orientations, "LR")(raw.orientation, false);
+      const orientation = ValueCheck.validate(orientations, "LR")(raw.orientation);
       const inputsAtTop: ["inverting", "non-inverting"] = ["inverting", "non-inverting"]
-      const inputAtTop = ValueCheck.validate(inputsAtTop, "non-inverting")(raw.whichInputAtTop, false);
-      const where = ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
+      const inputAtTop = ValueCheck.validate(inputsAtTop, "non-inverting")(raw.whichInputAtTop);
+      const where = ValueCheck.where({ x: 0, y: 0 })(raw.where);
       const joints = (raw.joints || deriveJoints(orientation, inputAtTop, where));
 
-      const opAmp = makeSchematic({ name, offsetVoltage, joints }, true);
+      const opAmp = makeSchematic({ name, offsetVoltage, joints });
 
       // Also make the power connections
       const isNumber = ValueCheck.test("number");
@@ -23,12 +23,12 @@ namespace Circuit.Component._OpAmp {
          const topPower = power.schematic.make({
             voltage: maxOutput,
             joints: vector([{ x: 0, y: -20 }]).sumWith(where).vectors
-         }, true);
+         });
 
          const bottomPower = power.schematic.make({
             voltage: minOutput,
             joints: vector([{ x: 0, y: 20 }]).sumWith(where).vectors
-         }, true);
+         });
 
          return [topPower, bottomPower, opAmp];
       } else {

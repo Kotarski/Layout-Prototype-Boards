@@ -89,7 +89,7 @@ namespace Circuit.Component.Addins.Board {
             } else if (this.style === "stripboard") {
                drawStripboard(this);
             } else {
-               console.error("Style \"%s\" is invalid", this.style);
+               /*LOGSTART*/console.error("Style \"%s\" is invalid", this.style);/*LOGEND*/
             }
          }
 

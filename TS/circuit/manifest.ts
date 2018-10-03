@@ -83,7 +83,7 @@ namespace Circuit {
       }
 
       const checkAll = () => {
-         console.groupCollapsed("Check Data")
+         /*LOGSTART*/console.groupCollapsed("Check Data");/*LOGEND*/
          // Only look at components which need to be compared
          let layComponents = manifest.layout.filter(c => mappings.getComponentMapSafe(c).correspondsTo);
          let schComponents = manifest.schematic.filter(c => mappings.getComponentMapSafe(c).correspondsTo);
@@ -119,10 +119,10 @@ namespace Circuit {
 
             if (componentIsUnique) {
                schConnectorData = schConnectorData.filter(datum => !found.includes(datum));
-               console.log("Layout %s '%o, matched with '%o'", layComponent.name, [layComponent], found)
+               /*LOGSTART*/console.log("Layout %s '%o, matched with '%o'", layComponent.name, [layComponent], found)/*LOGEND*/
             } else {
                schConnectorData = schConnectorData.filter(datum => datum !== found[0]);
-               console.log("Layout %s '%o, matched with '%o'", layComponent.name, [layComponent], [found[0]])
+               /*LOGSTART*/console.log("Layout %s '%o, matched with '%o'", layComponent.name, [layComponent], [found[0]])/*LOGEND*/
             }
 
 
@@ -131,10 +131,11 @@ namespace Circuit {
             return found.length > 0;
          });
 
+         /*LOGSTART*/
          console.log("Unmatched schematic components: %o", schConnectorData.map(datum => datum.component));
          console.log("Unmatched layout components: %o", split.fails);
-
          console.groupEnd();
+         /*LOGEND*/
 
          return {
             corrects: split.passes,

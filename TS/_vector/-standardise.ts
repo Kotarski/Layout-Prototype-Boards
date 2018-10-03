@@ -22,7 +22,7 @@ namespace _vector {
             return { x: inVector[0], y: inVector[1] };
          } else {
             //TODO 
-            console.error("IS NOT A VECTOR")
+            /*LOGSTART*/console.error("IS NOT A VECTOR")/*LOGEND*/
             return { x: NaN, y: NaN };
          }
       });

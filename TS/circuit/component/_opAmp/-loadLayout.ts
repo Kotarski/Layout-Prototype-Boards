@@ -5,6 +5,6 @@ namespace Circuit.Component._OpAmp {
       const isDual = (raw.isDual);
       const joints = (raw.joints);
 
-      return makeLayout({ name, offsetVoltage, isDual, joints }, true);
+      return makeLayout({ name, offsetVoltage, isDual, joints });
    }
 }

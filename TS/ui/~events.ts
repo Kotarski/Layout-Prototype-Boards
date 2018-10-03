@@ -1,7 +1,6 @@
 namespace Ui.Events {
 
    function fitDiagramContents(diagram: Circuit.Parts.Diagram) {
-      // console.log(Active.layout.root, Active.layout.root.group)
       let rootEl = diagram.root.element.element;
       let group = diagram.group;
 

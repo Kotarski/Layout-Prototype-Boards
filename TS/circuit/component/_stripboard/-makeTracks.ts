@@ -27,7 +27,7 @@ namespace Circuit.Component._Stripboard {
             holeSpacings: holeSpacings,
             style: "stripboard",
             joints: [rowStart, step]
-         }, false);
+         });
          //track.group.translate({ x: 0, y: row * gS }).rotate(0);
          tracks.push(track);
       }

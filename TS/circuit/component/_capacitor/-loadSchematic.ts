@@ -6,11 +6,11 @@ namespace Circuit.Component._Capacitor {
       const isPolarised = (raw.isPolarised || derivePolarisation(capacitance, raw.polarised));
       //Joints Block
       const orientations: ["LR", "RL", "UD", "DU"] = ["LR", "RL", "UD", "DU"];
-      const orientation = ValueCheck.validate(orientations, "LR")(raw.orientation, false);
-      const where = ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
+      const orientation = ValueCheck.validate(orientations, "LR")(raw.orientation);
+      const where = ValueCheck.where({ x: 0, y: 0 })(raw.where);
       const joints = (raw.joints || deriveJoints(orientation, where));
 
-      return makeSchematic({ name, capacitance, isPolarised, joints }, true);
+      return makeSchematic({ name, capacitance, isPolarised, joints });
    }
 
    const derivePolarisation = (capacitance: number, polarisation?: "polar" | "non-polar") => {

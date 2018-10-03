@@ -25,7 +25,7 @@ namespace Circuit.Component._Breadboard {
          let track = Addins.Board.Track.make({
             holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1],
             joints: [start, step]
-         }, false);
+         });
          tracks.push(track);
       }
 
@@ -74,7 +74,7 @@ namespace Circuit.Component._Breadboard {
             let track = Addins.Board.Track.make({
                holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1],
                joints: [start, step]
-            }, false);
+            });
             tracks.push(track);
          }
       }
@@ -94,7 +94,7 @@ namespace Circuit.Component._Breadboard {
             let track = Addins.Board.Track.make({
                holeSpacings: [0, 1, 1, 1, 1],
                joints: [start, step]
-            }, false);
+            });
             tracks.push(track);
          }
       }
