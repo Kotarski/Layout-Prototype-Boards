@@ -4,6 +4,6 @@ namespace Circuit.Component._Wire {
       //Joints Block
       const joints = (raw.joints);
 
-      return makeSchematic({ name, joints, }, true);
+      return makeSchematic({ name, joints });
    }
 }

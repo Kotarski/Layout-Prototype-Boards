@@ -25,17 +25,17 @@ namespace Utility {
             : test
       );
 
-      const validator: checkfunction<T> = (value, log = true) => {
+      const validator: checkfunction<T> = (value, log = false) => {
          if (predicate(value)) {
-            if (log) {
+            /*LOGSTART*/if (log) {
                console.log(`Value '%o' passed test '%o`, value, test);
-            }
+            }/*LOGEND*/
             return value as T;
          } else {
-            if (log) {
+            /*LOGSTART*/if (log) {
                console.log(`Validation failure, value '%o' did not pass test '%o',
                 fallback '%o' used.`, value, test, fallback);
-            }
+            }/*LOGEND*/
             return fallback;
          }
       }

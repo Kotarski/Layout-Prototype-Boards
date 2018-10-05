@@ -13,16 +13,7 @@ namespace FileIO.Load {
          // Note that each time '.then(fn)' is written it could be replaced with
          // '.then((args) => fn(args)' which is more explicit but more verbose
 
-         // console.log(event);
-         //let fileType = event.target.file
-         // if ( ) {
-         //
-         //
-         // } else if ( ) {
-         //
-         //
-         // }
-         console.groupCollapsed("File Load Data");
+         /*LOGSTART*/console.groupCollapsed("File Load Data");/*LOGEND*/
 
          $.Deferred().resolve(fileInput)
             // Get the file as a string from the fileinput
@@ -46,34 +37,32 @@ namespace FileIO.Load {
                      // Called if any of the functions fail using detail from their context
                      .then((savedManifest) => {
                         NodeElements.fileStatusText.innerText = "File:\r\n\"" + filename + "\"\r\nLoaded Successfully";
-                        console.groupEnd();
                         if (savedManifest) {
-                           Circuit.History.init([]);
                            Circuit.manifest.constructFrom(savedManifest);
                            Circuit.history.add(...Circuit.manifest.layout);
                         } else {
-                           console.error("savedManifest is undefined");
+                           /*LOGSTART*/console.error("savedManifest is undefined");/*LOGEND*/
                         }
+                        /*LOGSTART*/console.groupEnd();/*LOGEND*/
                         Ui.Events.schematicPaneResize();
                         Ui.Events.layoutPaneResize();
-                        // Circuit.manifest.draw();
                      })
                      // Construct circuit
                      .fail((failText) => {
-                        console.warn("Failed to load circuit: ", failText);
+                        /*LOGSTART*/console.warn("Failed to load circuit: ", failText);/*LOGEND*/
                         NodeElements.fileStatusText.innerText = "Failed to load file:\r\n\""
                            + "" + filename + "\"\r\n"
                            + "Error:\r\n\"" +
                            failText + "\"";
-                        console.groupEnd();
+                        /*LOGSTART*/console.groupEnd();/*LOGEND*/
                      })
                } else {
-                  console.error("Failed to load circuit: Incorrect file extenstion %o", fileExtension)
+                  /*LOGSTART*/console.error("Failed to load circuit: Incorrect file extenstion %o", fileExtension);/*LOGEND*/
                   NodeElements.fileStatusText.innerText = "Failed to load file:\r\n\""
                      + "" + filename + "\"\r\n"
                      + "Error:\r\n\"" +
                      "Incorrect file extenstion: \"." + fileExtension + "\"\"";
-                  console.groupEnd();
+                  /*LOGSTART*/console.groupEnd();/*LOGEND*/
                }
 
                //Clear file input

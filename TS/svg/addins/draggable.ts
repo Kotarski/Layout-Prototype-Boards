@@ -41,7 +41,6 @@ namespace Svg.Addins.Draggable {
             //On each drag step
             drag: (event, ui) => {
                // Amount dragged on this step (In DOM coordinate system)
-               //console.log(lastPosition);
 
                let dragChangeDom = {
                   x: ui.position.left - lastPosition.x,

@@ -25,6 +25,7 @@ namespace Circuit.Component {
 
       export interface map {
          savename: string;
+         diagramType: "layout" | "schematic";
          instance: { new(values: any): Component.Instance };
          make: ReturnType<typeof Component.getMaker>;
          load: Component.Types.loadFunction<Component.Instance | Component.Instance[]>;
@@ -108,22 +109,26 @@ namespace Circuit.Component {
          initialiser: (component: C) => void) {
       return (
          partialValues: Global.Types.DeepPartial<V>,
-         log = false
+         log = true
       ): C => {
-         if (log) console.groupCollapsed("Loading...");
+         /*LOGSTART*/if (log) {
+            console.groupCollapsed("Loading...");
+         }/*LOGEND*/
          const values = loadObjectWithDefaults(defaulter, partialValues, log);
-         if (log) console.groupEnd();
+         /*LOGSTART*/if (log) {
+            console.groupEnd();
+         }/*LOGEND*/
 
          const component = new instanceClass(values) as C;
          if (initialiser) initialiser(component);
          component.draw();
          component.makeConnectors();
 
-         if (log) {
+         /*LOGSTART*/ if (log) {
             console.groupCollapsed("%s: %o", component.name, component.group.element);
             console.log(component);
             console.groupEnd();
-         }
+         } /*LOGEND*/
 
          $(component.group.element).addClass(component.name)
 
@@ -134,15 +139,28 @@ namespace Circuit.Component {
    function loadObjectWithDefaults<T>(defaulter: ValueCheck.Defaulter<T>, partial: any, log = true): T {
       //TS just needs to trust me here...
       const result: T = Object.keys(defaulter).reduce((acc, key) => {
-         if (log) console.group(key);
+
+         /*LOGSTART*/ if (log) {
+            console.group(key);
+         }/*LOGEND*/
+
          const defaultFn: ValueCheck.validater<any> = (defaulter as any)[key];
          const partialValue = (partial) ? partial[key] : undefined;
          (acc as any)[key] = defaultFn(partialValue, log)
-         if (log) console.groupEnd();
+
+         /*LOGSTART*/ if (log) {
+            console.groupEnd();
+         }/*LOGEND*/
+
          return acc;
       }, {}) as T;
 
       return result;
+   }
+
+   export function makeMap<T extends Types.map, CT extends Types.map>
+      (map: T, correspondsTo?: CT): T & { correspondsTo?: CT, isUnique?: boolean, isBoard?: boolean } {
+      return Object.assign(map, { correspondsTo });
    }
 }
 

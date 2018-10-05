@@ -5,25 +5,24 @@
 /// <reference path="_Diode/-loadLayout.ts" />
 
 namespace Circuit.Component {
-   const schematicMap: Component.Types.map = {
+   const schematicMap = {
       savename: "makeDiode",
+      diagramType: "schematic" as "schematic",
       instance: _Diode.Classes.Schematic,
       make: _Diode.makeSchematic,
       load: _Diode.loadSchematic,
    }
 
-   const layoutMap: Component.Types.map = {
+   const layoutMap = {
       savename: "makeLayoutDiode",
+      diagramType: "layout" as "layout",
       instance: _Diode.Classes.Layout,
       make: _Diode.makeLayout,
       load: _Diode.loadLayout,
    }
 
-   schematicMap.correspondsTo = layoutMap;
-   layoutMap.correspondsTo = schematicMap;
-
    export const diode = {
-      schematic: schematicMap,
-      layout: layoutMap
+      schematic: Component.makeMap(schematicMap, layoutMap),
+      layout: Component.makeMap(layoutMap, schematicMap)
    }
 }

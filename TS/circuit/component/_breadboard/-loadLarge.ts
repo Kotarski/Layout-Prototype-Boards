@@ -3,6 +3,6 @@ namespace Circuit.Component._Breadboard {
       const name = (raw.name);
       const joints = (raw.joints);
 
-      return makeLarge({ name, joints }, true);
+      return makeLarge({ name, joints });
    }
 }

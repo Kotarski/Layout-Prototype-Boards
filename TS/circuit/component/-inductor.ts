@@ -5,25 +5,24 @@
 /// <reference path="_Inductor/-loadLayout.ts" />
 
 namespace Circuit.Component {
-   const schematicMap: Component.Types.map = {
+   const schematicMap = {
       savename: "makeInductor",
+      diagramType: "schematic" as "schematic",
       instance: _Inductor.Classes.Schematic,
       make: _Inductor.makeSchematic,
       load: _Inductor.loadSchematic,
    }
 
-   const layoutMap: Component.Types.map = {
+   const layoutMap = {
       savename: "makeLayoutInductor",
+      diagramType: "layout" as "layout",
       instance: _Inductor.Classes.Layout,
       make: _Inductor.makeLayout,
       load: _Inductor.loadLayout,
    }
 
-   schematicMap.correspondsTo = layoutMap;
-   layoutMap.correspondsTo = schematicMap;
-
    export const inductor = {
-      schematic: schematicMap,
-      layout: layoutMap
+      schematic: Component.makeMap(schematicMap, layoutMap),
+      layout: Component.makeMap(layoutMap, schematicMap)
    }
 }

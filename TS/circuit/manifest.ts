@@ -25,7 +25,7 @@ namespace Circuit {
          manifest.layout = savedManifest.layout;
          if (!savedManifest.layout || savedManifest.layout.length === 0) completeManifestLayout();
 
-         manifest.activeBoard = manifest.layout.find(component => mappings.isBoard(component));
+         manifest.activeBoard = manifest.layout.find(component => mappings.getComponentMapSafe(component).isBoard === true);
          draw();
       }
 
@@ -71,7 +71,7 @@ namespace Circuit {
       }
 
       const findCorresponding = (component: Component.Instance): Component.Instance[] => {
-         if (!mappings.isCorresponder(component)) return [];
+         if (!mappings.getComponentMapSafe(component).correspondsTo) return [];
          //Find component
          if (manifest.layout.includes(component)) {
             return manifest.schematic.filter(areComponentsSimilar(component));
@@ -83,10 +83,10 @@ namespace Circuit {
       }
 
       const checkAll = () => {
-         console.groupCollapsed("Check Data")
+         /*LOGSTART*/console.groupCollapsed("Check Data");/*LOGEND*/
          // Only look at components which need to be compared
-         let layComponents = manifest.layout.filter(mappings.isCorresponder);
-         let schComponents = manifest.schematic.filter(mappings.isCorresponder);
+         let layComponents = manifest.layout.filter(c => mappings.getComponentMapSafe(c).correspondsTo);
+         let schComponents = manifest.schematic.filter(c => mappings.getComponentMapSafe(c).correspondsTo);
 
          let schConnectorData = schComponents.map(schComponent => ({
             component: schComponent,
@@ -107,7 +107,7 @@ namespace Circuit {
             );
 
             // Merge them into one if the component is unique (e.g. power supplies)
-            const componentIsUnique = mappings.isUnique(layComponent);
+            const componentIsUnique = mappings.getComponentMapSafe(layComponent).isUnique;
             if (componentIsUnique) {
                let merged = mergeConnectorsSets(schConnectorMinData.map(datum => datum.connectorSets))
                schConnectorMinData.forEach(datum => {
@@ -119,10 +119,10 @@ namespace Circuit {
 
             if (componentIsUnique) {
                schConnectorData = schConnectorData.filter(datum => !found.includes(datum));
-               console.log("Layout %s '%o, matched with '%o'", layComponent.name, [layComponent], found)
+               /*LOGSTART*/console.log("Layout %s '%o, matched with '%o'", layComponent.name, [layComponent], found)/*LOGEND*/
             } else {
                schConnectorData = schConnectorData.filter(datum => datum !== found[0]);
-               console.log("Layout %s '%o, matched with '%o'", layComponent.name, [layComponent], [found[0]])
+               /*LOGSTART*/console.log("Layout %s '%o, matched with '%o'", layComponent.name, [layComponent], [found[0]])/*LOGEND*/
             }
 
 
@@ -131,10 +131,11 @@ namespace Circuit {
             return found.length > 0;
          });
 
+         /*LOGSTART*/
          console.log("Unmatched schematic components: %o", schConnectorData.map(datum => datum.component));
          console.log("Unmatched layout components: %o", split.fails);
-
          console.groupEnd();
+         /*LOGEND*/
 
          return {
             corrects: split.passes,
@@ -208,14 +209,17 @@ namespace Circuit {
             arePropertiesEqual(properties, layoutElement.getProperties())
          );
          if (match) {
-            if (!mappings.isUnique(match)) {
+            if (!mappings.getComponentMapSafe(match).isUnique) {
                layoutCopy = layoutCopy.filter(Utility.is(match));
             }
          } else {
-            if (mappings.isCorresponder(schematicElement)) {
-               let newComponent = mappings.getLayoutInstanceFromSchematic(schematicElement);
+            const correspondsTo = mappings.getComponentMapSafe(schematicElement).correspondsTo;
+            if (correspondsTo !== undefined) {
+               const newComponentMaker = correspondsTo.make as Component.Types.loadFunction;
+               const newComponent = newComponentMaker(schematicElement.getProperties())
+               //mappings.getLayoutInstanceFromSchematic(schematicElement);
                manifest.layout.push(newComponent);
-               if (mappings.isUnique(newComponent)) {
+               if (mappings.getComponentMapSafe(newComponent).isUnique) {
                   layoutCopy.push(newComponent)
                }
 
@@ -289,13 +293,13 @@ namespace Circuit {
          return (connectorSet.map(connections => {
             let connectorName = connections[0].name;
             connections.shift();
-            let blackHole = connections.find(connection => mappings.isUnique(connection.component))
+            let blackHole = connections.find(connection => mappings.getComponentMapSafe(connection.component).isUnique === true)
             if (blackHole) connections = connections.filter(Utility.is(blackHole));
 
             return {
                name: connectorName,
                connections: connections.filter((connection) =>
-                  mappings.isCorresponder(connection.component)
+                  mappings.getComponentMapSafe(connection.component).correspondsTo
                )
             }
          })).filter(c => c.connections.length !== 0);

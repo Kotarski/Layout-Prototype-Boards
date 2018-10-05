@@ -6,11 +6,11 @@ namespace Circuit.Component._Diode {
       const color = (raw.color || raw.colour);
       //Joints Block
       const orientations: ["LR", "RL", "UD", "DU"] = ["LR", "RL", "UD", "DU"];
-      const orientation = ValueCheck.validate(orientations, "LR")(raw.orientation, false);
-      const where = ValueCheck.where({ x: 0, y: 0 })(raw.where, false);
+      const orientation = ValueCheck.validate(orientations, "LR")(raw.orientation);
+      const where = ValueCheck.where({ x: 0, y: 0 })(raw.where);
       const joints = (raw.joints || deriveJoints(orientation, where));
 
-      return makeSchematic({ name, breakdownVoltage, saturationCurrent, color, joints }, true);
+      return makeSchematic({ name, breakdownVoltage, saturationCurrent, color, joints });
    }
 
    const deriveJoints = (orientation: "LR" | "RL" | "UD" | "DU", where: Vector) => {

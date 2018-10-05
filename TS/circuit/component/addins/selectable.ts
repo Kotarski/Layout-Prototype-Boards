@@ -20,11 +20,11 @@ namespace Circuit.Component.Addins.Selectable {
    const setSelectTrigger = (component: Component.Instance) => {
       // Selecting component triggers select
       $(component.group.element).one("mousedown", () => {
-         console.groupCollapsed("Selected", component.group.element);
-         console.log("Primary: %o", component);
+         /*LOGSTART*/console.groupCollapsed("Selected", component.group.element);/*LOGEND*/
+         /*LOGSTART*/console.log("Primary: %o", component);/*LOGEND*/
 
          const otherComponents = manifest.findCorresponding(component);
-         console.log("Secondaries: %o", otherComponents);
+         /*LOGSTART*/console.log("Secondaries: %o", otherComponents);/*LOGEND*/
 
          const selectComponents = otherComponents.concat(component);
          selectComponents.forEach(selectComponent => {
@@ -32,7 +32,7 @@ namespace Circuit.Component.Addins.Selectable {
             setDeselectTrigger(selectComponent);
          });
 
-         console.groupEnd();
+         /*LOGSTART*/console.groupEnd();/*LOGEND*/
       })
 
 

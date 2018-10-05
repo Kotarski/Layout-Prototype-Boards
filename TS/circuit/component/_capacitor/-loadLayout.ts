@@ -5,6 +5,6 @@ namespace Circuit.Component._Capacitor {
       const isPolarised = (raw.isPolarised);
       const joints = (raw.joints);
 
-      return makeLayout({ name, capacitance, isPolarised, joints }, true);
+      return makeLayout({ name, capacitance, isPolarised, joints });
    }
 }

@@ -5,6 +5,6 @@ namespace Circuit.Component._Wire {
       //Joints Block
       const joints = (raw.joints);
 
-      return makeLayout({ name, color, joints }, true);
+      return makeLayout({ name, color, joints });
    }
 }

@@ -5,25 +5,24 @@
 /// <reference path="_Resistor/-loadLayout.ts" />
 
 namespace Circuit.Component {
-   const schematicMap: Component.Types.map = {
+   const schematicMap = {
       savename: "makeResistor",
+      diagramType: "schematic" as "schematic",
       instance: _Resistor.Classes.Schematic,
       make: _Resistor.makeSchematic,
       load: _Resistor.loadSchematic,
    }
 
-   const layoutMap: Component.Types.map = {
+   const layoutMap = {
       savename: "makeLayoutResistor",
+      diagramType: "layout" as "layout",
       instance: _Resistor.Classes.Layout,
       make: _Resistor.makeLayout,
       load: _Resistor.loadLayout,
    }
 
-   schematicMap.correspondsTo = layoutMap;
-   layoutMap.correspondsTo = schematicMap;
-
    export const resistor = {
-      schematic: schematicMap,
-      layout: layoutMap
+      schematic: Component.makeMap(schematicMap, layoutMap),
+      layout: Component.makeMap(layoutMap, schematicMap)
    }
 }

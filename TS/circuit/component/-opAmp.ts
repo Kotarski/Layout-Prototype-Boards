@@ -5,29 +5,24 @@
 /// <reference path="_OpAmp/-loadLayout.ts" />
 
 namespace Circuit.Component {
-   const schematicMap: Component.Types.map = {
+   const schematicMap = {
       savename: "makeOpAmp",
+      diagramType: "schematic" as "schematic",
       instance: _OpAmp.Classes.Schematic,
       make: _OpAmp.makeSchematic,
       load: _OpAmp.loadSchematic,
    }
 
-   type layoutMap = Component.Types.map & {
-      instance: typeof _OpAmp.Classes.Layout;
-   }
-
-   const layoutMap: layoutMap = {
+   const layoutMap = {
       savename: "makeLayoutOpAmp",
+      diagramType: "layout" as "layout",
       instance: _OpAmp.Classes.Layout,
       make: _OpAmp.makeLayout,
       load: _OpAmp.loadLayout,
    }
 
-   schematicMap.correspondsTo = layoutMap;
-   layoutMap.correspondsTo = schematicMap;
-
    export const opAmp = {
-      schematic: schematicMap,
-      layout: layoutMap
+      schematic: Component.makeMap(schematicMap, layoutMap),
+      layout: Component.makeMap(layoutMap, schematicMap)
    }
 }

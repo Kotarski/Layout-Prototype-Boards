@@ -4,18 +4,16 @@
 
 namespace Circuit.Component {
 
-   type layoutMap = Component.Types.map & {
-      make: typeof _Stripboard.makeLayout;
-   }
-
-   const layoutMap: layoutMap = {
+   const layoutMap = {
       savename: "makeLayoutStripboard",
+      diagramType: "layout" as "layout",
       instance: _Stripboard.Classes.Layout,
       make: _Stripboard.makeLayout,
       load: _Stripboard.loadLayout,
+      isBoard: true
    }
 
    export const stripboard = {
-      layout: layoutMap,
+      layout: Component.makeMap(layoutMap),
    }
 }

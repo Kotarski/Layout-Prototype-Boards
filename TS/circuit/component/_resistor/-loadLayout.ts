@@ -4,6 +4,6 @@ namespace Circuit.Component._Resistor {
       const resistance = (raw.resistance);
       const joints = (raw.joints);
 
-      return makeLayout({ name, resistance, joints }, true);
+      return makeLayout({ name, resistance, joints });
    }
 }

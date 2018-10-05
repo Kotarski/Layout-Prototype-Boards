@@ -1,7 +1,6 @@
 namespace Ui.Events {
 
    function fitDiagramContents(diagram: Circuit.Parts.Diagram) {
-      // console.log(Active.layout.root, Active.layout.root.group)
       let rootEl = diagram.root.element.element;
       let group = diagram.group;
 
@@ -61,11 +60,11 @@ namespace Ui.Events {
    }
 
    export function makeBreadBoardSmallButtonPress() {
-      addBoard(Circuit.Component.Breadboard.layoutSmall.make({}));
+      addBoard(Circuit.Component.breadboard.layoutSmall.make({}));
    }
 
    export function makeBreadBoardLargeButtonPress() {
-      addBoard(Circuit.Component.Breadboard.layoutLarge.make({}));
+      addBoard(Circuit.Component.breadboard.layoutLarge.make({}));
    }
 
    function addBoard(board: Circuit.Component.Instance) {

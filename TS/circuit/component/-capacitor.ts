@@ -5,25 +5,24 @@
 /// <reference path="_capacitor/-loadLayout.ts" />
 
 namespace Circuit.Component {
-   const schematicMap: Component.Types.map = {
+   const schematicMap = {
       savename: "makeCapacitor",
+      diagramType: "schematic" as "schematic",
       instance: _Capacitor.Classes.Schematic,
       make: _Capacitor.makeSchematic,
       load: _Capacitor.loadSchematic,
    }
 
-   const layoutMap: Component.Types.map = {
+   const layoutMap = {
       savename: "makeLayoutCapacitor",
+      diagramType: "layout" as "layout",
       instance: _Capacitor.Classes.Layout,
       make: _Capacitor.makeLayout,
       load: _Capacitor.loadLayout,
    }
 
-   schematicMap.correspondsTo = layoutMap;
-   layoutMap.correspondsTo = schematicMap;
-
    export const capacitor = {
-      schematic: schematicMap,
-      layout: layoutMap
+      schematic: Component.makeMap(schematicMap, layoutMap),
+      layout: Component.makeMap(layoutMap, schematicMap)
    }
 }

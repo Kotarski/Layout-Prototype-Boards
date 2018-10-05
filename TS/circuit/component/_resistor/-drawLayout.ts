@@ -34,8 +34,6 @@ namespace Circuit.Component._Resistor {
          parseInt(exp.slice(exp.indexOf("e") + 1), 10) - 1
       ).toString();
 
-      // console.log(exp, sigFig1, sigFig2, multiplier);
-
       let colours: {
          [number: string]: string
       } = {

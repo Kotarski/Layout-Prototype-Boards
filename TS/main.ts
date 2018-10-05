@@ -6,4 +6,5 @@ $(document).ready(() => {
    Active.init();
    Ui.init();
    Circuit.Mappings.init();
+   Circuit.History.init();
 });
