@@ -2,7 +2,7 @@ namespace Circuit.Component._Breadboard.Classes {
 
    abstract class Base extends Component.Instance implements Types.values {
       joints: [Vector, Vector];
-      tracks: Addins.Board.Track.Instance[] = [];
+      tracks: _Track.Classes.Layout[] = [];
       connectorSets: Component.Types.hole[][] = [];
 
       constructor(values: Types.values) {

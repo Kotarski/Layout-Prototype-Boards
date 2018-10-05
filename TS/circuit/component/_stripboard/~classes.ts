@@ -2,7 +2,7 @@ namespace Circuit.Component._Stripboard.Classes {
 
 
    export class Layout extends Component.Instance implements Types.values {
-      tracks: Addins.Board.Track.Instance[] = [];
+      tracks: _Track.Classes.Layout[] = [];
       connectorSets: Component.Types.hole[][] = [];
       trackBreaks: Types.trackBreak[];
       rows: number;

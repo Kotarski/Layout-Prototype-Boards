@@ -20,8 +20,9 @@ namespace Circuit {
          Component.power.layout,
          Component.bipolar.layout,
          Component.stripboard.layout,
-         Component.Breadboard.layoutSmall,
-         Component.Breadboard.layoutLarge,
+         Component.breadboard.layoutSmall,
+         Component.breadboard.layoutLarge,
+         Component.track
       );
 
       function getComponentMapSafe(data: string | Component.Instance) {

@@ -24,7 +24,7 @@ namespace Circuit.Component {
    }
 
 
-   export const Breadboard = {
+   export const breadboard = {
       layoutSmall: Component.makeMap(smallMap),
       layoutLarge: Component.makeMap(largeMap)
    }

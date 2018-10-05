@@ -37,17 +37,15 @@ namespace FileIO.Load {
                      // Called if any of the functions fail using detail from their context
                      .then((savedManifest) => {
                         NodeElements.fileStatusText.innerText = "File:\r\n\"" + filename + "\"\r\nLoaded Successfully";
-                        /*LOGSTART*/console.groupEnd();/*LOGEND*/
                         if (savedManifest) {
-                           Circuit.History.init([]);
                            Circuit.manifest.constructFrom(savedManifest);
                            Circuit.history.add(...Circuit.manifest.layout);
                         } else {
                            /*LOGSTART*/console.error("savedManifest is undefined");/*LOGEND*/
                         }
+                        /*LOGSTART*/console.groupEnd();/*LOGEND*/
                         Ui.Events.schematicPaneResize();
                         Ui.Events.layoutPaneResize();
-                        // Circuit.manifest.draw();
                      })
                      // Construct circuit
                      .fail((failText) => {

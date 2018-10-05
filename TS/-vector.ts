@@ -33,6 +33,7 @@ namespace _vector {
 
          sumWith: _vector.sumWithS(inVector),
          scaleWith: _vector.scaleWithS(inVector),
+         scaleMap: _vector.scaleMapS(inVector),
          centreWith: _vector.centreWith(inVector),
          rotate: _vector.rotateS(inVector),
          snapToGrid: _vector.snapToGrid(inVector)

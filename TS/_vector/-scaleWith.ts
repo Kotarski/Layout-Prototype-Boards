@@ -9,6 +9,15 @@ namespace _vector {
       };
    }
 
+   export function scaleMapS(inVector: Vector) {
+      return (scaleIns: (PartialVector | number)[]) => {
+         return vector(scaleIns.map(scaleIn => {
+            const scaleVector = (typeof scaleIn === "number") ? { x: scaleIn, y: scaleIn } : scaleIn;
+            return scale(inVector, scaleVector);
+         }))
+      };
+   }
+
    export function scaleWithM(inVectors: Vector[]) {
       return (scaleIn: PartialVector | number) => {
          const scaleVector = (typeof scaleIn === "number") ? { x: scaleIn, y: scaleIn } : scaleIn;

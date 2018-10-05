@@ -1,6 +1,6 @@
 namespace Circuit.Component._Stripboard {
 
-   export function makeTracks(parent: Classes.Layout): Addins.Board.Track.Instance[] {
+   export function makeTracks(parent: Classes.Layout): _Track.Classes.Layout[] {
       let gS = Constants.gridSpacing;
 
       let rotation = vector(parent.joints[0]).getAngleTo(parent.joints[1]);
@@ -14,7 +14,7 @@ namespace Circuit.Component._Stripboard {
       let step = vector({ x: gS, y: 0 }).rotate(rotation);
 
 
-      let tracks: Addins.Board.Track.Instance[] = [];
+      let tracks: _Track.Classes.Layout[] = [];
 
       for (let row = 0; row < parent.rows; row++) {
 
@@ -23,11 +23,11 @@ namespace Circuit.Component._Stripboard {
 
 
          let holeSpacings: number[] = [0].concat(Array(parent.columns - 1).fill(1));
-         let track = Addins.Board.Track.make({
+         let track = Component.track.make({
             holeSpacings: holeSpacings,
             style: "stripboard",
             joints: [rowStart, step]
-         });
+         }, false);
          //track.group.translate({ x: 0, y: row * gS }).rotate(0);
          tracks.push(track);
       }

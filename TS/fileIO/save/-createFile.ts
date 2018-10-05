@@ -10,7 +10,7 @@ namespace FileIO.Save {
             }
 
             let componentObject = {
-               func: Circuit.mappings.getComponentMap(component),
+               func: Circuit.mappings.getComponentMapSafe(component).savename,
                ...component.getProperties(),
                ...component.getState()
             }

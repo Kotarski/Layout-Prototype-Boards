@@ -110,7 +110,7 @@ namespace Circuit {
 
    export let history: ReturnType<typeof historyBuilder>;
    export namespace History {
-      export function init(participants: Component.Instance[]) {
+      export function init(...participants: Component.Instance[]) {
          history = historyBuilder();
          history.add(...participants);
       }

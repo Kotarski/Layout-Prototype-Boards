@@ -13,16 +13,16 @@ namespace Circuit.Component.ValueCheck {
 
    const integerTest = (n: unknown) => test("number")(n) && Number.isInteger(n);
    export function integer(fallback: number): validater<number> {
-      const result = (value: unknown) => {
-         return validate(integerTest, fallback)(value);
+      const result = (value: unknown, log: boolean = false) => {
+         return validate(integerTest, fallback)(value, log);
       }
 
       return result;
    }
 
    export function where(fallback: Vector): ValueCheck.validater<Vector> {
-      const result = (value: unknown) => {
-         const anyVector = validate(vector.isVector, fallback)(value);
+      const result = (value: unknown, log: boolean = false) => {
+         const anyVector = validate(vector.isVector, fallback)(value, log);
          return vector.standardise(anyVector);
       }
 
@@ -31,8 +31,8 @@ namespace Circuit.Component.ValueCheck {
 
    export function joints<T extends Vector[]>(fallback: T, lengthTest: (l: number) => boolean = l => l === fallback.length): validater<T> {
       const jointTest = (value: unknown) => vector.isVectorArray(value) && lengthTest(value.length);
-      const result = (value: unknown) => {
-         const anyVectors = validate(jointTest, fallback)(value);
+      const result = (value: unknown, log: boolean = false) => {
+         const anyVectors = validate(jointTest, fallback)(value, log);
          return vector.standardise(anyVectors) as T;
       }
 
@@ -44,8 +44,8 @@ namespace Circuit.Component.ValueCheck {
    const colorTest = (s: unknown) => test("string")(s) && s.length <= maxValidCSSColorLength;
 
    export function color(fallback: string): validater<string> {
-      const result = (value: unknown) => {
-         return validate(colorTest, fallback)(value);
+      const result = (value: unknown, log: boolean = false) => {
+         return validate(colorTest, fallback)(value, log);
       }
 
       return result;

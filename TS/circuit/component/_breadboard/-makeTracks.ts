@@ -1,13 +1,13 @@
 namespace Circuit.Component._Breadboard {
 
-   export function makeTracks(parent: Classes.Small, size: "small"): Addins.Board.Track.Instance[];
-   export function makeTracks(parent: Classes.Large, size: "large"): Addins.Board.Track.Instance[];
+   export function makeTracks(parent: Classes.Small, size: "small"): _Track.Classes.Layout[];
+   export function makeTracks(parent: Classes.Large, size: "large"): _Track.Classes.Layout[];
    export function makeTracks(parent: Classes.Small | Classes.Large, size: "small" | "large") {
       return (size === "small") ? makeTracksSmall(parent) : makeTracksLarge(parent);
    }
 
-   function makeTracksSmall(parent: Classes.Small): Addins.Board.Track.Instance[] {
-      let tracks: Addins.Board.Track.Instance[] = [];
+   function makeTracksSmall(parent: Classes.Small): _Track.Classes.Layout[] {
+      let tracks: _Track.Classes.Layout[] = [];
 
       let gS = Constants.gridSpacing;
 
@@ -22,10 +22,10 @@ namespace Circuit.Component._Breadboard {
 
          const step = vector({ x: gS, y: 0 }).rotate(rotation);
 
-         let track = Addins.Board.Track.make({
+         let track = Component.track.make({
             holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1],
             joints: [start, step]
-         });
+         }, false);
          tracks.push(track);
       }
 
@@ -41,10 +41,10 @@ namespace Circuit.Component._Breadboard {
 
             const step = vector({ x: 0, y: gS }).rotate(rotation);
 
-            let track = Addins.Board.Track.make({
+            let track = Component.track.make({
                holeSpacings: [0, 1, 1, 1, 1],
                joints: [start, step]
-            });
+            }, false);
             tracks.push(track);
          }
       }
@@ -52,8 +52,8 @@ namespace Circuit.Component._Breadboard {
       return tracks;
    }
 
-   function makeTracksLarge(parent: Classes.Large): Addins.Board.Track.Instance[] {
-      let tracks: Addins.Board.Track.Instance[] = [];
+   function makeTracksLarge(parent: Classes.Large): _Track.Classes.Layout[] {
+      let tracks: _Track.Classes.Layout[] = [];
 
       let gS = Constants.gridSpacing;
 
@@ -71,10 +71,10 @@ namespace Circuit.Component._Breadboard {
 
             const step = vector({ x: gS, y: 0 }).rotate(rotation);
 
-            let track = Addins.Board.Track.make({
+            let track = Component.track.make({
                holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1],
                joints: [start, step]
-            });
+            }, false);
             tracks.push(track);
          }
       }
@@ -91,10 +91,10 @@ namespace Circuit.Component._Breadboard {
 
             const step = vector({ x: 0, y: gS }).rotate(rotation);
 
-            let track = Addins.Board.Track.make({
+            let track = Component.track.make({
                holeSpacings: [0, 1, 1, 1, 1],
                joints: [start, step]
-            });
+            }, false);
             tracks.push(track);
          }
       }
