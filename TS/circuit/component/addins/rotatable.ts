@@ -8,7 +8,7 @@ namespace Circuit.Component.Addins.Rotatable {
     */
    export const init = (component: rotatableComponent) => {
       $(component.group.element).dblclick(() => {
-         history.add(component);
+         history.addEvent(component);
          let centre = component.joints[0];
 
          component.joints = vector(component.joints)

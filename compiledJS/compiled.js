@@ -118,7 +118,7 @@ var _vector;
 })(_vector || (_vector = {}));
 var _vector;
 (function (_vector) {
-    function snapToGrid(inVector) {
+    function snapToGridS(inVector) {
         return (grid = { x: 10, y: 10 }) => {
             return _vector.vector({
                 x: Math.round(inVector.x / (grid.x)) * (grid.x),
@@ -126,7 +126,16 @@ var _vector;
             });
         };
     }
-    _vector.snapToGrid = snapToGrid;
+    _vector.snapToGridS = snapToGridS;
+    function snapToGridM(inVectors) {
+        return (grid = { x: 10, y: 10 }) => {
+            return _vector.vector(inVectors.map(inVector => ({
+                x: Math.round(inVector.x / (grid.x)) * (grid.x),
+                y: Math.round(inVector.y / (grid.y)) * (grid.y)
+            })));
+        };
+    }
+    _vector.snapToGridM = snapToGridM;
 })(_vector || (_vector = {}));
 var _vector;
 (function (_vector) {
@@ -231,7 +240,7 @@ var _vector;
             scaleMap: _vector.scaleMapS(inVector),
             centreWith: _vector.centreWith(inVector),
             rotate: _vector.rotateS(inVector),
-            snapToGrid: _vector.snapToGrid(inVector)
+            snapToGrid: _vector.snapToGridS(inVector)
         };
     };
     const multiExtension = (inVectors) => {
@@ -242,6 +251,7 @@ var _vector;
             scaleWith: _vector.scaleWithM(inVectors),
             rotate: _vector.rotateM(inVectors),
             centre: _vector.centre(inVectors),
+            snapToGrid: _vector.snapToGridM(inVectors)
         };
     };
     function vectorFunction(inVectors, ...moreVectors) {
@@ -258,7 +268,7 @@ var _vector;
         isCloseTo: _vector.isCloseTo,
         centreWith: _vector.centreWith,
         rotate: _vector.rotateS,
-        snapToGrid: _vector.snapToGrid,
+        snapToGrid: _vector.snapToGridS,
         asPolar: _vector.asPolar,
         standardise: _vector.standardise,
         isVector: _vector.isVector,
@@ -273,7 +283,6 @@ $(document).ready(() => {
     Active.init();
     Ui.init();
     Circuit.Mappings.init();
-    Circuit.History.init();
 });
 var Active;
 (function (Active) {
@@ -299,6 +308,7 @@ var NodeElements;
         NodeElements.fileStatusText = $("p#fileStatusText")[0];
         NodeElements.stripboardRows = $("input#stripboardRows")[0];
         NodeElements.stripboardColumns = $("input#stripboardColumns")[0];
+        NodeElements.boardDraggingDisabled = $("input#boardDraggingDisabled")[0];
         NodeElements.checkCircuitButton = $("input#checkCircuitButton")[0];
         NodeElements.checkShowCorrect = $("input#checkShowCorrect")[0];
         NodeElements.checkShowIncorrect = $("input#checkShowIncorrect")[0];
@@ -517,94 +527,147 @@ var Circuit;
 })(Circuit || (Circuit = {}));
 var Circuit;
 (function (Circuit) {
-    const historyBuilder = (() => {
-        let events = [];
-        let currentIdx = -1;
-        let lastIdx = -1;
-        const addEvent = (...participants) => {
-            if (currentIdx < lastIdx) {
-                events.splice(currentIdx + 1);
-            }
-            events.push(participants.map(participant => {
-                return {
-                    participant: participant,
-                    state: participant.getState()
-                };
+    var _History;
+    (function (_History) {
+        function init(...participants) {
+            const events = [];
+            const currentIdx = -1, lastIdx = -1;
+            return _History.addEvent({ events, currentIdx, lastIdx }, ...participants);
+        }
+        _History.init = init;
+    })(_History = Circuit._History || (Circuit._History = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var _History;
+    (function (_History) {
+        function addEvent(state, ...participants) {
+            const currentIdx = state.currentIdx + 1, lastIdx = currentIdx;
+            const previousEvents = state.events.slice(0, lastIdx);
+            const newEvent = participants.map(participant => ({
+                participant,
+                state: participant.getState()
             }));
-            currentIdx += 1;
-            lastIdx = currentIdx;
-        };
-        const mergeLast = (N = 1) => {
-            let mergeStart = Math.max(0, lastIdx - N);
-            let toMerge = events.slice(mergeStart);
-            let mergedDevelopments = [];
-            toMerge.forEach(event => {
+            const events = [...previousEvents, newEvent];
+            return { events, currentIdx, lastIdx };
+        }
+        _History.addEvent = addEvent;
+    })(_History = Circuit._History || (Circuit._History = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var _History;
+    (function (_History) {
+        function undoEvent(state) {
+            if (state.currentIdx <= 0)
+                return state;
+            const currentEvent = state.events[state.currentIdx];
+            const redoEvent = currentEvent.map(development => development.participant).map(participant => ({
+                participant,
+                state: participant.getState()
+            }));
+            currentEvent.forEach(development => {
+                Object.assign(development.participant, development.state);
+                if (development.participant.group) {
+                    $(development.participant.group.element).trigger(Circuit.Events.draw);
+                }
+            });
+            const previousEvents = state.events.slice(0, state.currentIdx);
+            const nextEvents = state.events.slice(state.currentIdx + 1);
+            const events = [...previousEvents, redoEvent, ...nextEvents];
+            const currentIdx = state.currentIdx - 1;
+            return { events, currentIdx, lastIdx: state.lastIdx };
+        }
+        _History.undoEvent = undoEvent;
+    })(_History = Circuit._History || (Circuit._History = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var _History;
+    (function (_History) {
+        function redoEvent(state) {
+            if (state.currentIdx >= state.lastIdx)
+                return state;
+            const currentIdx = state.currentIdx + 1;
+            const currentEvent = state.events[state.currentIdx];
+            const undoEvent = currentEvent.map(development => development.participant).map(participant => ({
+                participant,
+                state: participant.getState()
+            }));
+            currentEvent.forEach(development => {
+                Object.assign(development.participant, development.state);
+                if (development.participant.group) {
+                    $(development.participant.group.element).trigger(Circuit.Events.draw);
+                }
+            });
+            const previousEvents = state.events.slice(0, state.currentIdx);
+            const nextEvents = state.events.slice(state.currentIdx + 1);
+            const events = [...previousEvents, undoEvent, ...nextEvents];
+            return { events, currentIdx, lastIdx: state.lastIdx };
+        }
+        _History.redoEvent = redoEvent;
+    })(_History = Circuit._History || (Circuit._History = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var _History;
+    (function (_History) {
+        function mergeEvents(state, mergeCount) {
+            const mergeStartIdx = Math.max(0, state.lastIdx - mergeCount);
+            const eventsToMerge = state.events.slice(mergeStartIdx);
+            const previousEvents = state.events.slice(0, mergeStartIdx);
+            const mergedEvent = [];
+            eventsToMerge.forEach(event => {
                 event.forEach(dev => {
-                    if (!mergedDevelopments.some(mDev => mDev.participant === dev.participant)) {
-                        mergedDevelopments.push(dev);
+                    if (!mergedEvent.some(mDev => mDev.participant === dev.participant)) {
+                        mergedEvent.push(dev);
                     }
                 });
             });
-            events = events.slice(0, mergeStart);
-            events[mergeStart] = mergedDevelopments;
-            lastIdx = mergeStart;
-            if (currentIdx > lastIdx)
-                currentIdx = lastIdx;
-        };
-        const undo = () => {
-            if (currentIdx <= 0)
-                return;
-            let redoEvent = events[currentIdx].map(development => development.participant).map(participant => {
-                return {
-                    participant: participant,
-                    state: participant.getState()
-                };
-            });
-            events[currentIdx].forEach(development => {
-                Object.assign(development.participant, development.state);
-                if (development.participant.group) {
-                    $(development.participant.group.element).trigger(Circuit.Events.draw);
-                }
-            });
-            events[currentIdx] = redoEvent;
-            currentIdx -= 1;
-        };
-        const redo = () => {
-            if (currentIdx >= lastIdx)
-                return;
-            currentIdx += 1;
-            let undoEvent = events[currentIdx].map(development => development.participant).map(participant => {
-                return {
-                    participant: participant,
-                    state: participant.getState()
-                };
-            });
-            events[currentIdx].forEach(development => {
-                Object.assign(development.participant, development.state);
-                if (development.participant.group) {
-                    $(development.participant.group.element).trigger(Circuit.Events.draw);
-                }
-            });
-            events[currentIdx] = undoEvent;
-        };
-        return {
-            add: addEvent,
-            mergeLast: mergeLast,
-            undo: undo,
-            redo: redo,
-            getEvents: () => [...events],
-            getCurrentIdx: () => currentIdx,
-            getLastIdx: () => lastIdx
-        };
-    });
-    let History;
-    (function (History) {
-        function init(...participants) {
-            Circuit.history = historyBuilder();
-            Circuit.history.add(...participants);
+            const events = [...previousEvents, mergedEvent];
+            const lastIdx = mergeStartIdx;
+            const currentIdx = (state.currentIdx > state.lastIdx)
+                ? state.lastIdx
+                : state.currentIdx;
+            return { events, currentIdx, lastIdx };
         }
-        History.init = init;
-    })(History = Circuit.History || (Circuit.History = {}));
+        _History.mergeEvents = mergeEvents;
+    })(_History = Circuit._History || (Circuit._History = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    var _History;
+    (function (_History) {
+        function factory(...initialParticipants) {
+            let state = _History.init(...initialParticipants);
+            return {
+                reInit(...participants) {
+                    state = _History.init(...participants);
+                },
+                addEvent(...participants) {
+                    state = _History.addEvent(state, ...participants);
+                },
+                undo() {
+                    state = _History.undoEvent(state);
+                },
+                redo() {
+                    state = _History.redoEvent(state);
+                },
+                mergeLast(mergeCount = 1) {
+                    state = _History.mergeEvents(state, mergeCount);
+                },
+                getState() {
+                    return Object.assign({}, state, { events: [...state.events] });
+                }
+            };
+        }
+        _History.factory = factory;
+    })(_History = Circuit._History || (Circuit._History = {}));
+})(Circuit || (Circuit = {}));
+var Circuit;
+(function (Circuit) {
+    Circuit.historyFactory = Circuit._History.factory;
+    Circuit.history = Circuit.historyFactory();
 })(Circuit || (Circuit = {}));
 var Utility;
 (function (Utility) {
@@ -658,7 +721,7 @@ var Circuit;
                 diagram = Active.layout;
             }
             components.forEach(component => component.disabled = true);
-            Circuit.history.add(Circuit.manifest, ...components);
+            Circuit.history.addEvent(Circuit.manifest, ...components);
             components.forEach(component => {
                 component.disabled = false;
                 manifestSection.push(component);
@@ -674,7 +737,7 @@ var Circuit;
             Circuit.manifest.layout.forEach(component => placeComponent(component, Active.layout));
         };
         const removeComponent = (...components) => {
-            Circuit.history.add(Circuit.manifest, ...components);
+            Circuit.history.addEvent(Circuit.manifest, ...components);
             Circuit.manifest.layout = Circuit.manifest.layout.filter(el => !components.includes(el));
             Circuit.manifest.schematic = Circuit.manifest.schematic.filter(el => !components.includes(el));
             components.forEach(component => {
@@ -2905,7 +2968,7 @@ var Circuit;
                 const baseEnd = instance.joints[_Bipolar.INDEXBASE];
                 const centre = vector(emitterEnd, collectorEnd, baseEnd).centre().vector;
                 const rotation = vector(emitterEnd).getAngleTo(baseEnd);
-                const [emitterStart, collectorStart, baseStart] = vector({ x: -12, y: 3 }, { x: 0, y: 3 }, { x: 12, y: 3 }).rotate(rotation).sumWith(centre).vectors;
+                const [emitterStart, collectorStart, baseStart] = vector({ x: -12, y: 3 }, { x: 0, y: -2 }, { x: 12, y: 3 }).rotate(rotation).sumWith(centre).vectors;
                 const joints = [
                     [emitterStart, emitterEnd],
                     [collectorStart, collectorEnd],
@@ -2920,7 +2983,8 @@ var Circuit;
                 bodyGroup.append(Svg.Element.Path.make(semiCircleString, "body highlight"), Svg.Element.Text.make(instance.type, { x: 0, y: 4 }, "text"));
                 return [
                     Svg.Element.Path.make(joints, "lead"),
-                    bodyGroup.translate(centre).rotate(rotation)
+                    bodyGroup.translate(centre).rotate(rotation),
+                    Svg.Element.Path.make(joints, "leadguide")
                 ];
             }
             _Bipolar.drawLayout = drawLayout;
@@ -3994,7 +4058,7 @@ var Circuit;
                                 trackGhostGroup.appendChild(breaker.element);
                                 let holePosition = { track: trackIdx, hole: holeIdx };
                                 $(breaker.element).click(() => {
-                                    Circuit.history.add(component);
+                                    Circuit.history.addEvent(component);
                                     if (hole.type === "hole") {
                                         $(breaker.element).addClass("broken");
                                         hole.type = "brokenhole";
@@ -4103,7 +4167,7 @@ var Circuit;
                     Svg.Addins.Draggable.init(component.group.element, {
                         disableMovement: true,
                         onStart: () => {
-                            Circuit.history.add(component);
+                            Circuit.history.addEvent(component);
                             component.insertInto(component.group.element);
                         },
                         onDrag: (drag) => {
@@ -4120,6 +4184,20 @@ var Circuit;
                             });
                         }
                     });
+                    if (Circuit.mappings.getComponentMapSafe(component).isBoard &&
+                        NodeElements.boardDraggingDisabled.checked) {
+                        Draggable.disable(component);
+                    }
+                };
+                Draggable.disable = (component) => {
+                    if ($(component.group.element).draggable("instance") !== undefined) {
+                        $(component.group.element).draggable("disable");
+                    }
+                };
+                Draggable.enable = (component) => {
+                    if ($(component.group.element).draggable("instance") !== undefined) {
+                        $(component.group.element).draggable("enable");
+                    }
                 };
             })(Draggable = Addins.Draggable || (Addins.Draggable = {}));
         })(Addins = Component.Addins || (Component.Addins = {}));
@@ -4143,6 +4221,10 @@ var Circuit;
                             clearHandles(component);
                             createHandles(component);
                         }
+                    });
+                    $(element).on(Circuit.Events.dragStop, () => {
+                        clearHandles(component);
+                        createHandles(component);
                     });
                     $(element).on(Circuit.Events.deselect, () => {
                         clearHandles(component);
@@ -4379,7 +4461,7 @@ var Circuit;
             (function (Rotatable) {
                 Rotatable.init = (component) => {
                     $(component.group.element).dblclick(() => {
-                        Circuit.history.add(component);
+                        Circuit.history.addEvent(component);
                         let centre = component.joints[0];
                         component.joints = vector(component.joints)
                             .sumWith(vector(centre).scaleWith(-1))
@@ -4617,7 +4699,7 @@ var FileIO;
                             NodeElements.fileStatusText.innerText = "File:\r\n\"" + filename + "\"\r\nLoaded Successfully";
                             if (savedManifest) {
                                 Circuit.manifest.constructFrom(savedManifest);
-                                Circuit.history.add(...Circuit.manifest.layout);
+                                Circuit.history.reInit(...Circuit.manifest.layout);
                             }
                             else {
                                 console.error("savedManifest is undefined");
@@ -5580,6 +5662,9 @@ var Ui;
         NodeElements.checkCircuitButton.addEventListener('click', () => {
             Ui.Events.checkCircuit();
         });
+        NodeElements.boardDraggingDisabled.addEventListener('click', () => {
+            Ui.Events.disableBoardDraggingPress();
+        });
         $(document).keydown(function (e) {
             if (e.keyCode == 90 && e.ctrlKey) {
                 Ui.Events.undo();
@@ -5666,6 +5751,17 @@ var Ui;
             }
             Circuit.manifest.activeBoard = board;
         }
+        function disableBoardDraggingPress() {
+            if (Circuit.manifest.activeBoard !== undefined) {
+                if (NodeElements.boardDraggingDisabled.checked) {
+                    Circuit.Component.Addins.Draggable.disable(Circuit.manifest.activeBoard);
+                }
+                else {
+                    Circuit.Component.Addins.Draggable.enable(Circuit.manifest.activeBoard);
+                }
+            }
+        }
+        Events.disableBoardDraggingPress = disableBoardDraggingPress;
         function checkCircuit() {
             let circuitStatus = Circuit.manifest.checkAll();
             let doHighlightCorrect = NodeElements.checkShowCorrect.checked;

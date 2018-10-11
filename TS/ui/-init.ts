@@ -67,6 +67,10 @@ namespace Ui {
          Ui.Events.checkCircuit()
       });
 
+      NodeElements.boardDraggingDisabled.addEventListener('click', () => {
+         Ui.Events.disableBoardDraggingPress()
+      });
+
       $(document).keydown(function (e) {
          if (e.keyCode == 90 && e.ctrlKey) {
             Ui.Events.undo();

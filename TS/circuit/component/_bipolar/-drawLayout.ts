@@ -10,7 +10,7 @@ namespace Circuit.Component._Bipolar {
       const rotation = vector(emitterEnd).getAngleTo(baseEnd);
 
       const [emitterStart, collectorStart, baseStart]: Vector[] = vector(
-         { x: - 12, y: 3 }, { x: 0, y: 3 }, { x: 12, y: 3 }
+         { x: - 12, y: 3 }, { x: 0, y: -2 }, { x: 12, y: 3 }
       ).rotate(rotation).sumWith(centre).vectors;
 
       const joints = [
@@ -34,7 +34,8 @@ namespace Circuit.Component._Bipolar {
 
       return [
          Svg.Element.Path.make(joints, "lead"),
-         bodyGroup.translate(centre).rotate(rotation)
+         bodyGroup.translate(centre).rotate(rotation),
+         Svg.Element.Path.make(joints, "leadguide")
       ];
    }
 }

@@ -308,6 +308,15 @@
    text-anchor: middle;
 }
 
+.layout .selected.bipolar>.leadguide {
+   stroke-width: 0.5;
+   stroke-linejoin: round;
+   stroke-linecap: round;
+   fill: none;
+   stroke-dasharray: 1.5;
+   stroke: white;
+}
+
 .layout .recolorHandle {
    visibility: hidden;
    opacity: 0.6;

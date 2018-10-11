@@ -4,7 +4,7 @@ namespace Circuit.Component.Addins.Draggable {
       Svg.Addins.Draggable.init(component.group.element, {
          disableMovement: true,
          onStart: () => {
-            history.add(component);
+            history.addEvent(component);
             component.insertInto(component.group.element);
          },
          onDrag: (drag: Vector) => {
@@ -22,5 +22,24 @@ namespace Circuit.Component.Addins.Draggable {
             });
          }
       });
+
+      // TODO, I don't quite like how this is coupled together
+      if (mappings.getComponentMapSafe(component).isBoard &&
+         NodeElements.boardDraggingDisabled.checked
+      ) {
+         disable(component);
+      }
+   }
+
+   export const disable = (component: Component.Instance) => {
+      if ($(component.group.element).draggable("instance") !== undefined) {
+         $(component.group.element).draggable("disable");
+      }
+   }
+
+   export const enable = (component: Component.Instance) => {
+      if ($(component.group.element).draggable("instance") !== undefined) {
+         $(component.group.element).draggable("enable");
+      }
    }
 }

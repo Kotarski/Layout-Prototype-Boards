@@ -1,8 +1,9 @@
 /// <reference path="../-track.ts" />
 namespace Circuit.Component.Addins.Board {
-   type board = Component.Instance & {
+   export type board = Component.Instance & {
       connectorSets: Component.Types.hole[][],
-      tracks: _Track.Classes.Layout[]
+      tracks: _Track.Classes.Layout[],
+      joints: Vector[]
    }
    export interface reversibleBoard extends board {
       trackBreaks: { track: number, hole: number }[];
@@ -113,7 +114,7 @@ namespace Circuit.Component.Addins.Board {
                let holePosition = { track: trackIdx, hole: holeIdx };
 
                $(breaker.element).click(() => {
-                  history.add(component);
+                  history.addEvent(component);
 
                   if (hole.type === "hole") {
                      $(breaker.element).addClass("broken");
