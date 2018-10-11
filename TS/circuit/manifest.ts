@@ -40,7 +40,7 @@ namespace Circuit {
 
          components.forEach(component => component.disabled = true);
 
-         history.add(manifest, ...components);
+         history.addEvent(manifest, ...components);
 
          components.forEach(component => {
             component.disabled = false;
@@ -60,7 +60,7 @@ namespace Circuit {
       }
 
       const removeComponent = (...components: Component.Instance[]) => {
-         history.add(manifest, ...components);
+         history.addEvent(manifest, ...components);
          manifest.layout = manifest.layout.filter(el => !components.includes(el));
          manifest.schematic = manifest.schematic.filter(el => !components.includes(el));
 

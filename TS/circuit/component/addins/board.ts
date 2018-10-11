@@ -113,7 +113,7 @@ namespace Circuit.Component.Addins.Board {
                let holePosition = { track: trackIdx, hole: holeIdx };
 
                $(breaker.element).click(() => {
-                  history.add(component);
+                  history.addEvent(component);
 
                   if (hole.type === "hole") {
                      $(breaker.element).addClass("broken");
