@@ -18,6 +18,10 @@ namespace Circuit.Component.Addins.Extendable {
             createHandles(component);
          }
       });
+      $(element).on(Events.dragStop, () => {
+         clearHandles(component);
+         createHandles(component);
+      });
       $(element).on(Events.deselect, () => {
          clearHandles(component);
       });

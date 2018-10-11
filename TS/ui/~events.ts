@@ -78,6 +78,16 @@ namespace Ui.Events {
       Circuit.manifest.activeBoard = board;
    }
 
+   export function disableBoardDraggingPress() {
+      if (Circuit.manifest.activeBoard !== undefined) {
+         if (NodeElements.boardDraggingDisabled.checked) {
+            Circuit.Component.Addins.Draggable.disable(Circuit.manifest.activeBoard)
+         } else {
+            Circuit.Component.Addins.Draggable.enable(Circuit.manifest.activeBoard)
+         }
+      }
+   }
+
    export function checkCircuit() {
       let circuitStatus = Circuit.manifest.checkAll();
 

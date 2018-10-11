@@ -118,7 +118,7 @@ var _vector;
 })(_vector || (_vector = {}));
 var _vector;
 (function (_vector) {
-    function snapToGrid(inVector) {
+    function snapToGridS(inVector) {
         return (grid = { x: 10, y: 10 }) => {
             return _vector.vector({
                 x: Math.round(inVector.x / (grid.x)) * (grid.x),
@@ -126,7 +126,16 @@ var _vector;
             });
         };
     }
-    _vector.snapToGrid = snapToGrid;
+    _vector.snapToGridS = snapToGridS;
+    function snapToGridM(inVectors) {
+        return (grid = { x: 10, y: 10 }) => {
+            return _vector.vector(inVectors.map(inVector => ({
+                x: Math.round(inVector.x / (grid.x)) * (grid.x),
+                y: Math.round(inVector.y / (grid.y)) * (grid.y)
+            })));
+        };
+    }
+    _vector.snapToGridM = snapToGridM;
 })(_vector || (_vector = {}));
 var _vector;
 (function (_vector) {
@@ -231,7 +240,7 @@ var _vector;
             scaleMap: _vector.scaleMapS(inVector),
             centreWith: _vector.centreWith(inVector),
             rotate: _vector.rotateS(inVector),
-            snapToGrid: _vector.snapToGrid(inVector)
+            snapToGrid: _vector.snapToGridS(inVector)
         };
     };
     const multiExtension = (inVectors) => {
@@ -242,6 +251,7 @@ var _vector;
             scaleWith: _vector.scaleWithM(inVectors),
             rotate: _vector.rotateM(inVectors),
             centre: _vector.centre(inVectors),
+            snapToGrid: _vector.snapToGridM(inVectors)
         };
     };
     function vectorFunction(inVectors, ...moreVectors) {
@@ -258,7 +268,7 @@ var _vector;
         isCloseTo: _vector.isCloseTo,
         centreWith: _vector.centreWith,
         rotate: _vector.rotateS,
-        snapToGrid: _vector.snapToGrid,
+        snapToGrid: _vector.snapToGridS,
         asPolar: _vector.asPolar,
         standardise: _vector.standardise,
         isVector: _vector.isVector,
@@ -298,6 +308,7 @@ var NodeElements;
         NodeElements.fileStatusText = $("p#fileStatusText")[0];
         NodeElements.stripboardRows = $("input#stripboardRows")[0];
         NodeElements.stripboardColumns = $("input#stripboardColumns")[0];
+        NodeElements.boardDraggingDisabled = $("input#boardDraggingDisabled")[0];
         NodeElements.checkCircuitButton = $("input#checkCircuitButton")[0];
         NodeElements.checkShowCorrect = $("input#checkShowCorrect")[0];
         NodeElements.checkShowIncorrect = $("input#checkShowIncorrect")[0];
@@ -4172,6 +4183,20 @@ var Circuit;
                             });
                         }
                     });
+                    if (Circuit.mappings.getComponentMapSafe(component).isBoard &&
+                        NodeElements.boardDraggingDisabled.checked) {
+                        Draggable.disable(component);
+                    }
+                };
+                Draggable.disable = (component) => {
+                    if ($(component.group.element).draggable("instance") !== undefined) {
+                        $(component.group.element).draggable("disable");
+                    }
+                };
+                Draggable.enable = (component) => {
+                    if ($(component.group.element).draggable("instance") !== undefined) {
+                        $(component.group.element).draggable("enable");
+                    }
                 };
             })(Draggable = Addins.Draggable || (Addins.Draggable = {}));
         })(Addins = Component.Addins || (Component.Addins = {}));
@@ -4195,6 +4220,10 @@ var Circuit;
                             clearHandles(component);
                             createHandles(component);
                         }
+                    });
+                    $(element).on(Circuit.Events.dragStop, () => {
+                        clearHandles(component);
+                        createHandles(component);
                     });
                     $(element).on(Circuit.Events.deselect, () => {
                         clearHandles(component);
@@ -5632,6 +5661,9 @@ var Ui;
         NodeElements.checkCircuitButton.addEventListener('click', () => {
             Ui.Events.checkCircuit();
         });
+        NodeElements.boardDraggingDisabled.addEventListener('click', () => {
+            Ui.Events.disableBoardDraggingPress();
+        });
         $(document).keydown(function (e) {
             if (e.keyCode == 90 && e.ctrlKey) {
                 Ui.Events.undo();
@@ -5718,6 +5750,17 @@ var Ui;
             }
             Circuit.manifest.activeBoard = board;
         }
+        function disableBoardDraggingPress() {
+            if (Circuit.manifest.activeBoard !== undefined) {
+                if (NodeElements.boardDraggingDisabled.checked) {
+                    Circuit.Component.Addins.Draggable.disable(Circuit.manifest.activeBoard);
+                }
+                else {
+                    Circuit.Component.Addins.Draggable.enable(Circuit.manifest.activeBoard);
+                }
+            }
+        }
+        Events.disableBoardDraggingPress = disableBoardDraggingPress;
         function checkCircuit() {
             let circuitStatus = Circuit.manifest.checkAll();
             let doHighlightCorrect = NodeElements.checkShowCorrect.checked;

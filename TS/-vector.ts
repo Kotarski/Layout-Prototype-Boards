@@ -36,7 +36,7 @@ namespace _vector {
          scaleMap: _vector.scaleMapS(inVector),
          centreWith: _vector.centreWith(inVector),
          rotate: _vector.rotateS(inVector),
-         snapToGrid: _vector.snapToGrid(inVector)
+         snapToGrid: _vector.snapToGridS(inVector)
       }
    }
 
@@ -48,6 +48,7 @@ namespace _vector {
          scaleWith: _vector.scaleWithM(inVectors),
          rotate: _vector.rotateM(inVectors),
          centre: _vector.centre(inVectors),
+         snapToGrid: _vector.snapToGridM(inVectors)
       }
    }
 
@@ -83,7 +84,7 @@ namespace _vector {
       isCloseTo: _vector.isCloseTo,
       centreWith: _vector.centreWith,
       rotate: _vector.rotateS,
-      snapToGrid: _vector.snapToGrid,
+      snapToGrid: _vector.snapToGridS,
       asPolar: _vector.asPolar,
       standardise: _vector.standardise,
       isVector: _vector.isVector,

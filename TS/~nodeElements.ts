@@ -4,9 +4,10 @@ namespace NodeElements {
    export let fileSave: HTMLInputElement;
    export let fileStatusText: HTMLParagraphElement;
 
-   //Board Creation
+   //Board Control
    export let stripboardRows: HTMLInputElement;
    export let stripboardColumns: HTMLInputElement;
+   export let boardDraggingDisabled: HTMLInputElement;
 
    //Checking
    export let checkCircuitButton: HTMLInputElement;
@@ -24,9 +25,10 @@ namespace NodeElements {
       NodeElements.fileSave = $("input#fileSave")[0] as HTMLInputElement;
       NodeElements.fileStatusText = $("p#fileStatusText")[0] as HTMLParagraphElement;
 
-      //Board Creation
+      //Board Control
       NodeElements.stripboardRows = $("input#stripboardRows")[0] as HTMLInputElement;
       NodeElements.stripboardColumns = $("input#stripboardColumns")[0] as HTMLInputElement;
+      NodeElements.boardDraggingDisabled = $("input#boardDraggingDisabled")[0] as HTMLInputElement;
 
       //Checking
       NodeElements.checkCircuitButton = $("input#checkCircuitButton")[0] as HTMLInputElement;
