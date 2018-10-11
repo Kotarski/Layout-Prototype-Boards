@@ -2968,7 +2968,7 @@ var Circuit;
                 const baseEnd = instance.joints[_Bipolar.INDEXBASE];
                 const centre = vector(emitterEnd, collectorEnd, baseEnd).centre().vector;
                 const rotation = vector(emitterEnd).getAngleTo(baseEnd);
-                const [emitterStart, collectorStart, baseStart] = vector({ x: -12, y: 3 }, { x: 0, y: 3 }, { x: 12, y: 3 }).rotate(rotation).sumWith(centre).vectors;
+                const [emitterStart, collectorStart, baseStart] = vector({ x: -12, y: 3 }, { x: 0, y: -2 }, { x: 12, y: 3 }).rotate(rotation).sumWith(centre).vectors;
                 const joints = [
                     [emitterStart, emitterEnd],
                     [collectorStart, collectorEnd],
@@ -2983,7 +2983,8 @@ var Circuit;
                 bodyGroup.append(Svg.Element.Path.make(semiCircleString, "body highlight"), Svg.Element.Text.make(instance.type, { x: 0, y: 4 }, "text"));
                 return [
                     Svg.Element.Path.make(joints, "lead"),
-                    bodyGroup.translate(centre).rotate(rotation)
+                    bodyGroup.translate(centre).rotate(rotation),
+                    Svg.Element.Path.make(joints, "leadguide")
                 ];
             }
             _Bipolar.drawLayout = drawLayout;
