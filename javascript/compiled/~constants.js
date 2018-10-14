@@ -1,8 +1,0 @@
-"use strict";
-var Constants;
-(function (Constants) {
-    Constants.gridSpacing = 20;
-    Constants.svgURI = "http://www.w3.org/2000/svg";
-    Constants.schematicManipulationEnabled = false;
-})(Constants || (Constants = {}));
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoifmNvbnN0YW50cy5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbIi4uLy4uL3R5cGVzY3JpcHQvfmNvbnN0YW50cy50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiO0FBQUEsSUFBVSxTQUFTLENBSWxCO0FBSkQsV0FBVSxTQUFTO0lBQ0gscUJBQVcsR0FBRyxFQUFFLENBQUM7SUFDakIsZ0JBQU0sR0FBVyw0QkFBNEIsQ0FBQztJQUM5QyxzQ0FBNEIsR0FBRyxLQUFLLENBQUM7QUFDckQsQ0FBQyxFQUpTLFNBQVMsS0FBVCxTQUFTLFFBSWxCIiwic291cmNlc0NvbnRlbnQiOlsibmFtZXNwYWNlIENvbnN0YW50cyB7XHJcbiAgIGV4cG9ydCBjb25zdCBncmlkU3BhY2luZyA9IDIwO1xyXG4gICBleHBvcnQgY29uc3Qgc3ZnVVJJOiBzdHJpbmcgPSBcImh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnXCI7XHJcbiAgIGV4cG9ydCBjb25zdCBzY2hlbWF0aWNNYW5pcHVsYXRpb25FbmFibGVkID0gZmFsc2U7XHJcbn1cclxuIl19
