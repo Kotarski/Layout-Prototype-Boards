@@ -1,0 +1,9 @@
+"use strict";
+var Svg;
+(function (Svg) {
+    function makeMatrix() {
+        return Svg.Element.make("svg").createSVGMatrix();
+    }
+    Svg.makeMatrix = makeMatrix;
+})(Svg || (Svg = {}));
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiLW1ha2VNYXRyaXguanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyIuLi8uLi8uLi90eXBlc2NyaXB0L3N2Zy8tbWFrZU1hdHJpeC50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiO0FBQUEsSUFBVSxHQUFHLENBSVo7QUFKRCxXQUFVLEdBQUc7SUFDVixTQUFnQixVQUFVO1FBQ3ZCLE9BQU8sSUFBQSxPQUFPLENBQUMsSUFBSSxDQUFnQixLQUFLLENBQUMsQ0FBQyxlQUFlLEVBQUUsQ0FBQztJQUMvRCxDQUFDO0lBRmUsY0FBVSxhQUV6QixDQUFBO0FBQ0osQ0FBQyxFQUpTLEdBQUcsS0FBSCxHQUFHLFFBSVoiLCJzb3VyY2VzQ29udGVudCI6WyJuYW1lc3BhY2UgU3ZnIHtcclxuICAgZXhwb3J0IGZ1bmN0aW9uIG1ha2VNYXRyaXgoKTogU1ZHTWF0cml4IHtcclxuICAgICAgcmV0dXJuIEVsZW1lbnQubWFrZTxTVkdTVkdFbGVtZW50PihcInN2Z1wiKS5jcmVhdGVTVkdNYXRyaXgoKTtcclxuICAgfVxyXG59XHJcbiJdfQ==

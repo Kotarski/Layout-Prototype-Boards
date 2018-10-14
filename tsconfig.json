@@ -1,14 +1,17 @@
 {
    "include": [
-      "./TS"
+      "./typescript"
    ],
    "compileOnSave": true,
    "compilerOptions": {
       "alwaysStrict": true,
       "removeComments": true,
       "target": "es2016",
-      "outFile": "./compiledJS/compiled.js",
-      "watch": false,
+      "module": "ES6",
+      "outDir": "./javascript/compiled",
+      "inlineSourceMap": true,
+      "inlineSources": true,
+      "watch": true,
       "noUnusedLocals": true,
       "noImplicitReturns": true,
       "strict": true,
