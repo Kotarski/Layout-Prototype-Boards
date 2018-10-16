@@ -1,27 +1,31 @@
-function svg<T extends SVGElement>(element: T) {
+import { Functions as ElementFunctions } from "./+element";
+import { Functions as GroupFunctions } from "./element/+group";
+import { Functions as TextFunctions } from "./element/+text";
+
+export default function svg<T extends SVGElement>(element: T) {
 
    let extension = {
       element: element
    }
 
    let elementExtension = (element instanceof SVGGraphicsElement) ? {
-      rotate: Svg.Element.Functions.rotate(element),
-      translate: Svg.Element.Functions.translate(element),
-      scale: Svg.Element.Functions.scale(element),
-      getTransforms: Svg.Element.Functions.getTransforms(element),
-      setTransforms: Svg.Element.Functions.setTransforms(element),
-      convertVector: Svg.Element.Functions.convertVector(element),
+      rotate: ElementFunctions.rotate(element),
+      translate: ElementFunctions.translate(element),
+      scale: ElementFunctions.scale(element),
+      getTransforms: ElementFunctions.getTransforms(element),
+      setTransforms: ElementFunctions.setTransforms(element),
+      convertVector: ElementFunctions.convertVector(element),
    } : null;
 
    let groupExtension = (element instanceof SVGGElement || element instanceof SVGSVGElement) ? {
-      append: Svg.Element.Group.Functions.append(element),
-      prepend: Svg.Element.Group.Functions.prepend(element),
-      clearChildren: Svg.Element.Group.Functions.clearChildren(element)
+      append: GroupFunctions.append(element),
+      prepend: GroupFunctions.prepend(element),
+      clearChildren: GroupFunctions.clearChildren(element)
    } : null;
 
    let textExtension = (element instanceof SVGTextElement) ? {
-      followPath: Svg.Element.Text.Functions.followPath(element),
-      rotatePosition: Svg.Element.Text.Functions.rotatePosition(element),
+      followPath: TextFunctions.followPath(element),
+      rotatePosition: TextFunctions.rotatePosition(element),
    } : null;
 
    return Object.assign({}, extension, elementExtension, groupExtension, textExtension) as (

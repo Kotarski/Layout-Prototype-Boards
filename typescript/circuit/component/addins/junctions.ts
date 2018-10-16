@@ -1,6 +1,14 @@
-namespace Circuit.Component.Addins.Junctions {
-   type nodeComponent = Component.Instance & {
-      connectorSets: Component.Types.node[][],
+import Component, { Types as ComponentTypes } from "../../+component";
+import vector from "../../../-vector";
+import Events from "../../events";
+import manifest from "../../manifest";
+import Flatten from "../../../utility/~flatten";
+import { make as makeCircle } from "../../../svg/element/+circle";
+//import * as $ from 'jquery';
+
+namespace Junctions {
+   type nodeComponent = Component & {
+      connectorSets: ComponentTypes.node[][],
    }
 
    export const init = (component: nodeComponent) => {
@@ -13,8 +21,8 @@ namespace Circuit.Component.Addins.Junctions {
 
 
    const createJunctions = (component: nodeComponent) => {
-      let otherConnectors = Utility.flatten2d(manifest.schematic.map(component =>
-         Utility.flatten2d(component.connectorSets).filter(connector =>
+      let otherConnectors = Flatten.flatten2d(manifest.schematic.map(component =>
+         Flatten.flatten2d(component.connectorSets).filter(connector =>
             (connector.type === "node")
          )
       ));
@@ -28,13 +36,14 @@ namespace Circuit.Component.Addins.Junctions {
             //let ctm = Active.schematic.root.group.element.getCTM();
             //point = (ctm) ? point.matrixTransform(ctm.inverse()) : point;
             component.group.prepend(
-               Svg.Element.Circle.make(point, 5, "junction black")
+               makeCircle(point, 5, "junction black")
             );
          }
       }));
    }
 
-   const clearJunctions = (component: Component.Instance) => {
+   const clearJunctions = (component: Component) => {
       $(component.group.element).find(".junction").remove();
    }
 }
+export default Junctions;

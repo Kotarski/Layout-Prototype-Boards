@@ -1,7 +1,14 @@
-namespace Circuit.Component.Addins.Recolorable {
+import Component from "../../+component";;
+import Events from "../../events";
+import { Vector } from "../../../-vector"
+import { make as makeCircle } from "../../../svg/element/+circle";
+import { make as makeRect } from "../../../svg/element/+rect";
+import { make as makeGroup } from "../../../svg/element/+group";
+//import * as $ from 'jquery';
+namespace Recolorable {
 
    type colorPalette = string[];
-   type recolorableComponent = Component.Instance & { color: string };
+   type recolorableComponent = Component & { color: string };
 
    export const init = (
       component: recolorableComponent,
@@ -30,14 +37,14 @@ namespace Circuit.Component.Addins.Recolorable {
 
    const createRecolorHandle = (component: recolorableComponent, position: Vector, colorPalette: colorPalette) => {
 
-      let recolorSegmentGroup = Svg.Element.Group.make("recolorSegmentGroup");
-      let recolorHandle = Svg.Element.Circle.make(position, 7, "handle recolorHandle");
+      let recolorSegmentGroup = makeGroup("recolorSegmentGroup");
+      let recolorHandle = makeCircle(position, 7, "handle recolorHandle");
 
       //Segments
-      let segment1 = Svg.Element.Rect.make(
+      let segment1 = makeRect(
          position, { width: 10, height: 20 }, undefined, "recolorHandleSegment"
       ).rotate(45, position).translate({ x: -4, y: -4 });
-      let segment2 = Svg.Element.Rect.make(
+      let segment2 = makeRect(
          position, { width: 10, height: 20 }, undefined, "recolorHandleSegment"
       ).rotate(45, position).translate({ x: 4, y: 4 });
 
@@ -78,3 +85,5 @@ namespace Circuit.Component.Addins.Recolorable {
    ]
 
 }
+
+export default Recolorable;

@@ -1,10 +1,11 @@
-namespace Circuit.Component._Capacitor {
-   export const loadLayout: Component.Types.loadFunction<Classes.Layout> = (raw: any) => {
-      const name = (raw.name);
-      const capacitance = (raw.capacitance);
-      const isPolarised = (raw.isPolarised);
-      const joints = (raw.joints);
+import makeLayout from "./-makeLayout"
 
-      return makeLayout({ name, capacitance, isPolarised, joints });
-   }
+export default function loadLayout(raw: any) {
+   const name = (raw.name);
+   const capacitance = (raw.capacitance);
+   const isPolarised = (raw.isPolarised);
+   const joints = (raw.joints);
+
+   return makeLayout({ name, capacitance, isPolarised, joints });
+
 }

@@ -1,5 +1,5 @@
-namespace Circuit.Component._Track {
-   export const loadLayout: Component.Types.loadFunction<Classes.Layout> = (raw: any) => {
-      return makeLayout({});
-   }
+import makeLayout from "./-makeLayout"
+
+export default function loadLayout(raw: any) {
+   return makeLayout({});
 }

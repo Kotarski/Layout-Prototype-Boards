@@ -1,20 +1,22 @@
-namespace Circuit.Component.Generics {
-   export function makeConnector<T extends Types.connectorTypes>(
-      component: Instance,
-      name: string,
-      type: T,
-      position: Vector,
-      symbol?: string
-   ): Types.connector & { type: T } {
+import Component, { Types } from "../+component";
+import { Vector } from "../../-vector";
 
-      let connector = {
-         name: name,
-         symbol: symbol,
-         type: type,
-         component: component,
-         point: position,
-      }
+export default function makeConnector<T extends Types.connectorTypes>(
+   component: Component,
+   name: string,
+   type: T,
+   position: Vector,
+   symbol?: string
+): Types.connector & { type: T } {
 
-      return connector;
+   let connector = {
+      name: name,
+      symbol: symbol,
+      type: type,
+      component: component,
+      point: position,
    }
+
+   return connector;
 }
+

@@ -1,12 +1,14 @@
 import NodeElements from "./~nodeElements";
+import Diagram from "./circuit/+diagram";
+//import * as $ from 'jquery';
 namespace Active {
-   export let layout: Circuit.Parts.Diagram;
-   export let schematic: Circuit.Parts.Diagram;
+   export let layout: Diagram;
+   export let schematic: Diagram;
 
    export function init() {
-      layout = new Circuit.Parts.Diagram(NodeElements.layoutContainer);
+      layout = new Diagram(NodeElements.layoutContainer);
       $(layout.root.group.element).addClass("layout");
-      schematic = new Circuit.Parts.Diagram(NodeElements.schematicContainer);
+      schematic = new Diagram(NodeElements.schematicContainer);
       $(schematic.root.group.element).addClass("schematic");
    }
 }

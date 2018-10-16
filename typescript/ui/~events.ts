@@ -2,12 +2,17 @@ import NodeElements from "../~nodeElements";
 import Active from "../~active";
 import { handleFileInputEvent } from "../fileIO/load/-handleFileInputEvent";
 import handleFileSaveEvent from "../fileIO/save/-handleFileSaveEvent";
-import history from "../Circuit/history";
-import manifest from "../Circuit/manifest";
-import Component from "../Circuit/+component";
+import history from "../circuit/history";
+import manifest from "../circuit/manifest";
+import Component from "../circuit/+component";
+import Diagram from "../circuit/+diagram";
+import StripboardMaps from "../circuit/component/_stripboard/-maps";
+import BreadboardMaps from "../circuit/component/_breadboard/-maps";
+import Draggable from "../circuit/component/addins/draggable";
+//import * as $ from 'jquery';
 
 namespace Events {
-   function fitDiagramContents(diagram: Circuit.Parts.Diagram) {
+   function fitDiagramContents(diagram: Diagram) {
       let rootEl = diagram.root.element.element;
       let group = diagram.group;
 
@@ -59,7 +64,7 @@ namespace Events {
          rows >= parseInt(rowElement.min) && columns >= parseInt(columnElement.min) &&
          rows <= parseInt(rowElement.max) && columns <= parseInt(columnElement.max)
       ) {
-         addBoard(Circuit.Component.stripboard.layout.make({
+         addBoard(StripboardMaps.layout.make({
             rows: rows,
             columns: columns
          }));
@@ -67,14 +72,14 @@ namespace Events {
    }
 
    export function makeBreadBoardSmallButtonPress() {
-      addBoard(Circuit.Component.breadboard.layoutSmall.make({}));
+      addBoard(BreadboardMaps.layoutSmall.make({}));
    }
 
    export function makeBreadBoardLargeButtonPress() {
-      addBoard(Component.breadboard.layoutLarge.make({}));
+      addBoard(BreadboardMaps.layoutLarge.make({}));
    }
 
-   function addBoard(board: Component.Instance) {
+   function addBoard(board: Component) {
       if (manifest.activeBoard !== undefined) {
          manifest.removeComponent(manifest.activeBoard);
          manifest.addComponent(manifest.layout, board);
@@ -88,9 +93,9 @@ namespace Events {
    export function disableBoardDraggingPress() {
       if (manifest.activeBoard !== undefined) {
          if (NodeElements.boardDraggingDisabled.checked) {
-            Component.Addins.Draggable.disable(manifest.activeBoard)
+            Draggable.disable(manifest.activeBoard)
          } else {
-            Component.Addins.Draggable.enable(manifest.activeBoard)
+            Draggable.enable(manifest.activeBoard)
          }
       }
    }

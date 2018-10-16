@@ -1,10 +1,15 @@
 import Events from "../../events";
 import Component from "../../+component";
 import manifest from "../../manifest";
-import history from "../../history"
+import history from "../../history";
+import vector, { Vector } from "../../../-vector";
+import isNot from "../../../utility/-isNot";
+import { make as makeCircle } from "../../../svg/element/+circle";
+import SvgDraggable from "../../../svg/addins/draggable";
+//import * as $ from 'jquery';
 
-export namespace Extendable {
-   type extendableComponent = Component.Instance & { joints: Vector[] };
+namespace Extendable {
+   type extendableComponent = Component & { joints: Vector[] };
    export const init = (
       component: extendableComponent,
       canAddJoints: boolean = false,
@@ -88,7 +93,7 @@ export namespace Extendable {
       $(component.group.element).on("dblclick", ".dragHandle", (e) => {
          if (component.joints.length > 2) {
             const point = $(e.target).data("point");
-            component.joints = component.joints.filter(Utility.isNot(point));
+            component.joints = component.joints.filter(isNot(point));
             e.target.remove();
             $(component.group.element).trigger(Events.draw, [e]);
          }
@@ -105,10 +110,10 @@ export namespace Extendable {
    };
 
    const addHandle = (component: extendableComponent, point: Vector) => {
-      let dragHandle = Svg.Element.Circle.make(point, 5, "handle dragHandle highlight highlightwithfill");
+      let dragHandle = makeCircle(point, 5, "handle dragHandle highlight highlightwithfill");
       $(dragHandle.element).data('point', point);
       component.group.append(dragHandle);
-      Svg.Addins.Draggable.init(dragHandle.element);
+      SvgDraggable.init(dragHandle.element);
 
       $(dragHandle.element).on(Events.drag, (e, ui, drag: Vector) => {
          point.x += drag.x;
@@ -156,3 +161,4 @@ export namespace Extendable {
       return bestJointIdx;
    }
 }
+export default Extendable;

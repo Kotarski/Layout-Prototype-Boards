@@ -1,4 +1,5 @@
 import { historystate, event } from "./types";
+//import * as $ from 'jquery';
 //TODO: Remove Events dependancy
 import Events from "../events";
 export default function undoEvent(state: historystate): historystate {

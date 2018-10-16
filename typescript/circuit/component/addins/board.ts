@@ -1,8 +1,17 @@
-/// <reference path="../-track.ts" />
-namespace Circuit.Component.Addins.Board {
-   export type board = Component.Instance & {
-      connectorSets: Component.Types.hole[][],
-      tracks: _Track.Classes.Layout[],
+import Component, { Types as ComponentTypes } from "../../+component";
+import vector, { Vector } from "../../../-vector";
+import Events from "../../events";
+import manifest from "../../manifest";
+import history from "../../history";
+import { Layout as Track } from "../_track/~classes";
+import Flatten from "../../../utility/~flatten";
+import addTransform from "../../../svg/-addTransform";
+import { make as makeCircle } from "../../../svg/element/+circle"
+//import * as $ from 'jquery';
+namespace Board {
+   export type board = Component & {
+      connectorSets: ComponentTypes.hole[][],
+      tracks: Track[],
       joints: Vector[]
    }
    export interface reversibleBoard extends board {
@@ -16,7 +25,7 @@ namespace Circuit.Component.Addins.Board {
 
 
       Object.defineProperty(component, 'connectorSets', {
-         get: () => Utility.flatten2d(component.tracks.map(track => track.connectorSets))
+         get: () => Flatten.flatten2d(component.tracks.map(track => track.connectorSets))
       });
 
       if (isReversible) {
@@ -68,10 +77,10 @@ namespace Circuit.Component.Addins.Board {
          let bbox = component.group.element.getBBox();
 
          //Scale
-         Svg.addTransform(ghostGroup, t => t.setScale(-1, 1), false);
+         addTransform(ghostGroup, t => t.setScale(-1, 1), false);
 
          //Translate
-         Svg.addTransform(ghostGroup, t => t.setTranslate(-(bbox.width + bbox.x) * 2 - 1, 0), false);
+         addTransform(ghostGroup, t => t.setTranslate(-(bbox.width + bbox.x) * 2 - 1, 0), false);
 
          ghostGroup.appendChild($(component.group.element).children(".body").clone()[0]);
 
@@ -81,8 +90,8 @@ namespace Circuit.Component.Addins.Board {
          let parent = (component.group.element.parentElement);
          if (parent) parent.appendChild(ghostGroup);
 
-         let allValidConnectors = Utility.flatten2d(manifest.layout.map(el =>
-            Utility.flatten2d(el.connectorSets.map(connectorSet =>
+         let allValidConnectors = Flatten.flatten2d(manifest.layout.map(el =>
+            Flatten.flatten2d(el.connectorSets.map(connectorSet =>
                connectorSet.filter(connector => connector.type === "pin")
             ))
          ));
@@ -98,7 +107,7 @@ namespace Circuit.Component.Addins.Board {
 
                let point = hole.point;//(ctm) ? hole.point.matrixTransform(ctm) : hole.point;
 
-               let breaker = Svg.Element.Circle.make(point, 6, "breaker");
+               let breaker = makeCircle(point, 6, "breaker");
 
                if (hole.type === "brokenhole") {
                   $(breaker.element).addClass("broken");
@@ -138,11 +147,11 @@ namespace Circuit.Component.Addins.Board {
          if (parent) $(parent).children(".reverseghost").remove();
       }
 
-      function getPinsAtHole(connector: Component.Types.hole, allConnectors: Component.Types.connector[]) {
+      function getPinsAtHole(connector: ComponentTypes.hole, allConnectors: ComponentTypes.connector[]) {
          let acceptedTypes = ["pin"];
 
          let point = connector.point;
-         let attachedConnectors: Component.Types.connector[] = allConnectors.filter(other => {
+         let attachedConnectors: ComponentTypes.connector[] = allConnectors.filter(other => {
             return (
                acceptedTypes.includes(other.type)
                && vector(point).isCloseTo(other.point)
@@ -153,3 +162,4 @@ namespace Circuit.Component.Addins.Board {
       }
    }
 }
+export default Board;

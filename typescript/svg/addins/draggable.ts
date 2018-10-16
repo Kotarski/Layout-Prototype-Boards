@@ -1,4 +1,9 @@
-namespace Svg.Addins.Draggable {
+import vector, { Vector } from "../../-vector";
+import Events from "../../circuit/events";
+import svg from "../-svg";
+//import * as $ from 'jquery';
+namespace Draggable {
+
    export const init = (element: SVGGraphicsElement, options: draggableOptions = {}): void => {
       // Allow an object to be dragged.
       // Set the drag event to occur on another target, but apply the drag to yourself
@@ -34,8 +39,8 @@ namespace Svg.Addins.Draggable {
                }
 
                lastPosition = {
-                  x: ui.originalPosition.left,
-                  y: ui.originalPosition.top
+                  x: ui.position.left,
+                  y: ui.position.top
                };
             },
             //On each drag step
@@ -54,7 +59,7 @@ namespace Svg.Addins.Draggable {
                if (!vector(dragChangeSvg).isCloseTo({ x: 0, y: 0 })) {
                   //Call on drag functions (via a custom event listener
                   //so we can keep the svg drag values
-                  $(eventTarget).trigger(Circuit.Events.drag, [ui, dragChangeSvg]);
+                  $(eventTarget).trigger(Events.drag, [ui, dragChangeSvg]);
 
                   lastPosition = {
                      x: ui.position.left,
@@ -81,7 +86,7 @@ namespace Svg.Addins.Draggable {
       }
 
       if (options.onDrag !== undefined) {
-         $(eventTarget).on(Circuit.Events.drag, (e, ui, drag) => {
+         $(eventTarget).on(Events.drag, (e, ui, drag) => {
             if ($(e.target).closest(".ui-draggable").is(eventTarget)) {
                if (options.onDrag) options.onDrag(drag, e);
             }
@@ -90,7 +95,7 @@ namespace Svg.Addins.Draggable {
 
       // Translate by dragged amount if movement not disabled
       if (options.disableMovement !== true) {
-         $(eventTarget).on(Circuit.Events.drag, (e, ui, drag) => {
+         $(eventTarget).on(Events.drag, (e, ui, drag) => {
             if ($(e.target).closest(".ui-draggable").is(eventTarget)) {
                svg(element).translate(drag, true);
             }
@@ -113,13 +118,13 @@ namespace Svg.Addins.Draggable {
          );
       }
       if (options.onStart !== undefined) {
-         $(eventTarget).on(Circuit.Events.dragStart, (e, ui) => {
+         $(eventTarget).on(Events.dragStart, (e, ui) => {
             if (options.onStart) options.onStart(e);
          });
       }
 
       if (options.onStop !== undefined) {
-         $(eventTarget).on(Circuit.Events.dragStop, (e, ui) => {
+         $(eventTarget).on(Events.dragStop, (e, ui) => {
             if (options.onStop) options.onStop(e);
          });
       }
@@ -137,15 +142,18 @@ namespace Svg.Addins.Draggable {
    }
 }
 
+
 interface draggableOptions {
    disableMovement?: boolean; //All other options ignored if this is true
-   onDrag?: (drag: Vector, e?: JQueryEventObject) => void;
-   onStop?: (e?: JQueryEventObject) => void;
-   onStart?: (e?: JQueryEventObject) => void;
-   constrainWith?: (drag: Vector, e?: JQueryEventObject) => boolean;
+   onDrag?: (drag: Vector, e?: JQuery.Event<Element>) => void;
+   onStop?: (e?: JQuery.Event<Element>) => void;
+   onStart?: (e?: JQuery.Event<Element>) => void;
+   constrainWith?: (drag: Vector, e?: JQuery.Event<Element>) => boolean;
    useHelper?: boolean;
-   eventTarget?: SVGGraphicsElement | SVGGraphicsElement[];
+   eventTarget?: Element;
    grid?: Vector | "off";
    styleClass?: string;
 }
+
+export default Draggable;
 

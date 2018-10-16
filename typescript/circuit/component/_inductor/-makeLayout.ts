@@ -1,22 +1,30 @@
-/// <reference path="~classes.ts" />
+import ValueCheck from "../~valueCheck";
+import * as Types from "./types";
+import { Layout } from "./~classes";
+import getMaker from "../../generics/-getMaker";
+import { Vector } from "../../../-vector";
+import Graphical from "../addins/graphical";
+import Draggable from "../addins/draggable";
+import Selectable from "../addins/selectable";
+import Extendable from "../addins/extendable";
+import ConnectionHighlights from "../addins/connectionHighlights"
 
-namespace Circuit.Component._Inductor {
-   const defaulterLayout: ValueCheck.Defaulter<Types.values> = {
-      name: ValueCheck.validate("string", "inductor"),
-      disabled: ValueCheck.validate("boolean", false),
-      joints: ValueCheck.joints<[Vector, Vector]>(
-         [{ x: 0, y: 0 }, { x: 80, y: 0 }]
-      ),
-      inductance: ValueCheck.validate("number", 0)
-   };
+const defaulterLayout: ValueCheck.Defaulter<Types.values> = {
+   name: ValueCheck.validate("string", "inductor"),
+   disabled: ValueCheck.validate("boolean", false),
+   joints: ValueCheck.joints<[Vector, Vector]>(
+      [{ x: 0, y: 0 }, { x: 80, y: 0 }]
+   ),
+   inductance: ValueCheck.validate("number", 0)
+};
 
-   export const makeLayout = getMaker(Classes.Layout, defaulterLayout,
-      (component: Classes.Layout) => {
-         Addins.Graphical.init(component); 
-         Addins.Draggable.init(component);
-         Addins.Selectable.init(component);
-         Addins.Extendable.init(component);
-         Addins.ConnectionHighlights.init(component);
-      }
-   );
-}
+const makeLayout = getMaker(Layout, defaulterLayout,
+   (component: Layout) => {
+      Graphical.init(component);
+      Draggable.init(component);
+      Selectable.init(component);
+      Extendable.init(component);
+      ConnectionHighlights.init(component);
+   }
+);
+export default makeLayout;

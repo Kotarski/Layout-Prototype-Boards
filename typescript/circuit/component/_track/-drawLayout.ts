@@ -1,41 +1,48 @@
-namespace Circuit.Component._Track {
+import { Layout } from "./~classes";
+import vector, { Vector } from "../../../-vector";
+import { INDEXSTART, INDEXSTEP } from "./constants";
+import cumulativeSum from "../../../utility/-cumulativeSum";
 
-   const drawStripboardHole = (position: Vector) => Svg.Element.Circle.make(position, 4, "hole");
-   const drawBreadboardHole = (position: Vector) => Svg.Element.Rect.make(position, { width: 8, height: 8 }, vector(0.5), "hole");
+import { make as makeCircle } from "../../../svg/element/+circle";
+import { make as makeRect } from "../../../svg/element/+rect";
 
-   export function drawLayout(instance: Classes.Layout) {
-      const holeFunc = (instance.style === "breadboard") ? drawBreadboardHole : drawStripboardHole;
+import { gridSpacing } from "../../../~constants";
 
-      const start = instance.joints[INDEXSTART];
-      const step = instance.joints[INDEXSTEP];
+const drawStripboardHole = (position: Vector) => makeCircle(position, 4, "hole");
+const drawBreadboardHole = (position: Vector) => makeRect(position, { width: 8, height: 8 }, vector(0.5), "hole");
 
-      // Create the holes
-      const holePositions = vector(step).scaleMap(Utility.cumulativeSum(...instance.holeSpacings)).sumWith(start).vectors;
+export default function drawLayout(instance: Layout) {
+   const holeFunc = (instance.style === "breadboard") ? drawBreadboardHole : drawStripboardHole;
 
-      const holes = holePositions.map(hp => holeFunc(hp))
+   const start = instance.joints[INDEXSTART];
+   const step = instance.joints[INDEXSTEP];
 
-      const track = drawTrack(holePositions);
+   // Create the holes
+   const holePositions = vector(step).scaleMap(cumulativeSum(...instance.holeSpacings)).sumWith(start).vectors;
 
-      return [track, ...holes]
-   }
+   const holes = holePositions.map(hp => holeFunc(hp))
 
-   const drawTrack = (holePositions: Vector[]) => {
-      let start = holePositions[0];
-      let end = holePositions[holePositions.length - 1];
-      //: Vector, step: Vector, stepCount: number
-      // Create the track
-      let relativeEnd = vector(end, vector(start).scaleWith(-1)).sum();
+   const track = drawTrack(holePositions);
 
-      let { radius, angle } = relativeEnd.asPolar();
-
-      let centre = vector(start, start, relativeEnd).sum().scaleWith(0.5).vector;
-
-      let size = {
-         width: radius + Constants.gridSpacing * 0.8,
-         height: Constants.gridSpacing * 14 / 16
-      }
-
-      return Svg.Element.Rect.make(centre, size, vector(0), 'body').rotate(angle, centre);
-   }
-
+   return [track, ...holes]
 }
+
+const drawTrack = (holePositions: Vector[]) => {
+   let start = holePositions[0];
+   let end = holePositions[holePositions.length - 1];
+   //: Vector, step: Vector, stepCount: number
+   // Create the track
+   let relativeEnd = vector(end, vector(start).scaleWith(-1)).sum();
+
+   let { radius, angle } = relativeEnd.asPolar();
+
+   let centre = vector(start, start, relativeEnd).sum().scaleWith(0.5).vector;
+
+   let size = {
+      width: radius + gridSpacing * 0.8,
+      height: gridSpacing * 14 / 16
+   }
+
+   return makeRect(centre, size, vector(0), 'body').rotate(angle, centre);
+}
+

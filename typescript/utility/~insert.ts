@@ -1,3 +1,4 @@
+//import * as $ from 'jquery';
 namespace Insert {
    export function last(element: Element, target?: Element) {
       if (element === target || target === undefined) {

@@ -1,0 +1,18 @@
+{
+   // https://palantir.github.io/tslint/rules/
+   "rules": {
+      "no-reference": true,
+      "ban-comma-operator": true,
+      "no-conditional-assignment": true,
+      "no-switch-case-fall-through": true,
+      "triple-equals": true,
+      "defaultSeverity": "warning",
+      "ban": [
+         true,
+         {
+            "name": "jQuery",
+            "message": "Use '$' with [import * as $ from 'jquery';] (See package.json)"
+         }
+      ]
+   }
+}

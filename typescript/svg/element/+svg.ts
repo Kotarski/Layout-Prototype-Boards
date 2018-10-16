@@ -1,6 +1,8 @@
-namespace Svg.Element.SVG {
-   export function make(classes: string = "") {
-      const element: SVGSVGElement = Element.make("svg", classes);
-      return svg(element);
-   }
+import { make as makeElement } from "../+element";
+import svg from "../-svg";
+
+export function make(classes: string = "") {
+   const element: SVGSVGElement = makeElement("svg", classes);
+   return svg(element);
 }
+

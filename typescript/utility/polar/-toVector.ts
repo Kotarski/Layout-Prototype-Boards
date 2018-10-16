@@ -1,4 +1,5 @@
 import degreesToRadians from "../-degreesToRadians"
+import { Vector } from "../../++types"
 export default function toVector(radius: number, angle: number): Vector {
    const rads = degreesToRadians(angle)
    return {

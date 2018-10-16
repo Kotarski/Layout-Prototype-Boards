@@ -1,24 +1,32 @@
-/// <reference path="~classes.ts" />
+import ValueCheck from "../~valueCheck";
+import * as Types from "./types";
+import { Layout } from "./~classes";
+import getMaker from "../../generics/-getMaker";
+import { Vector } from "../../../-vector";
+import Graphical from "../addins/graphical";
+import Draggable from "../addins/draggable";
+import Selectable from "../addins/selectable";
+import Extendable from "../addins/extendable";
+import ConnectionHighlights from "../addins/connectionHighlights"
 
-namespace Circuit.Component._Diode {
-   const defaulterLayout: ValueCheck.Defaulter<Types.values> = {
-      name: ValueCheck.validate("string", "diode"),
-      disabled: ValueCheck.validate("boolean", false),
-      joints: ValueCheck.joints<[Vector, Vector]>(
-         [{ x: 0, y: 0 }, { x: 80, y: 0 }]
-      ),
-      breakdownVoltage: ValueCheck.validate("number", 0),
-      saturationCurrent: ValueCheck.validate("number", 0),
-      color: ValueCheck.color("N/A")
-   };
+const defaulterLayout: ValueCheck.Defaulter<Types.values> = {
+   name: ValueCheck.validate("string", "diode"),
+   disabled: ValueCheck.validate("boolean", false),
+   joints: ValueCheck.joints<[Vector, Vector]>(
+      [{ x: 0, y: 0 }, { x: 80, y: 0 }]
+   ),
+   breakdownVoltage: ValueCheck.validate("number", 0),
+   saturationCurrent: ValueCheck.validate("number", 0),
+   color: ValueCheck.color("N/A")
+};
 
-   export const makeLayout = getMaker(Classes.Layout, defaulterLayout,
-      (component: Classes.Layout) => {
-         Addins.Graphical.init(component);
-         Addins.Selectable.init(component);
-         Addins.Draggable.init(component);
-         Addins.Extendable.init(component);
-         Addins.ConnectionHighlights.init(component);
-      }
-   );
-}
+const makeLayout = getMaker(Layout, defaulterLayout,
+   (component: Layout) => {
+      Graphical.init(component);
+      Selectable.init(component);
+      Draggable.init(component);
+      Extendable.init(component);
+      ConnectionHighlights.init(component);
+   }
+);
+export default makeLayout;

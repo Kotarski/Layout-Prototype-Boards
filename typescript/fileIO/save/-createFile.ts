@@ -1,15 +1,18 @@
+import manifest from "../../circuit/manifest";
+import mappings from "../../circuit/mappings";
+
 function createFile(): string {
    let componentStrings: string[] = [];
-   Circuit.manifest.layout.concat(Circuit.manifest.schematic).forEach(component => {
+   manifest.layout.concat(manifest.schematic).forEach(component => {
       try {
-         const componentMap = Circuit.mappings.getComponentMap(component);
+         const componentMap = mappings.getComponentMap(component);
          if (componentMap === undefined) {
                /*LOGSTART*/console.error("No component map found!", component);/*LOGEND*/
             throw new Error("Could not save component")
          }
 
          let componentObject = {
-            func: Circuit.mappings.getComponentMapSafe(component).savename,
+            func: mappings.getComponentMapSafe(component).savename,
             ...component.getProperties(),
             ...component.getState()
          }

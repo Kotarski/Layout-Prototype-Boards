@@ -1,7 +1,15 @@
-/// <reference path="../Utility/~curry.ts" />
-/// <reference path="./history.ts" />
 import Active from "../~active";
-import Component from "./+component";
+import Component, { Types as ComponentTypes } from "./+component";
+import { Layout as OpAmp } from "./component/_opAmp/~classes"
+import Curry from "../utility/~curry";
+import split from "../utility/-split";
+import is from "../utility/-is";
+import isUnaryMap from "../utility/-isUnaryMap";
+import mappings from "./mappings";
+import history from "./history";
+import Events from "./events";
+import Diagram from "./+diagram";
+//import * as $ from 'jquery';
 
 const manifest = (() => {
 
@@ -18,7 +26,7 @@ const manifest = (() => {
       $(Active.schematic.root.element).children().remove();
    }
 
-   let activeBoard: (Component.Instance | undefined);
+   let activeBoard: (Component | undefined);
 
    const constructFrom = (savedManifest: { schematic: any, layout: any }) => {
       manifest.clear();
@@ -30,8 +38,8 @@ const manifest = (() => {
       draw();
    }
 
-   const addComponent = (manifestSection: Component.Instance[], ...components: Component.Instance[]) => {
-      let diagram: Circuit.Parts.Diagram;
+   const addComponent = (manifestSection: Component[], ...components: Component[]) => {
+      let diagram: Diagram;
 
       if (manifestSection === manifest.schematic) {
          diagram = Active.schematic;
@@ -50,7 +58,7 @@ const manifest = (() => {
       });
    }
 
-   const placeComponent = (component: Component.Instance, diagram: Parts.Diagram) => {
+   const placeComponent = (component: Component, diagram: Diagram) => {
       component.insertInto(diagram.root.group.element);
       $(component.group.element).trigger(Events.place);
    }
@@ -60,7 +68,7 @@ const manifest = (() => {
       manifest.layout.forEach(component => placeComponent(component, Active.layout));
    }
 
-   const removeComponent = (...components: Component.Instance[]) => {
+   const removeComponent = (...components: Component[]) => {
       history.addEvent(manifest, ...components);
       manifest.layout = manifest.layout.filter(el => !components.includes(el));
       manifest.schematic = manifest.schematic.filter(el => !components.includes(el));
@@ -71,7 +79,7 @@ const manifest = (() => {
       });
    }
 
-   const findCorresponding = (component: Component.Instance): Component.Instance[] => {
+   const findCorresponding = (component: Component): Component[] => {
       if (!mappings.getComponentMapSafe(component).correspondsTo) return [];
       //Find component
       if (manifest.layout.includes(component)) {
@@ -96,7 +104,7 @@ const manifest = (() => {
 
 
       // Split the layout components by whether they pass the test
-      let split = Utility.split(layComponents, (layComponent) => {
+      let passSorted = split(layComponents, (layComponent) => {
          if (schConnectorData.length === 0) return false;
 
          // Find the layout components connector sets
@@ -134,13 +142,13 @@ const manifest = (() => {
 
       /*LOGSTART*/
       console.log("Unmatched schematic components: %o", schConnectorData.map(datum => datum.component));
-      console.log("Unmatched layout components: %o", split.fails);
+      console.log("Unmatched layout components: %o", passSorted.fails);
       console.groupEnd();
       /*LOGEND*/
 
       return {
-         corrects: split.passes,
-         incorrects: split.fails
+         corrects: passSorted.passes,
+         incorrects: passSorted.fails
       }
    };
 
@@ -153,8 +161,8 @@ const manifest = (() => {
    }
 
    return {
-      schematic: [] as Component.Instance[],
-      layout: [] as Component.Instance[],
+      schematic: [] as Component[],
+      layout: [] as Component[],
       addComponent: addComponent,
       constructFrom: constructFrom,
       removeComponent: removeComponent,
@@ -168,7 +176,7 @@ const manifest = (() => {
 
 type connection = {
    name: string;
-   component: Component.Instance;
+   component: Component;
 }
 type connector = {
    name: string;
@@ -179,8 +187,8 @@ type connectorSetGroup = connectorSet[];
 type connectorSetGroups = connectorSetGroup[];
 
 
-const arePropertiesEqual = Utility.Curry.makeOptional(
-   (A: Component.Types.properties, B: Component.Types.properties) => {
+const arePropertiesEqual = Curry.makeOptional(
+   (A: ComponentTypes.properties, B: ComponentTypes.properties) => {
       let Akeys = Object.keys(A);
       let Bkeys = Object.keys(B);
 
@@ -192,8 +200,8 @@ const arePropertiesEqual = Utility.Curry.makeOptional(
    }
 );
 
-const areComponentsSimilar = Utility.Curry.makeOptional(
-   (componentA: Component.Instance, componentB: Component.Instance): boolean => {
+const areComponentsSimilar = Curry.makeOptional(
+   (componentA: Component, componentB: Component): boolean => {
       return (
          componentA.name === componentB.name &&
          arePropertiesEqual(componentA.getProperties(), componentB.getProperties())
@@ -210,12 +218,12 @@ const createMissingLayoutElements = () => {
       );
       if (match) {
          if (!mappings.getComponentMapSafe(match).isUnique) {
-            layoutCopy = layoutCopy.filter(Utility.is(match));
+            layoutCopy = layoutCopy.filter(is(match));
          }
       } else {
          const correspondsTo = mappings.getComponentMapSafe(schematicElement).correspondsTo;
          if (correspondsTo !== undefined) {
-            const newComponentMaker = correspondsTo.make as Component.Types.loadFunction;
+            const newComponentMaker = correspondsTo.make as ComponentTypes.loadFunction;
             const newComponent = newComponentMaker(schematicElement.getProperties())
             //mappings.getLayoutInstanceFromSchematic(schematicElement);
             manifest.layout.push(newComponent);
@@ -231,10 +239,10 @@ const createMissingLayoutElements = () => {
 const mergeSingleOpAmps = () => {
    // For dual op amps
    let layoutOpAmps = manifest.layout.filter(layoutElement => (
-      layoutElement["constructor"] === Component.opAmp.layout.instance
-   )) as InstanceType<typeof Component.opAmp.layout.instance>[];
+      layoutElement["constructor"] === OpAmp
+   )) as InstanceType<typeof OpAmp>[];
 
-   let opAmpGroups: InstanceType<typeof Component.opAmp.layout.instance>[][] = [];
+   let opAmpGroups: InstanceType<typeof OpAmp>[][] = [];
    layoutOpAmps.forEach((opAmp, i) => {
       let groupIdx = opAmpGroups.findIndex(group =>
          arePropertiesEqual(opAmp.getProperties(), group[0].getProperties())
@@ -288,13 +296,13 @@ const mergeConnectorsSets = (connectorSetGroups: connectorSetGroups): connectorS
    });
 }
 
-const getMinConnections = (component: Component.Instance): connectorSetGroup => {
+const getMinConnections = (component: Component): connectorSetGroup => {
    return (component.getConnections().map(connectorSet => {
       return (connectorSet.map(connections => {
          let connectorName = connections[0].name;
          connections.shift();
          let blackHole = connections.find(connection => mappings.getComponentMapSafe(connection.component).isUnique === true)
-         if (blackHole) connections = connections.filter(Utility.is(blackHole));
+         if (blackHole) connections = connections.filter(is(blackHole));
 
          return {
             name: connectorName,
@@ -306,7 +314,7 @@ const getMinConnections = (component: Component.Instance): connectorSetGroup => 
    }));
 }
 
-const connectorSetsHaveMatch = Utility.Curry.makeOptional(
+const connectorSetsHaveMatch = Curry.makeOptional(
    (connectorSetsA: connectorSet[], connectorSetsB: connectorSet[]): boolean => {
       return connectorSetsA.some(connectorSetA => {
          return connectorSetsB.some(connectorSetMatch(connectorSetA));
@@ -314,18 +322,18 @@ const connectorSetsHaveMatch = Utility.Curry.makeOptional(
    }
 );
 
-const connectorSetMatch = Utility.Curry.makeOptional(
+const connectorSetMatch = Curry.makeOptional(
    (connectorSetA: connectorSet, connectorSetB: connectorSet): boolean => {
       // Returns true if both connector sets have the same set of connectors 
       // connected to the same set of connections...
 
       // Every connector in each connector set has a match in the corresponding set.
-      return Utility.isUnaryMap(connectorSetA, connectorSetB, (connectorA, connectorB) => {
+      return isUnaryMap(connectorSetA, connectorSetB, (connectorA, connectorB) => {
          if (connectorA.name !== connectorB.name) return false;
          const connectionsA = connectorA.connections;
          const connectionsB = connectorB.connections;
          // Every connection in each connector has a match in the corresponding connector
-         return Utility.isUnaryMap(connectionsA, connectionsB, (connectionA, connectionB) => {
+         return isUnaryMap(connectionsA, connectionsB, (connectionA, connectionB) => {
             // Connections are the same if:
             return (
                connectionA.name === connectionB.name

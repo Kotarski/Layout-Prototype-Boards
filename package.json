@@ -9,6 +9,9 @@
    },
    "author": "",
    "license": "ISC",
+   "//": [
+      "Note that the jquery packages are installed in distribution/plugins"
+   ],
    "devDependencies": {
       "@types/jquery": "^3.3.17",
       "@types/jquery.ui.layout": "0.0.29",
@@ -18,9 +21,5 @@
       "webpack": "^4.20.2",
       "webpack-cli": "^3.1.2"
    },
-   "dependencies": {
-      "jquery": "^3.3.1",
-      "jquery-ui": "^1.12.1",
-      "jquery.ui.layout": "^1.0.0"
-   }
+   "dependencies": {}
 }

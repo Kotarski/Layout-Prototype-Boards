@@ -1,4 +1,4 @@
-import * as $ from "jquery";
+//import * as $ from 'jquery';
 namespace NodeElements {
    //File
    export let fileInput: HTMLInputElement;

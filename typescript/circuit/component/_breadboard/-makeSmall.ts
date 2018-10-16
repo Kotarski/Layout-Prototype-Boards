@@ -1,23 +1,32 @@
-/// <reference path="~classes.ts" />
+import ValueCheck from "../~valueCheck";
+import * as Types from "./types";
+import { Small } from "./~classes";
+import getMaker from "../../generics/-getMaker";
+import { Vector } from "../../../-vector";
+import Graphical from "../addins/graphical";
+import Draggable from "../addins/draggable";
+import Selectable from "../addins/selectable";
+import Board from "../addins/board";
+import WireCreation from "../addins/wireCreation";
+import Rotatable from "../addins/rotatable";
 
-namespace Circuit.Component._Breadboard {
-   const defaulterSmall: ValueCheck.Defaulter<Types.values> = {
-      name: ValueCheck.validate("string", "breadboardsmall"),
-      disabled: ValueCheck.validate("boolean", false),
-      joints: ValueCheck.joints<[Vector, Vector]>(
-         [{ x: 0, y: 0 }, { x: 20, y: 0 }]
-      ),
-   };
+const defaulterSmall: ValueCheck.Defaulter<Types.values> = {
+   name: ValueCheck.validate("string", "breadboardsmall"),
+   disabled: ValueCheck.validate("boolean", false),
+   joints: ValueCheck.joints<[Vector, Vector]>(
+      [{ x: 0, y: 0 }, { x: 20, y: 0 }]
+   ),
+};
 
 
-   export const makeSmall = getMaker(Classes.Small, defaulterSmall,
-      (component: Classes.Small) => {
-         Addins.Graphical.init(component);
-         Addins.Board.init(component);
-         Addins.Selectable.init(component);
-         Addins.WireCreation.init(component);
-         Addins.Draggable.init(component);
-         Addins.Rotatable.init(component);
-      }
-   );
-}
+const makeSmall = getMaker(Small, defaulterSmall,
+   (component: Small) => {
+      Graphical.init(component);
+      Board.init(component);
+      Selectable.init(component);
+      WireCreation.init(component);
+      Draggable.init(component);
+      Rotatable.init(component);
+   }
+);
+export default makeSmall;

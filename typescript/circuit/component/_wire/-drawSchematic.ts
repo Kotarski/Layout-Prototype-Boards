@@ -1,7 +1,10 @@
-namespace Circuit.Component._Wire {
-   export function drawSchematic(instance: Classes.Schematic) {
-      return [
-         Svg.Element.Path.make(instance.joints, "line thin")
-      ];
-   }
+import { Schematic } from "./~classes";
+
+import { make as makePath } from "../../../svg/element/+path";
+
+export default function drawSchematic(instance: Schematic) {
+   return [
+      makePath(instance.joints, "line thin")
+   ];
 }
+

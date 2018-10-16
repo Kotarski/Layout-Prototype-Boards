@@ -1,27 +1,37 @@
-/// <reference path="~classes.ts" />
+import ValueCheck from "../~valueCheck";
+import * as Types from "./types";
+import { Schematic } from "./~classes";
+import getMaker from "../../generics/-getMaker";
+import { Vector } from "../../../-vector";
+import Graphical from "../addins/graphical";
+import Draggable from "../addins/draggable";
+import Selectable from "../addins/selectable";
+import Extendable from "../addins/extendable";
+import ConnectionHighlights from "../addins/connectionHighlights"
 
-namespace Circuit.Component._Diode {
-   const defaulterSchematic: ValueCheck.Defaulter<Types.values> = {
-      name: ValueCheck.validate("string", "diode"),
-      disabled: ValueCheck.validate("boolean", false),
-      joints: ValueCheck.joints<[Vector, Vector]>(
-         [{ x: 0, y: 0 }, { x: 40, y: 40 }]
-      ),
-      breakdownVoltage: ValueCheck.validate("number", 0),
-      saturationCurrent: ValueCheck.validate("number", 0),
-      color: ValueCheck.color("N/A")
-   };
+import { schematicManipulationEnabled } from "../../../~constants";
+
+const defaulterSchematic: ValueCheck.Defaulter<Types.values> = {
+   name: ValueCheck.validate("string", "diode"),
+   disabled: ValueCheck.validate("boolean", false),
+   joints: ValueCheck.joints<[Vector, Vector]>(
+      [{ x: 0, y: 0 }, { x: 40, y: 40 }]
+   ),
+   breakdownVoltage: ValueCheck.validate("number", 0),
+   saturationCurrent: ValueCheck.validate("number", 0),
+   color: ValueCheck.color("N/A")
+};
 
 
-   export const makeSchematic = getMaker(Classes.Schematic, defaulterSchematic,
-      (component: Classes.Schematic) => {
-         Addins.Graphical.init(component);
-         Addins.Selectable.init(component);
-         Addins.ConnectionHighlights.init(component, false);
-         if (Constants.schematicManipulationEnabled) {
-            Addins.Draggable.init(component);
-            Addins.Extendable.init(component);
-         }
+const makeSchematic = getMaker(Schematic, defaulterSchematic,
+   (component: Schematic) => {
+      Graphical.init(component);
+      Selectable.init(component);
+      ConnectionHighlights.init(component, false);
+      if (schematicManipulationEnabled) {
+         Draggable.init(component);
+         Extendable.init(component);
       }
-   );
-}
+   }
+);
+export default makeSchematic;

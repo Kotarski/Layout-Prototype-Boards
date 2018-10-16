@@ -1,6 +1,7 @@
 import NodeElements from "../../~nodeElements";
 import createFile from "./-createFile";
 import { lastFilename } from "../load/-handleFileInputEvent";
+//import * as $ from 'jquery';
 export default function handleFileSaveEvent(event: Event) {
    // Create an temporary element to download
    let downloadElement: HTMLAnchorElement = document.createElement('a');

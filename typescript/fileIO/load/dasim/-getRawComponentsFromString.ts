@@ -1,3 +1,4 @@
+//import * as $ from 'jquery';
 export default function getRawComponentsFromString(
    fileString: string): JQueryPromise<{}> {
    // Used to queue asynchronous actions which require the output of previous

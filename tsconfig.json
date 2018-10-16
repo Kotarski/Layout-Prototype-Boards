@@ -4,6 +4,8 @@
    ],
    "compileOnSave": true,
    "compilerOptions": {
+      // Webpack can (and will) duplicate modules if two imports are cased differently
+      "forceConsistentCasingInFileNames": true,
       "alwaysStrict": true,
       "removeComments": true,
       "target": "es2016",
@@ -11,7 +13,7 @@
       "outDir": "./javascript/compiled",
       "inlineSourceMap": true,
       "inlineSources": true,
-      "watch": true,
+      "watch": false,
       "noUnusedLocals": true,
       "noImplicitReturns": true,
       "strict": true,

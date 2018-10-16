@@ -1,5 +1,13 @@
-namespace Circuit.Component.Addins.WireCreation {
-   type holeyComponent = Component.Instance & { connectorSets: Component.Types.hole[][] };
+import Component, { Types as ComponentTypes } from "../../+component";
+import vector, { Vector } from "../../../-vector";
+import Events from "../../events";
+import Active from "../../../~active";
+import manifest from "../../manifest";
+import wireMaps from "../_wire/-maps";
+import SvgDraggable from "../../../svg/addins/draggable";
+//import * as $ from 'jquery';
+namespace WireCreation {
+   type holeyComponent = Component & { connectorSets: ComponentTypes.hole[][] };
 
 
    export const init = (component: holeyComponent) => {
@@ -8,7 +16,7 @@ namespace Circuit.Component.Addins.WireCreation {
       $(component.group.element).on("mouseenter", ".hole", (mOE) => {
          // Set the hole as draggable if it isn't already
          if (!$(mOE.target).draggable('instance')) {
-            Svg.Addins.Draggable.init(component.group.element, {
+            SvgDraggable.init(component.group.element, {
                eventTarget: mOE.target as SVGGraphicsElement,
                disableMovement: true,
                styleClass: ""
@@ -21,7 +29,16 @@ namespace Circuit.Component.Addins.WireCreation {
             // Create the wire, select it, and grab a handle (any is fine)
             $(mOE.target).on(Events.dragStart, (e, ui, drag: Vector) => {
                e.stopPropagation();
-               const position = Active.layout.group.convertVector({ x: e.clientX, y: e.clientY }, "DomToSvg", "relToGroup");
+
+               // Get mouse coordinates 
+               const clientX = e.clientX;
+               const clientY = e.clientY;
+               if (!(clientX && clientY)) {
+                  throw new Error("Mouse event did not provide coordinates!");
+               }
+               const clientPos = { x: clientX, y: clientY };
+
+               const position = Active.layout.group.convertVector(clientPos, "DomToSvg", "relToGroup");
                const gridPosition = vector(position).snapToGrid().vector;
                const wire = createWireAtPoint(gridPosition);
                $(wire.group.element).trigger(Events.draw);
@@ -46,10 +63,11 @@ namespace Circuit.Component.Addins.WireCreation {
    }
 
    const createWireAtPoint = (vector: Vector) => {
-      const wire = Component.wire.layout.make({
+      const wire = wireMaps.layout.make({
          joints: [{ x: vector.x, y: vector.y }, { x: vector.x, y: vector.y }],
       });
       manifest.addComponent(manifest.layout, wire);
       return wire;
    }
 }
+export default WireCreation;

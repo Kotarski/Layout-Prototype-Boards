@@ -1,13 +1,13 @@
-namespace Circuit.Component._Resistor {
-   export namespace Types {
-      export interface properties extends Component.Types.properties {
-         resistance: number;
-      }
+import { Types } from "../../+component";
+import { Vector } from "../../../-vector";
 
-      export interface state extends Component.Types.state {
-         joints: [Vector, Vector];
-      }
-
-      export type values = properties & state;
-   }
+export interface properties extends Types.properties {
+   resistance: number;
 }
+
+export interface state extends Types.state {
+   joints: [Vector, Vector];
+}
+
+export type values = properties & state;
+

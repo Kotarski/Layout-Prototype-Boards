@@ -1,14 +1,14 @@
-namespace Circuit.Component._Breadboard {
-   export namespace Types {
-      export interface properties extends Component.Types.properties {
+import { Types } from "../../+component";
+import { Vector } from "../../../-vector";
+export interface properties extends Types.properties {
 
-      }
-
-      export interface state extends Component.Types.state {
-         joints: [Vector, Vector];
-      }
-
-      export type values = properties & state;
-   }
 }
+
+export interface state extends Types.state {
+   joints: [Vector, Vector];
+}
+
+export type values = properties & state;
+
+
 

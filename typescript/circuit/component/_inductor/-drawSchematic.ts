@@ -1,31 +1,40 @@
-namespace Circuit.Component._Inductor {
-   export function drawSchematic(instance: Classes.Schematic) {
-      const bodyGroup = Svg.Element.Group.make("body");
+import { Schematic } from "./~classes";
+import vector, { Vector } from "../../../-vector";
+import { INDEXEND1, INDEXEND2 } from "./constants";
+import getStandardForm from "../../../utility/-getStandardForm";
 
-      const end1 = instance.joints[INDEXEND1];
-      const end2 = instance.joints[INDEXEND2];
+import { make as makePath } from "../../../svg/element/+path";
+import { make as makeText } from "../../../svg/element/+text";
+import { make as makeGroup } from "../../../svg/element/+group";
+import { make as makeRect } from "../../../svg/element/+rect";
 
-      let centre = vector(end1, end2).centre().vector;
-      let rotation = vector(end1).getAngleTo(end2);
+export default function drawSchematic(instance: Schematic) {
+   const bodyGroup = makeGroup("body");
 
-      let [start1, start2]: Vector[] = vector(
-         { x: -20, y: 0 }, { x: 20, y: 0 }
-      ).rotate(rotation).sumWith(centre).vectors;
+   const end1 = instance.joints[INDEXEND1];
+   const end2 = instance.joints[INDEXEND2];
 
-      //Text
-      let text = Utility.getStandardForm(instance.inductance, 'H');
+   let centre = vector(end1, end2).centre().vector;
+   let rotation = vector(end1).getAngleTo(end2);
 
-      bodyGroup.append(
-         Svg.Element.Rect.make({ x: 0, y: -2 }, { width: 40, height: 12 }, vector(2), "highlight highlightwithfill extrathick"),
-         Svg.Element.Path.make('M-20 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0', "line medium")
-      );
+   let [start1, start2]: Vector[] = vector(
+      { x: -20, y: 0 }, { x: 20, y: 0 }
+   ).rotate(rotation).sumWith(centre).vectors;
 
-      let textEl = Svg.Element.Text.make(text, { x: 0, y: -13 }, "text");
+   //Text
+   let text = getStandardForm(instance.inductance, 'H');
 
-      return [
-         Svg.Element.Path.make([[start1, end1], [start2, end2]], "line thin"),
-         bodyGroup.translate(centre).rotate(rotation),
-         textEl.translate(centre).rotatePosition(rotation),
-      ];
-   }
+   bodyGroup.append(
+      makeRect({ x: 0, y: -2 }, { width: 40, height: 12 }, vector(2), "highlight highlightwithfill extrathick"),
+      makePath('M-20 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0', "line medium")
+   );
+
+   let textEl = makeText(text, { x: 0, y: -13 }, "text");
+
+   return [
+      makePath([[start1, end1], [start2, end2]], "line thin"),
+      bodyGroup.translate(centre).rotate(rotation),
+      textEl.translate(centre).rotatePosition(rotation),
+   ];
 }
+

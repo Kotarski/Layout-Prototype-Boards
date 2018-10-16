@@ -1,3 +1,5 @@
+import mappings from "../../../circuit/mappings";
+//import * as $ from 'jquery';
 export default function filterInvalidComponents(circuitObjects: any[]): JQueryPromise<{}> {
    // Allow caller to see when function completes
    let deferred = $.Deferred();
@@ -22,7 +24,7 @@ export default function filterInvalidComponents(circuitObjects: any[]): JQueryPr
       }
 
       // If object is in the supportedComponentList
-      if (Circuit.mappings.getComponentMap(circuitObject.func)) {
+      if (mappings.getComponentMap(circuitObject.func)) {
          // Add to drawableComponents
          validComponents.push(circuitObject);
       }

@@ -13,6 +13,19 @@
          ],
          "auto": true
       },
+      // {
+      //    "label": "typescriptManual",
+      //    "type": "typescript",
+      //    "tsconfig": "tsconfig.json",
+      //    "presentation": {
+      //       "reveal": "silent"
+      //    },
+      //    "problemMatcher": "$tsc",
+      //    "group": {
+      //       "kind": "build",
+      //       "isDefault": true
+      //    }
+      // },
       {
          "label": "build",
          "type": "npm",

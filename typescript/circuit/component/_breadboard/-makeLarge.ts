@@ -1,21 +1,29 @@
-/// <reference path="~classes.ts" />
+import ValueCheck from "../~valueCheck";
+import * as Types from "./types";
+import { Large } from "./~classes";
+import getMaker from "../../generics/-getMaker";
+import { Vector } from "../../../-vector";
+import Graphical from "../addins/graphical";
+import Draggable from "../addins/draggable";
+import Selectable from "../addins/selectable";
+import Board from "../addins/board";
+import WireCreation from "../addins/wireCreation"
 
-namespace Circuit.Component._Breadboard {
-   const defaulterLarge: ValueCheck.Defaulter<Types.values> = {
-      name: ValueCheck.validate("string", "breadboardlarge"),
-      disabled: ValueCheck.validate("boolean", false),
-      joints: ValueCheck.joints<[Vector, Vector]>(
-         [{ x: 0, y: 0 }, { x: 20, y: 0 }]
-      ),
-   };
+const defaulterLarge: ValueCheck.Defaulter<Types.values> = {
+   name: ValueCheck.validate("string", "breadboardlarge"),
+   disabled: ValueCheck.validate("boolean", false),
+   joints: ValueCheck.joints<[Vector, Vector]>(
+      [{ x: 0, y: 0 }, { x: 20, y: 0 }]
+   ),
+};
 
-   export const makeLarge = getMaker(Classes.Large, defaulterLarge,
-      (component: Classes.Large) => {
-         Addins.Graphical.init(component);
-         Addins.Board.init(component);
-         Addins.Selectable.init(component);
-         Addins.WireCreation.init(component);
-         Addins.Draggable.init(component);
-      }
-   );
-}
+const makeLarge = getMaker(Large, defaulterLarge,
+   (component: Large) => {
+      Graphical.init(component);
+      Board.init(component);
+      Selectable.init(component);
+      WireCreation.init(component);
+      Draggable.init(component);
+   }
+);
+export default makeLarge;

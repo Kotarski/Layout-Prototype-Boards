@@ -4,12 +4,15 @@ import buildComponents from "./dasim/-buildComponents";
 import filterInvalidComponents from "./dasim/-filterInvalidComponents";
 import getRawComponentsFromString from "./dasim/-getRawComponentsFromString";
 import getStringFromFileInput from "./dasim/-getStringFromFileInput";
+import manifest from "../../circuit/manifest";
+import history from "../../circuit/history";
+//import * as $ from 'jquery';
 
 //TODO lastFilename shouldn't be exported here...! Maybe move
 let lastFilename: string | undefined;
 function handleFileInputEvent(event: Event) {
    let fileInput = event.target as HTMLInputElement;
-   if (fileInput.value.length == 0) {
+   if (fileInput.value.length === 0) {
       // User selected to cancel, no action required
    } else {
          // Creates a queue forceing the following functions to occur in order,
@@ -45,8 +48,8 @@ function handleFileInputEvent(event: Event) {
                   .then((savedManifest) => {
                      NodeElements.fileStatusText.innerText = "File:\r\n\"" + filename + "\"\r\nLoaded Successfully";
                      if (savedManifest) {
-                        Circuit.manifest.constructFrom(savedManifest);
-                        Circuit.history.reInit(...Circuit.manifest.layout);
+                        manifest.constructFrom(savedManifest);
+                        history.reInit(...manifest.layout);
                      } else {
                            /*LOGSTART*/console.error("savedManifest is undefined");/*LOGEND*/
                      }

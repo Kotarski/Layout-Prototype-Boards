@@ -1,5 +1,11 @@
-namespace Circuit.Component.Addins.Rotatable {
-   type rotatableComponent = Component.Instance & {
+import Component from "../../+component";;
+import Events from "../../events";
+import vector, { Vector } from "../../../-vector";
+import history from "../../history";
+//import * as $ from 'jquery';
+
+namespace Rotatable {
+   type rotatableComponent = Component & {
       joints: [Vector, Vector, ...Vector[]]
    };
 
@@ -22,3 +28,4 @@ namespace Circuit.Component.Addins.Rotatable {
       })
    }
 }
+export default Rotatable;

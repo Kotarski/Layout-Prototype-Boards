@@ -1,19 +1,25 @@
-namespace Circuit.Component._Power {
-   export function drawLayout(instance: Classes.Layout) {
-      const bodyGroup = Svg.Element.Group.make("body");
+import { PowerLayout } from "./~classes";
+import { INDEXCONNECTION } from "./constants";
 
-      const text = instance.voltage.toFixed(1);
+import { make as makeText } from "../../../svg/element/+text";
+import { make as makeGroup } from "../../../svg/element/+group";
+import { make as makeCircle } from "../../../svg/element/+circle";
+import { make as makeRect } from "../../../svg/element/+rect";
 
-      bodyGroup.append(
-         Svg.Element.Rect.make({ x: 0, y: -35 }, { width: 180, height: 95 }, { x: 10, y: 10 }, "body highlight"),
-         Svg.Element.Rect.make({ x: 0, y: -45 }, { width: 160, height: 65 }, { x: 10, y: 10 }, "screen"),
-         Svg.Element.Text.make("8".repeat(text.length - 1), { x: 0, y: -20 }, "screentext off"),
-         Svg.Element.Text.make(text, { x: 0, y: -20 }, "screentext on"),
-         Svg.Element.Circle.make({ x: 0, y: 0 }, 5, "hole")
-      );
+export default function drawLayout(instance: PowerLayout) {
+   const bodyGroup = makeGroup("body");
 
-      return [
-         bodyGroup.translate(instance.joints[INDEXCONNECTION])
-      ];
-   }
+   const text = instance.voltage.toFixed(1);
+
+   bodyGroup.append(
+      makeRect({ x: 0, y: -35 }, { width: 180, height: 95 }, { x: 10, y: 10 }, "body highlight"),
+      makeRect({ x: 0, y: -45 }, { width: 160, height: 65 }, { x: 10, y: 10 }, "screen"),
+      makeText("8".repeat(text.length - 1), { x: 0, y: -20 }, "screentext off"),
+      makeText(text, { x: 0, y: -20 }, "screentext on"),
+      makeCircle({ x: 0, y: 0 }, 5, "hole")
+   );
+
+   return [
+      bodyGroup.translate(instance.joints[INDEXCONNECTION])
+   ];
 }

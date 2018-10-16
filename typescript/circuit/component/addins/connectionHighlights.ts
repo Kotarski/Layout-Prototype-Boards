@@ -1,8 +1,13 @@
-namespace Circuit.Component.Addins.ConnectionHighlights {
+import Component, { Types as ComponentTypes } from "../../+component";
+import Events from "../../events";
+import { make as makeCircle } from "../../../svg/element/+circle";
+import { make as makeText } from "../../../svg/element/+text";
+//import * as $ from 'jquery';
+namespace ConnectionHighlights {
 
    type colorPalette = string[];
 
-   export const init = (component: Component.Instance, propogate: boolean = true, colorPalette: colorPalette = defaultColorPalette) => {
+   export const init = (component: Component, propogate: boolean = true, colorPalette: colorPalette = defaultColorPalette) => {
       let element = component.group.element;
 
       $(element).on(Events.select, () => {
@@ -20,19 +25,19 @@ namespace Circuit.Component.Addins.ConnectionHighlights {
 
    }
 
-   const createConnectorHighlights = (component: Component.Instance, connection: Component.Types.connector, color: string) => {
-      let highlight = Svg.Element.Circle.make(connection.point, 4, "highlight highlightwithfill connectivityhighlight");
+   const createConnectorHighlights = (component: Component, connection: ComponentTypes.connector, color: string) => {
+      let highlight = makeCircle(connection.point, 4, "highlight highlightwithfill connectivityhighlight");
 
       $(highlight.element).css({ "fill": color, "stroke": color })
       component.group.append(highlight);
 
       if (connection.symbol !== undefined) {
-         let symbol = Svg.Element.Text.make(connection.symbol, connection.point, "text connectivityhighlight");
+         let symbol = makeText(connection.symbol, connection.point, "text connectivityhighlight");
          component.group.append(symbol);
       }
    }
 
-   const createConnectionsHighlights = (component: Component.Instance, propogate: boolean, colorPalette: colorPalette) => {
+   const createConnectionsHighlights = (component: Component, propogate: boolean, colorPalette: colorPalette) => {
       let connectionSets = component.getConnections();
       connectionSets.forEach(connectionSet => {
          connectionSet.forEach((connectorConnections, i) => {
@@ -49,7 +54,7 @@ namespace Circuit.Component.Addins.ConnectionHighlights {
    }
 
 
-   const clearConnectionsHighlights = (component: Component.Instance) => {
+   const clearConnectionsHighlights = (component: Component) => {
       $(component.group.element).find(".connectivityhighlight").remove();
    }
 
@@ -65,3 +70,4 @@ namespace Circuit.Component.Addins.ConnectionHighlights {
    ]
 
 }
+export default ConnectionHighlights

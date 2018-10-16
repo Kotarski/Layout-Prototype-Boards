@@ -1,6 +1,7 @@
+import { type as groupType } from "../../svg/element/+group"
 export type participant = {
    getState: () => {};
-   group?: Svg.Element.Group.type;
+   group?: groupType;
 }
 
 export type development<C extends participant> = {

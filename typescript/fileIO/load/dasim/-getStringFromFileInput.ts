@@ -1,3 +1,4 @@
+//import * as $ from 'jquery';
 export default function getStringFromFileInput(
    fileInput: HTMLInputElement): JQueryPromise<{}> {
 

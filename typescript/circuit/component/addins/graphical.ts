@@ -1,5 +1,8 @@
-namespace Circuit.Component.Addins.Graphical {
-   export const init = (component: Component.Instance) => {
+import Component from "../../+component";;
+import Events from "../../events";
+//import * as $ from 'jquery';
+namespace Graphical {
+   export const init = (component: Component) => {
       let element = component.group.element;
       $(element).on(Events.draw, () => {
          if (component.disabled === false) {
@@ -13,3 +16,4 @@ namespace Circuit.Component.Addins.Graphical {
       });
    }
 }
+export default Graphical;

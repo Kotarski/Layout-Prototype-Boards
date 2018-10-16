@@ -1,5 +1,6 @@
 import NodeElements from "../~nodeElements";
 import Events from "./~events";
+//import * as $ from 'jquery';
 namespace Ui {
    export function init() {
 
@@ -74,13 +75,13 @@ namespace Ui {
       });
 
       $(document).keydown(function (e) {
-         if (e.keyCode == 90 && e.ctrlKey) {
+         if (e.keyCode === 90 && e.ctrlKey) {
             Events.undo();
          }
       });
 
       $(document).keydown(function (e) {
-         if (e.keyCode == 89 && e.ctrlKey) {
+         if (e.keyCode === 89 && e.ctrlKey) {
             Events.redo();
          }
       });

@@ -1,14 +1,16 @@
-/// <reference path="../../Utility/-validateType.ts" />
-/// <reference path="../../Utility/-testType.ts" />
-
+import vector, { Vector } from "../../-vector";
+import testType from "../../utility/-testType";
+import validateType from "../../utility/-validateType";
+import { checkfunction } from "../../utility/-validateType";
 
 namespace ValueCheck {
-   export import test = Utility.testType;
-   export import validate = Utility.validateType;
-   export import validater = Utility.checkfunction;
+
+   export const test = testType;
+   export const validate = validateType;
+   export type validater<T> = checkfunction<T>
 
    export type Defaulter<T> = {
-      [P in keyof T]: validater<T[P]>
+      [P in keyof T]: checkfunction<T[P]>
    }
 
    const integerTest = (n: unknown) => test("number")(n) && Number.isInteger(n);
@@ -20,7 +22,7 @@ namespace ValueCheck {
       return result;
    }
 
-   export function where(fallback: Vector): ValueCheck.validater<Vector> {
+   export function where(fallback: Vector): validater<Vector> {
       const result = (value: unknown, log: boolean = false) => {
          const anyVector = validate(vector.isVector, fallback)(value, log);
          return vector.standardise(anyVector);

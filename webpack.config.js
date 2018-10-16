@@ -9,7 +9,7 @@ module.exports = {
       filename: "bundle.js",
    },
    resolve: {
-      extensions: [".js", ".json", ".jsx", ".css"],
+      extensions: [".js", ".json", ".jsx"],
    },
    devtool: 'source-map',
    target: 'web'

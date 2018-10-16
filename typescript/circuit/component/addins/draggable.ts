@@ -1,8 +1,16 @@
 import NodeElements from "../../../~nodeElements";
-namespace Circuit.Component.Addins.Draggable {
-   type draggableComponent = Component.Instance & { joints: Vector[] };
+import Component from "../../+component";;
+import { Vector } from "../../../-vector";
+import mappings from "../../mappings";
+import Events from "../../events";
+import history from "../../history";
+import SvgDraggable from "../../../svg/addins/draggable";
+//import * as $ from 'jquery';
+
+namespace Draggable {
+   type draggableComponent = Component & { joints: Vector[] };
    export const init = (component: draggableComponent) => {
-      Svg.Addins.Draggable.init(component.group.element, {
+      SvgDraggable.init(component.group.element, {
          disableMovement: true,
          onStart: () => {
             history.addEvent(component);
@@ -32,15 +40,17 @@ namespace Circuit.Component.Addins.Draggable {
       }
    }
 
-   export const disable = (component: Component.Instance) => {
+   export const disable = (component: Component) => {
       if ($(component.group.element).draggable("instance") !== undefined) {
          $(component.group.element).draggable("disable");
       }
    }
 
-   export const enable = (component: Component.Instance) => {
+   export const enable = (component: Component) => {
       if ($(component.group.element).draggable("instance") !== undefined) {
          $(component.group.element).draggable("enable");
       }
    }
 }
+
+export default Draggable;

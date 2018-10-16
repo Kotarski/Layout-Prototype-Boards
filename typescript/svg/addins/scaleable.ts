@@ -1,4 +1,7 @@
-namespace Svg.Addins.Scaleable {
+import { Vector } from "../../-vector";
+import svg from "../-svg";
+
+namespace Scaleable {
    export const init = (element: SVGGraphicsElement, options: scalableOptions = {}): void => {
       // Set the event to occur on another target, but apply to yourself
       let eventTarget = options.eventTarget !== undefined ? options.eventTarget : element;
@@ -86,4 +89,6 @@ interface scalableOptions {
    eventTarget?: SVGGElement;
    onScale?: (scale: Vector, translation: Vector) => void;
 }
+
+export default Scaleable;
 
