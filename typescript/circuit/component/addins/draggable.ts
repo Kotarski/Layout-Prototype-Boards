@@ -13,7 +13,7 @@ namespace Draggable {
       SvgDraggable.init(component.group.element, {
          disableMovement: true,
          onStart: () => {
-            history.addEvent(component);
+            history.add(component);
             component.insertInto(component.group.element);
          },
          onDrag: (drag: Vector) => {

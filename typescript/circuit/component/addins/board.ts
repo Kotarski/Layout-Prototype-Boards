@@ -123,7 +123,7 @@ namespace Board {
                let holePosition = { track: trackIdx, hole: holeIdx };
 
                $(breaker.element).click(() => {
-                  history.addEvent(component);
+                  history.add(component);
 
                   if (hole.type === "hole") {
                      $(breaker.element).addClass("broken");

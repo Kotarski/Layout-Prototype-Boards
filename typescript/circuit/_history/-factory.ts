@@ -11,7 +11,7 @@ export default function factory(...initialParticipants: participant[]) {
       reInit(...participants: participant[]) {
          state = init(...participants);
       },
-      addEvent(...participants: participant[]) {
+      add(...participants: participant[]) {
          state = addEvent(state, ...participants);
       },
       undo() {

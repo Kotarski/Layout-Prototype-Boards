@@ -49,7 +49,7 @@ const manifest = (() => {
 
       components.forEach(component => component.disabled = true);
 
-      history.addEvent(manifest, ...components);
+      history.add(manifest, ...components);
 
       components.forEach(component => {
          component.disabled = false;
@@ -69,7 +69,7 @@ const manifest = (() => {
    }
 
    const removeComponent = (...components: Component[]) => {
-      history.addEvent(manifest, ...components);
+      history.add(manifest, ...components);
       manifest.layout = manifest.layout.filter(el => !components.includes(el));
       manifest.schematic = manifest.schematic.filter(el => !components.includes(el));
 

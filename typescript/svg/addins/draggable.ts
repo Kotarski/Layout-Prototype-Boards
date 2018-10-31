@@ -102,21 +102,6 @@ namespace Draggable {
          });
       }
 
-      if (options.constrainWith !== undefined) {
-         $(eventTarget).on(
-            "dragSVGConstraintCheck",
-            (e, ui, dragSvg: Vector, dragDom: Vector) => {
-               // If both components of the drag are too much...
-               if (options.constrainWith) if (options.constrainWith(dragSvg)) {
-                  // Don't let it move
-                  dragSvg.x = 0;
-                  dragSvg.y = 0;
-                  ui.position.top = lastPosition.y;
-                  ui.position.left = lastPosition.x;
-               }
-            }
-         );
-      }
       if (options.onStart !== undefined) {
          $(eventTarget).on(Events.dragStart, (e, ui) => {
             if (options.onStart) options.onStart(e);
@@ -148,7 +133,6 @@ interface draggableOptions {
    onDrag?: (drag: Vector, e?: JQuery.Event<Element>) => void;
    onStop?: (e?: JQuery.Event<Element>) => void;
    onStart?: (e?: JQuery.Event<Element>) => void;
-   constrainWith?: (drag: Vector, e?: JQuery.Event<Element>) => boolean;
    useHelper?: boolean;
    eventTarget?: Element;
    grid?: Vector | "off";

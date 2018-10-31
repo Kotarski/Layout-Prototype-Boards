@@ -14,7 +14,7 @@ namespace Rotatable {
     */
    export const init = (component: rotatableComponent) => {
       $(component.group.element).dblclick(() => {
-         history.addEvent(component);
+         history.add(component);
          let centre = component.joints[0];
 
          component.joints = vector(component.joints)
