@@ -589,7 +589,7 @@ var Circuit;
             if (state.currentIdx >= state.lastIdx)
                 return state;
             const currentIdx = state.currentIdx + 1;
-            const currentEvent = state.events[state.currentIdx];
+            const currentEvent = state.events[currentIdx];
             const undoEvent = currentEvent.map(development => development.participant).map(participant => ({
                 participant,
                 state: participant.getState()
@@ -600,8 +600,8 @@ var Circuit;
                     $(development.participant.group.element).trigger(Circuit.Events.draw);
                 }
             });
-            const previousEvents = state.events.slice(0, state.currentIdx);
-            const nextEvents = state.events.slice(state.currentIdx + 1);
+            const previousEvents = state.events.slice(0, currentIdx);
+            const nextEvents = state.events.slice(currentIdx + 1);
             const events = [...previousEvents, undoEvent, ...nextEvents];
             return { events, currentIdx, lastIdx: state.lastIdx };
         }
