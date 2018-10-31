@@ -1896,6 +1896,58 @@ function drawLayout(instance) {
 
 /***/ }),
 
+/***/ "./typescript/circuit/component/_capacitor/-drawSchematic.ts":
+/*!*******************************************************************!*\
+  !*** ./typescript/circuit/component/_capacitor/-drawSchematic.ts ***!
+  \*******************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return drawSchematic; });
+/* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_capacitor/constants.ts");
+/* harmony import */ var _utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../utility/-getStandardForm */ "./typescript/utility/-getStandardForm.ts");
+/* harmony import */ var _svg_element_path__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../svg/element/+path */ "./typescript/svg/element/+path.ts");
+/* harmony import */ var _svg_element_text__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../svg/element/+text */ "./typescript/svg/element/+text.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
+/* harmony import */ var _svg_element_line__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../svg/element/+line */ "./typescript/svg/element/+line.ts");
+/* harmony import */ var _svg_element_rect__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../../svg/element/+rect */ "./typescript/svg/element/+rect.ts");
+
+
+
+
+
+
+
+
+function drawSchematic(instance) {
+    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["make"])("body");
+    const cathodeEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCATHODE"]];
+    const anodeEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXANODE"]];
+    let centre = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(cathodeEnd, anodeEnd).centre().vector;
+    let rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(cathodeEnd).getAngleTo(anodeEnd);
+    let [cathodeStart, anodeStart] = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])({ x: -6, y: 0 }, { x: 6, y: 0 }).rotate(rotation).sumWith(centre).vectors;
+    //Text
+    let text = Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__["default"])(instance.capacitance, 'F');
+    bodyGroup.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_7__["make"])(Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(0), { width: 15, height: 30 }, Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(2), "highlight highlightwithfill extrathick"), Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_6__["make"])({ x: -4, y: -15 }, { x: -4, y: +15 }, "line thick nocap"), Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_6__["make"])({ x: +4, y: -15 }, { x: +4, y: +15 }, "line thick nocap"));
+    if (instance.isPolarised) {
+        bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])([
+            [{ x: +15, y: -10 }, { x: +7, y: -10 }],
+            [{ x: +11, y: -6 }, { x: +11, y: -14 }]
+        ], "line thin"));
+    }
+    return [
+        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])([[cathodeStart, cathodeEnd], [anodeStart, anodeEnd]], "line thin"),
+        bodyGroup.translate(centre).rotate(rotation),
+        Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_4__["make"])(text, { x: 0, y: -20 }, "text").translate(centre).rotatePosition(rotation)
+    ];
+}
+
+
+/***/ }),
+
 /***/ "./typescript/circuit/component/_capacitor/-loadLayout.ts":
 /*!****************************************************************!*\
   !*** ./typescript/circuit/component/_capacitor/-loadLayout.ts ***!
@@ -1973,7 +2025,7 @@ const deriveJoints = (orientation, where) => {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _valueCheck__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../~valueCheck */ "./typescript/circuit/component/~valueCheck.ts");
-/* harmony import */ var _classes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./~classes */ "./typescript/circuit/component/_capacitor/~classes.tsx");
+/* harmony import */ var _classes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./~classes */ "./typescript/circuit/component/_capacitor/~classes.ts");
 /* harmony import */ var _generics_getMaker__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../generics/-getMaker */ "./typescript/circuit/generics/-getMaker.ts");
 /* harmony import */ var _addins_graphical__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../addins/graphical */ "./typescript/circuit/component/addins/graphical.ts");
 /* harmony import */ var _addins_draggable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
@@ -2017,7 +2069,7 @@ const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["defau
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _valueCheck__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../~valueCheck */ "./typescript/circuit/component/~valueCheck.ts");
-/* harmony import */ var _classes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./~classes */ "./typescript/circuit/component/_capacitor/~classes.tsx");
+/* harmony import */ var _classes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./~classes */ "./typescript/circuit/component/_capacitor/~classes.ts");
 /* harmony import */ var _generics_getMaker__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../generics/-getMaker */ "./typescript/circuit/generics/-getMaker.ts");
 /* harmony import */ var _addins_graphical__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../addins/graphical */ "./typescript/circuit/component/addins/graphical.ts");
 /* harmony import */ var _addins_draggable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
@@ -2065,7 +2117,7 @@ const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["de
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _generics_makeMap__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../generics/-makeMap */ "./typescript/circuit/generics/-makeMap.ts");
-/* harmony import */ var _classes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./~classes */ "./typescript/circuit/component/_capacitor/~classes.tsx");
+/* harmony import */ var _classes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./~classes */ "./typescript/circuit/component/_capacitor/~classes.ts");
 /* harmony import */ var _makeSchematic__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-makeSchematic */ "./typescript/circuit/component/_capacitor/-makeSchematic.ts");
 /* harmony import */ var _makeLayout__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-makeLayout */ "./typescript/circuit/component/_capacitor/-makeLayout.ts");
 /* harmony import */ var _loadSchematic__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-loadSchematic */ "./typescript/circuit/component/_capacitor/-loadSchematic.ts");
@@ -2099,63 +2151,6 @@ const maps = {
 
 /***/ }),
 
-/***/ "./typescript/circuit/component/_capacitor/Schematic.tsx":
-/*!***************************************************************!*\
-  !*** ./typescript/circuit/component/_capacitor/Schematic.tsx ***!
-  \***************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Schematic; });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_capacitor/constants.ts");
-/* harmony import */ var _svg_element_path__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../svg/element/+path */ "./typescript/svg/element/+path.ts");
-/* harmony import */ var _svg_element_Path__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../svg/element/Path */ "./typescript/svg/element/Path.tsx");
-/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
-/* harmony import */ var _svg_element_line__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../svg/element/+line */ "./typescript/svg/element/+line.ts");
-/* harmony import */ var _svg_element_rect__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../../svg/element/+rect */ "./typescript/svg/element/+rect.ts");
-
-
-
-// import getStandardForm from "../../../utility/-getStandardForm";
-
-
-// import { make as makeText } from "../../../svg/element/+text";
-
-
-
-function Schematic({ instance }) {
-    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["make"])("body");
-    const cathodeEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXCATHODE"]];
-    const anodeEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXANODE"]];
-    let centre = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(cathodeEnd, anodeEnd).centre().vector;
-    let rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(cathodeEnd).getAngleTo(anodeEnd);
-    let [cathodeStart, anodeStart] = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])({ x: -6, y: 0 }, { x: 6, y: 0 }).rotate(rotation).sumWith(centre).vectors;
-    //Text
-    // let text = getStandardForm(instance.capacitance, 'F')
-    bodyGroup.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_7__["make"])(Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(0), { width: 15, height: 30 }, Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(2), "highlight highlightwithfill extrathick"), Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_6__["make"])({ x: -4, y: -15 }, { x: -4, y: +15 }, "line thick nocap"), Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_6__["make"])({ x: +4, y: -15 }, { x: +4, y: +15 }, "line thick nocap"));
-    if (instance.isPolarised) {
-        bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])([
-            [{ x: +15, y: -10 }, { x: +7, y: -10 }],
-            [{ x: +11, y: -6 }, { x: +11, y: -14 }]
-        ], "line thin"));
-    }
-    return react__WEBPACK_IMPORTED_MODULE_0__["createElement"](_svg_element_Path__WEBPACK_IMPORTED_MODULE_4__["default"], { path: [[cathodeStart, cathodeEnd], [anodeStart, anodeEnd]], className: "line thin" });
-    // return [
-    //    <Path path={[[cathodeStart, cathodeEnd], [anodeStart, anodeEnd]]} className="line thin" />,
-    //    //makePath([[cathodeStart, cathodeEnd], [anodeStart, anodeEnd]], "line thin"),
-    //    bodyGroup.translate(centre).rotate(rotation).element,
-    //    makeText(text, { x: 0, y: -20 }, "text").translate(centre).rotatePosition(rotation).element
-    // ];
-}
-
-
-/***/ }),
-
 /***/ "./typescript/circuit/component/_capacitor/constants.ts":
 /*!**************************************************************!*\
   !*** ./typescript/circuit/component/_capacitor/constants.ts ***!
@@ -2173,10 +2168,10 @@ const INDEXANODE = 1;
 
 /***/ }),
 
-/***/ "./typescript/circuit/component/_capacitor/~classes.tsx":
-/*!**************************************************************!*\
-  !*** ./typescript/circuit/component/_capacitor/~classes.tsx ***!
-  \**************************************************************/
+/***/ "./typescript/circuit/component/_capacitor/~classes.ts":
+/*!*************************************************************!*\
+  !*** ./typescript/circuit/component/_capacitor/~classes.ts ***!
+  \*************************************************************/
 /*! exports provided: Schematic, Layout */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -2192,20 +2187,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
 /* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_capacitor/constants.ts");
 /* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_capacitor/-drawLayout.ts");
-/* harmony import */ var _Schematic__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./Schematic */ "./typescript/circuit/component/_capacitor/Schematic.tsx");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! react */ "react");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_9__);
-/* harmony import */ var react_dom__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! react-dom */ "react-dom");
-/* harmony import */ var react_dom__WEBPACK_IMPORTED_MODULE_10___default = /*#__PURE__*/__webpack_require__.n(react_dom__WEBPACK_IMPORTED_MODULE_10__);
+/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_capacitor/-drawSchematic.ts");
 
 
 
 
 
 
-
-
-// import drawSchematic from "./-drawSchematic";
 
 
 
@@ -2238,9 +2226,7 @@ class Base extends _component__WEBPACK_IMPORTED_MODULE_0__["default"] {
 class Schematic extends Base {
     draw() {
         //(Prepend so handles appear on top)
-        //this.group.prepend(SchematicElement(this));
-        // this.group.element.append(SchematicElement(this))
-        react_dom__WEBPACK_IMPORTED_MODULE_10__["render"](react__WEBPACK_IMPORTED_MODULE_9__["createElement"](_Schematic__WEBPACK_IMPORTED_MODULE_8__["default"], { instance: this }), this.group.element);
+        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_8__["default"])(this));
     }
     getConnections() {
         return Object(_generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_4__["default"])(this, _manifest__WEBPACK_IMPORTED_MODULE_3__["default"].schematic);
@@ -8079,49 +8065,6 @@ var Functions;
 
 /***/ }),
 
-/***/ "./typescript/svg/element/Path.tsx":
-/*!*****************************************!*\
-  !*** ./typescript/svg/element/Path.tsx ***!
-  \*****************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Path; });
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "react");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-// import { make as makeElement } from "../+element";
-// import svg from "../-svg";
-
-function Path({ path, className }) {
-    const pathString = (path instanceof Array) ? getLinePath(path) : path;
-    return react__WEBPACK_IMPORTED_MODULE_0__["createElement"]("path", { d: pathString, className: className });
-}
-;
-function getLinePath(jointSet) {
-    if (jointSet.length > 0 && jointSet[0] instanceof Array) {
-        let jointArrays = jointSet;
-        return jointArrays.map(getSingleLinePath).join();
-    }
-    else {
-        let joints = jointSet;
-        return getSingleLinePath(joints);
-    }
-}
-function getSingleLinePath(joints) {
-    if (joints.length < 1) {
-        return "";
-    }
-    else {
-        return "M" + joints[0].x + " " + joints[0].y
-            + joints.map(joint => "L" + joint.x + " " + joint.y).join();
-    }
-}
-
-
-/***/ }),
-
 /***/ "./typescript/svg/element/groups/+dip.ts":
 /*!***********************************************!*\
   !*** ./typescript/svg/element/groups/+dip.ts ***!
@@ -8965,7 +8908,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "schematicManipulationEnabled", function() { return schematicManipulationEnabled; });
 const gridSpacing = 20;
 const svgURI = "http://www.w3.org/2000/svg";
-const schematicManipulationEnabled = true;
+const schematicManipulationEnabled = false;
 
 
 /***/ }),
@@ -9004,28 +8947,6 @@ var NodeElements;
 })(NodeElements || (NodeElements = {}));
 /* harmony default export */ __webpack_exports__["default"] = (NodeElements);
 
-
-/***/ }),
-
-/***/ "react":
-/*!************************!*\
-  !*** external "React" ***!
-  \************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-module.exports = React;
-
-/***/ }),
-
-/***/ "react-dom":
-/*!***************************!*\
-  !*** external "ReactDOM" ***!
-  \***************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-module.exports = ReactDOM;
 
 /***/ })
 
