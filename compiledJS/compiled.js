@@ -4240,7 +4240,7 @@ var Circuit;
                     initHandles(component);
                 };
                 const clearHandles = (component) => {
-                    $(component.group.element).find(".dragHandle").remove();
+                    $(component.group.element).children(".dragHandle").remove();
                 };
                 const initHandles = (component) => {
                     component.joints.forEach(joint => {
@@ -4281,7 +4281,7 @@ var Circuit;
                     });
                 };
                 const addHandle = (component, point) => {
-                    let dragHandle = Svg.Element.Circle.make(point, 5, "handle dragHandle highlight highlightwithfill");
+                    let dragHandle = Svg.Element.Circle.make(point, 5, "handle dragHandle highlight");
                     $(dragHandle.element).data('point', point);
                     component.group.append(dragHandle);
                     Svg.Addins.Draggable.init(dragHandle.element);
@@ -4299,12 +4299,11 @@ var Circuit;
                 const removeExcessJoints = (component, point) => {
                     if (component.joints.length > 2) {
                         component.joints = component.joints.filter((joint) => {
-                            if ((joint !== point) && vector(point).isCloseTo(joint)) {
-                                $(component.group.element).children(".dragHandle").filter((el) => $(el).data('point') === joint).remove();
-                                return false;
-                            }
-                            return true;
+                            return (joint === point) || !vector(point).isCloseTo(joint);
                         });
+                        $(component.group.element).children(".dragHandle").not(".dragging").filter((i, el) => {
+                            return vector(point).isCloseTo($(el).data('point'));
+                        }).remove();
                     }
                     ;
                 };

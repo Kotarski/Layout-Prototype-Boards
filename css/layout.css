@@ -213,10 +213,7 @@
 
 .layout .dragHandle {
    stroke: transparent;
-   fill: transparent;
-}
-
-.layout .selected .connectivityhighlight~.dragHandle {
+   stroke-width: 2;
    fill: transparent;
 }
 
