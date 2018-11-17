@@ -753,7 +753,7 @@ function mergeEvents(state, mergeCount) {
     const events = [...previousEvents, mergedEvent];
     const lastIdx = mergeStartIdx;
     const currentIdx = (state.currentIdx > state.lastIdx)
-        ? state.lastIdx
+        ? lastIdx
         : state.currentIdx;
     return { events, currentIdx, lastIdx };
 }
@@ -772,7 +772,6 @@ function mergeEvents(state, mergeCount) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return redoEvent; });
 /* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ "./typescript/circuit/events.ts");
-//import * as $ from 'jquery';
 //TODO: Remove Events dependancy
 
 function redoEvent(state) {
@@ -780,7 +779,7 @@ function redoEvent(state) {
         return state;
     // Go forward one event
     const currentIdx = state.currentIdx + 1;
-    const currentEvent = state.events[state.currentIdx];
+    const currentEvent = state.events[currentIdx];
     // Get the current state of all participants that will be reverted
     const undoEvent = currentEvent.map(development => development.participant).map(participant => ({
         participant,
@@ -794,8 +793,8 @@ function redoEvent(state) {
         }
     });
     // Replace the redone event with an event to undo it
-    const previousEvents = state.events.slice(0, state.currentIdx);
-    const nextEvents = state.events.slice(state.currentIdx + 1);
+    const previousEvents = state.events.slice(0, currentIdx);
+    const nextEvents = state.events.slice(currentIdx + 1);
     const events = [...previousEvents, undoEvent, ...nextEvents];
     return { events, currentIdx, lastIdx: state.lastIdx };
 }
@@ -2364,14 +2363,13 @@ function drawSchematic(instance) {
         ? Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__["default"])(instance.breakdownVoltage, 'V')
         : Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__["default"])(instance.saturationCurrent, 'A');
     const bodyPath = 'M 12 0 L -12 12 L -12 -12 L 12 0 Z';
-    bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])(bodyPath, "body highlight highlightwithfill extrathick"), Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])(bodyPath, "body black"));
-    if (instance.color === "N/A") {
-        // Standard Diode
+    bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])(bodyPath, "body highlight highlightwithfill extrathick"), Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])(bodyPath, "body black"), 
+    // Polarisation Line
+    Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])('M 12 -12 L 12 12', "line medium"));
+    if (instance.color === "N/A" || instance.color === undefined) {
         if (instance.breakdownVoltage < 51) {
-            bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])('M 18 -12 L 12 -12 L 12 12 L 6 12', "line medium"));
-        }
-        else {
-            bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])('M 12 -12 L 12 12', "line medium"));
+            // Add the "wings" for xener
+            bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])([[{ x: 12, y: -12 }, { x: 18, y: -12 },], [{ x: 12, y: 12 }, { x: 6, y: 12 }]], "line medium"));
         }
     }
     else {
@@ -5611,6 +5609,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
 /* harmony import */ var _svg_element_circle__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../svg/element/+circle */ "./typescript/svg/element/+circle.ts");
 /* harmony import */ var _svg_addins_draggable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/addins/draggable */ "./typescript/svg/addins/draggable.ts");
+/* harmony import */ var _utility_isNot__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../utility/-isNot */ "./typescript/utility/-isNot.ts");
+
 
 
 
@@ -5649,44 +5649,36 @@ var Extendable;
         initHandles(component);
     };
     const clearHandles = (component) => {
-        $(component.group.element).find(".dragHandle").remove();
+        $(component.group.element).children(".dragHandle").remove();
     };
     const initHandles = (component) => {
-        component.joints.forEach((joint, index) => {
-            addHandle(component, joint, index);
+        component.joints.forEach(joint => {
+            addHandle(component, joint);
         });
     };
     const initHandleInsertion = (component) => {
-        $(component.group.element).dblclick((e) => {
+        $(component.group.element).dblclick(e => {
             if ($(e.target).closest(".handle").length < 1) {
-                // Get mouse coordinates 
-                const clientX = e.clientX;
-                const clientY = e.clientY;
-                if (!(clientX && clientY)) {
-                    throw new Error("Mouse event did not provide coordinates!");
-                }
-                const clientPos = { x: clientX, y: clientY };
                 // Get position in svg coordinates, rounded to grid
-                const svgPos = Object(_vector__WEBPACK_IMPORTED_MODULE_3__["default"])(component.group.convertVector(clientPos, "DomToSvg", "relToGroup"))
-                    .snapToGrid().vector;
+                const position = Object(_vector__WEBPACK_IMPORTED_MODULE_3__["default"])(component.group.convertVector({ x: e.clientX || 0, y: e.clientY || 0 }, "DomToSvg", "relToGroup")).snapToGrid().vector;
                 // Get index for insertion into joint array
-                const jointIdx = getJointInsertionIdx(component, svgPos);
+                const jointIdx = getJointInsertionIdx(component, position);
                 //insert joint at position
-                component.joints.splice(jointIdx, 0, svgPos);
-                addHandle(component, svgPos, jointIdx);
+                component.joints.splice(jointIdx, 0, position);
+                addHandle(component, position);
                 $(component.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw, [e]);
             }
         });
     };
     const initJointRemoval = (component) => {
         $(component.group.element).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].drag, ".dragHandle", (e) => {
-            removeExcessJoints(component, e.target);
+            removeExcessJoints(component, $(e.target).data("point"));
             $(component.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw, [e]);
         });
         $(component.group.element).on("dblclick", ".dragHandle", (e) => {
             if (component.joints.length > 2) {
-                const jointIdx = $(e.target).data("jointIndex");
-                component.joints = component.joints.filter((v, i) => i !== jointIdx);
+                const point = $(e.target).data("point");
+                component.joints = component.joints.filter(Object(_utility_isNot__WEBPACK_IMPORTED_MODULE_6__["default"])(point));
                 e.target.remove();
                 $(component.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw, [e]);
             }
@@ -5700,44 +5692,30 @@ var Extendable;
             }
         });
     };
-    const addHandle = (component, point, index) => {
-        let dragHandle = Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_4__["make"])(point, 5, "handle dragHandle highlight highlightwithfill");
-        $(dragHandle.element).data('jointIndex', index);
+    const addHandle = (component, point) => {
+        let dragHandle = Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_4__["make"])(point, 5, "handle dragHandle highlight");
+        $(dragHandle.element).data('point', point);
         component.group.append(dragHandle);
         _svg_addins_draggable__WEBPACK_IMPORTED_MODULE_5__["default"].init(dragHandle.element);
         $(dragHandle.element).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].drag, (e, ui, drag) => {
-            let index = $(dragHandle.element).data('jointIndex');
-            console.log(index);
-            const joints = [...component.joints];
-            if (joints.length <= index) {
-                index = joints.length - 1;
-            }
-            const modifiedJoint = Object(_vector__WEBPACK_IMPORTED_MODULE_3__["default"])(joints[index]).sumWith(drag).vector;
-            joints.splice(index, 1, modifiedJoint);
-            component.joints = joints;
-            $(dragHandle.element).data('jointIndex', index);
+            point.x += drag.x;
+            point.y += drag.y;
             $(component.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw, [e]);
         });
-        $(dragHandle.element).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].dragStop, () => {
-            component.joints = Object(_vector__WEBPACK_IMPORTED_MODULE_3__["default"])(component.joints).snapToGrid().vectors;
+        $(dragHandle.element).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].dragStop, (e, ui, drag) => {
+            point.x = Math.round(point.x);
+            point.y = Math.round(point.y);
         });
         return dragHandle;
     };
-    const removeExcessJoints = (component, from) => {
-        const joints = [...component.joints];
-        let fromIdx = $(from).data('jointIndex');
-        if (joints.length > 2) {
-            component.joints = joints.filter((joint, jointIdx) => {
-                if ((fromIdx !== jointIdx) && Object(_vector__WEBPACK_IMPORTED_MODULE_3__["default"])(joints[fromIdx]).isCloseTo(joint)) {
-                    $(component.group.element)
-                        .children(".dragHandle")
-                        .filter((n, el) => $(el).data('jointIndex') === jointIdx)
-                        .remove();
-                    $(from).data('jointIndex', Math.min(fromIdx, jointIdx));
-                    return false;
-                }
-                return true;
+    const removeExcessJoints = (component, point) => {
+        if (component.joints.length > 2) {
+            component.joints = component.joints.filter((joint) => {
+                return (joint === point) || !Object(_vector__WEBPACK_IMPORTED_MODULE_3__["default"])(point).isCloseTo(joint);
             });
+            $(component.group.element).children(".dragHandle").not(".dragging").filter((i, el) => {
+                return Object(_vector__WEBPACK_IMPORTED_MODULE_3__["default"])(point).isCloseTo($(el).data('point'));
+            }).remove();
         }
         ;
     };

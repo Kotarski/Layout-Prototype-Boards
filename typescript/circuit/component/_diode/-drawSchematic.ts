@@ -30,15 +30,16 @@ export default function drawSchematic(instance: Schematic) {
    const bodyPath = 'M 12 0 L -12 12 L -12 -12 L 12 0 Z';
    bodyGroup.append(
       makePath(bodyPath, "body highlight highlightwithfill extrathick"),
-      makePath(bodyPath, "body black")
+      makePath(bodyPath, "body black"),
+      // Polarisation Line
+      makePath('M 12 -12 L 12 12', "line medium")
    );
 
-   if (instance.color === "N/A") {
-      // Standard Diode
+
+   if (instance.color === "N/A" || instance.color === undefined) {
       if (instance.breakdownVoltage < 51) {
-         bodyGroup.append(makePath('M 18 -12 L 12 -12 L 12 12 L 6 12', "line medium"));
-      } else {
-         bodyGroup.append(makePath('M 12 -12 L 12 12', "line medium"));
+         // Add the "wings" for xener
+         bodyGroup.append(makePath([[{ x: 12, y: -12 }, { x: 18, y: -12 },], [{ x: 12, y: 12 }, { x: 6, y: 12 }]], "line medium"));
       }
    } else {
       // LED
