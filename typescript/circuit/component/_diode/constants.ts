@@ -1,3 +1,4 @@
-export const INDEXCATHODE = 0;
-export const INDEXANODE = 1;
+export const INDEXANODE = 0;
+export const INDEXCATHODE = 1;
+
 

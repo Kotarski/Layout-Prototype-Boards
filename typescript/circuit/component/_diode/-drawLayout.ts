@@ -15,7 +15,7 @@ export default function drawLayout(instance: Layout) {
    const anodeEnd = instance.joints[INDEXANODE];
 
    const centre = vector(cathodeEnd, anodeEnd).centre().vector;
-   const rotation = vector(cathodeEnd).getAngleTo(anodeEnd);
+   const rotation = vector(anodeEnd).getAngleTo(cathodeEnd);
 
    if (instance.color === "N/A") {
       bodyGroup.append(

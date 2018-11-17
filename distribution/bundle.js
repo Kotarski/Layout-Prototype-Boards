@@ -2300,7 +2300,7 @@ function drawLayout(instance) {
     const cathodeEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCATHODE"]];
     const anodeEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXANODE"]];
     const centre = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(cathodeEnd, anodeEnd).centre().vector;
-    const rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(cathodeEnd).getAngleTo(anodeEnd);
+    const rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(anodeEnd).getAngleTo(cathodeEnd);
     if (instance.color === "N/A") {
         bodyGroup.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_5__["make"])({ x: -5.5, y: 0 }, { width: 29, height: 15 }, { x: 0, y: 0 }, "body"), Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_5__["make"])({ x: 17.5, y: 0 }, { width: 5, height: 15 }, { x: 0, y: 0 }, "body"), Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_5__["make"])({ x: 12, y: 0 }, { width: 6, height: 15 }, { x: 0, y: 0 }, "cathode"), Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_5__["make"])({ x: 0, y: 0 }, { width: 40, height: 15 }, { x: 1, y: 1 }, "highlight nofill"));
     }
@@ -2356,7 +2356,7 @@ function drawSchematic(instance) {
     const cathodeEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCATHODE"]];
     const anodeEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXANODE"]];
     const centre = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(cathodeEnd, anodeEnd).centre().vector;
-    const rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(cathodeEnd).getAngleTo(anodeEnd);
+    const rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(anodeEnd).getAngleTo(cathodeEnd);
     let [cathodeStart, anodeStart] = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])({ x: -12, y: 0 }, { x: 12, y: 0 }).rotate(rotation).sumWith(centre).vectors;
     //Text
     let text = (instance.breakdownVoltage < 51)
@@ -2603,15 +2603,15 @@ const maps = {
 /*!**********************************************************!*\
   !*** ./typescript/circuit/component/_diode/constants.ts ***!
   \**********************************************************/
-/*! exports provided: INDEXCATHODE, INDEXANODE */
+/*! exports provided: INDEXANODE, INDEXCATHODE */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "INDEXCATHODE", function() { return INDEXCATHODE; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "INDEXANODE", function() { return INDEXANODE; });
-const INDEXCATHODE = 0;
-const INDEXANODE = 1;
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "INDEXCATHODE", function() { return INDEXCATHODE; });
+const INDEXANODE = 0;
+const INDEXCATHODE = 1;
 
 
 /***/ }),

@@ -16,7 +16,7 @@ export default function drawSchematic(instance: Schematic) {
    const anodeEnd = instance.joints[INDEXANODE];
 
    const centre = vector(cathodeEnd, anodeEnd).centre().vector;
-   const rotation = vector(cathodeEnd).getAngleTo(anodeEnd);
+   const rotation = vector(anodeEnd).getAngleTo(cathodeEnd);
 
    let [cathodeStart, anodeStart]: Vector[] = vector(
       { x: -12, y: 0 }, { x: 12, y: 0 }
