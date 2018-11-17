@@ -16,7 +16,7 @@ export default function mergeEvents(state: historystate, mergeCount: number): hi
    const events = [...previousEvents, mergedEvent]
    const lastIdx = mergeStartIdx;
    const currentIdx = (state.currentIdx > state.lastIdx)
-      ? state.lastIdx
+      ? lastIdx
       : state.currentIdx;
 
    return { events, currentIdx, lastIdx }
