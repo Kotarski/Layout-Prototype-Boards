@@ -5626,10 +5626,8 @@ var Extendable;
             createHandles(component);
         });
         $(element).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw, (e, eOrigin) => {
-            if (!(eOrigin !== undefined && $(eOrigin.target).hasClass("dragHandle"))) {
-                clearHandles(component);
-                createHandles(component);
-            }
+            clearHandles(component);
+            createHandles(component);
         });
         $(element).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].dragStop, () => {
             clearHandles(component);
@@ -5649,7 +5647,7 @@ var Extendable;
         initHandles(component);
     };
     const clearHandles = (component) => {
-        $(component.group.element).children(".dragHandle").remove();
+        $(component.group.element).children(".dragHandle").not(".dragging").remove();
     };
     const initHandles = (component) => {
         component.joints.forEach(joint => {
@@ -5991,8 +5989,8 @@ var Selectable;
             const selectComponents = otherComponents.concat(component);
             selectComponents.forEach(selectComponent => {
                 $(selectComponent.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].select);
-                setDeselectTrigger(selectComponent);
             });
+            setDeselectTrigger(component);
             /*LOGSTART*/ console.groupEnd(); /*LOGEND*/
         });
     };
@@ -6004,7 +6002,11 @@ var Selectable;
                 setDeselectTrigger(component);
             }
             else {
-                $(component.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].deselect);
+                const otherComponents = _manifest__WEBPACK_IMPORTED_MODULE_1__["default"].findCorresponding(component);
+                const selectComponents = otherComponents.concat(component);
+                selectComponents.forEach(selectComponent => {
+                    $(selectComponent.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].deselect);
+                });
                 setSelectTrigger(component);
             }
         });

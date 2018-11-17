@@ -23,16 +23,15 @@ namespace Extendable {
          createHandles(component);
       });
       $(element).on(Events.draw, (e, eOrigin) => {
-         if (!(eOrigin !== undefined && $(eOrigin.target).hasClass("dragHandle"))) {
-            clearHandles(component);
-            createHandles(component);
-         }
+         clearHandles(component);
+         createHandles(component);
       });
       $(element).on(Events.dragStop, () => {
          clearHandles(component);
          createHandles(component);
       });
       $(element).on(Events.deselect, () => {
+
          clearHandles(component);
       });
 
@@ -48,7 +47,7 @@ namespace Extendable {
 
 
    const clearHandles = (component: extendableComponent) => {
-      $(component.group.element).children(".dragHandle").remove();
+      $(component.group.element).children(".dragHandle").not(".dragging").remove();
    }
 
    const initHandles = (component: extendableComponent) => {

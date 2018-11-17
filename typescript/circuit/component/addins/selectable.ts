@@ -40,8 +40,8 @@ namespace Selectable {
          const selectComponents = otherComponents.concat(component);
          selectComponents.forEach(selectComponent => {
             $(selectComponent.group.element).trigger(Events.select);
-            setDeselectTrigger(selectComponent);
          });
+         setDeselectTrigger(component);
 
          /*LOGSTART*/console.groupEnd();/*LOGEND*/
       })
@@ -56,7 +56,13 @@ namespace Selectable {
          if (elementSelectsComponent(e.target, component)) {
             setDeselectTrigger(component);
          } else {
-            $(component.group.element).trigger(Events.deselect);
+
+            const otherComponents = manifest.findCorresponding(component);
+
+            const selectComponents = otherComponents.concat(component);
+            selectComponents.forEach(selectComponent => {
+               $(selectComponent.group.element).trigger(Events.deselect);
+            });
             setSelectTrigger(component);
          }
       })
