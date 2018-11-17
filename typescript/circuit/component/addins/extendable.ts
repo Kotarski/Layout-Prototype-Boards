@@ -5,6 +5,7 @@ import history from "../../history";
 import vector, { Vector } from "../../../-vector";
 import { make as makeCircle } from "../../../svg/element/+circle";
 import SvgDraggable from "../../../svg/addins/draggable";
+import isNot from "../../../utility/-isNot";
 //import * as $ from 'jquery';
 
 namespace Extendable {
@@ -47,61 +48,48 @@ namespace Extendable {
 
 
    const clearHandles = (component: extendableComponent) => {
-      $(component.group.element).find(".dragHandle").remove();
+      $(component.group.element).children(".dragHandle").remove();
    }
 
    const initHandles = (component: extendableComponent) => {
-      component.joints.forEach((joint, index) => {
-         addHandle(component, joint, index)
+      component.joints.forEach(joint => {
+         addHandle(component, joint)
       })
    };
 
    const initHandleInsertion = (component: extendableComponent) => {
-      $(component.group.element).dblclick((e) => {
+      $(component.group.element).dblclick(e => {
          if ($(e.target).closest(".handle").length < 1) {
-
-            // Get mouse coordinates 
-            const clientX = e.clientX;
-            const clientY = e.clientY;
-            if (!(clientX && clientY)) {
-               throw new Error("Mouse event did not provide coordinates!");
-            }
-            const clientPos = { x: clientX, y: clientY };
-
             // Get position in svg coordinates, rounded to grid
-            const svgPos = vector(component.group.convertVector(clientPos, "DomToSvg", "relToGroup"))
-               .snapToGrid().vector;
+            const position = vector(
+               component.group.convertVector({ x: e.clientX || 0, y: e.clientY || 0 }, "DomToSvg", "relToGroup")
+            ).snapToGrid().vector;
 
             // Get index for insertion into joint array
-            const jointIdx = getJointInsertionIdx(component, svgPos);
+            const jointIdx = getJointInsertionIdx(component, position);
 
             //insert joint at position
-            component.joints.splice(jointIdx, 0, svgPos);
-            addHandle(component, svgPos, jointIdx);
+            component.joints.splice(jointIdx, 0, position);
+            addHandle(component, position);
             $(component.group.element).trigger(Events.draw, [e]);
          }
       });
    };
 
    const initJointRemoval = (component: extendableComponent) => {
-
-
       $(component.group.element).on(Events.drag, ".dragHandle", (e) => {
-         removeExcessJoints(component, e.target);
+         removeExcessJoints(component, $(e.target).data("point"));
          $(component.group.element).trigger(Events.draw, [e]);
       });
 
       $(component.group.element).on("dblclick", ".dragHandle", (e) => {
          if (component.joints.length > 2) {
-
-            const jointIdx = $(e.target).data("jointIndex") as number;
-            component.joints = component.joints.filter((v, i) => i !== jointIdx);
+            const point = $(e.target).data("point");
+            component.joints = component.joints.filter(isNot(point));
             e.target.remove();
             $(component.group.element).trigger(Events.draw, [e]);
          }
       });
-
-
    }
 
    const initComponentRemoval = (component: extendableComponent) => {
@@ -113,68 +101,35 @@ namespace Extendable {
       });
    };
 
-   const addHandle = (component: extendableComponent, point: Vector, index: number) => {
-      let dragHandle = makeCircle(point, 5, "handle dragHandle highlight highlightwithfill");
-
-      $(dragHandle.element).data('jointIndex', index);
-
+   const addHandle = (component: extendableComponent, point: Vector) => {
+      let dragHandle = makeCircle(point, 5, "handle dragHandle highlight");
+      $(dragHandle.element).data('point', point);
       component.group.append(dragHandle);
-
       SvgDraggable.init(dragHandle.element);
 
       $(dragHandle.element).on(Events.drag, (e, ui, drag: Vector) => {
-         let index = $(dragHandle.element).data('jointIndex');
-
-         console.log(index)
-
-         const joints = [...component.joints];
-
-         if (joints.length <= index) {
-            index = joints.length - 1;
-         }
-
-         const modifiedJoint = vector(joints[index]).sumWith(drag).vector;
-         joints.splice(index, 1, modifiedJoint);
-
-         component.joints = joints;
-
-         $(dragHandle.element).data('jointIndex', index)
+         point.x += drag.x;
+         point.y += drag.y;
          $(component.group.element).trigger(Events.draw, [e]);
       });
 
-
-      $(dragHandle.element).on(Events.dragStop, () => {
-         component.joints = vector(component.joints).snapToGrid().vectors;
+      $(dragHandle.element).on(Events.dragStop, (e, ui, drag: Vector) => {
+         point.x = Math.round(point.x);
+         point.y = Math.round(point.y);
       });
 
       return dragHandle;
    };
 
-   const removeExcessJoints = (component: extendableComponent, from: Element) => {
-      const joints = [...component.joints];
-      let fromIdx = $(from).data('jointIndex') as number;
-
-      if (joints.length > 2) {
-
-         component.joints = joints.filter((joint, jointIdx) => {
-
-            if ((fromIdx !== jointIdx) && vector(joints[fromIdx]).isCloseTo(joint)) {
-
-               $(component.group.element)
-                  .children(".dragHandle")
-                  .filter((n, el) => $(el).data('jointIndex') === jointIdx)
-                  .remove();
-
-               $(from).data('jointIndex', Math.min(fromIdx, jointIdx))
-
-               return false;
-            }
-
-            return true;
+   const removeExcessJoints = (component: extendableComponent, point: Vector) => {
+      if (component.joints.length > 2) {
+         component.joints = component.joints.filter((joint) => {
+            return (joint === point) || !vector(point).isCloseTo(joint)
          });
+         $(component.group.element).children(".dragHandle").not(".dragging").filter((i, el) => {
+            return vector(point).isCloseTo($(el).data('point'))
+         }).remove();
       };
-
-
    }
 
    const getJointInsertionIdx = (component: extendableComponent, point: Vector) => {
