@@ -22,7 +22,7 @@ namespace Extendable {
       $(element).on(Events.select, () => {
          createHandles(component);
       });
-      $(element).on(Events.draw, (e, eOrigin) => {
+      $(element).on(Events.draw, () => {
          clearHandles(component);
          createHandles(component);
       });
