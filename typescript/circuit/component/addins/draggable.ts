@@ -34,7 +34,7 @@ namespace Draggable {
 
       // TODO, I don't quite like how this is coupled together
       if (mappings.getComponentMapSafe(component).isBoard &&
-         NodeElements.boardDraggingDisabled.checked
+         NodeElements.boardDraggingEnabled.checked
       ) {
          disable(component);
       }
