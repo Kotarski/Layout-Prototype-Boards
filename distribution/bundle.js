@@ -1109,7 +1109,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
 /* harmony import */ var _addins_extendable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/extendable */ "./typescript/circuit/component/addins/extendable.ts");
 /* harmony import */ var _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionHighlights */ "./typescript/circuit/component/addins/connectionHighlights.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../../~constants */ "./typescript/~constants.ts");
+/* harmony import */ var _controlValues__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../../~controlValues */ "./typescript/~controlValues.ts");
 
 
 
@@ -1130,7 +1130,7 @@ const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["de
     _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"].init(component);
     _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__["default"].init(component, false);
     _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"].init(component);
-    if (_constants__WEBPACK_IMPORTED_MODULE_8__["schematicManipulationEnabled"]) {
+    if (_controlValues__WEBPACK_IMPORTED_MODULE_8__["default"].schematicEditingEnabled) {
         _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"].init(component);
         _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"].init(component);
     }
@@ -2075,7 +2075,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
 /* harmony import */ var _addins_extendable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/extendable */ "./typescript/circuit/component/addins/extendable.ts");
 /* harmony import */ var _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionHighlights */ "./typescript/circuit/component/addins/connectionHighlights.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../../~constants */ "./typescript/~constants.ts");
+/* harmony import */ var _controlValues__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../../~controlValues */ "./typescript/~controlValues.ts");
 
 
 
@@ -2096,7 +2096,7 @@ const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["de
     _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"].init(component);
     _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__["default"].init(component, false);
     _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"].init(component);
-    if (_constants__WEBPACK_IMPORTED_MODULE_8__["schematicManipulationEnabled"]) {
+    if (_controlValues__WEBPACK_IMPORTED_MODULE_8__["default"].schematicEditingEnabled) {
         _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"].init(component);
         _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"].init(component);
     }
@@ -2523,7 +2523,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
 /* harmony import */ var _addins_extendable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/extendable */ "./typescript/circuit/component/addins/extendable.ts");
 /* harmony import */ var _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionHighlights */ "./typescript/circuit/component/addins/connectionHighlights.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../../~constants */ "./typescript/~constants.ts");
+/* harmony import */ var _controlValues__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../../~controlValues */ "./typescript/~controlValues.ts");
 
 
 
@@ -2545,7 +2545,7 @@ const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["de
     _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"].init(component);
     _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"].init(component);
     _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__["default"].init(component, false);
-    if (_constants__WEBPACK_IMPORTED_MODULE_8__["schematicManipulationEnabled"]) {
+    if (_controlValues__WEBPACK_IMPORTED_MODULE_8__["default"].schematicEditingEnabled) {
         _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"].init(component);
         _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"].init(component);
     }
@@ -2921,7 +2921,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
 /* harmony import */ var _addins_extendable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/extendable */ "./typescript/circuit/component/addins/extendable.ts");
 /* harmony import */ var _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionHighlights */ "./typescript/circuit/component/addins/connectionHighlights.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../../~constants */ "./typescript/~constants.ts");
+/* harmony import */ var _controlValues__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../../~controlValues */ "./typescript/~controlValues.ts");
 
 
 
@@ -2941,7 +2941,7 @@ const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["de
     _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"].init(component);
     _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__["default"].init(component, false);
     _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"].init(component);
-    if (_constants__WEBPACK_IMPORTED_MODULE_8__["schematicManipulationEnabled"]) {
+    if (_controlValues__WEBPACK_IMPORTED_MODULE_8__["default"].schematicEditingEnabled) {
         _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"].init(component);
         _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"].init(component);
     }
@@ -3354,7 +3354,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
 /* harmony import */ var _addins_extendable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/extendable */ "./typescript/circuit/component/addins/extendable.ts");
 /* harmony import */ var _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionHighlights */ "./typescript/circuit/component/addins/connectionHighlights.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../../~constants */ "./typescript/~constants.ts");
+/* harmony import */ var _controlValues__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../../~controlValues */ "./typescript/~controlValues.ts");
 
 
 
@@ -3374,7 +3374,7 @@ const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["de
     _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"].init(component);
     _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__["default"].init(component, false);
     _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"].init(component);
-    if (_constants__WEBPACK_IMPORTED_MODULE_8__["schematicManipulationEnabled"]) {
+    if (_controlValues__WEBPACK_IMPORTED_MODULE_8__["default"].schematicEditingEnabled) {
         _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"].init(component);
         _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"].init(component);
     }
@@ -3841,7 +3841,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_draggable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
 /* harmony import */ var _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/connectionHighlights */ "./typescript/circuit/component/addins/connectionHighlights.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../../~constants */ "./typescript/~constants.ts");
+/* harmony import */ var _controlValues__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../../~controlValues */ "./typescript/~controlValues.ts");
 
 
 
@@ -3860,7 +3860,7 @@ const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["de
     _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"].init(component);
     _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_6__["default"].init(component, false);
     _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"].init(component);
-    if (_constants__WEBPACK_IMPORTED_MODULE_7__["schematicManipulationEnabled"]) {
+    if (_controlValues__WEBPACK_IMPORTED_MODULE_7__["default"].schematicEditingEnabled) {
         _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"].init(component);
     }
 });
@@ -4256,7 +4256,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
 /* harmony import */ var _addins_extendable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/extendable */ "./typescript/circuit/component/addins/extendable.ts");
 /* harmony import */ var _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionHighlights */ "./typescript/circuit/component/addins/connectionHighlights.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../../~constants */ "./typescript/~constants.ts");
+/* harmony import */ var _controlValues__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../../~controlValues */ "./typescript/~controlValues.ts");
 
 
 
@@ -4276,7 +4276,7 @@ const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["de
     _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"].init(component);
     _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__["default"].init(component, false);
     _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"].init(component);
-    if (_constants__WEBPACK_IMPORTED_MODULE_8__["schematicManipulationEnabled"]) {
+    if (_controlValues__WEBPACK_IMPORTED_MODULE_8__["default"].schematicEditingEnabled) {
         _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"].init(component);
         _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"].init(component);
     }
@@ -5137,7 +5137,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
 /* harmony import */ var _addins_extendable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/extendable */ "./typescript/circuit/component/addins/extendable.ts");
 /* harmony import */ var _addins_junctions__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/junctions */ "./typescript/circuit/component/addins/junctions.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../../~constants */ "./typescript/~constants.ts");
+/* harmony import */ var _controlValues__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../../~controlValues */ "./typescript/~controlValues.ts");
 
 
 
@@ -5156,7 +5156,7 @@ const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["de
     _addins_junctions__WEBPACK_IMPORTED_MODULE_7__["default"].init(component);
     _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"].init(component);
     _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"].init(component);
-    if (_constants__WEBPACK_IMPORTED_MODULE_8__["schematicManipulationEnabled"]) {
+    if (_controlValues__WEBPACK_IMPORTED_MODULE_8__["default"].schematicEditingEnabled) {
         _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"].init(component);
         _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"].init(component, true, true);
     }
@@ -5574,7 +5574,7 @@ var Draggable;
         });
         // TODO, I don't quite like how this is coupled together
         if (_mappings__WEBPACK_IMPORTED_MODULE_1__["default"].getComponentMapSafe(component).isBoard &&
-            _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].boardDraggingDisabled.checked) {
+            _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].boardDraggingEnabled.checked) {
             Draggable.disable(component);
         }
     };
@@ -5625,7 +5625,7 @@ var Extendable;
         $(element).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].select, () => {
             createHandles(component);
         });
-        $(element).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw, (e, eOrigin) => {
+        $(element).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw, () => {
             clearHandles(component);
             createHandles(component);
         });
@@ -8152,7 +8152,6 @@ __webpack_require__.r(__webpack_exports__);
 var Ui;
 (function (Ui) {
     function init() {
-        //Maybe
         $("body").layout({
             center: {
                 size: "35%",
@@ -8169,6 +8168,7 @@ var Ui;
                 onopen: () => {
                     _events__WEBPACK_IMPORTED_MODULE_1__["default"].layoutPaneResize();
                 },
+                // Override as the external typings are incorrect in this case
                 size: "30%",
                 minSize: "270",
                 spacing_open: 10,
@@ -8188,6 +8188,7 @@ var Ui;
                     _events__WEBPACK_IMPORTED_MODULE_1__["default"].schematicPaneResize();
                     _events__WEBPACK_IMPORTED_MODULE_1__["default"].layoutPaneResize();
                 },
+                // Override as the external typings are incorrect in this case
                 size: "35%",
                 minSize: "5%",
                 spacing_open: 10,
@@ -8199,27 +8200,37 @@ var Ui;
             collapsible: true,
             heightStyle: "content"
         });
+        // Control Listeners
+        $(document).keydown(function (e) {
+            if (e.key === "z" && e.ctrlKey) {
+                _events__WEBPACK_IMPORTED_MODULE_1__["default"].undo();
+            }
+        });
+        $(document).keydown(function (e) {
+            if (e.key === "y" && e.ctrlKey) {
+                _events__WEBPACK_IMPORTED_MODULE_1__["default"].redo();
+            }
+        });
+        // File listeners
         _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].fileInput.addEventListener('change', (event) => {
             _events__WEBPACK_IMPORTED_MODULE_1__["default"].fileInput(event);
         });
         _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].fileSave.addEventListener('click', (event) => {
             _events__WEBPACK_IMPORTED_MODULE_1__["default"].fileSave(event);
         });
+        // Schematic Listeners
+        _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].schematicEditingEnabled.addEventListener('click', () => {
+            const state = _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].schematicEditingEnabled.checked;
+            _events__WEBPACK_IMPORTED_MODULE_1__["default"].enableSchematicEditingPress(state);
+        });
+        // Board Listeners
+        _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].boardDraggingEnabled.addEventListener('click', (e) => {
+            const state = _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].boardDraggingEnabled.checked;
+            _events__WEBPACK_IMPORTED_MODULE_1__["default"].enableBoardDraggingPress(state);
+        });
+        // Check listeners
         _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].checkCircuitButton.addEventListener('click', () => {
             _events__WEBPACK_IMPORTED_MODULE_1__["default"].checkCircuit();
-        });
-        _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].boardDraggingDisabled.addEventListener('click', () => {
-            _events__WEBPACK_IMPORTED_MODULE_1__["default"].disableBoardDraggingPress();
-        });
-        $(document).keydown(function (e) {
-            if (e.keyCode === 90 && e.ctrlKey) {
-                _events__WEBPACK_IMPORTED_MODULE_1__["default"].undo();
-            }
-        });
-        $(document).keydown(function (e) {
-            if (e.keyCode === 89 && e.ctrlKey) {
-                _events__WEBPACK_IMPORTED_MODULE_1__["default"].redo();
-            }
         });
     }
     Ui.init = init;
@@ -8239,14 +8250,16 @@ var Ui;
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _nodeElements__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../~nodeElements */ "./typescript/~nodeElements.ts");
-/* harmony import */ var _active__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../~active */ "./typescript/~active.ts");
-/* harmony import */ var _fileIO_load_handleFileInputEvent__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../fileIO/load/-handleFileInputEvent */ "./typescript/fileIO/load/-handleFileInputEvent.ts");
-/* harmony import */ var _fileIO_save_handleFileSaveEvent__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../fileIO/save/-handleFileSaveEvent */ "./typescript/fileIO/save/-handleFileSaveEvent.ts");
-/* harmony import */ var _circuit_history__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../circuit/history */ "./typescript/circuit/history.ts");
-/* harmony import */ var _circuit_manifest__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../circuit/manifest */ "./typescript/circuit/manifest.ts");
-/* harmony import */ var _circuit_component_stripboard_maps__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../circuit/component/_stripboard/-maps */ "./typescript/circuit/component/_stripboard/-maps.ts");
-/* harmony import */ var _circuit_component_breadboard_maps__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../circuit/component/_breadboard/-maps */ "./typescript/circuit/component/_breadboard/-maps.ts");
-/* harmony import */ var _circuit_component_addins_draggable__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../circuit/component/addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
+/* harmony import */ var _controlValues__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../~controlValues */ "./typescript/~controlValues.ts");
+/* harmony import */ var _active__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../~active */ "./typescript/~active.ts");
+/* harmony import */ var _fileIO_load_handleFileInputEvent__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../fileIO/load/-handleFileInputEvent */ "./typescript/fileIO/load/-handleFileInputEvent.ts");
+/* harmony import */ var _fileIO_save_handleFileSaveEvent__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../fileIO/save/-handleFileSaveEvent */ "./typescript/fileIO/save/-handleFileSaveEvent.ts");
+/* harmony import */ var _circuit_history__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../circuit/history */ "./typescript/circuit/history.ts");
+/* harmony import */ var _circuit_manifest__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../circuit/manifest */ "./typescript/circuit/manifest.ts");
+/* harmony import */ var _circuit_component_stripboard_maps__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../circuit/component/_stripboard/-maps */ "./typescript/circuit/component/_stripboard/-maps.ts");
+/* harmony import */ var _circuit_component_breadboard_maps__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../circuit/component/_breadboard/-maps */ "./typescript/circuit/component/_breadboard/-maps.ts");
+/* harmony import */ var _circuit_component_addins_draggable__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../circuit/component/addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
+
 
 
 
@@ -8259,6 +8272,20 @@ __webpack_require__.r(__webpack_exports__);
 //import * as $ from 'jquery';
 var Events;
 (function (Events) {
+    // Control (explicit)
+    function undo() {
+        if (_circuit_history__WEBPACK_IMPORTED_MODULE_5__["default"] !== undefined) {
+            _circuit_history__WEBPACK_IMPORTED_MODULE_5__["default"].undo();
+        }
+    }
+    Events.undo = undo;
+    function redo() {
+        if (_circuit_history__WEBPACK_IMPORTED_MODULE_5__["default"] !== undefined) {
+            _circuit_history__WEBPACK_IMPORTED_MODULE_5__["default"].redo();
+        }
+    }
+    Events.redo = redo;
+    // Controls (implicit)
     function fitDiagramContents(diagram) {
         let rootEl = diagram.root.element.element;
         let group = diagram.group;
@@ -8276,24 +8303,42 @@ var Events;
     }
     function schematicPaneResize() {
         window.setTimeout(() => {
-            fitDiagramContents(_active__WEBPACK_IMPORTED_MODULE_1__["default"].schematic);
+            fitDiagramContents(_active__WEBPACK_IMPORTED_MODULE_2__["default"].schematic);
         }, 5);
     }
     Events.schematicPaneResize = schematicPaneResize;
     function layoutPaneResize() {
         window.setTimeout(() => {
-            fitDiagramContents(_active__WEBPACK_IMPORTED_MODULE_1__["default"].layout);
+            fitDiagramContents(_active__WEBPACK_IMPORTED_MODULE_2__["default"].layout);
         }, 5);
     }
     Events.layoutPaneResize = layoutPaneResize;
+    // File
     function fileInput(event) {
-        Object(_fileIO_load_handleFileInputEvent__WEBPACK_IMPORTED_MODULE_2__["handleFileInputEvent"])(event);
+        Object(_fileIO_load_handleFileInputEvent__WEBPACK_IMPORTED_MODULE_3__["handleFileInputEvent"])(event);
     }
     Events.fileInput = fileInput;
     function fileSave(event) {
-        Object(_fileIO_save_handleFileSaveEvent__WEBPACK_IMPORTED_MODULE_3__["default"])(event);
+        Object(_fileIO_save_handleFileSaveEvent__WEBPACK_IMPORTED_MODULE_4__["default"])(event);
     }
     Events.fileSave = fileSave;
+    // Schematic
+    function enableSchematicEditingPress(isChecked) {
+        _controlValues__WEBPACK_IMPORTED_MODULE_1__["default"].schematicEditingEnabled = isChecked;
+    }
+    Events.enableSchematicEditingPress = enableSchematicEditingPress;
+    // Board
+    function addBoard(board) {
+        if (_circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].activeBoard !== undefined) {
+            _circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].removeComponent(_circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].activeBoard);
+            _circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].addComponent(_circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].layout, board);
+            _circuit_history__WEBPACK_IMPORTED_MODULE_5__["default"].mergeLast();
+        }
+        else {
+            _circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].addComponent(_circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].layout, board);
+        }
+        _circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].activeBoard = board;
+    }
     function makeStripBoardButtonPress() {
         let rowElement = _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].stripboardRows;
         let columnElement = _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].stripboardColumns;
@@ -8302,7 +8347,7 @@ var Events;
         if (rows && columns &&
             rows >= parseInt(rowElement.min) && columns >= parseInt(columnElement.min) &&
             rows <= parseInt(rowElement.max) && columns <= parseInt(columnElement.max)) {
-            addBoard(_circuit_component_stripboard_maps__WEBPACK_IMPORTED_MODULE_6__["default"].layout.make({
+            addBoard(_circuit_component_stripboard_maps__WEBPACK_IMPORTED_MODULE_7__["default"].layout.make({
                 rows: rows,
                 columns: columns
             }));
@@ -8310,37 +8355,27 @@ var Events;
     }
     Events.makeStripBoardButtonPress = makeStripBoardButtonPress;
     function makeBreadBoardSmallButtonPress() {
-        addBoard(_circuit_component_breadboard_maps__WEBPACK_IMPORTED_MODULE_7__["default"].layoutSmall.make({}));
+        addBoard(_circuit_component_breadboard_maps__WEBPACK_IMPORTED_MODULE_8__["default"].layoutSmall.make({}));
     }
     Events.makeBreadBoardSmallButtonPress = makeBreadBoardSmallButtonPress;
     function makeBreadBoardLargeButtonPress() {
-        addBoard(_circuit_component_breadboard_maps__WEBPACK_IMPORTED_MODULE_7__["default"].layoutLarge.make({}));
+        addBoard(_circuit_component_breadboard_maps__WEBPACK_IMPORTED_MODULE_8__["default"].layoutLarge.make({}));
     }
     Events.makeBreadBoardLargeButtonPress = makeBreadBoardLargeButtonPress;
-    function addBoard(board) {
-        if (_circuit_manifest__WEBPACK_IMPORTED_MODULE_5__["default"].activeBoard !== undefined) {
-            _circuit_manifest__WEBPACK_IMPORTED_MODULE_5__["default"].removeComponent(_circuit_manifest__WEBPACK_IMPORTED_MODULE_5__["default"].activeBoard);
-            _circuit_manifest__WEBPACK_IMPORTED_MODULE_5__["default"].addComponent(_circuit_manifest__WEBPACK_IMPORTED_MODULE_5__["default"].layout, board);
-            _circuit_history__WEBPACK_IMPORTED_MODULE_4__["default"].mergeLast();
-        }
-        else {
-            _circuit_manifest__WEBPACK_IMPORTED_MODULE_5__["default"].addComponent(_circuit_manifest__WEBPACK_IMPORTED_MODULE_5__["default"].layout, board);
-        }
-        _circuit_manifest__WEBPACK_IMPORTED_MODULE_5__["default"].activeBoard = board;
-    }
-    function disableBoardDraggingPress() {
-        if (_circuit_manifest__WEBPACK_IMPORTED_MODULE_5__["default"].activeBoard !== undefined) {
-            if (_nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].boardDraggingDisabled.checked) {
-                _circuit_component_addins_draggable__WEBPACK_IMPORTED_MODULE_8__["default"].disable(_circuit_manifest__WEBPACK_IMPORTED_MODULE_5__["default"].activeBoard);
+    function enableBoardDraggingPress(isChecked) {
+        if (_circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].activeBoard !== undefined) {
+            if (isChecked) {
+                _circuit_component_addins_draggable__WEBPACK_IMPORTED_MODULE_9__["default"].enable(_circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].activeBoard);
             }
             else {
-                _circuit_component_addins_draggable__WEBPACK_IMPORTED_MODULE_8__["default"].enable(_circuit_manifest__WEBPACK_IMPORTED_MODULE_5__["default"].activeBoard);
+                _circuit_component_addins_draggable__WEBPACK_IMPORTED_MODULE_9__["default"].disable(_circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].activeBoard);
             }
         }
     }
-    Events.disableBoardDraggingPress = disableBoardDraggingPress;
+    Events.enableBoardDraggingPress = enableBoardDraggingPress;
+    // Check
     function checkCircuit() {
-        let circuitStatus = _circuit_manifest__WEBPACK_IMPORTED_MODULE_5__["default"].checkAll();
+        let circuitStatus = _circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].checkAll();
         let doHighlightCorrect = _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].checkShowCorrect.checked;
         let doHighlightIncorrect = _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].checkShowIncorrect.checked;
         const highlightCheck = () => {
@@ -8394,18 +8429,6 @@ var Events;
         _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].checkStatusText.innerText = "Correct: " + completion + "%";
     }
     Events.checkCircuit = checkCircuit;
-    function undo() {
-        if (_circuit_history__WEBPACK_IMPORTED_MODULE_4__["default"] !== undefined) {
-            _circuit_history__WEBPACK_IMPORTED_MODULE_4__["default"].undo();
-        }
-    }
-    Events.undo = undo;
-    function redo() {
-        if (_circuit_history__WEBPACK_IMPORTED_MODULE_4__["default"] !== undefined) {
-            _circuit_history__WEBPACK_IMPORTED_MODULE_4__["default"].redo();
-        }
-    }
-    Events.redo = redo;
 })(Events || (Events = {}));
 /* harmony default export */ __webpack_exports__["default"] = (Events);
 
@@ -8878,17 +8901,33 @@ var Active;
 /*!**********************************!*\
   !*** ./typescript/~constants.ts ***!
   \**********************************/
-/*! exports provided: gridSpacing, svgURI, schematicManipulationEnabled */
+/*! exports provided: gridSpacing, svgURI */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "gridSpacing", function() { return gridSpacing; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "svgURI", function() { return svgURI; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "schematicManipulationEnabled", function() { return schematicManipulationEnabled; });
 const gridSpacing = 20;
 const svgURI = "http://www.w3.org/2000/svg";
-const schematicManipulationEnabled = false;
+
+
+/***/ }),
+
+/***/ "./typescript/~controlValues.ts":
+/*!**************************************!*\
+  !*** ./typescript/~controlValues.ts ***!
+  \**************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+var ControlValues;
+(function (ControlValues) {
+    ControlValues.schematicEditingEnabled = false;
+})(ControlValues || (ControlValues = {}));
+/* harmony default export */ __webpack_exports__["default"] = (ControlValues);
 
 
 /***/ }),
@@ -8910,10 +8949,12 @@ var NodeElements;
         NodeElements.fileInput = $("input#fileInput")[0];
         NodeElements.fileSave = $("input#fileSave")[0];
         NodeElements.fileStatusText = $("p#fileStatusText")[0];
+        //Schematic Editing
+        NodeElements.schematicEditingEnabled = $("input#schematicEditingEnabled")[0];
         //Board Control
         NodeElements.stripboardRows = $("input#stripboardRows")[0];
         NodeElements.stripboardColumns = $("input#stripboardColumns")[0];
-        NodeElements.boardDraggingDisabled = $("input#boardDraggingDisabled")[0];
+        NodeElements.boardDraggingEnabled = $("input#boardDraggingDisabled")[0];
         //Checking
         NodeElements.checkCircuitButton = $("input#checkCircuitButton")[0];
         NodeElements.checkShowCorrect = $("input#checkShowCorrect")[0];
