@@ -1,4 +1,5 @@
 import NodeElements from "../~nodeElements";
+import ControlValues from "../~controlValues";
 import Active from "../~active";
 import { handleFileInputEvent } from "../fileIO/load/-handleFileInputEvent";
 import handleFileSaveEvent from "../fileIO/save/-handleFileSaveEvent";
@@ -12,6 +13,20 @@ import Draggable from "../circuit/component/addins/draggable";
 //import * as $ from 'jquery';
 
 namespace Events {
+
+   // Control (explicit)
+   export function undo() {
+      if (history !== undefined) {
+         history.undo();
+      }
+   }
+   export function redo() {
+      if (history !== undefined) {
+         history.redo();
+      }
+   }
+
+   // Controls (implicit)
    function fitDiagramContents(diagram: Diagram) {
       let rootEl = diagram.root.element.element;
       let group = diagram.group;
@@ -32,27 +47,41 @@ namespace Events {
       let transformString = "translate(" + offsetX + " " + offsetY + ")" + "scale(" + scaleMin + ")";
       group.element.setAttribute('transform', transformString);
    }
-
    export function schematicPaneResize() {
       window.setTimeout(() => {
          fitDiagramContents(Active.schematic);
       }, 5);
    }
-
    export function layoutPaneResize() {
       window.setTimeout(() => {
          fitDiagramContents(Active.layout);
       }, 5);
    }
 
+   // File
    export function fileInput(event: Event) {
       handleFileInputEvent(event);
    }
-
    export function fileSave(event: Event) {
       handleFileSaveEvent(event);
    }
 
+   // Schematic
+   export function enableSchematicEditingPress(isChecked: boolean) {
+      ControlValues.schematicEditingEnabled = isChecked;
+   }
+
+   // Board
+   function addBoard(board: Component) {
+      if (manifest.activeBoard !== undefined) {
+         manifest.removeComponent(manifest.activeBoard);
+         manifest.addComponent(manifest.layout, board);
+         history.mergeLast();
+      } else {
+         manifest.addComponent(manifest.layout, board);
+      }
+      manifest.activeBoard = board;
+   }
    export function makeStripBoardButtonPress() {
       let rowElement = NodeElements.stripboardRows;
       let columnElement = NodeElements.stripboardColumns;
@@ -70,36 +99,23 @@ namespace Events {
          }));
       }
    }
-
    export function makeBreadBoardSmallButtonPress() {
       addBoard(BreadboardMaps.layoutSmall.make({}));
    }
-
    export function makeBreadBoardLargeButtonPress() {
       addBoard(BreadboardMaps.layoutLarge.make({}));
    }
-
-   function addBoard(board: Component) {
+   export function enableBoardDraggingPress(isChecked: boolean) {
       if (manifest.activeBoard !== undefined) {
-         manifest.removeComponent(manifest.activeBoard);
-         manifest.addComponent(manifest.layout, board);
-         history.mergeLast();
-      } else {
-         manifest.addComponent(manifest.layout, board);
-      }
-      manifest.activeBoard = board;
-   }
-
-   export function disableBoardDraggingPress() {
-      if (manifest.activeBoard !== undefined) {
-         if (NodeElements.boardDraggingDisabled.checked) {
-            Draggable.disable(manifest.activeBoard)
-         } else {
+         if (isChecked) {
             Draggable.enable(manifest.activeBoard)
+         } else {
+            Draggable.disable(manifest.activeBoard)
          }
       }
    }
 
+   // Check
    export function checkCircuit() {
       let circuitStatus = manifest.checkAll();
 
@@ -158,17 +174,7 @@ namespace Events {
       NodeElements.checkStatusText.innerText = "Correct: " + completion + "%";
    }
 
-   export function undo() {
-      if (history !== undefined) {
-         history.undo();
-      }
-   }
 
-   export function redo() {
-      if (history !== undefined) {
-         history.redo();
-      }
-   }
 }
 
 export default Events;

@@ -3,10 +3,7 @@ import Events from "./~events";
 //import * as $ from 'jquery';
 namespace Ui {
    export function init() {
-
-      //Maybe
       $("body").layout({
-
          center: {
             size: "35%",
             spacing_open: 10,
@@ -22,8 +19,9 @@ namespace Ui {
             onopen: () => {
                Events.layoutPaneResize();
             },
-            size: "30%",
-            minSize: "270",
+            // Override as the external typings are incorrect in this case
+            size: "30%" as unknown as number,
+            minSize: "270" as unknown as number,
             spacing_open: 10,
             spacing_closed: 10,
             slidable: false,
@@ -41,8 +39,9 @@ namespace Ui {
                Events.schematicPaneResize();
                Events.layoutPaneResize();
             },
-            size: "35%",
-            minSize: "5%",
+            // Override as the external typings are incorrect in this case
+            size: "35%" as unknown as number,
+            minSize: "5%" as unknown as number,
             spacing_open: 10,
             spacing_closed: 10,
             slidable: false,
@@ -55,35 +54,41 @@ namespace Ui {
          heightStyle: "content"
       });
 
+      // Control Listeners
+      $(document).keydown(function (e) {
+         if (e.key === "z" && e.ctrlKey) {
+            Events.undo();
+         }
+      });
+      $(document).keydown(function (e) {
+         if (e.key === "y" && e.ctrlKey) {
+            Events.redo();
+         }
+      });
 
-
-
+      // File listeners
       NodeElements.fileInput.addEventListener('change', (event: Event) => {
          Events.fileInput(event);
       });
-
       NodeElements.fileSave.addEventListener('click', (event: Event) => {
          Events.fileSave(event);
       });
 
+      // Schematic Listeners
+      NodeElements.schematicEditingEnabled.addEventListener('click', () => {
+         const state: boolean = NodeElements.schematicEditingEnabled.checked;
+         Events.enableSchematicEditingPress(state)
+      });
+
+      // Board Listeners
+      NodeElements.boardDraggingEnabled.addEventListener('click', (e) => {
+         const state: boolean = NodeElements.boardDraggingEnabled.checked;
+         Events.enableBoardDraggingPress(state);
+      });
+
+      // Check listeners
       NodeElements.checkCircuitButton.addEventListener('click', () => {
          Events.checkCircuit()
-      });
-
-      NodeElements.boardDraggingDisabled.addEventListener('click', () => {
-         Events.disableBoardDraggingPress()
-      });
-
-      $(document).keydown(function (e) {
-         if (e.keyCode === 90 && e.ctrlKey) {
-            Events.undo();
-         }
-      });
-
-      $(document).keydown(function (e) {
-         if (e.keyCode === 89 && e.ctrlKey) {
-            Events.redo();
-         }
       });
    }
 }
