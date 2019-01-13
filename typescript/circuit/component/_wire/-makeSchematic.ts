@@ -7,8 +7,7 @@ import Draggable from "../addins/draggable";
 import Selectable from "../addins/selectable";
 import Extendable from "../addins/extendable";
 import Junctions from "../addins/junctions"
-
-import { schematicManipulationEnabled } from "../../../~constants";
+import ControlValues from "../../../~controlValues";
 
 const defaulterSchematic: ValueCheck.Defaulter<Types.valuesSchematic> = {
    name: ValueCheck.validate("string", "wire"),
@@ -25,7 +24,7 @@ export const makeSchematic = getMaker(
       Junctions.init(component);
       Selectable.init(component);
       Graphical.init(component);
-      if (schematicManipulationEnabled) {
+      if (ControlValues.schematicEditingEnabled) {
          Draggable.init(component);
          Extendable.init(component, true, true);
       }

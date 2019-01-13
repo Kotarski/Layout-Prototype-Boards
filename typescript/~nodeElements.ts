@@ -5,10 +5,13 @@ namespace NodeElements {
    export let fileSave: HTMLInputElement;
    export let fileStatusText: HTMLParagraphElement;
 
+   //Schematic Editing
+   export let schematicEditingEnabled: HTMLInputElement;
+
    //Board Control
    export let stripboardRows: HTMLInputElement;
    export let stripboardColumns: HTMLInputElement;
-   export let boardDraggingDisabled: HTMLInputElement;
+   export let boardDraggingEnabled: HTMLInputElement;
 
    //Checking
    export let checkCircuitButton: HTMLInputElement;
@@ -26,10 +29,13 @@ namespace NodeElements {
       NodeElements.fileSave = $("input#fileSave")[0] as HTMLInputElement;
       NodeElements.fileStatusText = $("p#fileStatusText")[0] as HTMLParagraphElement;
 
+      //Schematic Editing
+      NodeElements.schematicEditingEnabled = $("input#schematicEditingEnabled")[0] as HTMLInputElement;
+
       //Board Control
       NodeElements.stripboardRows = $("input#stripboardRows")[0] as HTMLInputElement;
       NodeElements.stripboardColumns = $("input#stripboardColumns")[0] as HTMLInputElement;
-      NodeElements.boardDraggingDisabled = $("input#boardDraggingDisabled")[0] as HTMLInputElement;
+      NodeElements.boardDraggingEnabled = $("input#boardDraggingDisabled")[0] as HTMLInputElement;
 
       //Checking
       NodeElements.checkCircuitButton = $("input#checkCircuitButton")[0] as HTMLInputElement;
