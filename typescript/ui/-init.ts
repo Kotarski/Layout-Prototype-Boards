@@ -22,8 +22,8 @@ namespace Ui {
             onopen: () => {
                Events.layoutPaneResize();
             },
-            size: "30%",
-            minSize: "270",
+            size: "30%" as unknown as number,
+            minSize: "270" as unknown as number,
             spacing_open: 10,
             spacing_closed: 10,
             slidable: false,
@@ -41,8 +41,8 @@ namespace Ui {
                Events.schematicPaneResize();
                Events.layoutPaneResize();
             },
-            size: "35%",
-            minSize: "5%",
+            size: "35%" as unknown as number,
+            minSize: "5%" as unknown as number,
             spacing_open: 10,
             spacing_closed: 10,
             slidable: false,
