@@ -35,7 +35,7 @@ namespace NodeElements {
       //Board Control
       NodeElements.stripboardRows = $("input#stripboardRows")[0] as HTMLInputElement;
       NodeElements.stripboardColumns = $("input#stripboardColumns")[0] as HTMLInputElement;
-      NodeElements.boardDraggingEnabled = $("input#boardDraggingDisabled")[0] as HTMLInputElement;
+      NodeElements.boardDraggingEnabled = $("input#boardDraggingEnabled")[0] as HTMLInputElement;
 
       //Checking
       NodeElements.checkCircuitButton = $("input#checkCircuitButton")[0] as HTMLInputElement;

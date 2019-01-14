@@ -8954,7 +8954,7 @@ var NodeElements;
         //Board Control
         NodeElements.stripboardRows = $("input#stripboardRows")[0];
         NodeElements.stripboardColumns = $("input#stripboardColumns")[0];
-        NodeElements.boardDraggingEnabled = $("input#boardDraggingDisabled")[0];
+        NodeElements.boardDraggingEnabled = $("input#boardDraggingEnabled")[0];
         //Checking
         NodeElements.checkCircuitButton = $("input#checkCircuitButton")[0];
         NodeElements.checkShowCorrect = $("input#checkShowCorrect")[0];
