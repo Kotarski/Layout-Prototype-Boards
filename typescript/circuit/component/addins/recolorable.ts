@@ -1,28 +1,28 @@
 import Component from "../../+component";;
 import Events from "../../events";
-import { Vector } from "../../../-vector"
+import toVector from "../../../utility/polar/-toVector"
+import vector, { Vector } from "../../../-vector";
 import { make as makeCircle } from "../../../svg/element/+circle";
 import { make as makeRect } from "../../../svg/element/+rect";
 import { make as makeGroup } from "../../../svg/element/+group";
 //import * as $ from 'jquery';
-namespace Recolorable {
 
-   type colorPalette = string[];
-   type recolorableComponent = Component & { color: string };
+type colorPalette = string[];
+type recolorableComponent = Component & { color: string, joints: Vector[] };
 
-   export const init = (
+const Recolorable = (() => {
+   const init = (
       component: recolorableComponent,
-      where: () => Vector,
       colorPalette: colorPalette = defaultColorPalette
    ) => {
       const element = component.group.element;
 
       $(element).on(Events.select, () => {
-         createRecolorHandle(component, where(), colorPalette);
+         createRecolorHandle(component, colorPalette);
       });
       $(element).on(Events.draw, () => {
          clearRecolorHandle(component);
-         createRecolorHandle(component, where(), colorPalette);
+         createRecolorHandle(component, colorPalette);
       });
       $(element).on(Events.deselect, () => {
          clearRecolorHandle(component);
@@ -35,25 +35,25 @@ namespace Recolorable {
       $(component.group.element).trigger(Events.draw);
    };
 
-   const createRecolorHandle = (component: recolorableComponent, position: Vector, colorPalette: colorPalette) => {
+   const createRecolorHandle = (component: recolorableComponent, colorPalette: colorPalette) => {
 
-      let recolorSegmentGroup = makeGroup("recolorSegmentGroup");
-      let recolorHandle = makeCircle(position, 7, "handle recolorHandle");
+      const position = getRecolorPosition(component);
+
+      const recolorSegmentGroup = makeGroup("recolorSegmentGroup");
+      const recolorHandle = makeCircle(position, 7, "handle recolorHandle");
 
       //Segments
-      let segment1 = makeRect(
+      const segment1 = makeRect(
          position, { width: 10, height: 20 }, undefined, "recolorHandleSegment"
       ).rotate(45, position).translate({ x: -4, y: -4 });
-      let segment2 = makeRect(
+      const segment2 = makeRect(
          position, { width: 10, height: 20 }, undefined, "recolorHandleSegment"
       ).rotate(45, position).translate({ x: 4, y: 4 });
 
       $(segment1.element).css("fill", "#4fd56b");
       $(segment2.element).css("fill", "#d54f6b");
 
-
       recolorSegmentGroup.append(segment1, segment2)
-
       component.group.append(recolorHandle, recolorSegmentGroup);
 
       $(recolorHandle.element).on("click", () => {
@@ -74,6 +74,12 @@ namespace Recolorable {
       $(component.group.element).find(".recolorSegmentGroup").remove();
    }
 
+   const getRecolorPosition = (component: recolorableComponent): Vector => {
+      const angle = vector(component.joints[0]).getAngleTo(component.joints[1]);
+      const offset = toVector(12, angle + 45);
+      return vector(component.joints[0]).sumWith(offset).vector;
+   }
+
    const defaultColorPalette: colorPalette = [
       "#545454", //"Black"
       "red",
@@ -84,6 +90,6 @@ namespace Recolorable {
       "pink"
    ]
 
-}
-
+   return { init }
+})()
 export default Recolorable;

@@ -17,17 +17,15 @@ const defaulterSchematic: ValueCheck.Defaulter<Types.valuesSchematic> = {
    )
 };
 
-
+// TODO: Pass in options for extendable and others (options={?}) (true,true)
 export const makeSchematic = getMaker(
-   Schematic, defaulterSchematic,
-   (component: Schematic) => {
-      Junctions.init(component);
-      Selectable.init(component);
-      Graphical.init(component);
-      if (ControlValues.schematicEditingEnabled) {
-         Draggable.init(component);
-         Extendable.init(component, true, true);
-      }
-   }
-);
+   Schematic, defaulterSchematic, [
+      Junctions,
+      Selectable,
+      Graphical,
+      ...ControlValues.schematicEditingEnabled ? [
+         Draggable,
+         Extendable
+      ] : []
+   ]);
 export default makeSchematic;

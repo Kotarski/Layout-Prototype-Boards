@@ -16,8 +16,6 @@
    <link rel="stylesheet" type="text/css" href="../css/layout.css">
 
    <!-- Dependencies -->
-   <script src="../node_modules/react/umd/react.development.js"></script>
-   <script src="../node_modules/react-dom/umd/react-dom.development.js"></script>
    <script src="./plugins/jquery-3.3.1.min.js"></script>
    <script src="./plugins/jquery-ui.min.js"></script>
    <script src="./plugins/jquery.layout-1.4.4-mod.js"></script>
@@ -85,7 +83,7 @@
          <div style="text-align: center">
             <p>
                <form class="stripboardform" onsubmit="return false;">
-                  <button onclick="Ui.Events.makeStripBoardButtonPress();">Stripboard </button>
+                  <input id="makeStripboard" type="button" value="Stripboard" />
                   <label for="stripboardRows">Size: </label>
                   <input type="number" id="stripboardRows" value="10" min="1" max="30" required>
                   <label for="stripboardColumns">x</label>
@@ -93,10 +91,10 @@
                </form>
             </p>
             <p>
-               <input type="button" value="Half-size Breadboard " onclick="Ui.Events.makeBreadBoardSmallButtonPress()" />
+               <input id="makeHalfBreadboard" type="button" value="Half-size Breadboard" />
             </p>
             <p>
-               <input type="button" value="Full-size Breadboard" onclick="Ui.Events.makeBreadBoardLargeButtonPress()" />
+               <input id="makeFullBreadboard" type="button" value="Full-size Breadboard" />
             </p>
             <p>
                <label for="boardDraggingEnabled">Enable Board Dragging</label>

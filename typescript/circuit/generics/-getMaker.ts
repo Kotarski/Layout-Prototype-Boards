@@ -4,6 +4,9 @@ import loadObjectWithDefaults from "./-loadObjectWithDefaults";
 import * as GlobalTypes from "../../++types";
 //import * as $ from 'jquery';
 
+type Addin<T extends Component> = {
+   init: (component: T) => void
+}
 export default interface getMaker<
    C extends Component,
    V extends ReturnType<C["getProperties"]> & ReturnType<C["getState"]>
@@ -23,7 +26,7 @@ export default function getMaker<
    >(
       instanceClass: { new(values: V): C },
       defaulter: ValueCheck.Defaulter<V>,
-      initialiser: (component: C) => void) {
+      addins: Addin<C>[] = []) {
    return (
       partialValues: GlobalTypes.DeepPartial<V>,
       log = true
@@ -37,7 +40,9 @@ export default function getMaker<
       }/*LOGEND*/
 
       const component = new instanceClass(values) as C;
-      if (initialiser) initialiser(component);
+
+      addins.forEach(addin => addin.init(component))
+
       component.draw();
       component.makeConnectors();
 

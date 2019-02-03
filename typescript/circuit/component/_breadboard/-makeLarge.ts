@@ -17,13 +17,11 @@ const defaulterLarge: ValueCheck.Defaulter<Types.values> = {
    ),
 };
 
-const makeLarge = getMaker(Large, defaulterLarge,
-   (component: Large) => {
-      Graphical.init(component);
-      Board.init(component);
-      Selectable.init(component);
-      WireCreation.init(component);
-      Draggable.init(component);
-   }
-);
+const makeLarge = getMaker(Large, defaulterLarge, [
+   Graphical,
+   Board,
+   Selectable,
+   WireCreation,
+   Draggable
+]);
 export default makeLarge;

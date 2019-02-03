@@ -106,6 +106,7 @@ namespace Events {
       addBoard(BreadboardMaps.layoutLarge.make({}));
    }
    export function enableBoardDraggingPress(isChecked: boolean) {
+      ControlValues.boardDraggingEnabled = isChecked;
       if (manifest.activeBoard !== undefined) {
          if (isChecked) {
             Draggable.enable(manifest.activeBoard)
@@ -116,43 +117,43 @@ namespace Events {
    }
 
    // Check
+   export function highlightCorrectComponentsPress(isChecked: boolean) {
+      ControlValues.highlightCorrectComponents = isChecked;
+   }
+   export function highlightIncorrectComponentsPress(isChecked: boolean) {
+      ControlValues.highlightIncorrectComponents = isChecked;
+   }
+   // TODO: Move this
    export function checkCircuit() {
       let circuitStatus = manifest.checkAll();
-
-
-      let doHighlightCorrect = NodeElements.checkShowCorrect.checked;
-      let doHighlightIncorrect = NodeElements.checkShowIncorrect.checked;
-
       const highlightCheck = () => {
-         if (doHighlightIncorrect) {
+         if (ControlValues.highlightIncorrectComponents) {
             circuitStatus.incorrects.forEach(incorrect => {
                $(incorrect.group.element).find(".highlight").css("stroke", "red");
                $(incorrect.group.element).find(".highlightwithfill").css("fill", "red");;
             });
          }
-         if (doHighlightCorrect) {
+         if (ControlValues.highlightCorrectComponents) {
             circuitStatus.corrects.forEach(correct => {
                $(correct.group.element).find(".highlight").css("stroke", "green");
                $(correct.group.element).find(".highlightwithfill").css("fill", "green");;
             });
          }
       }
-
       const clearHighlightCheck = () => {
-         if (doHighlightIncorrect) {
+         if (ControlValues.highlightIncorrectComponents) {
             circuitStatus.incorrects.forEach(incorrect => {
                $(incorrect.group.element).find(".highlight").css("stroke", "");
                $(incorrect.group.element).find(".highlightwithfill").css("fill", "");
             });
          }
-         if (doHighlightCorrect) {
+         if (ControlValues.highlightCorrectComponents) {
             circuitStatus.corrects.forEach(correct => {
                $(correct.group.element).find(".highlight").css("stroke", "");
                $(correct.group.element).find(".highlightwithfill").css("fill", "");;
             });
          }
       }
-
       highlightCheck();
       window.setTimeout(() => {
          clearHighlightCheck();

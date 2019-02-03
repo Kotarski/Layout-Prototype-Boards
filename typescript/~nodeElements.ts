@@ -11,6 +11,9 @@ namespace NodeElements {
    //Board Control
    export let stripboardRows: HTMLInputElement;
    export let stripboardColumns: HTMLInputElement;
+   export let makeStripboard: HTMLInputElement;
+   export let makeHalfBreadboard: HTMLInputElement;
+   export let makeFullBreadboard: HTMLInputElement;
    export let boardDraggingEnabled: HTMLInputElement;
 
    //Checking
@@ -35,6 +38,9 @@ namespace NodeElements {
       //Board Control
       NodeElements.stripboardRows = $("input#stripboardRows")[0] as HTMLInputElement;
       NodeElements.stripboardColumns = $("input#stripboardColumns")[0] as HTMLInputElement;
+      NodeElements.makeStripboard = $("input#makeStripboard")[0] as HTMLInputElement;
+      NodeElements.makeHalfBreadboard = $("input#makeHalfBreadboard")[0] as HTMLInputElement;
+      NodeElements.makeFullBreadboard = $("input#makeFullBreadboard")[0] as HTMLInputElement;
       NodeElements.boardDraggingEnabled = $("input#boardDraggingEnabled")[0] as HTMLInputElement;
 
       //Checking

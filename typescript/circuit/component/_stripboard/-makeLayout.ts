@@ -34,15 +34,13 @@ function validateTrackBreaks<T extends Types.trackBreak[]>(fallback: T): ValueCh
    return result;
 }
 
-const makeLayout = getMaker(Layout, defaulterLayout,
-   (component: Layout) => {
-      Graphical.init(component);
-      Board.init(component, true);
-      Selectable.init(component);
-      WireCreation.init(component);
-      Draggable.init(component);
-      Rotatable.init(component);
-   }
-);
+const makeLayout = getMaker(Layout, defaulterLayout, [
+   Graphical,
+   Board,
+   Selectable,
+   WireCreation,
+   Draggable,
+   Rotatable
+]);
 export default makeLayout;
 

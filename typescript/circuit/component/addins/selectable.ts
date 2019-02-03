@@ -2,8 +2,8 @@ import Component from "../../+component";
 import Events from "../../events";
 import manifest from "../../manifest";
 //import * as $ from 'jquery';
-namespace Selectable {
-   export const init = (component: Component) => {
+const Selectable = (() => {
+   const init = (component: Component) => {
       setSelectTrigger(component);
       setDisplayHandlers(component);
    }
@@ -77,5 +77,7 @@ namespace Selectable {
          $(component.group.element).removeClass("selected");
       })
    }
-}
+
+   return { init }
+})()
 export default Selectable;

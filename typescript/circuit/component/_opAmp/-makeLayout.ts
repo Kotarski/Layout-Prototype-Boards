@@ -19,13 +19,11 @@ const defaulterLayout: ValueCheck.Defaulter<Types.valuesLayout> = {
    offsetVoltage: ValueCheck.validate("number", 0)
 };
 
-const makeLayout = getMaker(Layout, defaulterLayout,
-   (component: Layout) => {
-      Graphical.init(component);
-      Draggable.init(component);
-      Rotatable.init(component);
-      Selectable.init(component);
-      ConnectionHighlights.init(component);
-   }
-);
+const makeLayout = getMaker(Layout, defaulterLayout, [
+   Graphical,
+   Draggable,
+   Rotatable,
+   Selectable,
+   ConnectionHighlights
+]);
 export default makeLayout;

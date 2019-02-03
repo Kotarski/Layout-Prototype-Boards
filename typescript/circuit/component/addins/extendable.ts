@@ -8,9 +8,10 @@ import SvgDraggable from "../../../svg/addins/draggable";
 import isNot from "../../../utility/-isNot";
 //import * as $ from 'jquery';
 
-namespace Extendable {
-   type extendableComponent = Component & { joints: Vector[] };
-   export const init = (
+type extendableComponent = Component & { joints: Vector[] };
+
+const Extendable = (() => {
+   const init = (
       component: extendableComponent,
       canAddJoints: boolean = false,
       canRemoveJoints: boolean = false,
@@ -40,11 +41,9 @@ namespace Extendable {
       if (canRemoveComponent) initComponentRemoval(component);
    }
 
-
    const createHandles = (component: extendableComponent) => {
       initHandles(component);
    }
-
 
    const clearHandles = (component: extendableComponent) => {
       $(component.group.element).children(".dragHandle").not(".dragging").remove();
@@ -150,5 +149,7 @@ namespace Extendable {
 
       return bestJointIdx;
    }
-}
+
+   return { init }
+})()
 export default Extendable;

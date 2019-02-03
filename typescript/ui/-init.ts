@@ -81,6 +81,15 @@ namespace Ui {
       });
 
       // Board Listeners
+      NodeElements.makeStripboard.addEventListener('click', (e) => {
+         Events.makeStripBoardButtonPress();
+      });
+      NodeElements.makeHalfBreadboard.addEventListener('click', (e) => {
+         Events.makeBreadBoardSmallButtonPress();
+      });
+      NodeElements.makeFullBreadboard.addEventListener('click', (e) => {
+         Events.makeBreadBoardLargeButtonPress();
+      });
       NodeElements.boardDraggingEnabled.addEventListener('click', (e) => {
          const state: boolean = NodeElements.boardDraggingEnabled.checked;
          Events.enableBoardDraggingPress(state);

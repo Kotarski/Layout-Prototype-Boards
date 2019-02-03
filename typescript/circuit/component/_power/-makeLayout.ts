@@ -18,22 +18,21 @@ const defaulterLayout: ValueCheck.Defaulter<Types.values> = {
    voltage: ValueCheck.validate("number", 0)
 };
 
-const makeLayout = getMaker(PowerLayout, defaulterLayout,
-   (component: PowerLayout) => {
-      Graphical.init(component);
-      Draggable.init(component);
-      Selectable.init(component);
-      ConnectionHighlights.init(component, true, getHighlightColor(component));
-      WireCreation.init(component);
-   }
-);
+const makeLayout = getMaker(PowerLayout, defaulterLayout, [
+   Graphical,
+   Draggable,
+   Selectable,
+   ConnectionHighlights,
+   WireCreation
+]);
 
-function getHighlightColor(component: PowerLayout): string[] {
-   return [(component.voltage < 0)
-      ? "blue" // negative
-      : (component.voltage > 0)
-         ? "red" // positive
-         : "black" // zero (ground);
-   ]
-}
+// TODO: Pass into connection highlight
+// function getHighlightColor(component: PowerLayout): string[] {
+//    return [(component.voltage < 0)
+//       ? "blue" // negative
+//       : (component.voltage > 0)
+//          ? "red" // positive
+//          : "black" // zero (ground);
+//    ]
+// }
 export default makeLayout;

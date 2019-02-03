@@ -19,15 +19,13 @@ const defaulterSchematic: ValueCheck.Defaulter<Types.values> = {
 };
 
 
-const makeSchematic = getMaker(PowerSchematic, defaulterSchematic,
-   (component: PowerSchematic) => {
-      Selectable.init(component);
-      ConnectionHighlights.init(component, false);
-      Graphical.init(component);
-      if (ControlValues.schematicEditingEnabled) {
-         Draggable.init(component);
-      }
-   }
-);
+const makeSchematic = getMaker(PowerSchematic, defaulterSchematic, [
+   Selectable,
+   ConnectionHighlights,
+   Graphical,
+   ...ControlValues.schematicEditingEnabled ? [
+      Draggable
+   ] : []
+]);
 
 export default makeSchematic;

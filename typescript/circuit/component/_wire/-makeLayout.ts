@@ -2,8 +2,6 @@ import ValueCheck from "../~valueCheck";
 import * as Types from "./types";
 import { Layout } from "./~classes";
 import getMaker from "../../generics/-getMaker";
-import toVector from "../../../utility/polar/-toVector"
-import vector, { Vector } from "../../../-vector";
 import Graphical from "../addins/graphical";
 import Draggable from "../addins/draggable";
 import Selectable from "../addins/selectable";
@@ -20,20 +18,14 @@ const defaulterLayout: ValueCheck.Defaulter<Types.valuesLayout> = {
    color: ValueCheck.color("#545454")
 };
 
-export const makeLayout = getMaker(Layout, defaulterLayout,
-   (component: Layout) => {
-      Graphical.init(component);
-      Draggable.init(component);
-      Selectable.init(component);
-      Extendable.init(component, true, true, true);
-      ConnectionHighlights.init(component);
-      Recolorable.init(component, () => getRecolorPosition(component));
-   }
-);
+// TODO: Pass in options for extendable and others (options={?}) (() => getRecolorPosition(component))
+export const makeLayout = getMaker(Layout, defaulterLayout, [
+   Graphical,
+   Draggable,
+   Selectable,
+   Extendable,
+   ConnectionHighlights,
+   Recolorable
+]);
 
-function getRecolorPosition(component: Layout): Vector {
-   const angle = vector(component.joints[0]).getAngleTo(component.joints[1]);
-   const offset = toVector(12, angle + 45);
-   return vector(component.joints[0]).sumWith(offset).vector;
-}
 export default makeLayout;

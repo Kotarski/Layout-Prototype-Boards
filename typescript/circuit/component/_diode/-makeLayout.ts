@@ -20,13 +20,11 @@ const defaulterLayout: ValueCheck.Defaulter<Types.values> = {
    color: ValueCheck.color("N/A")
 };
 
-const makeLayout = getMaker(Layout, defaulterLayout,
-   (component: Layout) => {
-      Graphical.init(component);
-      Selectable.init(component);
-      Draggable.init(component);
-      Extendable.init(component);
-      ConnectionHighlights.init(component);
-   }
-);
+const makeLayout = getMaker(Layout, defaulterLayout, [
+   Graphical,
+   Selectable,
+   Draggable,
+   Extendable,
+   ConnectionHighlights
+]);
 export default makeLayout;

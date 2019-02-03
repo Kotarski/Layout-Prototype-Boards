@@ -18,13 +18,11 @@ const defaulterLayout: ValueCheck.Defaulter<Types.values> = {
    inductance: ValueCheck.validate("number", 0)
 };
 
-const makeLayout = getMaker(Layout, defaulterLayout,
-   (component: Layout) => {
-      Graphical.init(component);
-      Draggable.init(component);
-      Selectable.init(component);
-      Extendable.init(component);
-      ConnectionHighlights.init(component);
-   }
-);
+const makeLayout = getMaker(Layout, defaulterLayout, [
+   Graphical,
+   Draggable,
+   Selectable,
+   Extendable,
+   ConnectionHighlights
+]);
 export default makeLayout;

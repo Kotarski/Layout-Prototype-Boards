@@ -34,7 +34,10 @@
             "kind": "build",
             "isDefault": true
          },
-         "problemMatcher": []
+         "problemMatcher": [
+            "$awesometsc",
+            "$awesomets-lint"
+         ]
       }
    ]
 }

@@ -19,14 +19,12 @@ const defaulterSmall: ValueCheck.Defaulter<Types.values> = {
 };
 
 
-const makeSmall = getMaker(Small, defaulterSmall,
-   (component: Small) => {
-      Graphical.init(component);
-      Board.init(component);
-      Selectable.init(component);
-      WireCreation.init(component);
-      Draggable.init(component);
-      Rotatable.init(component);
-   }
-);
+const makeSmall = getMaker(Small, defaulterSmall, [
+   Graphical,
+   Board,
+   Selectable,
+   WireCreation,
+   Draggable,
+   Rotatable
+]);
 export default makeSmall;

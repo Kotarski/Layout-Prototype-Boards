@@ -3,11 +3,11 @@ import Events from "../../events";
 import { make as makeCircle } from "../../../svg/element/+circle";
 import { make as makeText } from "../../../svg/element/+text";
 //import * as $ from 'jquery';
-namespace ConnectionHighlights {
 
-   type colorPalette = string[];
+type colorPalette = string[];
 
-   export const init = (component: Component, propogate: boolean = true, colorPalette: colorPalette = defaultColorPalette) => {
+const ConnectionHighlights = (() => {
+   const init = (component: Component, propogate: boolean = true, colorPalette: colorPalette = defaultColorPalette) => {
       let element = component.group.element;
 
       $(element).on(Events.select, () => {
@@ -69,5 +69,6 @@ namespace ConnectionHighlights {
       "magenta"
    ]
 
-}
+   return { init }
+})()
 export default ConnectionHighlights

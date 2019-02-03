@@ -18,9 +18,7 @@ const defaulter: ValueCheck.Defaulter<Types.values> = {
    ),
 };
 
-const makeLayout = getMaker(Layout, defaulter,
-   (component: Layout) => {
-      Graphical.init(component);
-   }
-);
+const makeLayout = getMaker(Layout, defaulter, [
+   Graphical
+]);
 export default makeLayout;

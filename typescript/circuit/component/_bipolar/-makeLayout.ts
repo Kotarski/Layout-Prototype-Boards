@@ -7,7 +7,7 @@ import Graphical from "../addins/graphical";
 import Draggable from "../addins/draggable";
 import Selectable from "../addins/selectable";
 import Extendable from "../addins/extendable";
-import ConnectionHighlights from "../addins/connectionHighlights"
+import ConnectionHighlights from "../addins/connectionHighlights";
 
 const defaulterLayout: ValueCheck.Defaulter<Types.values> = {
    joints: ValueCheck.joints<[Vector, Vector, Vector]>(
@@ -19,13 +19,12 @@ const defaulterLayout: ValueCheck.Defaulter<Types.values> = {
    type: ValueCheck.validate<"NPN" | "PNP">(["NPN", "PNP"], "NPN")
 };
 
-const makeLayout = getMaker(BipolarLayout, defaulterLayout,
-   (component: BipolarLayout) => {
-      Graphical.init(component);
-      Draggable.init(component);
-      Selectable.init(component);
-      Extendable.init(component);
-      ConnectionHighlights.init(component);
-   }
-);
+const makeLayout = getMaker(BipolarLayout, defaulterLayout, [
+   Graphical,
+   Draggable,
+   Selectable,
+   Extendable,
+   ConnectionHighlights
+]);
 export default makeLayout;
+

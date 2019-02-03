@@ -1,15 +1,16 @@
 import NodeElements from "../../../~nodeElements";
-import Component from "../../+component";;
+import Component from "../../+component";
 import { Vector } from "../../../-vector";
 import mappings from "../../mappings";
 import Events from "../../events";
 import history from "../../history";
-import SvgDraggable from "../../../svg/addins/draggable";
+import SvgDraggable from "../../../svg/addins/draggable"
 //import * as $ from 'jquery';
 
-namespace Draggable {
-   type draggableComponent = Component & { joints: Vector[] };
-   export const init = (component: draggableComponent) => {
+type draggableComponent = Component & { joints: Vector[] };
+
+const Draggable = (() => {
+   const init = (component: draggableComponent) => {
       SvgDraggable.init(component.group.element, {
          disableMovement: true,
          onStart: () => {
@@ -34,23 +35,24 @@ namespace Draggable {
 
       // TODO, I don't quite like how this is coupled together
       if (mappings.getComponentMapSafe(component).isBoard &&
-         NodeElements.boardDraggingEnabled.checked
+         NodeElements.boardDraggingEnabled.checked === false
       ) {
          disable(component);
       }
    }
 
-   export const disable = (component: Component) => {
+   const disable = (component: Component) => {
       if ($(component.group.element).draggable("instance") !== undefined) {
          $(component.group.element).draggable("disable");
       }
    }
 
-   export const enable = (component: Component) => {
+   const enable = (component: Component) => {
       if ($(component.group.element).draggable("instance") !== undefined) {
          $(component.group.element).draggable("enable");
       }
    }
-}
 
+   return { init, disable, enable }
+})()
 export default Draggable;

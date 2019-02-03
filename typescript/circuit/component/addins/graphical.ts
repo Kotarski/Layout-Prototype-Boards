@@ -1,8 +1,9 @@
 import Component from "../../+component";;
 import Events from "../../events";
 //import * as $ from 'jquery';
-namespace Graphical {
-   export const init = (component: Component) => {
+
+const Graphical = (() => {
+   const init = (component: Component) => {
       let element = component.group.element;
       $(element).on(Events.draw, () => {
          if (component.disabled === false) {
@@ -15,5 +16,7 @@ namespace Graphical {
          }
       });
    }
-}
+
+   return { init }
+})()
 export default Graphical;
