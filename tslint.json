@@ -1,5 +1,4 @@
 {
-   // https://palantir.github.io/tslint/rules/
    "rules": {
       "no-reference": true,
       "ban-comma-operator": true,

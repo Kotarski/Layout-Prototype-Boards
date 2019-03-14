@@ -1,14 +1,15 @@
 import ValueCheck from "../~valueCheck";
 import * as Types from "./types";
-import { Layout } from "./~classes";
+import { StripboardLayout } from "./~classes";
 import getMaker from "../../generics/-getMaker";
 import { Vector } from "../../../-vector";
 import Graphical from "../addins/graphical";
 import Draggable from "../addins/draggable";
 import Selectable from "../addins/selectable";
 import Board from "../addins/board";
-import WireCreation from "../addins/wireCreation"
+import WiresCreatable from "../addins/wiresCreatable"
 import Rotatable from "../addins/rotatable";
+import ReversableBoard from "../addins/reversableBoard";
 
 
 const defaulterLayout: ValueCheck.Defaulter<Types.values> = {
@@ -34,13 +35,14 @@ function validateTrackBreaks<T extends Types.trackBreak[]>(fallback: T): ValueCh
    return result;
 }
 
-const makeLayout = getMaker(Layout, defaulterLayout, [
+const makeLayout = getMaker(StripboardLayout, defaulterLayout,
    Graphical,
    Board,
+   ReversableBoard,
    Selectable,
-   WireCreation,
+   WiresCreatable,
    Draggable,
    Rotatable
-]);
+);
 export default makeLayout;
 

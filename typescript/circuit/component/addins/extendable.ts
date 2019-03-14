@@ -4,18 +4,27 @@ import manifest from "../../manifest";
 import history from "../../history";
 import vector, { Vector } from "../../../-vector";
 import { make as makeCircle } from "../../../svg/element/+circle";
-import SvgDraggable from "../../../svg/addins/draggable";
 import isNot from "../../../utility/-isNot";
+import { Strict } from "../../../++types";
+import { gridSpacing } from "../../../~constants";
 //import * as $ from 'jquery';
 
 type extendableComponent = Component & { joints: Vector[] };
 
 const Extendable = (() => {
-   const init = (
-      component: extendableComponent,
-      canAddJoints: boolean = false,
-      canRemoveJoints: boolean = false,
-      canRemoveComponent: boolean = false) => {
+   type Options = {
+      canAddJoints?: boolean,
+      canRemoveJoints?: boolean,
+      canRemoveComponent?: boolean
+   }
+   const init = <T extends Strict<Options, T>>(
+      component: extendableComponent, options?: T) => {
+
+      let {
+         canAddJoints = false,
+         canRemoveJoints = false,
+         canRemoveComponent = false
+      } = { ...(options ? options : {}) }
 
 
       let element = component.group.element;
@@ -32,7 +41,6 @@ const Extendable = (() => {
          createHandles(component);
       });
       $(element).on(Events.deselect, () => {
-
          clearHandles(component);
       });
 
@@ -61,7 +69,7 @@ const Extendable = (() => {
             // Get position in svg coordinates, rounded to grid
             const position = vector(
                component.group.convertVector({ x: e.clientX || 0, y: e.clientY || 0 }, "DomToSvg", "relToGroup")
-            ).snapToGrid().vector;
+            ).round(gridSpacing/2).vector;
 
             // Get index for insertion into joint array
             const jointIdx = getJointInsertionIdx(component, position);
@@ -81,12 +89,13 @@ const Extendable = (() => {
       });
 
       $(component.group.element).on("dblclick", ".dragHandle", (e) => {
-         if (component.joints.length > 2) {
-            const point = $(e.target).data("point");
-            component.joints = component.joints.filter(isNot(point));
-            e.target.remove();
-            $(component.group.element).trigger(Events.draw, [e]);
-         }
+         // If only two joints remain then they can't be removed by dblclick
+         if (component.joints.length <= 2) return;
+         
+         const point = $(e.target).data("point");
+         component.joints = component.joints.filter(isNot(point));
+         e.target.remove();
+         $(component.group.element).trigger(Events.draw, [e]);
       });
    }
 
@@ -100,38 +109,36 @@ const Extendable = (() => {
    };
 
    const addHandle = (component: extendableComponent, point: Vector) => {
-      let dragHandle = makeCircle(point, 5, "handle dragHandle highlight");
-      $(dragHandle.element).data('point', point);
-      component.group.append(dragHandle);
-      SvgDraggable.init(dragHandle.element);
+      const handle = makeCircle(point, 5, "handle dragHandle highlight").element;
+      $(handle).data('point', point);
+      component.group.append(handle);
 
-      $(dragHandle.element).on(Events.drag, (e, ui, drag: Vector) => {
+      $(handle).on(Events.drag, (e, drag: Vector) => {
          point.x += drag.x;
          point.y += drag.y;
-         $(component.group.element).trigger(Events.draw, [e]);
+         $(component.group.element).trigger(Events.draw);
       });
 
-      $(dragHandle.element).on(Events.dragStop, (e, ui, drag: Vector) => {
+      $(handle).on(Events.dragStop, () => {
          point.x = Math.round(point.x);
          point.y = Math.round(point.y);
       });
-
-      return dragHandle;
    };
 
    const removeExcessJoints = (component: extendableComponent, point: Vector) => {
-      if (component.joints.length > 2) {
-         component.joints = component.joints.filter((joint) => {
-            return (joint === point) || !vector(point).isCloseTo(joint)
-         });
-         $(component.group.element).children(".dragHandle").not(".dragging").filter((i, el) => {
-            return vector(point).isCloseTo($(el).data('point'))
-         }).remove();
-      };
+      // If only two joints remain then they can't be removed during a drag
+      if (component.joints.length <= 2) return;
+
+      component.joints = component.joints.filter((joint) => {
+         return (joint === point) || !vector(point).isCloseTo(joint)
+      });
+
+      $(component.group.element).children(".dragHandle").not(".dragging").filter((i, handle) => {
+         return vector(point).isCloseTo($(handle).data('point'))
+      }).remove();
    }
 
    const getJointInsertionIdx = (component: extendableComponent, point: Vector) => {
-      //handles: (Parts.Pins.MovePin)[],
       let jointAngles = component.joints.map((j) =>
          Math.atan2(point.y - j.y, point.x - j.x) * 180 / Math.PI
       );
@@ -149,6 +156,13 @@ const Extendable = (() => {
 
       return bestJointIdx;
    }
+
+   // const getJointFromHandle = (handle: SVGCircleElement): Vector => ({
+   //    // Animval is always just-as or more up-to-date than baseval
+   //    x: handle.cx.animVal.value,
+   //    y: handle.cy.animVal.value
+   // })
+   
 
    return { init }
 })()

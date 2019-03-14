@@ -1,12 +1,12 @@
 import makeMap from "../../generics/-makeMap";
-import { Layout } from "./~classes";
+import { StripboardLayout } from "./~classes";
 import makeLayout from "./-makeLayout";
 import loadLayout from "./-loadLayout";
 
 const layoutMap = {
    savename: "makeLayoutStripboard",
    diagramType: "layout" as "layout",
-   instance: Layout,
+   instance: StripboardLayout,
    make: makeLayout,
    load: loadLayout,
    isBoard: true

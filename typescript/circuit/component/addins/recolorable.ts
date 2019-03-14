@@ -12,9 +12,14 @@ type recolorableComponent = Component & { color: string, joints: Vector[] };
 
 const Recolorable = (() => {
    const init = (
-      component: recolorableComponent,
-      colorPalette: colorPalette = defaultColorPalette
-   ) => {
+      component: recolorableComponent, options: {
+         colorPalette?: colorPalette
+      } = {}) => {
+      let {
+         colorPalette = defaultColorPalette,
+      } = { ...options }
+
+
       const element = component.group.element;
 
       $(element).on(Events.select, () => {

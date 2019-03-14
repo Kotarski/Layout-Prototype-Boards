@@ -1,20 +1,14 @@
 import Component, { Types as ComponentTypes } from "../../+component";
 import * as Types from "./types";
-import vector, { Vector } from "../../../-vector";
 import deepCopy from "../../../utility/-deepCopy";
 import Insert from "../../../utility/~insert";
 import manifest from "../../manifest";
 import getComponentConnections from "../../generics/-getComponentConnections";
 import { Layout as Track } from "../_track/~classes";
-import makeTracks from "./-make-tracks";
+import drawLayout from "./-drawLayout";
+import { Vector } from "../../../++types";
 
-import { gridSpacing } from "../../../~constants";
-
-
-//TODO MOVE DRAW INTO ITS OWN FILE
-import { make as makeRect } from "../../../svg/element/+rect";
-
-export class Layout extends Component implements Types.values {
+export class StripboardLayout extends Component implements Types.values {
    tracks: Track[] = [];
    connectorSets: ComponentTypes.hole[][] = [];
    trackBreaks: Types.trackBreak[];
@@ -59,21 +53,7 @@ export class Layout extends Component implements Types.values {
    }
 
    draw() {
-
-      let rotation = vector(this.joints[0]).getAngleTo(this.joints[1]);
-      this.tracks = makeTracks(this)
-
-
-      const gS = gridSpacing;
-      //const centre = { x: (this.columns - 1) * gS / 2, y: (this.rows - 1) * gS / 2 };
-      const size = { width: (this.columns + 0.5) * gS, height: (this.rows + 0.5) * gS };
-      const cornerRounding = { x: 3, y: 3 };
-
-      this.group.append(
-         makeRect(vector(0), size, cornerRounding, "body highlight").translate(this.joints[0]).rotate(rotation),
-         this.tracks.map(t => t.group)
-      );
-
+      this.group.prepend(drawLayout(this))
    }
 
    getConnections(): ComponentTypes.connector[][][] {

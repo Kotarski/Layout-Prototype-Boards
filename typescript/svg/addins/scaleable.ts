@@ -15,7 +15,7 @@ namespace Scaleable {
          }
 
          // Change scale by +/-0.05 on each step depending on wheel direction
-         let scaleChange = Math.sign(e.wheelDelta) * 0.05;
+         let scaleChange = Math.sign(e.deltaY) * -0.05;
 
          // Find the postion and size of the element on screen
          let clientBounds = element.getBoundingClientRect();

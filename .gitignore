@@ -3,4 +3,5 @@ desktop.ini
 node_modules/
 javascript/
 diagrams/
+.json\.gzip
 

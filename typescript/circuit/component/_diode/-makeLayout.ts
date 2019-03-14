@@ -7,7 +7,7 @@ import Graphical from "../addins/graphical";
 import Draggable from "../addins/draggable";
 import Selectable from "../addins/selectable";
 import Extendable from "../addins/extendable";
-import ConnectionHighlights from "../addins/connectionHighlights"
+import ConnectionsHighlightable from "../addins/connectionsHighlightable"
 
 const defaulterLayout: ValueCheck.Defaulter<Types.values> = {
    name: ValueCheck.validate("string", "diode"),
@@ -20,11 +20,11 @@ const defaulterLayout: ValueCheck.Defaulter<Types.values> = {
    color: ValueCheck.color("N/A")
 };
 
-const makeLayout = getMaker(Layout, defaulterLayout, [
+const makeLayout = getMaker(Layout, defaulterLayout,
    Graphical,
    Selectable,
    Draggable,
    Extendable,
-   ConnectionHighlights
-]);
+   ConnectionsHighlightable
+);
 export default makeLayout;

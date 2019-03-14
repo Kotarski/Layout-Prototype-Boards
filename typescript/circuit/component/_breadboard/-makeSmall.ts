@@ -7,7 +7,7 @@ import Graphical from "../addins/graphical";
 import Draggable from "../addins/draggable";
 import Selectable from "../addins/selectable";
 import Board from "../addins/board";
-import WireCreation from "../addins/wireCreation";
+import WiresCreatable from "../addins/wiresCreatable";
 import Rotatable from "../addins/rotatable";
 
 const defaulterSmall: ValueCheck.Defaulter<Types.values> = {
@@ -19,12 +19,12 @@ const defaulterSmall: ValueCheck.Defaulter<Types.values> = {
 };
 
 
-const makeSmall = getMaker(Small, defaulterSmall, [
+const makeSmall = getMaker(Small, defaulterSmall,
    Graphical,
    Board,
    Selectable,
-   WireCreation,
+   WiresCreatable,
    Draggable,
    Rotatable
-]);
+);
 export default makeSmall;

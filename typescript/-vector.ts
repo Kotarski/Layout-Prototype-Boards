@@ -6,10 +6,11 @@ import isCloseTo from "./_vector/-isCloseTo";
 import { isVector, isVectorArray } from "./_vector/-isVector"
 import { rotateM, rotateS } from "./_vector/-rotate";
 import { scaleMapS, scaleWithM, scaleWithS } from "./_vector/-scaleWith";
-import { snapToGridM, snapToGridS } from "./_vector/-snapToGrid";
 import standardise from "./_vector/-standardise";
 import sum from "./_vector/-sum";
 import { sumWithM, sumWithS } from "./_vector/-sumWith";
+import { subSumS, subSumM } from "./_vector/-subSum";
+import { roundS, roundM } from "./_vector/-round";
 
 export type Vector = { x: number, y: number };
 export type LVector = Vector;
@@ -17,6 +18,7 @@ export type UVector = { X: number, Y: number };
 export type AVector = [number, number];
 export type AnyVector = LVector | UVector | AVector;
 
+// TODO: Refactor using tuple unpacking stuff
 const singleExtension = (inVector: Vector) => {
    return {
       vector: inVector,
@@ -27,11 +29,12 @@ const singleExtension = (inVector: Vector) => {
       isCloseTo: isCloseTo(inVector),
 
       sumWith: sumWithS(inVector),
+      subSum: subSumS(inVector),
       scaleWith: scaleWithS(inVector),
       scaleMap: scaleMapS(inVector),
       centreWith: centreWith(inVector),
       rotate: rotateS(inVector),
-      snapToGrid: snapToGridS(inVector)
+      round: roundS(inVector)
    }
 }
 
@@ -40,10 +43,11 @@ const multiExtension = (inVectors: Vector[]) => {
       vectors: inVectors,
       sum: sum(inVectors),
       sumWith: sumWithM(inVectors),
+      subSum: subSumM(inVectors),
       scaleWith: scaleWithM(inVectors),
       rotate: rotateM(inVectors),
       centre: centre(inVectors),
-      snapToGrid: snapToGridM(inVectors)
+      round: roundM(inVectors),
    }
 }
 
@@ -74,12 +78,13 @@ function vectorFunction<A extends AnyVector | AnyVector[] | number>(inVectors: A
 }
 const vectorObject = {
    sumWith: sumWithS,
+   subSum: subSumS,
    scaleWith: scaleWithS,
    getAngleTo: getAngleTo,
    isCloseTo: isCloseTo,
    centreWith: centreWith,
    rotate: rotateS,
-   snapToGrid: snapToGridS,
+   round: roundS,
    asPolar: asPolar,
    standardise: standardise,
    isVector: isVector,

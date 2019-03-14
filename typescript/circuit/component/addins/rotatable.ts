@@ -4,15 +4,15 @@ import vector, { Vector } from "../../../-vector";
 import history from "../../history";
 //import * as $ from 'jquery';
 
-namespace Rotatable {
-   type rotatableComponent = Component & {
-      joints: [Vector, Vector, ...Vector[]]
-   };
+type rotatableComponent = Component & {
+   joints: [Vector, Vector, ...Vector[]]
+};
 
+const Rotatable = (() => {
    /** Initialise rotation using joint[0] as the rotation points
     *  Rotation triggered by double click in 90deg incriments
     */
-   export const init = (component: rotatableComponent) => {
+   const init = (component: rotatableComponent) => {
       $(component.group.element).dblclick(() => {
          history.add(component);
          let centre = component.joints[0];
@@ -27,5 +27,7 @@ namespace Rotatable {
          $(component.group.element).trigger(Events.rotate);
       })
    }
-}
+
+   return { init }
+})()
 export default Rotatable;

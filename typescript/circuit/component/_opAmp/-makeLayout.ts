@@ -7,7 +7,7 @@ import Graphical from "../addins/graphical";
 import Draggable from "../addins/draggable";
 import Selectable from "../addins/selectable";
 import Rotatable from "../addins/rotatable";
-import ConnectionHighlights from "../addins/connectionHighlights"
+import ConnectionsHighlightable from "../addins/connectionsHighlightable"
 
 const defaulterLayout: ValueCheck.Defaulter<Types.valuesLayout> = {
    name: ValueCheck.validate("string", "opAmp"),
@@ -19,11 +19,11 @@ const defaulterLayout: ValueCheck.Defaulter<Types.valuesLayout> = {
    offsetVoltage: ValueCheck.validate("number", 0)
 };
 
-const makeLayout = getMaker(Layout, defaulterLayout, [
+const makeLayout = getMaker(Layout, defaulterLayout,
    Graphical,
    Draggable,
    Rotatable,
    Selectable,
-   ConnectionHighlights
-]);
+   ConnectionsHighlightable
+);
 export default makeLayout;

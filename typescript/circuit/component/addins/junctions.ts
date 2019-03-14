@@ -6,19 +6,18 @@ import Flatten from "../../../utility/~flatten";
 import { make as makeCircle } from "../../../svg/element/+circle";
 //import * as $ from 'jquery';
 
-namespace Junctions {
-   type nodeComponent = Component & {
-      connectorSets: ComponentTypes.node[][],
-   }
+type nodeComponent = Component & {
+   connectorSets: ComponentTypes.node[][],
+}
 
-   export const init = (component: nodeComponent) => {
+const Junctions = (() => {
+   const init = (component: nodeComponent) => {
       let element = component.group;
-      $(element.element).on(Events.moved + " " + Events.place, () => {
+      $(element.element).on(Events.anyDraw, () => {
          clearJunctions(component);
          createJunctions(component);
       });
    }
-
 
    const createJunctions = (component: nodeComponent) => {
       let otherConnectors = Flatten.flatten2d(manifest.schematic.map(component =>
@@ -45,5 +44,7 @@ namespace Junctions {
    const clearJunctions = (component: Component) => {
       $(component.group.element).find(".junction").remove();
    }
-}
+
+   return { init }
+})()
 export default Junctions;

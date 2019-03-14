@@ -18,7 +18,7 @@ const defaulter: ValueCheck.Defaulter<Types.values> = {
    ),
 };
 
-const makeLayout = getMaker(Layout, defaulter, [
+const makeLayout = getMaker(Layout, defaulter,
    Graphical
-]);
+);
 export default makeLayout;

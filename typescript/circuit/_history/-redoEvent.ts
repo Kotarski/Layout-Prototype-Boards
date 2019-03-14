@@ -19,7 +19,7 @@ export default function redoEvent(state: historystate): historystate {
    currentEvent.forEach(development => {
       Object.assign(development.participant, development.state);
       if (development.participant.group) {
-         $(development.participant.group.element).trigger(Events.draw);
+         $(development.participant.group.element).trigger(Events.place);
       }
    });
 

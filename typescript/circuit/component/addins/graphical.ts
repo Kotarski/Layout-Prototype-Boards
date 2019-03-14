@@ -5,7 +5,7 @@ import Events from "../../events";
 const Graphical = (() => {
    const init = (component: Component) => {
       let element = component.group.element;
-      $(element).on(Events.draw, () => {
+      $(element).on(Events.anyDraw, () => {
          if (component.disabled === false) {
             $(component.group.element).show();
             component.group.clearChildren(":not(.handle,.connectivityhighlight)");

@@ -6,8 +6,19 @@ import { make as makeText } from "../../../svg/element/+text";
 
 type colorPalette = string[];
 
-const ConnectionHighlights = (() => {
-   const init = (component: Component, propogate: boolean = true, colorPalette: colorPalette = defaultColorPalette) => {
+const ConnectionsHighlightable = (() => {
+   const init = (
+      component: Component,
+      options: {
+         propogate?: boolean,
+         colorPalette?: colorPalette
+      } = {}) => {
+
+      let {
+         propogate = true,
+         colorPalette = defaultColorPalette,
+      } = { ...options }
+
       let element = component.group.element;
 
       $(element).on(Events.select, () => {
@@ -71,4 +82,4 @@ const ConnectionHighlights = (() => {
 
    return { init }
 })()
-export default ConnectionHighlights
+export default ConnectionsHighlightable

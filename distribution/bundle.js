@@ -86,6 +86,966 @@
 /************************************************************************/
 /******/ ({
 
+/***/ "./node_modules/inherits/inherits_browser.js":
+/*!***************************************************!*\
+  !*** ./node_modules/inherits/inherits_browser.js ***!
+  \***************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+if (typeof Object.create === 'function') {
+  // implementation from standard node.js 'util' module
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    ctor.prototype = Object.create(superCtor.prototype, {
+      constructor: {
+        value: ctor,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+  };
+} else {
+  // old school shim for old browsers
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    var TempCtor = function () {}
+    TempCtor.prototype = superCtor.prototype
+    ctor.prototype = new TempCtor()
+    ctor.prototype.constructor = ctor
+  }
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/process/browser.js":
+/*!*****************************************!*\
+  !*** ./node_modules/process/browser.js ***!
+  \*****************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+// shim for using process in browser
+var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+
+/***/ }),
+
+/***/ "./node_modules/util/support/isBufferBrowser.js":
+/*!******************************************************!*\
+  !*** ./node_modules/util/support/isBufferBrowser.js ***!
+  \******************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+module.exports = function isBuffer(arg) {
+  return arg && typeof arg === 'object'
+    && typeof arg.copy === 'function'
+    && typeof arg.fill === 'function'
+    && typeof arg.readUInt8 === 'function';
+}
+
+/***/ }),
+
+/***/ "./node_modules/util/util.js":
+/*!***********************************!*\
+  !*** ./node_modules/util/util.js ***!
+  \***********************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+/* WEBPACK VAR INJECTION */(function(process) {// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+var getOwnPropertyDescriptors = Object.getOwnPropertyDescriptors ||
+  function getOwnPropertyDescriptors(obj) {
+    var keys = Object.keys(obj);
+    var descriptors = {};
+    for (var i = 0; i < keys.length; i++) {
+      descriptors[keys[i]] = Object.getOwnPropertyDescriptor(obj, keys[i]);
+    }
+    return descriptors;
+  };
+
+var formatRegExp = /%[sdj%]/g;
+exports.format = function(f) {
+  if (!isString(f)) {
+    var objects = [];
+    for (var i = 0; i < arguments.length; i++) {
+      objects.push(inspect(arguments[i]));
+    }
+    return objects.join(' ');
+  }
+
+  var i = 1;
+  var args = arguments;
+  var len = args.length;
+  var str = String(f).replace(formatRegExp, function(x) {
+    if (x === '%%') return '%';
+    if (i >= len) return x;
+    switch (x) {
+      case '%s': return String(args[i++]);
+      case '%d': return Number(args[i++]);
+      case '%j':
+        try {
+          return JSON.stringify(args[i++]);
+        } catch (_) {
+          return '[Circular]';
+        }
+      default:
+        return x;
+    }
+  });
+  for (var x = args[i]; i < len; x = args[++i]) {
+    if (isNull(x) || !isObject(x)) {
+      str += ' ' + x;
+    } else {
+      str += ' ' + inspect(x);
+    }
+  }
+  return str;
+};
+
+
+// Mark that a method should not be used.
+// Returns a modified function which warns once by default.
+// If --no-deprecation is set, then it is a no-op.
+exports.deprecate = function(fn, msg) {
+  if (typeof process !== 'undefined' && process.noDeprecation === true) {
+    return fn;
+  }
+
+  // Allow for deprecating things in the process of starting up.
+  if (typeof process === 'undefined') {
+    return function() {
+      return exports.deprecate(fn, msg).apply(this, arguments);
+    };
+  }
+
+  var warned = false;
+  function deprecated() {
+    if (!warned) {
+      if (process.throwDeprecation) {
+        throw new Error(msg);
+      } else if (process.traceDeprecation) {
+        console.trace(msg);
+      } else {
+        console.error(msg);
+      }
+      warned = true;
+    }
+    return fn.apply(this, arguments);
+  }
+
+  return deprecated;
+};
+
+
+var debugs = {};
+var debugEnviron;
+exports.debuglog = function(set) {
+  if (isUndefined(debugEnviron))
+    debugEnviron = process.env.NODE_DEBUG || '';
+  set = set.toUpperCase();
+  if (!debugs[set]) {
+    if (new RegExp('\\b' + set + '\\b', 'i').test(debugEnviron)) {
+      var pid = process.pid;
+      debugs[set] = function() {
+        var msg = exports.format.apply(exports, arguments);
+        console.error('%s %d: %s', set, pid, msg);
+      };
+    } else {
+      debugs[set] = function() {};
+    }
+  }
+  return debugs[set];
+};
+
+
+/**
+ * Echos the value of a value. Trys to print the value out
+ * in the best way possible given the different types.
+ *
+ * @param {Object} obj The object to print out.
+ * @param {Object} opts Optional options object that alters the output.
+ */
+/* legacy: obj, showHidden, depth, colors*/
+function inspect(obj, opts) {
+  // default options
+  var ctx = {
+    seen: [],
+    stylize: stylizeNoColor
+  };
+  // legacy...
+  if (arguments.length >= 3) ctx.depth = arguments[2];
+  if (arguments.length >= 4) ctx.colors = arguments[3];
+  if (isBoolean(opts)) {
+    // legacy...
+    ctx.showHidden = opts;
+  } else if (opts) {
+    // got an "options" object
+    exports._extend(ctx, opts);
+  }
+  // set default options
+  if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
+  if (isUndefined(ctx.depth)) ctx.depth = 2;
+  if (isUndefined(ctx.colors)) ctx.colors = false;
+  if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
+  if (ctx.colors) ctx.stylize = stylizeWithColor;
+  return formatValue(ctx, obj, ctx.depth);
+}
+exports.inspect = inspect;
+
+
+// http://en.wikipedia.org/wiki/ANSI_escape_code#graphics
+inspect.colors = {
+  'bold' : [1, 22],
+  'italic' : [3, 23],
+  'underline' : [4, 24],
+  'inverse' : [7, 27],
+  'white' : [37, 39],
+  'grey' : [90, 39],
+  'black' : [30, 39],
+  'blue' : [34, 39],
+  'cyan' : [36, 39],
+  'green' : [32, 39],
+  'magenta' : [35, 39],
+  'red' : [31, 39],
+  'yellow' : [33, 39]
+};
+
+// Don't use 'blue' not visible on cmd.exe
+inspect.styles = {
+  'special': 'cyan',
+  'number': 'yellow',
+  'boolean': 'yellow',
+  'undefined': 'grey',
+  'null': 'bold',
+  'string': 'green',
+  'date': 'magenta',
+  // "name": intentionally not styling
+  'regexp': 'red'
+};
+
+
+function stylizeWithColor(str, styleType) {
+  var style = inspect.styles[styleType];
+
+  if (style) {
+    return '\u001b[' + inspect.colors[style][0] + 'm' + str +
+           '\u001b[' + inspect.colors[style][1] + 'm';
+  } else {
+    return str;
+  }
+}
+
+
+function stylizeNoColor(str, styleType) {
+  return str;
+}
+
+
+function arrayToHash(array) {
+  var hash = {};
+
+  array.forEach(function(val, idx) {
+    hash[val] = true;
+  });
+
+  return hash;
+}
+
+
+function formatValue(ctx, value, recurseTimes) {
+  // Provide a hook for user-specified inspect functions.
+  // Check that value is an object with an inspect function on it
+  if (ctx.customInspect &&
+      value &&
+      isFunction(value.inspect) &&
+      // Filter out the util module, it's inspect function is special
+      value.inspect !== exports.inspect &&
+      // Also filter out any prototype objects using the circular check.
+      !(value.constructor && value.constructor.prototype === value)) {
+    var ret = value.inspect(recurseTimes, ctx);
+    if (!isString(ret)) {
+      ret = formatValue(ctx, ret, recurseTimes);
+    }
+    return ret;
+  }
+
+  // Primitive types cannot have properties
+  var primitive = formatPrimitive(ctx, value);
+  if (primitive) {
+    return primitive;
+  }
+
+  // Look up the keys of the object.
+  var keys = Object.keys(value);
+  var visibleKeys = arrayToHash(keys);
+
+  if (ctx.showHidden) {
+    keys = Object.getOwnPropertyNames(value);
+  }
+
+  // IE doesn't make error fields non-enumerable
+  // http://msdn.microsoft.com/en-us/library/ie/dww52sbt(v=vs.94).aspx
+  if (isError(value)
+      && (keys.indexOf('message') >= 0 || keys.indexOf('description') >= 0)) {
+    return formatError(value);
+  }
+
+  // Some type of object without properties can be shortcutted.
+  if (keys.length === 0) {
+    if (isFunction(value)) {
+      var name = value.name ? ': ' + value.name : '';
+      return ctx.stylize('[Function' + name + ']', 'special');
+    }
+    if (isRegExp(value)) {
+      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+    }
+    if (isDate(value)) {
+      return ctx.stylize(Date.prototype.toString.call(value), 'date');
+    }
+    if (isError(value)) {
+      return formatError(value);
+    }
+  }
+
+  var base = '', array = false, braces = ['{', '}'];
+
+  // Make Array say that they are Array
+  if (isArray(value)) {
+    array = true;
+    braces = ['[', ']'];
+  }
+
+  // Make functions say that they are functions
+  if (isFunction(value)) {
+    var n = value.name ? ': ' + value.name : '';
+    base = ' [Function' + n + ']';
+  }
+
+  // Make RegExps say that they are RegExps
+  if (isRegExp(value)) {
+    base = ' ' + RegExp.prototype.toString.call(value);
+  }
+
+  // Make dates with properties first say the date
+  if (isDate(value)) {
+    base = ' ' + Date.prototype.toUTCString.call(value);
+  }
+
+  // Make error with message first say the error
+  if (isError(value)) {
+    base = ' ' + formatError(value);
+  }
+
+  if (keys.length === 0 && (!array || value.length == 0)) {
+    return braces[0] + base + braces[1];
+  }
+
+  if (recurseTimes < 0) {
+    if (isRegExp(value)) {
+      return ctx.stylize(RegExp.prototype.toString.call(value), 'regexp');
+    } else {
+      return ctx.stylize('[Object]', 'special');
+    }
+  }
+
+  ctx.seen.push(value);
+
+  var output;
+  if (array) {
+    output = formatArray(ctx, value, recurseTimes, visibleKeys, keys);
+  } else {
+    output = keys.map(function(key) {
+      return formatProperty(ctx, value, recurseTimes, visibleKeys, key, array);
+    });
+  }
+
+  ctx.seen.pop();
+
+  return reduceToSingleString(output, base, braces);
+}
+
+
+function formatPrimitive(ctx, value) {
+  if (isUndefined(value))
+    return ctx.stylize('undefined', 'undefined');
+  if (isString(value)) {
+    var simple = '\'' + JSON.stringify(value).replace(/^"|"$/g, '')
+                                             .replace(/'/g, "\\'")
+                                             .replace(/\\"/g, '"') + '\'';
+    return ctx.stylize(simple, 'string');
+  }
+  if (isNumber(value))
+    return ctx.stylize('' + value, 'number');
+  if (isBoolean(value))
+    return ctx.stylize('' + value, 'boolean');
+  // For some reason typeof null is "object", so special case here.
+  if (isNull(value))
+    return ctx.stylize('null', 'null');
+}
+
+
+function formatError(value) {
+  return '[' + Error.prototype.toString.call(value) + ']';
+}
+
+
+function formatArray(ctx, value, recurseTimes, visibleKeys, keys) {
+  var output = [];
+  for (var i = 0, l = value.length; i < l; ++i) {
+    if (hasOwnProperty(value, String(i))) {
+      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
+          String(i), true));
+    } else {
+      output.push('');
+    }
+  }
+  keys.forEach(function(key) {
+    if (!key.match(/^\d+$/)) {
+      output.push(formatProperty(ctx, value, recurseTimes, visibleKeys,
+          key, true));
+    }
+  });
+  return output;
+}
+
+
+function formatProperty(ctx, value, recurseTimes, visibleKeys, key, array) {
+  var name, str, desc;
+  desc = Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };
+  if (desc.get) {
+    if (desc.set) {
+      str = ctx.stylize('[Getter/Setter]', 'special');
+    } else {
+      str = ctx.stylize('[Getter]', 'special');
+    }
+  } else {
+    if (desc.set) {
+      str = ctx.stylize('[Setter]', 'special');
+    }
+  }
+  if (!hasOwnProperty(visibleKeys, key)) {
+    name = '[' + key + ']';
+  }
+  if (!str) {
+    if (ctx.seen.indexOf(desc.value) < 0) {
+      if (isNull(recurseTimes)) {
+        str = formatValue(ctx, desc.value, null);
+      } else {
+        str = formatValue(ctx, desc.value, recurseTimes - 1);
+      }
+      if (str.indexOf('\n') > -1) {
+        if (array) {
+          str = str.split('\n').map(function(line) {
+            return '  ' + line;
+          }).join('\n').substr(2);
+        } else {
+          str = '\n' + str.split('\n').map(function(line) {
+            return '   ' + line;
+          }).join('\n');
+        }
+      }
+    } else {
+      str = ctx.stylize('[Circular]', 'special');
+    }
+  }
+  if (isUndefined(name)) {
+    if (array && key.match(/^\d+$/)) {
+      return str;
+    }
+    name = JSON.stringify('' + key);
+    if (name.match(/^"([a-zA-Z_][a-zA-Z_0-9]*)"$/)) {
+      name = name.substr(1, name.length - 2);
+      name = ctx.stylize(name, 'name');
+    } else {
+      name = name.replace(/'/g, "\\'")
+                 .replace(/\\"/g, '"')
+                 .replace(/(^"|"$)/g, "'");
+      name = ctx.stylize(name, 'string');
+    }
+  }
+
+  return name + ': ' + str;
+}
+
+
+function reduceToSingleString(output, base, braces) {
+  var numLinesEst = 0;
+  var length = output.reduce(function(prev, cur) {
+    numLinesEst++;
+    if (cur.indexOf('\n') >= 0) numLinesEst++;
+    return prev + cur.replace(/\u001b\[\d\d?m/g, '').length + 1;
+  }, 0);
+
+  if (length > 60) {
+    return braces[0] +
+           (base === '' ? '' : base + '\n ') +
+           ' ' +
+           output.join(',\n  ') +
+           ' ' +
+           braces[1];
+  }
+
+  return braces[0] + base + ' ' + output.join(', ') + ' ' + braces[1];
+}
+
+
+// NOTE: These type checking functions intentionally don't use `instanceof`
+// because it is fragile and can be easily faked with `Object.create()`.
+function isArray(ar) {
+  return Array.isArray(ar);
+}
+exports.isArray = isArray;
+
+function isBoolean(arg) {
+  return typeof arg === 'boolean';
+}
+exports.isBoolean = isBoolean;
+
+function isNull(arg) {
+  return arg === null;
+}
+exports.isNull = isNull;
+
+function isNullOrUndefined(arg) {
+  return arg == null;
+}
+exports.isNullOrUndefined = isNullOrUndefined;
+
+function isNumber(arg) {
+  return typeof arg === 'number';
+}
+exports.isNumber = isNumber;
+
+function isString(arg) {
+  return typeof arg === 'string';
+}
+exports.isString = isString;
+
+function isSymbol(arg) {
+  return typeof arg === 'symbol';
+}
+exports.isSymbol = isSymbol;
+
+function isUndefined(arg) {
+  return arg === void 0;
+}
+exports.isUndefined = isUndefined;
+
+function isRegExp(re) {
+  return isObject(re) && objectToString(re) === '[object RegExp]';
+}
+exports.isRegExp = isRegExp;
+
+function isObject(arg) {
+  return typeof arg === 'object' && arg !== null;
+}
+exports.isObject = isObject;
+
+function isDate(d) {
+  return isObject(d) && objectToString(d) === '[object Date]';
+}
+exports.isDate = isDate;
+
+function isError(e) {
+  return isObject(e) &&
+      (objectToString(e) === '[object Error]' || e instanceof Error);
+}
+exports.isError = isError;
+
+function isFunction(arg) {
+  return typeof arg === 'function';
+}
+exports.isFunction = isFunction;
+
+function isPrimitive(arg) {
+  return arg === null ||
+         typeof arg === 'boolean' ||
+         typeof arg === 'number' ||
+         typeof arg === 'string' ||
+         typeof arg === 'symbol' ||  // ES6 symbol
+         typeof arg === 'undefined';
+}
+exports.isPrimitive = isPrimitive;
+
+exports.isBuffer = __webpack_require__(/*! ./support/isBuffer */ "./node_modules/util/support/isBufferBrowser.js");
+
+function objectToString(o) {
+  return Object.prototype.toString.call(o);
+}
+
+
+function pad(n) {
+  return n < 10 ? '0' + n.toString(10) : n.toString(10);
+}
+
+
+var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
+              'Oct', 'Nov', 'Dec'];
+
+// 26 Feb 16:19:34
+function timestamp() {
+  var d = new Date();
+  var time = [pad(d.getHours()),
+              pad(d.getMinutes()),
+              pad(d.getSeconds())].join(':');
+  return [d.getDate(), months[d.getMonth()], time].join(' ');
+}
+
+
+// log is just a thin wrapper to console.log that prepends a timestamp
+exports.log = function() {
+  console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
+};
+
+
+/**
+ * Inherit the prototype methods from one constructor into another.
+ *
+ * The Function.prototype.inherits from lang.js rewritten as a standalone
+ * function (not on Function.prototype). NOTE: If this file is to be loaded
+ * during bootstrapping this function needs to be rewritten using some native
+ * functions as prototype setup using normal JavaScript does not work as
+ * expected during bootstrapping (see mirror.js in r114903).
+ *
+ * @param {function} ctor Constructor function which needs to inherit the
+ *     prototype.
+ * @param {function} superCtor Constructor function to inherit prototype from.
+ */
+exports.inherits = __webpack_require__(/*! inherits */ "./node_modules/inherits/inherits_browser.js");
+
+exports._extend = function(origin, add) {
+  // Don't do anything if add isn't an object
+  if (!add || !isObject(add)) return origin;
+
+  var keys = Object.keys(add);
+  var i = keys.length;
+  while (i--) {
+    origin[keys[i]] = add[keys[i]];
+  }
+  return origin;
+};
+
+function hasOwnProperty(obj, prop) {
+  return Object.prototype.hasOwnProperty.call(obj, prop);
+}
+
+var kCustomPromisifiedSymbol = typeof Symbol !== 'undefined' ? Symbol('util.promisify.custom') : undefined;
+
+exports.promisify = function promisify(original) {
+  if (typeof original !== 'function')
+    throw new TypeError('The "original" argument must be of type Function');
+
+  if (kCustomPromisifiedSymbol && original[kCustomPromisifiedSymbol]) {
+    var fn = original[kCustomPromisifiedSymbol];
+    if (typeof fn !== 'function') {
+      throw new TypeError('The "util.promisify.custom" argument must be of type Function');
+    }
+    Object.defineProperty(fn, kCustomPromisifiedSymbol, {
+      value: fn, enumerable: false, writable: false, configurable: true
+    });
+    return fn;
+  }
+
+  function fn() {
+    var promiseResolve, promiseReject;
+    var promise = new Promise(function (resolve, reject) {
+      promiseResolve = resolve;
+      promiseReject = reject;
+    });
+
+    var args = [];
+    for (var i = 0; i < arguments.length; i++) {
+      args.push(arguments[i]);
+    }
+    args.push(function (err, value) {
+      if (err) {
+        promiseReject(err);
+      } else {
+        promiseResolve(value);
+      }
+    });
+
+    try {
+      original.apply(this, args);
+    } catch (err) {
+      promiseReject(err);
+    }
+
+    return promise;
+  }
+
+  Object.setPrototypeOf(fn, Object.getPrototypeOf(original));
+
+  if (kCustomPromisifiedSymbol) Object.defineProperty(fn, kCustomPromisifiedSymbol, {
+    value: fn, enumerable: false, writable: false, configurable: true
+  });
+  return Object.defineProperties(
+    fn,
+    getOwnPropertyDescriptors(original)
+  );
+}
+
+exports.promisify.custom = kCustomPromisifiedSymbol
+
+function callbackifyOnRejected(reason, cb) {
+  // `!reason` guard inspired by bluebird (Ref: https://goo.gl/t5IS6M).
+  // Because `null` is a special error value in callbacks which means "no error
+  // occurred", we error-wrap so the callback consumer can distinguish between
+  // "the promise rejected with null" or "the promise fulfilled with undefined".
+  if (!reason) {
+    var newReason = new Error('Promise was rejected with a falsy value');
+    newReason.reason = reason;
+    reason = newReason;
+  }
+  return cb(reason);
+}
+
+function callbackify(original) {
+  if (typeof original !== 'function') {
+    throw new TypeError('The "original" argument must be of type Function');
+  }
+
+  // We DO NOT return the promise as it gives the user a false sense that
+  // the promise is actually somehow related to the callback's execution
+  // and that the callback throwing will reject the promise.
+  function callbackified() {
+    var args = [];
+    for (var i = 0; i < arguments.length; i++) {
+      args.push(arguments[i]);
+    }
+
+    var maybeCb = args.pop();
+    if (typeof maybeCb !== 'function') {
+      throw new TypeError('The last argument must be of type Function');
+    }
+    var self = this;
+    var cb = function() {
+      return maybeCb.apply(self, arguments);
+    };
+    // In true node style we process the callback on `nextTick` with all the
+    // implications (stack, `uncaughtException`, `async_hooks`)
+    original.apply(this, args)
+      .then(function(ret) { process.nextTick(cb, null, ret) },
+            function(rej) { process.nextTick(callbackifyOnRejected, rej, cb) });
+  }
+
+  Object.setPrototypeOf(callbackified, Object.getPrototypeOf(original));
+  Object.defineProperties(callbackified,
+                          getOwnPropertyDescriptors(original));
+  return callbackified;
+}
+exports.callbackify = callbackify;
+
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../process/browser.js */ "./node_modules/process/browser.js")))
+
+/***/ }),
+
 /***/ "./typescript/-vector.ts":
 /*!*******************************!*\
   !*** ./typescript/-vector.ts ***!
@@ -103,10 +1063,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _vector_isVector__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./_vector/-isVector */ "./typescript/_vector/-isVector.ts");
 /* harmony import */ var _vector_rotate__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./_vector/-rotate */ "./typescript/_vector/-rotate.ts");
 /* harmony import */ var _vector_scaleWith__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./_vector/-scaleWith */ "./typescript/_vector/-scaleWith.ts");
-/* harmony import */ var _vector_snapToGrid__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./_vector/-snapToGrid */ "./typescript/_vector/-snapToGrid.ts");
-/* harmony import */ var _vector_standardise__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./_vector/-standardise */ "./typescript/_vector/-standardise.ts");
-/* harmony import */ var _vector_sum__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./_vector/-sum */ "./typescript/_vector/-sum.ts");
-/* harmony import */ var _vector_sumWith__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./_vector/-sumWith */ "./typescript/_vector/-sumWith.ts");
+/* harmony import */ var _vector_standardise__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./_vector/-standardise */ "./typescript/_vector/-standardise.ts");
+/* harmony import */ var _vector_sum__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./_vector/-sum */ "./typescript/_vector/-sum.ts");
+/* harmony import */ var _vector_sumWith__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./_vector/-sumWith */ "./typescript/_vector/-sumWith.ts");
+/* harmony import */ var _vector_subSum__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./_vector/-subSum */ "./typescript/_vector/-subSum.ts");
+/* harmony import */ var _vector_round__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./_vector/-round */ "./typescript/_vector/-round.ts");
 
 
 
@@ -119,6 +1080,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+// TODO: Refactor using tuple unpacking stuff
 const singleExtension = (inVector) => {
     return {
         vector: inVector,
@@ -127,44 +1090,47 @@ const singleExtension = (inVector) => {
         getAngleTo: Object(_vector_getAngleTo__WEBPACK_IMPORTED_MODULE_3__["default"])(inVector),
         asPolar: Object(_vector_asPolar__WEBPACK_IMPORTED_MODULE_0__["default"])(inVector),
         isCloseTo: Object(_vector_isCloseTo__WEBPACK_IMPORTED_MODULE_4__["default"])(inVector),
-        sumWith: Object(_vector_sumWith__WEBPACK_IMPORTED_MODULE_11__["sumWithS"])(inVector),
+        sumWith: Object(_vector_sumWith__WEBPACK_IMPORTED_MODULE_10__["sumWithS"])(inVector),
+        subSum: Object(_vector_subSum__WEBPACK_IMPORTED_MODULE_11__["subSumS"])(inVector),
         scaleWith: Object(_vector_scaleWith__WEBPACK_IMPORTED_MODULE_7__["scaleWithS"])(inVector),
         scaleMap: Object(_vector_scaleWith__WEBPACK_IMPORTED_MODULE_7__["scaleMapS"])(inVector),
         centreWith: Object(_vector_centreWith__WEBPACK_IMPORTED_MODULE_2__["default"])(inVector),
         rotate: Object(_vector_rotate__WEBPACK_IMPORTED_MODULE_6__["rotateS"])(inVector),
-        snapToGrid: Object(_vector_snapToGrid__WEBPACK_IMPORTED_MODULE_8__["snapToGridS"])(inVector)
+        round: Object(_vector_round__WEBPACK_IMPORTED_MODULE_12__["roundS"])(inVector)
     };
 };
 const multiExtension = (inVectors) => {
     return {
         vectors: inVectors,
-        sum: Object(_vector_sum__WEBPACK_IMPORTED_MODULE_10__["default"])(inVectors),
-        sumWith: Object(_vector_sumWith__WEBPACK_IMPORTED_MODULE_11__["sumWithM"])(inVectors),
+        sum: Object(_vector_sum__WEBPACK_IMPORTED_MODULE_9__["default"])(inVectors),
+        sumWith: Object(_vector_sumWith__WEBPACK_IMPORTED_MODULE_10__["sumWithM"])(inVectors),
+        subSum: Object(_vector_subSum__WEBPACK_IMPORTED_MODULE_11__["subSumM"])(inVectors),
         scaleWith: Object(_vector_scaleWith__WEBPACK_IMPORTED_MODULE_7__["scaleWithM"])(inVectors),
         rotate: Object(_vector_rotate__WEBPACK_IMPORTED_MODULE_6__["rotateM"])(inVectors),
         centre: Object(_vector_centre__WEBPACK_IMPORTED_MODULE_1__["default"])(inVectors),
-        snapToGrid: Object(_vector_snapToGrid__WEBPACK_IMPORTED_MODULE_8__["snapToGridM"])(inVectors)
+        round: Object(_vector_round__WEBPACK_IMPORTED_MODULE_12__["roundM"])(inVectors),
     };
 };
 function vectorFunction(inVectors, ...moreVectors) {
     // const vectorsAsArray = ((inVectors instanceof Array) ? inVectors : [inVectors]) as Array<T>;
     // const moreVectorsAsArray = (moreVectors !== undefined) ? moreVectors : [];
-    const vCopy = Object(_vector_standardise__WEBPACK_IMPORTED_MODULE_9__["default"])(inVectors, ...moreVectors);
+    const vCopy = Object(_vector_standardise__WEBPACK_IMPORTED_MODULE_8__["default"])(inVectors, ...moreVectors);
     const ext = (vCopy instanceof Array)
         ? multiExtension(vCopy)
         : singleExtension(vCopy);
     return Object.assign({}, ext);
 }
 const vectorObject = {
-    sumWith: _vector_sumWith__WEBPACK_IMPORTED_MODULE_11__["sumWithS"],
+    sumWith: _vector_sumWith__WEBPACK_IMPORTED_MODULE_10__["sumWithS"],
+    subSum: _vector_subSum__WEBPACK_IMPORTED_MODULE_11__["subSumS"],
     scaleWith: _vector_scaleWith__WEBPACK_IMPORTED_MODULE_7__["scaleWithS"],
     getAngleTo: _vector_getAngleTo__WEBPACK_IMPORTED_MODULE_3__["default"],
     isCloseTo: _vector_isCloseTo__WEBPACK_IMPORTED_MODULE_4__["default"],
     centreWith: _vector_centreWith__WEBPACK_IMPORTED_MODULE_2__["default"],
     rotate: _vector_rotate__WEBPACK_IMPORTED_MODULE_6__["rotateS"],
-    snapToGrid: _vector_snapToGrid__WEBPACK_IMPORTED_MODULE_8__["snapToGridS"],
+    round: _vector_round__WEBPACK_IMPORTED_MODULE_12__["roundS"],
     asPolar: _vector_asPolar__WEBPACK_IMPORTED_MODULE_0__["default"],
-    standardise: _vector_standardise__WEBPACK_IMPORTED_MODULE_9__["default"],
+    standardise: _vector_standardise__WEBPACK_IMPORTED_MODULE_8__["default"],
     isVector: _vector_isVector__WEBPACK_IMPORTED_MODULE_5__["isVector"],
     isVectorArray: _vector_isVector__WEBPACK_IMPORTED_MODULE_5__["isVectorArray"],
 };
@@ -376,6 +1342,41 @@ function curriedRotate(angle) {
 
 /***/ }),
 
+/***/ "./typescript/_vector/-round.ts":
+/*!**************************************!*\
+  !*** ./typescript/_vector/-round.ts ***!
+  \**************************************/
+/*! exports provided: roundS, roundM */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "roundS", function() { return roundS; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "roundM", function() { return roundM; });
+/* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../-vector */ "./typescript/-vector.ts");
+
+function roundS(inVector) {
+    return (to = 1) => {
+        const t = typeof to === "number" ? { x: to, y: to } : to;
+        return Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])({
+            x: Math.round(inVector.x / (t.x)) * (t.x),
+            y: Math.round(inVector.y / (t.y)) * (t.y)
+        });
+    };
+}
+function roundM(inVectors) {
+    return (to = 1) => {
+        const t = typeof to === "number" ? { x: to, y: to } : to;
+        return Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(inVectors.map(inVector => ({
+            x: Math.round(inVector.x / (t.x)) * (t.x),
+            y: Math.round(inVector.y / (t.y)) * (t.y)
+        })));
+    };
+}
+
+
+/***/ }),
+
 /***/ "./typescript/_vector/-scaleWith.ts":
 /*!******************************************!*\
   !*** ./typescript/_vector/-scaleWith.ts ***!
@@ -426,39 +1427,6 @@ function scale(a, b) {
 
 /***/ }),
 
-/***/ "./typescript/_vector/-snapToGrid.ts":
-/*!*******************************************!*\
-  !*** ./typescript/_vector/-snapToGrid.ts ***!
-  \*******************************************/
-/*! exports provided: snapToGridS, snapToGridM */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "snapToGridS", function() { return snapToGridS; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "snapToGridM", function() { return snapToGridM; });
-/* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../-vector */ "./typescript/-vector.ts");
-
-function snapToGridS(inVector) {
-    return (grid = { x: 10, y: 10 }) => {
-        return Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])({
-            x: Math.round(inVector.x / (grid.x)) * (grid.x),
-            y: Math.round(inVector.y / (grid.y)) * (grid.y)
-        });
-    };
-}
-function snapToGridM(inVectors) {
-    return (grid = { x: 10, y: 10 }) => {
-        return Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(inVectors.map(inVector => ({
-            x: Math.round(inVector.x / (grid.x)) * (grid.x),
-            y: Math.round(inVector.y / (grid.y)) * (grid.y)
-        })));
-    };
-}
-
-
-/***/ }),
-
 /***/ "./typescript/_vector/-standardise.ts":
 /*!********************************************!*\
   !*** ./typescript/_vector/-standardise.ts ***!
@@ -499,6 +1467,55 @@ function standardise(inVectors, ...moreVectors) {
     else {
         return standardised[0];
     }
+}
+
+
+/***/ }),
+
+/***/ "./typescript/_vector/-subSum.ts":
+/*!***************************************!*\
+  !*** ./typescript/_vector/-subSum.ts ***!
+  \***************************************/
+/*! exports provided: subSumS, subSumM */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "subSumS", function() { return subSumS; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "subSumM", function() { return subSumM; });
+/* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../-vector */ "./typescript/-vector.ts");
+
+function subSumS(inVector) {
+    return (...sumVectors) => {
+        return Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(sub(inVector, sum(sumVectors)));
+    };
+}
+function subSumM(inVectors) {
+    return (...sumVectors) => {
+        let b = sum(sumVectors);
+        return Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(inVectors.map(a => {
+            return sub(a, b);
+        }));
+    };
+}
+function add(a, b) {
+    return {
+        x: (a.x || 0) + (b.x || 0),
+        y: (a.y || 0) + (b.y || 0)
+    };
+}
+function sub(a, b) {
+    return {
+        x: (a.x || 0) - (b.x || 0),
+        y: (a.y || 0) - (b.y || 0)
+    };
+}
+function sum(inVectors) {
+    let sum = { x: 0, y: 0 };
+    inVectors.forEach(inVector => {
+        sum = add(sum, inVector);
+    });
+    return sum;
 }
 
 
@@ -616,7 +1633,9 @@ class Component {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Diagram; });
 /* harmony import */ var _svg_root__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../svg/+root */ "./typescript/svg/+root.ts");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./events */ "./typescript/circuit/events.ts");
 //TODO FOLDER STRUCTURE
+
 
 class Diagram {
     // Make and draw this
@@ -625,6 +1644,11 @@ class Diagram {
         this.root = new _svg_root__WEBPACK_IMPORTED_MODULE_0__["default"]();
         this.group = this.root.group;
         this.root.draw(node);
+        $(this.root.element.element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].drag, (e, drag) => {
+            if (e.target === this.root.element.element) {
+                this.root.group.translate(drag);
+            }
+        });
     }
 }
 
@@ -789,7 +1813,7 @@ function redoEvent(state) {
     currentEvent.forEach(development => {
         Object.assign(development.participant, development.state);
         if (development.participant.group) {
-            $(development.participant.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw);
+            $(development.participant.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].place);
         }
     });
     // Replace the redone event with an event to undo it
@@ -1064,7 +2088,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_draggable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
 /* harmony import */ var _addins_extendable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/extendable */ "./typescript/circuit/component/addins/extendable.ts");
-/* harmony import */ var _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionHighlights */ "./typescript/circuit/component/addins/connectionHighlights.ts");
+/* harmony import */ var _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionsHighlightable */ "./typescript/circuit/component/addins/connectionsHighlightable.ts");
 
 
 
@@ -1080,13 +2104,7 @@ const defaulterLayout = {
     currentGain: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0),
     type: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate(["NPN", "PNP"], "NPN")
 };
-const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["BipolarLayout"], defaulterLayout, [
-    _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"],
-    _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"],
-    _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"],
-    _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"],
-    _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__["default"]
-]);
+const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["BipolarLayout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeLayout);
 
 
@@ -1108,9 +2126,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_draggable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
 /* harmony import */ var _addins_extendable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/extendable */ "./typescript/circuit/component/addins/extendable.ts");
-/* harmony import */ var _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionHighlights */ "./typescript/circuit/component/addins/connectionHighlights.ts");
-/* harmony import */ var _controlValues__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../../~controlValues */ "./typescript/~controlValues.ts");
-
+/* harmony import */ var _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionsHighlightable */ "./typescript/circuit/component/addins/connectionsHighlightable.ts");
 
 
 
@@ -1126,15 +2142,7 @@ const defaulterSchematic = {
     currentGain: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0),
     type: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate(["NPN", "PNP"], "NPN")
 };
-const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["BipolarSchematic"], defaulterSchematic, [
-    _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"],
-    _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__["default"],
-    _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"],
-    ..._controlValues__WEBPACK_IMPORTED_MODULE_8__["default"].schematicEditingEnabled ? [
-        _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"],
-        _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]
-    ] : []
-]);
+const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["BipolarSchematic"], defaulterSchematic, _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeSchematic);
 
 
@@ -1537,7 +2545,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_draggable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
 /* harmony import */ var _addins_board__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/board */ "./typescript/circuit/component/addins/board.ts");
-/* harmony import */ var _addins_wireCreation__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/wireCreation */ "./typescript/circuit/component/addins/wireCreation.ts");
+/* harmony import */ var _addins_wiresCreatable__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/wiresCreatable */ "./typescript/circuit/component/addins/wiresCreatable.ts");
 
 
 
@@ -1551,13 +2559,7 @@ const defaulterLarge = {
     disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
 };
-const makeLarge = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Large"], defaulterLarge, [
-    _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"],
-    _addins_board__WEBPACK_IMPORTED_MODULE_6__["default"],
-    _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"],
-    _addins_wireCreation__WEBPACK_IMPORTED_MODULE_7__["default"],
-    _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"]
-]);
+const makeLarge = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Large"], defaulterLarge, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_board__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_wiresCreatable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeLarge);
 
 
@@ -1579,7 +2581,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_draggable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
 /* harmony import */ var _addins_board__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/board */ "./typescript/circuit/component/addins/board.ts");
-/* harmony import */ var _addins_wireCreation__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/wireCreation */ "./typescript/circuit/component/addins/wireCreation.ts");
+/* harmony import */ var _addins_wiresCreatable__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/wiresCreatable */ "./typescript/circuit/component/addins/wiresCreatable.ts");
 /* harmony import */ var _addins_rotatable__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../addins/rotatable */ "./typescript/circuit/component/addins/rotatable.ts");
 
 
@@ -1595,14 +2597,7 @@ const defaulterSmall = {
     disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
 };
-const makeSmall = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Small"], defaulterSmall, [
-    _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"],
-    _addins_board__WEBPACK_IMPORTED_MODULE_6__["default"],
-    _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"],
-    _addins_wireCreation__WEBPACK_IMPORTED_MODULE_7__["default"],
-    _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"],
-    _addins_rotatable__WEBPACK_IMPORTED_MODULE_8__["default"]
-]);
+const makeSmall = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Small"], defaulterSmall, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_board__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_wiresCreatable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_rotatable__WEBPACK_IMPORTED_MODULE_8__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeSmall);
 
 
@@ -2030,7 +3025,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_draggable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
 /* harmony import */ var _addins_extendable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/extendable */ "./typescript/circuit/component/addins/extendable.ts");
-/* harmony import */ var _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionHighlights */ "./typescript/circuit/component/addins/connectionHighlights.ts");
+/* harmony import */ var _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionsHighlightable */ "./typescript/circuit/component/addins/connectionsHighlightable.ts");
 
 
 
@@ -2046,13 +3041,7 @@ const defaulterLayout = {
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 80, y: 0 }]),
     capacitance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
 };
-const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, [
-    _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"],
-    _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"],
-    _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"],
-    _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"],
-    _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__["default"]
-]);
+const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeLayout);
 
 
@@ -2074,9 +3063,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_draggable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
 /* harmony import */ var _addins_extendable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/extendable */ "./typescript/circuit/component/addins/extendable.ts");
-/* harmony import */ var _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionHighlights */ "./typescript/circuit/component/addins/connectionHighlights.ts");
-/* harmony import */ var _controlValues__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../../~controlValues */ "./typescript/~controlValues.ts");
-
+/* harmony import */ var _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionsHighlightable */ "./typescript/circuit/component/addins/connectionsHighlightable.ts");
 
 
 
@@ -2092,15 +3079,7 @@ const defaulterSchematic = {
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
     capacitance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
 };
-const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, [
-    _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"],
-    _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__["default"],
-    _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"],
-    ..._controlValues__WEBPACK_IMPORTED_MODULE_8__["default"].schematicEditingEnabled ? [
-        _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"],
-        _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]
-    ] : []
-]);
+const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeSchematic);
 
 
@@ -2477,7 +3456,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_draggable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
 /* harmony import */ var _addins_extendable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/extendable */ "./typescript/circuit/component/addins/extendable.ts");
-/* harmony import */ var _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionHighlights */ "./typescript/circuit/component/addins/connectionHighlights.ts");
+/* harmony import */ var _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionsHighlightable */ "./typescript/circuit/component/addins/connectionsHighlightable.ts");
 
 
 
@@ -2494,13 +3473,7 @@ const defaulterLayout = {
     saturationCurrent: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0),
     color: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].color("N/A")
 };
-const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, [
-    _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"],
-    _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"],
-    _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"],
-    _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"],
-    _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__["default"]
-]);
+const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeLayout);
 
 
@@ -2522,9 +3495,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_draggable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
 /* harmony import */ var _addins_extendable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/extendable */ "./typescript/circuit/component/addins/extendable.ts");
-/* harmony import */ var _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionHighlights */ "./typescript/circuit/component/addins/connectionHighlights.ts");
-/* harmony import */ var _controlValues__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../../~controlValues */ "./typescript/~controlValues.ts");
-
+/* harmony import */ var _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionsHighlightable */ "./typescript/circuit/component/addins/connectionsHighlightable.ts");
 
 
 
@@ -2541,15 +3512,7 @@ const defaulterSchematic = {
     saturationCurrent: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0),
     color: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].color("N/A")
 };
-const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, [
-    _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"],
-    _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"],
-    _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__["default"],
-    ..._controlValues__WEBPACK_IMPORTED_MODULE_8__["default"].schematicEditingEnabled ? [
-        _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"],
-        _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]
-    ] : []
-]);
+const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeSchematic);
 
 
@@ -2877,7 +3840,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_draggable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
 /* harmony import */ var _addins_extendable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/extendable */ "./typescript/circuit/component/addins/extendable.ts");
-/* harmony import */ var _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionHighlights */ "./typescript/circuit/component/addins/connectionHighlights.ts");
+/* harmony import */ var _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionsHighlightable */ "./typescript/circuit/component/addins/connectionsHighlightable.ts");
 
 
 
@@ -2892,13 +3855,7 @@ const defaulterLayout = {
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 80, y: 0 }]),
     inductance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
 };
-const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, [
-    _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"],
-    _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"],
-    _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"],
-    _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"],
-    _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__["default"]
-]);
+const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeLayout);
 
 
@@ -2920,9 +3877,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_draggable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
 /* harmony import */ var _addins_extendable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/extendable */ "./typescript/circuit/component/addins/extendable.ts");
-/* harmony import */ var _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionHighlights */ "./typescript/circuit/component/addins/connectionHighlights.ts");
-/* harmony import */ var _controlValues__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../../~controlValues */ "./typescript/~controlValues.ts");
-
+/* harmony import */ var _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionsHighlightable */ "./typescript/circuit/component/addins/connectionsHighlightable.ts");
 
 
 
@@ -2937,15 +3892,7 @@ const defaulterSchematic = {
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
     inductance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
 };
-const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, [
-    _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"],
-    _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__["default"],
-    _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"],
-    ..._controlValues__WEBPACK_IMPORTED_MODULE_8__["default"].schematicEditingEnabled ? [
-        _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"],
-        _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]
-    ] : []
-]);
+const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeSchematic);
 
 
@@ -3309,7 +4256,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_draggable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
 /* harmony import */ var _addins_rotatable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/rotatable */ "./typescript/circuit/component/addins/rotatable.ts");
-/* harmony import */ var _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionHighlights */ "./typescript/circuit/component/addins/connectionHighlights.ts");
+/* harmony import */ var _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionsHighlightable */ "./typescript/circuit/component/addins/connectionsHighlightable.ts");
 
 
 
@@ -3325,13 +4272,7 @@ const defaulterLayout = {
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 30, y: 30 }, { x: 40, y: 30 }]),
     offsetVoltage: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
 };
-const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, [
-    _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"],
-    _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"],
-    _addins_rotatable__WEBPACK_IMPORTED_MODULE_6__["default"],
-    _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"],
-    _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__["default"]
-]);
+const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_rotatable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeLayout);
 
 
@@ -3353,9 +4294,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_draggable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
 /* harmony import */ var _addins_extendable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/extendable */ "./typescript/circuit/component/addins/extendable.ts");
-/* harmony import */ var _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionHighlights */ "./typescript/circuit/component/addins/connectionHighlights.ts");
-/* harmony import */ var _controlValues__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../../~controlValues */ "./typescript/~controlValues.ts");
-
+/* harmony import */ var _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionsHighlightable */ "./typescript/circuit/component/addins/connectionsHighlightable.ts");
 
 
 
@@ -3370,15 +4309,7 @@ const defaulterSchematic = {
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: 40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: 20 }]),
     offsetVoltage: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
 };
-const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, [
-    _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"],
-    _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__["default"],
-    _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"],
-    ..._controlValues__WEBPACK_IMPORTED_MODULE_8__["default"].schematicEditingEnabled ? [
-        _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"],
-        _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]
-    ] : []
-]);
+const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeSchematic);
 
 
@@ -3789,8 +4720,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_graphical__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../addins/graphical */ "./typescript/circuit/component/addins/graphical.ts");
 /* harmony import */ var _addins_draggable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
-/* harmony import */ var _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/connectionHighlights */ "./typescript/circuit/component/addins/connectionHighlights.ts");
-/* harmony import */ var _addins_wireCreation__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/wireCreation */ "./typescript/circuit/component/addins/wireCreation.ts");
+/* harmony import */ var _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/connectionsHighlightable */ "./typescript/circuit/component/addins/connectionsHighlightable.ts");
+/* harmony import */ var _addins_wiresCreatable__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/wiresCreatable */ "./typescript/circuit/component/addins/wiresCreatable.ts");
 
 
 
@@ -3805,13 +4736,7 @@ const defaulterLayout = {
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 40 }]),
     voltage: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
 };
-const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["PowerLayout"], defaulterLayout, [
-    _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"],
-    _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"],
-    _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"],
-    _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_6__["default"],
-    _addins_wireCreation__WEBPACK_IMPORTED_MODULE_7__["default"]
-]);
+const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["PowerLayout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_wiresCreatable__WEBPACK_IMPORTED_MODULE_7__["default"]);
 // TODO: Pass into connection highlight
 // function getHighlightColor(component: PowerLayout): string[] {
 //    return [(component.voltage < 0)
@@ -3841,9 +4766,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_graphical__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../addins/graphical */ "./typescript/circuit/component/addins/graphical.ts");
 /* harmony import */ var _addins_draggable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
-/* harmony import */ var _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/connectionHighlights */ "./typescript/circuit/component/addins/connectionHighlights.ts");
-/* harmony import */ var _controlValues__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../../~controlValues */ "./typescript/~controlValues.ts");
-
+/* harmony import */ var _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/connectionsHighlightable */ "./typescript/circuit/component/addins/connectionsHighlightable.ts");
 
 
 
@@ -3857,14 +4780,7 @@ const defaulterSchematic = {
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }]),
     voltage: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
 };
-const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["PowerSchematic"], defaulterSchematic, [
-    _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"],
-    _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_6__["default"],
-    _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"],
-    ..._controlValues__WEBPACK_IMPORTED_MODULE_7__["default"].schematicEditingEnabled ? [
-        _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"]
-    ] : []
-]);
+const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["PowerSchematic"], defaulterSchematic, _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeSchematic);
 
 
@@ -4213,7 +5129,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_draggable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
 /* harmony import */ var _addins_extendable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/extendable */ "./typescript/circuit/component/addins/extendable.ts");
-/* harmony import */ var _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionHighlights */ "./typescript/circuit/component/addins/connectionHighlights.ts");
+/* harmony import */ var _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionsHighlightable */ "./typescript/circuit/component/addins/connectionsHighlightable.ts");
 
 
 
@@ -4228,13 +5144,7 @@ const defaulterLayout = {
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
     resistance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
 };
-const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, [
-    _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"],
-    _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"],
-    _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"],
-    _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"],
-    _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__["default"]
-]);
+const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeLayout);
 
 
@@ -4256,9 +5166,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_draggable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
 /* harmony import */ var _addins_extendable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/extendable */ "./typescript/circuit/component/addins/extendable.ts");
-/* harmony import */ var _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionHighlights */ "./typescript/circuit/component/addins/connectionHighlights.ts");
-/* harmony import */ var _controlValues__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../../~controlValues */ "./typescript/~controlValues.ts");
-
+/* harmony import */ var _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionsHighlightable */ "./typescript/circuit/component/addins/connectionsHighlightable.ts");
 
 
 
@@ -4273,15 +5181,7 @@ const defaulterSchematic = {
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
     resistance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
 };
-const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, [
-    _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"],
-    _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__["default"],
-    _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"],
-    ..._controlValues__WEBPACK_IMPORTED_MODULE_8__["default"].schematicEditingEnabled ? [
-        _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"],
-        _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]
-    ] : []
-]);
+const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeSchematic);
 
 
@@ -4435,6 +5335,44 @@ class Layout extends Base {
 
 /***/ }),
 
+/***/ "./typescript/circuit/component/_stripboard/-drawLayout.ts":
+/*!*****************************************************************!*\
+  !*** ./typescript/circuit/component/_stripboard/-drawLayout.ts ***!
+  \*****************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return drawLayout; });
+/* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_stripboard/constants.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
+/* harmony import */ var _svg_element_rect__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../svg/element/+rect */ "./typescript/svg/element/+rect.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../~constants */ "./typescript/~constants.ts");
+/* harmony import */ var _makeTracks__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./-makeTracks */ "./typescript/circuit/component/_stripboard/-makeTracks.ts");
+
+
+
+
+
+
+function drawLayout(instance) {
+    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_2__["make"])("body");
+    const rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCENTRE"]]).getAngleTo(instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXROTATION"]]);
+    instance.tracks = Object(_makeTracks__WEBPACK_IMPORTED_MODULE_5__["default"])(instance);
+    const size = {
+        width: (instance.columns + 0.5) * _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"],
+        height: (instance.rows + 0.5) * _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"]
+    };
+    const cornerRounding = { x: 3, y: 3 };
+    bodyGroup.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_3__["make"])(Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(0), size, cornerRounding, "body highlight").translate(instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCENTRE"]]).rotate(rotation), instance.tracks.map(t => t.group));
+    return bodyGroup;
+}
+
+
+/***/ }),
+
 /***/ "./typescript/circuit/component/_stripboard/-loadLayout.ts":
 /*!*****************************************************************!*\
   !*** ./typescript/circuit/component/_stripboard/-loadLayout.ts ***!
@@ -4459,48 +5397,6 @@ function loadLayout(raw) {
 
 /***/ }),
 
-/***/ "./typescript/circuit/component/_stripboard/-make-tracks.ts":
-/*!******************************************************************!*\
-  !*** ./typescript/circuit/component/_stripboard/-make-tracks.ts ***!
-  \******************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return makeTracks; });
-/* harmony import */ var _track_maps__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../_track/-maps */ "./typescript/circuit/component/_track/-maps.ts");
-/* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../~constants */ "./typescript/~constants.ts");
-
-
-
-function makeTracks(parent) {
-    let gS = _constants__WEBPACK_IMPORTED_MODULE_2__["gridSpacing"];
-    let rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(parent.joints[0]).getAngleTo(parent.joints[1]);
-    let start = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])({
-        x: -((parent.columns - 1) * gS / 2),
-        y: -((parent.rows - 1) * gS / 2)
-    }).rotate(rotation).sumWith(parent.joints[0]);
-    let step = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])({ x: gS, y: 0 }).rotate(rotation);
-    let tracks = [];
-    for (let row = 0; row < parent.rows; row++) {
-        let rowStart = start.sumWith(Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])({ x: 0, y: row * gS }).rotate(rotation)).vector;
-        let holeSpacings = [0].concat(Array(parent.columns - 1).fill(1));
-        let track = _track_maps__WEBPACK_IMPORTED_MODULE_0__["default"].make({
-            holeSpacings: holeSpacings,
-            style: "stripboard",
-            joints: [rowStart, step]
-        }, false);
-        //track.group.translate({ x: 0, y: row * gS }).rotate(0);
-        tracks.push(track);
-    }
-    return tracks;
-}
-
-
-/***/ }),
-
 /***/ "./typescript/circuit/component/_stripboard/-makeLayout.ts":
 /*!*****************************************************************!*\
   !*** ./typescript/circuit/component/_stripboard/-makeLayout.ts ***!
@@ -4517,8 +5413,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_draggable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
 /* harmony import */ var _addins_board__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/board */ "./typescript/circuit/component/addins/board.ts");
-/* harmony import */ var _addins_wireCreation__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/wireCreation */ "./typescript/circuit/component/addins/wireCreation.ts");
+/* harmony import */ var _addins_wiresCreatable__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/wiresCreatable */ "./typescript/circuit/component/addins/wiresCreatable.ts");
 /* harmony import */ var _addins_rotatable__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../addins/rotatable */ "./typescript/circuit/component/addins/rotatable.ts");
+/* harmony import */ var _addins_reversableBoard__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../addins/reversableBoard */ "./typescript/circuit/component/addins/reversableBoard.ts");
+
 
 
 
@@ -4545,15 +5443,50 @@ function validateTrackBreaks(fallback) {
     };
     return result;
 }
-const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, [
-    _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"],
-    _addins_board__WEBPACK_IMPORTED_MODULE_6__["default"],
-    _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"],
-    _addins_wireCreation__WEBPACK_IMPORTED_MODULE_7__["default"],
-    _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"],
-    _addins_rotatable__WEBPACK_IMPORTED_MODULE_8__["default"]
-]);
+const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["StripboardLayout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_board__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_reversableBoard__WEBPACK_IMPORTED_MODULE_9__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_wiresCreatable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_rotatable__WEBPACK_IMPORTED_MODULE_8__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeLayout);
+
+
+/***/ }),
+
+/***/ "./typescript/circuit/component/_stripboard/-makeTracks.ts":
+/*!*****************************************************************!*\
+  !*** ./typescript/circuit/component/_stripboard/-makeTracks.ts ***!
+  \*****************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return makeTracks; });
+/* harmony import */ var _track_maps__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../_track/-maps */ "./typescript/circuit/component/_track/-maps.ts");
+/* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../~constants */ "./typescript/~constants.ts");
+
+
+
+function makeTracks(parent) {
+    const rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(parent.joints[0]).getAngleTo(parent.joints[1]);
+    const start = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])({ x: parent.columns - 1, y: parent.rows - 1 })
+        .scaleWith(-_constants__WEBPACK_IMPORTED_MODULE_2__["gridSpacing"] / 2)
+        .rotate(rotation)
+        .sumWith(parent.joints[0]);
+    const step = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])({ x: _constants__WEBPACK_IMPORTED_MODULE_2__["gridSpacing"], y: 0 }).rotate(rotation);
+    const tracks = [...Array(parent.rows).keys()].map((row) => {
+        // The position of the start of the row (the first hole)
+        const rowStart = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])({ x: 0, y: row * _constants__WEBPACK_IMPORTED_MODULE_2__["gridSpacing"] })
+            .rotate(rotation)
+            .sumWith(start).vector;
+        // The offset between each hole and the next in gridSpacings
+        const holeSpacings = [0, ...Array(parent.columns - 1).fill(1)];
+        return _track_maps__WEBPACK_IMPORTED_MODULE_0__["default"].make({
+            holeSpacings: holeSpacings,
+            style: "stripboard",
+            joints: [rowStart, step]
+        }, false);
+    });
+    return tracks;
+}
 
 
 /***/ }),
@@ -4578,7 +5511,7 @@ __webpack_require__.r(__webpack_exports__);
 const layoutMap = {
     savename: "makeLayoutStripboard",
     diagramType: "layout",
-    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["Layout"],
+    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["StripboardLayout"],
     make: _makeLayout__WEBPACK_IMPORTED_MODULE_2__["default"],
     load: _loadLayout__WEBPACK_IMPORTED_MODULE_3__["default"],
     isBoard: true
@@ -4591,36 +5524,46 @@ const maps = {
 
 /***/ }),
 
-/***/ "./typescript/circuit/component/_stripboard/~classes.ts":
-/*!**************************************************************!*\
-  !*** ./typescript/circuit/component/_stripboard/~classes.ts ***!
-  \**************************************************************/
-/*! exports provided: Layout */
+/***/ "./typescript/circuit/component/_stripboard/constants.ts":
+/*!***************************************************************!*\
+  !*** ./typescript/circuit/component/_stripboard/constants.ts ***!
+  \***************************************************************/
+/*! exports provided: INDEXCENTRE, INDEXROTATION */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "INDEXCENTRE", function() { return INDEXCENTRE; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "INDEXROTATION", function() { return INDEXROTATION; });
+const INDEXCENTRE = 0;
+const INDEXROTATION = 1;
+
+
+/***/ }),
+
+/***/ "./typescript/circuit/component/_stripboard/~classes.ts":
+/*!**************************************************************!*\
+  !*** ./typescript/circuit/component/_stripboard/~classes.ts ***!
+  \**************************************************************/
+/*! exports provided: StripboardLayout */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "StripboardLayout", function() { return StripboardLayout; });
 /* harmony import */ var _component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../+component */ "./typescript/circuit/+component.ts");
-/* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
-/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
-/* harmony import */ var _manifest__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../manifest */ "./typescript/circuit/manifest.ts");
-/* harmony import */ var _generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../generics/-getComponentConnections */ "./typescript/circuit/generics/-getComponentConnections.ts");
-/* harmony import */ var _make_tracks__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./-make-tracks */ "./typescript/circuit/component/_stripboard/-make-tracks.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../../~constants */ "./typescript/~constants.ts");
-/* harmony import */ var _svg_element_rect__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../../svg/element/+rect */ "./typescript/svg/element/+rect.ts");
+/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
+/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
+/* harmony import */ var _manifest__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../manifest */ "./typescript/circuit/manifest.ts");
+/* harmony import */ var _generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../generics/-getComponentConnections */ "./typescript/circuit/generics/-getComponentConnections.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_stripboard/-drawLayout.ts");
 
 
 
 
 
 
-
-
-//TODO MOVE DRAW INTO ITS OWN FILE
-
-class Layout extends _component__WEBPACK_IMPORTED_MODULE_0__["default"] {
+class StripboardLayout extends _component__WEBPACK_IMPORTED_MODULE_0__["default"] {
     constructor(values) {
         super(values);
         this.tracks = [];
@@ -4631,14 +5574,14 @@ class Layout extends _component__WEBPACK_IMPORTED_MODULE_0__["default"] {
         this.joints = values.joints;
     }
     getProperties() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_2__["default"])({
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
             name: this.name,
             rows: this.rows,
             columns: this.columns
         });
     }
     getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_2__["default"])({
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
             joints: this.joints,
             disabled: this.disabled,
             trackBreaks: this.trackBreaks
@@ -4656,19 +5599,13 @@ class Layout extends _component__WEBPACK_IMPORTED_MODULE_0__["default"] {
         });
     }
     draw() {
-        let rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(this.joints[0]).getAngleTo(this.joints[1]);
-        this.tracks = Object(_make_tracks__WEBPACK_IMPORTED_MODULE_6__["default"])(this);
-        const gS = _constants__WEBPACK_IMPORTED_MODULE_7__["gridSpacing"];
-        //const centre = { x: (this.columns - 1) * gS / 2, y: (this.rows - 1) * gS / 2 };
-        const size = { width: (this.columns + 0.5) * gS, height: (this.rows + 0.5) * gS };
-        const cornerRounding = { x: 3, y: 3 };
-        this.group.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_8__["make"])(Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(0), size, cornerRounding, "body highlight").translate(this.joints[0]).rotate(rotation), this.tracks.map(t => t.group));
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_5__["default"])(this));
     }
     getConnections() {
-        return Object(_generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_5__["default"])(this, _manifest__WEBPACK_IMPORTED_MODULE_4__["default"].layout);
+        return Object(_generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_4__["default"])(this, _manifest__WEBPACK_IMPORTED_MODULE_3__["default"].layout);
     }
     insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_3__["default"].first(this.group.element, element);
+        _utility_insert__WEBPACK_IMPORTED_MODULE_2__["default"].first(this.group.element, element);
     }
     transferFunction() { return []; }
     ;
@@ -4772,9 +5709,7 @@ const defaulter = {
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
     holeSpacings: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate(v => Array.isArray(v) && v.every(_valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].test("number")), [0]),
 };
-const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulter, [
-    _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"]
-]);
+const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulter, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeLayout);
 
 
@@ -5081,7 +6016,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_draggable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
 /* harmony import */ var _addins_extendable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/extendable */ "./typescript/circuit/component/addins/extendable.ts");
-/* harmony import */ var _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionHighlights */ "./typescript/circuit/component/addins/connectionHighlights.ts");
+/* harmony import */ var _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionsHighlightable */ "./typescript/circuit/component/addins/connectionsHighlightable.ts");
 /* harmony import */ var _addins_recolorable__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../addins/recolorable */ "./typescript/circuit/component/addins/recolorable.ts");
 
 
@@ -5098,15 +6033,8 @@ const defaulterLayout = {
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 80, y: 0 }], l => l >= 2),
     color: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].color("#545454")
 };
-// TODO: Pass in options for extendable and others (options={?}) (() => getRecolorPosition(component))
-const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, [
-    _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"],
-    _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"],
-    _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"],
-    _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"],
-    _addins_connectionHighlights__WEBPACK_IMPORTED_MODULE_7__["default"],
-    _addins_recolorable__WEBPACK_IMPORTED_MODULE_8__["default"]
-]);
+const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], [_addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], { canAddJoints: true, canRemoveJoints: true, canRemoveComponent: true }], [_addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], {}], _addins_recolorable__WEBPACK_IMPORTED_MODULE_8__["default"]);
+//{ canAddJoints: true, canRemoveJoints: true, canRemoveComponent: true }
 /* harmony default export */ __webpack_exports__["default"] = (makeLayout);
 
 
@@ -5130,8 +6058,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
 /* harmony import */ var _addins_extendable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/extendable */ "./typescript/circuit/component/addins/extendable.ts");
 /* harmony import */ var _addins_junctions__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/junctions */ "./typescript/circuit/component/addins/junctions.ts");
-/* harmony import */ var _controlValues__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../../~controlValues */ "./typescript/~controlValues.ts");
-
 
 
 
@@ -5146,15 +6072,7 @@ const defaulterSchematic = {
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 10, y: 10 }], l => l >= 2)
 };
 // TODO: Pass in options for extendable and others (options={?}) (true,true)
-const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, [
-    _addins_junctions__WEBPACK_IMPORTED_MODULE_7__["default"],
-    _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"],
-    _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"],
-    ..._controlValues__WEBPACK_IMPORTED_MODULE_8__["default"].schematicEditingEnabled ? [
-        _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"],
-        _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]
-    ] : []
-]);
+const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, _addins_junctions__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], [_addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], { canAddJoints: true, canRemoveJoints: true, canRemoveComponent: true }]);
 /* harmony default export */ __webpack_exports__["default"] = (makeSchematic);
 
 
@@ -5322,134 +6240,26 @@ class Layout extends Base {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
-/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../events */ "./typescript/circuit/events.ts");
-/* harmony import */ var _manifest__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../manifest */ "./typescript/circuit/manifest.ts");
-/* harmony import */ var _history__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../history */ "./typescript/circuit/history.ts");
-/* harmony import */ var _utility_flatten__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../utility/~flatten */ "./typescript/utility/~flatten.ts");
-/* harmony import */ var _svg_addTransform__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/-addTransform */ "./typescript/svg/-addTransform.ts");
-/* harmony import */ var _svg_element_circle__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../svg/element/+circle */ "./typescript/svg/element/+circle.ts");
+/* harmony import */ var _utility_flatten__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/~flatten */ "./typescript/utility/~flatten.ts");
 
-
-
-
-
-
-
-//import * as $ from 'jquery';
-var Board;
-(function (Board) {
-    function init(component, isReversible) {
+const Board = (() => {
+    const init = (component) => {
         $(component.group.element).addClass("board");
         Object.defineProperty(component, 'connectorSets', {
-            get: () => _utility_flatten__WEBPACK_IMPORTED_MODULE_4__["default"].flatten2d(component.tracks.map(track => track.connectorSets))
+            get: () => _utility_flatten__WEBPACK_IMPORTED_MODULE_0__["default"].flatten2d(component.tracks.map(track => track.connectorSets))
         });
-        if (isReversible) {
-            Reversible.init(component);
-        }
-    }
-    Board.init = init;
-    let Reversible;
-    (function (Reversible) {
-        Reversible.init = (component) => {
-            let element = component.group;
-            $(element.element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].select, () => {
-                createGhost(component);
-            });
-            $(element.element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStart, () => {
-                clearGhost(component);
-            });
-            $(element.element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].rotate, () => {
-                clearGhost(component);
-                createGhost(component);
-            });
-            $(element.element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStop, () => {
-                createGhost(component);
-            });
-            $(element.element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].deselect, () => {
-                clearGhost(component);
-            });
-            $(element.element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].draw, () => {
-                if ($(element.element).hasClass("selected")) {
-                    clearGhost(component);
-                    createGhost(component);
-                }
-            });
-        };
-        const createGhost = (component) => {
-            // Create the group
-            let ghostGroup = component.group.element.cloneNode();
-            let bbox = component.group.element.getBBox();
-            //Scale
-            Object(_svg_addTransform__WEBPACK_IMPORTED_MODULE_5__["default"])(ghostGroup, t => t.setScale(-1, 1), false);
-            //Translate
-            Object(_svg_addTransform__WEBPACK_IMPORTED_MODULE_5__["default"])(ghostGroup, t => t.setTranslate(-(bbox.width + bbox.x) * 2 - 1, 0), false);
-            ghostGroup.appendChild($(component.group.element).children(".body").clone()[0]);
-            $(ghostGroup).addClass("reverseghost");
-            $(ghostGroup).data("selects", component);
-            let parent = (component.group.element.parentElement);
-            if (parent)
-                parent.appendChild(ghostGroup);
-            let allValidConnectors = _utility_flatten__WEBPACK_IMPORTED_MODULE_4__["default"].flatten2d(_manifest__WEBPACK_IMPORTED_MODULE_2__["default"].layout.map(el => _utility_flatten__WEBPACK_IMPORTED_MODULE_4__["default"].flatten2d(el.connectorSets.map(connectorSet => connectorSet.filter(connector => connector.type === "pin")))));
-            // ...
-            component.tracks.forEach((track, trackIdx) => {
-                let trackGhostGroup = $(track.group.element).clone()[0];
-                ghostGroup.appendChild(trackGhostGroup);
-                // Add the holes
-                //let ctm = (track.group.element.getCTM() || Svg.makeMatrix()).inverse()
-                track.connectorSets[0].forEach((hole, holeIdx) => {
-                    let point = hole.point; //(ctm) ? hole.point.matrixTransform(ctm) : hole.point;
-                    let breaker = Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_6__["make"])(point, 6, "breaker");
-                    if (hole.type === "brokenhole") {
-                        $(breaker.element).addClass("broken");
-                    }
-                    if (getPinsAtHole(hole, allValidConnectors).length) {
-                        $(breaker.element).addClass("withPin");
-                    }
-                    ;
-                    trackGhostGroup.appendChild(breaker.element);
-                    let holePosition = { track: trackIdx, hole: holeIdx };
-                    $(breaker.element).click(() => {
-                        _history__WEBPACK_IMPORTED_MODULE_3__["default"].add(component);
-                        if (hole.type === "hole") {
-                            $(breaker.element).addClass("broken");
-                            hole.type = "brokenhole";
-                            component.trackBreaks.push(holePosition);
-                        }
-                        else if (hole.type === "brokenhole") {
-                            $(breaker.element).removeClass("broken");
-                            hole.type = "hole";
-                            component.trackBreaks = component.trackBreaks.filter(trackBreak => (trackBreak.hole !== holePosition.hole || trackBreak.track !== holePosition.track));
-                        }
-                    });
-                });
-            });
-        };
-        const clearGhost = (component) => {
-            let parent = (component.group.element.parentElement);
-            if (parent)
-                $(parent).children(".reverseghost").remove();
-        };
-        function getPinsAtHole(connector, allConnectors) {
-            let acceptedTypes = ["pin"];
-            let point = connector.point;
-            let attachedConnectors = allConnectors.filter(other => {
-                return (acceptedTypes.includes(other.type)
-                    && Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(point).isCloseTo(other.point));
-            });
-            return attachedConnectors;
-        }
-    })(Reversible || (Reversible = {}));
-})(Board || (Board = {}));
+    };
+    return { init };
+})();
 /* harmony default export */ __webpack_exports__["default"] = (Board);
 
 
 /***/ }),
 
-/***/ "./typescript/circuit/component/addins/connectionHighlights.ts":
-/*!*********************************************************************!*\
-  !*** ./typescript/circuit/component/addins/connectionHighlights.ts ***!
-  \*********************************************************************/
+/***/ "./typescript/circuit/component/addins/connectionsHighlightable.ts":
+/*!*************************************************************************!*\
+  !*** ./typescript/circuit/component/addins/connectionsHighlightable.ts ***!
+  \*************************************************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -5461,8 +6271,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const ConnectionHighlights = (() => {
-    const init = (component, propogate = true, colorPalette = defaultColorPalette) => {
+const ConnectionsHighlightable = (() => {
+    const init = (component, options = {}) => {
+        let { propogate = true, colorPalette = defaultColorPalette, } = Object.assign({}, options);
         let element = component.group.element;
         $(element).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].select, () => {
             createConnectionsHighlights(component, propogate, colorPalette);
@@ -5515,7 +6326,7 @@ const ConnectionHighlights = (() => {
     ];
     return { init };
 })();
-/* harmony default export */ __webpack_exports__["default"] = (ConnectionHighlights);
+/* harmony default export */ __webpack_exports__["default"] = (ConnectionsHighlightable);
 
 
 /***/ }),
@@ -5529,44 +6340,44 @@ const ConnectionHighlights = (() => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _nodeElements__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../~nodeElements */ "./typescript/~nodeElements.ts");
-/* harmony import */ var _mappings__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../mappings */ "./typescript/circuit/mappings.ts");
-/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../events */ "./typescript/circuit/events.ts");
-/* harmony import */ var _history__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../history */ "./typescript/circuit/history.ts");
-/* harmony import */ var _svg_addins_draggable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../svg/addins/draggable */ "./typescript/svg/addins/draggable.ts");
+/* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../events */ "./typescript/circuit/events.ts");
+/* harmony import */ var _history__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../history */ "./typescript/circuit/history.ts");
 
-
-
+// import mappings from "../../mappings";
 
 
 const Draggable = (() => {
     const init = (component) => {
-        _svg_addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"].init(component.group.element, {
-            disableMovement: true,
-            onStart: () => {
-                _history__WEBPACK_IMPORTED_MODULE_3__["default"].add(component);
-                component.insertInto(component.group.element);
-            },
-            onDrag: (drag) => {
-                // TODO IMMUTABLE
-                component.joints.forEach(joint => {
-                    joint.x += drag.x;
-                    joint.y += drag.y;
-                });
-                $(component.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_2__["default"].draw);
-            },
-            onStop: () => {
-                component.joints.forEach(joint => {
-                    joint.x = Math.round(joint.x);
-                    joint.y = Math.round(joint.y);
-                });
+        const element = component.group.element;
+        $(element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStart, () => {
+            _history__WEBPACK_IMPORTED_MODULE_2__["default"].add(component);
+            component.insertInto(component.group.element);
+        });
+        $(element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].drag, (e, drag) => {
+            if (e.target === element) {
+                // TODO: Cleanup mess once i've confirmed it still works...
+                // component.joints.forEach(joint => {
+                //    joint.x += drag.x;
+                //    joint.y += drag.y;
+                // })
+                component.joints = component.joints.map(j => Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(j, drag).sum().vector);
+                $(element).trigger(_events__WEBPACK_IMPORTED_MODULE_1__["default"].draw);
             }
         });
-        // TODO, I don't quite like how this is coupled together
-        if (_mappings__WEBPACK_IMPORTED_MODULE_1__["default"].getComponentMapSafe(component).isBoard &&
-            _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].boardDraggingEnabled.checked === false) {
-            disable(component);
-        }
+        $(element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStop, () => {
+            // component.joints.forEach(joint => {
+            //    joint.x = Math.round(joint.x);
+            //    joint.y = Math.round(joint.y);
+            // });
+            component.joints = component.joints.map(j => Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(j).round().vector);
+        });
+        // // TODO, I don't quite like how this is coupled together
+        // if (mappings.getComponentMapSafe(component).isBoard
+        //    && !ControlValues.boardDraggingEnabled
+        // ) {
+        //    disable(component);
+        // }
     };
     const disable = (component) => {
         if ($(component.group.element).draggable("instance") !== undefined) {
@@ -5599,8 +6410,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _history__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../history */ "./typescript/circuit/history.ts");
 /* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
 /* harmony import */ var _svg_element_circle__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../svg/element/+circle */ "./typescript/svg/element/+circle.ts");
-/* harmony import */ var _svg_addins_draggable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/addins/draggable */ "./typescript/svg/addins/draggable.ts");
-/* harmony import */ var _utility_isNot__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../utility/-isNot */ "./typescript/utility/-isNot.ts");
+/* harmony import */ var _utility_isNot__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../utility/-isNot */ "./typescript/utility/-isNot.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../~constants */ "./typescript/~constants.ts");
 
 
 
@@ -5609,7 +6420,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const Extendable = (() => {
-    const init = (component, canAddJoints = false, canRemoveJoints = false, canRemoveComponent = false) => {
+    const init = (component, options) => {
+        let { canAddJoints = false, canRemoveJoints = false, canRemoveComponent = false } = Object.assign({}, (options ? options : {}));
         let element = component.group.element;
         $(element).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].select, () => {
             createHandles(component);
@@ -5647,7 +6459,7 @@ const Extendable = (() => {
         $(component.group.element).dblclick(e => {
             if ($(e.target).closest(".handle").length < 1) {
                 // Get position in svg coordinates, rounded to grid
-                const position = Object(_vector__WEBPACK_IMPORTED_MODULE_3__["default"])(component.group.convertVector({ x: e.clientX || 0, y: e.clientY || 0 }, "DomToSvg", "relToGroup")).snapToGrid().vector;
+                const position = Object(_vector__WEBPACK_IMPORTED_MODULE_3__["default"])(component.group.convertVector({ x: e.clientX || 0, y: e.clientY || 0 }, "DomToSvg", "relToGroup")).round(_constants__WEBPACK_IMPORTED_MODULE_6__["gridSpacing"] / 2).vector;
                 // Get index for insertion into joint array
                 const jointIdx = getJointInsertionIdx(component, position);
                 //insert joint at position
@@ -5663,12 +6475,13 @@ const Extendable = (() => {
             $(component.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw, [e]);
         });
         $(component.group.element).on("dblclick", ".dragHandle", (e) => {
-            if (component.joints.length > 2) {
-                const point = $(e.target).data("point");
-                component.joints = component.joints.filter(Object(_utility_isNot__WEBPACK_IMPORTED_MODULE_6__["default"])(point));
-                e.target.remove();
-                $(component.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw, [e]);
-            }
+            // If only two joints remain then they can't be removed by dblclick
+            if (component.joints.length <= 2)
+                return;
+            const point = $(e.target).data("point");
+            component.joints = component.joints.filter(Object(_utility_isNot__WEBPACK_IMPORTED_MODULE_5__["default"])(point));
+            e.target.remove();
+            $(component.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw, [e]);
         });
     };
     const initComponentRemoval = (component) => {
@@ -5680,34 +6493,31 @@ const Extendable = (() => {
         });
     };
     const addHandle = (component, point) => {
-        let dragHandle = Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_4__["make"])(point, 5, "handle dragHandle highlight");
-        $(dragHandle.element).data('point', point);
-        component.group.append(dragHandle);
-        _svg_addins_draggable__WEBPACK_IMPORTED_MODULE_5__["default"].init(dragHandle.element);
-        $(dragHandle.element).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].drag, (e, ui, drag) => {
+        const handle = Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_4__["make"])(point, 5, "handle dragHandle highlight").element;
+        $(handle).data('point', point);
+        component.group.append(handle);
+        $(handle).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].drag, (e, drag) => {
             point.x += drag.x;
             point.y += drag.y;
-            $(component.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw, [e]);
+            $(component.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw);
         });
-        $(dragHandle.element).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].dragStop, (e, ui, drag) => {
+        $(handle).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].dragStop, () => {
             point.x = Math.round(point.x);
             point.y = Math.round(point.y);
         });
-        return dragHandle;
     };
     const removeExcessJoints = (component, point) => {
-        if (component.joints.length > 2) {
-            component.joints = component.joints.filter((joint) => {
-                return (joint === point) || !Object(_vector__WEBPACK_IMPORTED_MODULE_3__["default"])(point).isCloseTo(joint);
-            });
-            $(component.group.element).children(".dragHandle").not(".dragging").filter((i, el) => {
-                return Object(_vector__WEBPACK_IMPORTED_MODULE_3__["default"])(point).isCloseTo($(el).data('point'));
-            }).remove();
-        }
-        ;
+        // If only two joints remain then they can't be removed during a drag
+        if (component.joints.length <= 2)
+            return;
+        component.joints = component.joints.filter((joint) => {
+            return (joint === point) || !Object(_vector__WEBPACK_IMPORTED_MODULE_3__["default"])(point).isCloseTo(joint);
+        });
+        $(component.group.element).children(".dragHandle").not(".dragging").filter((i, handle) => {
+            return Object(_vector__WEBPACK_IMPORTED_MODULE_3__["default"])(point).isCloseTo($(handle).data('point'));
+        }).remove();
     };
     const getJointInsertionIdx = (component, point) => {
-        //handles: (Parts.Pins.MovePin)[],
         let jointAngles = component.joints.map((j) => Math.atan2(point.y - j.y, point.x - j.x) * 180 / Math.PI);
         let bestAnglePair = 180;
         let bestJointIdx = 0;
@@ -5720,6 +6530,11 @@ const Extendable = (() => {
         }
         return bestJointIdx;
     };
+    // const getJointFromHandle = (handle: SVGCircleElement): Vector => ({
+    //    // Animval is always just-as or more up-to-date than baseval
+    //    x: handle.cx.animVal.value,
+    //    y: handle.cy.animVal.value
+    // })
     return { init };
 })();
 /* harmony default export */ __webpack_exports__["default"] = (Extendable);
@@ -5743,7 +6558,7 @@ __webpack_require__.r(__webpack_exports__);
 const Graphical = (() => {
     const init = (component) => {
         let element = component.group.element;
-        $(element).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw, () => {
+        $(element).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].anyDraw, () => {
             if (component.disabled === false) {
                 $(component.group.element).show();
                 component.group.clearChildren(":not(.handle,.connectivityhighlight)");
@@ -5781,12 +6596,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-//import * as $ from 'jquery';
-var Junctions;
-(function (Junctions) {
-    Junctions.init = (component) => {
+const Junctions = (() => {
+    const init = (component) => {
         let element = component.group;
-        $(element.element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].moved + " " + _events__WEBPACK_IMPORTED_MODULE_1__["default"].place, () => {
+        $(element.element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].anyDraw, () => {
             clearJunctions(component);
             createJunctions(component);
         });
@@ -5808,7 +6621,8 @@ var Junctions;
     const clearJunctions = (component) => {
         $(component.group.element).find(".junction").remove();
     };
-})(Junctions || (Junctions = {}));
+    return { init };
+})();
 /* harmony default export */ __webpack_exports__["default"] = (Junctions);
 
 
@@ -5837,7 +6651,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const Recolorable = (() => {
-    const init = (component, colorPalette = defaultColorPalette) => {
+    const init = (component, options = {}) => {
+        let { colorPalette = defaultColorPalette, } = Object.assign({}, options);
         const element = component.group.element;
         $(element).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].select, () => {
             createRecolorHandle(component, colorPalette);
@@ -5905,6 +6720,125 @@ const Recolorable = (() => {
 
 /***/ }),
 
+/***/ "./typescript/circuit/component/addins/reversableBoard.ts":
+/*!****************************************************************!*\
+  !*** ./typescript/circuit/component/addins/reversableBoard.ts ***!
+  \****************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../events */ "./typescript/circuit/events.ts");
+/* harmony import */ var _manifest__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../manifest */ "./typescript/circuit/manifest.ts");
+/* harmony import */ var _history__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../history */ "./typescript/circuit/history.ts");
+/* harmony import */ var _utility_flatten__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../utility/~flatten */ "./typescript/utility/~flatten.ts");
+/* harmony import */ var _svg_addTransform__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/-addTransform */ "./typescript/svg/-addTransform.ts");
+/* harmony import */ var _svg_element_circle__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../svg/element/+circle */ "./typescript/svg/element/+circle.ts");
+
+
+
+
+
+
+
+const ReversableBoard = (() => {
+    const init = (component) => {
+        let element = component.group;
+        $(element.element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].select, () => {
+            createGhost(component);
+        });
+        $(element.element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStart, () => {
+            clearGhost(component);
+        });
+        $(element.element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].rotate, () => {
+            clearGhost(component);
+            createGhost(component);
+        });
+        $(element.element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStop, () => {
+            createGhost(component);
+        });
+        $(element.element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].deselect, () => {
+            clearGhost(component);
+        });
+        $(element.element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].draw, () => {
+            if ($(element.element).hasClass("selected")) {
+                clearGhost(component);
+                createGhost(component);
+            }
+        });
+    };
+    const createGhost = (component) => {
+        // Create the group
+        let ghostGroup = component.group.element.cloneNode();
+        let bbox = component.group.element.getBBox();
+        //Scale
+        Object(_svg_addTransform__WEBPACK_IMPORTED_MODULE_5__["default"])(ghostGroup, t => t.setScale(-1, 1), false);
+        //Translate
+        Object(_svg_addTransform__WEBPACK_IMPORTED_MODULE_5__["default"])(ghostGroup, t => t.setTranslate(-(bbox.width + bbox.x) * 2 - 1, 0), false);
+        ghostGroup.appendChild($(component.group.element).children(".body").clone()[0]);
+        $(ghostGroup).addClass("reverseghost");
+        $(ghostGroup).data("selects", component);
+        let parent = (component.group.element.parentElement);
+        if (parent)
+            parent.appendChild(ghostGroup);
+        let allValidConnectors = _utility_flatten__WEBPACK_IMPORTED_MODULE_4__["default"].flatten2d(_manifest__WEBPACK_IMPORTED_MODULE_2__["default"].layout.map(el => _utility_flatten__WEBPACK_IMPORTED_MODULE_4__["default"].flatten2d(el.connectorSets.map(connectorSet => connectorSet.filter(connector => connector.type === "pin")))));
+        // ...
+        component.tracks.forEach((track, trackIdx) => {
+            let trackGhostGroup = $(track.group.element).clone()[0];
+            ghostGroup.appendChild(trackGhostGroup);
+            // Add the holes
+            //let ctm = (track.group.element.getCTM() || Svg.makeMatrix()).inverse()
+            track.connectorSets[0].forEach((hole, holeIdx) => {
+                let point = hole.point; //(ctm) ? hole.point.matrixTransform(ctm) : hole.point;
+                let breaker = Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_6__["make"])(point, 6, "breaker");
+                if (hole.type === "brokenhole") {
+                    $(breaker.element).addClass("broken");
+                }
+                if (getPinsAtHole(hole, allValidConnectors).length) {
+                    $(breaker.element).addClass("withPin");
+                }
+                ;
+                trackGhostGroup.appendChild(breaker.element);
+                let holePosition = { track: trackIdx, hole: holeIdx };
+                $(breaker.element).click(() => {
+                    _history__WEBPACK_IMPORTED_MODULE_3__["default"].add(component);
+                    if (hole.type === "hole") {
+                        $(breaker.element).addClass("broken");
+                        hole.type = "brokenhole";
+                        component.trackBreaks.push(holePosition);
+                    }
+                    else if (hole.type === "brokenhole") {
+                        $(breaker.element).removeClass("broken");
+                        hole.type = "hole";
+                        component.trackBreaks = component.trackBreaks.filter(trackBreak => (trackBreak.hole !== holePosition.hole || trackBreak.track !== holePosition.track));
+                    }
+                });
+            });
+        });
+    };
+    const clearGhost = (component) => {
+        let parent = (component.group.element.parentElement);
+        if (parent)
+            $(parent).children(".reverseghost").remove();
+    };
+    const getPinsAtHole = (connector, allConnectors) => {
+        let acceptedTypes = ["pin"];
+        let point = connector.point;
+        let attachedConnectors = allConnectors.filter(other => {
+            return (acceptedTypes.includes(other.type)
+                && Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(point).isCloseTo(other.point));
+        });
+        return attachedConnectors;
+    };
+    return { init };
+})();
+/* harmony default export */ __webpack_exports__["default"] = (ReversableBoard);
+
+
+/***/ }),
+
 /***/ "./typescript/circuit/component/addins/rotatable.ts":
 /*!**********************************************************!*\
   !*** ./typescript/circuit/component/addins/rotatable.ts ***!
@@ -5921,13 +6855,11 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-//import * as $ from 'jquery';
-var Rotatable;
-(function (Rotatable) {
+const Rotatable = (() => {
     /** Initialise rotation using joint[0] as the rotation points
      *  Rotation triggered by double click in 90deg incriments
      */
-    Rotatable.init = (component) => {
+    const init = (component) => {
         $(component.group.element).dblclick(() => {
             _history__WEBPACK_IMPORTED_MODULE_2__["default"].add(component);
             let centre = component.joints[0];
@@ -5940,7 +6872,8 @@ var Rotatable;
             $(component.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].rotate);
         });
     };
-})(Rotatable || (Rotatable = {}));
+    return { init };
+})();
 /* harmony default export */ __webpack_exports__["default"] = (Rotatable);
 
 
@@ -6025,10 +6958,10 @@ const Selectable = (() => {
 
 /***/ }),
 
-/***/ "./typescript/circuit/component/addins/wireCreation.ts":
-/*!*************************************************************!*\
-  !*** ./typescript/circuit/component/addins/wireCreation.ts ***!
-  \*************************************************************/
+/***/ "./typescript/circuit/component/addins/wiresCreatable.ts":
+/*!***************************************************************!*\
+  !*** ./typescript/circuit/component/addins/wiresCreatable.ts ***!
+  \***************************************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -6036,72 +6969,44 @@ const Selectable = (() => {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
 /* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../events */ "./typescript/circuit/events.ts");
-/* harmony import */ var _active__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../~active */ "./typescript/~active.ts");
-/* harmony import */ var _manifest__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../manifest */ "./typescript/circuit/manifest.ts");
-/* harmony import */ var _wire_maps__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../_wire/-maps */ "./typescript/circuit/component/_wire/-maps.ts");
-/* harmony import */ var _svg_addins_draggable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/addins/draggable */ "./typescript/svg/addins/draggable.ts");
+/* harmony import */ var _manifest__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../manifest */ "./typescript/circuit/manifest.ts");
+/* harmony import */ var _wire_maps__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../_wire/-maps */ "./typescript/circuit/component/_wire/-maps.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../~constants */ "./typescript/~constants.ts");
 
 
 
 
 
-
-//import * as $ from 'jquery';
-var WireCreation;
-(function (WireCreation) {
-    WireCreation.init = (component) => {
+const WiresCreatable = (() => {
+    const init = (component) => {
         // Hole elements will not exist at initialisation,
         // need to use component filtered by .hole selector
-        $(component.group.element).on("mouseenter", ".hole", (mOE) => {
-            // Set the hole as draggable if it isn't already
-            if (!$(mOE.target).draggable('instance')) {
-                _svg_addins_draggable__WEBPACK_IMPORTED_MODULE_5__["default"].init(component.group.element, {
-                    eventTarget: mOE.target,
-                    disableMovement: true,
-                    styleClass: ""
-                });
-                let dragHandle;
-                // We are hijacking the hole drag events, so it's important the real handlers don't fire
-                // hence: e.stopPropagation();
-                // Create the wire, select it, and grab a handle (any is fine)
-                $(mOE.target).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStart, (e, ui, drag) => {
-                    e.stopPropagation();
-                    // Get mouse coordinates 
-                    const clientX = e.clientX;
-                    const clientY = e.clientY;
-                    if (!(clientX && clientY)) {
-                        throw new Error("Mouse event did not provide coordinates!");
-                    }
-                    const clientPos = { x: clientX, y: clientY };
-                    const position = _active__WEBPACK_IMPORTED_MODULE_2__["default"].layout.group.convertVector(clientPos, "DomToSvg", "relToGroup");
-                    const gridPosition = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(position).snapToGrid().vector;
-                    const wire = createWireAtPoint(gridPosition);
-                    $(wire.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_1__["default"].draw);
-                    dragHandle = $(wire.group.element).find(".dragHandle")[0];
-                    $(dragHandle).trigger("mousedown");
-                });
-                // Pass the handlers to the wire
-                $(mOE.target).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].drag, (e, ui, drag) => {
-                    e.stopPropagation();
-                    $(dragHandle).trigger(_events__WEBPACK_IMPORTED_MODULE_1__["default"].drag, [ui, drag]);
-                });
-                // Pass the handlers to the wire
-                $(mOE.target).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStop, (e, ui) => {
-                    e.stopPropagation();
-                    $(dragHandle).trigger(_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStop, ui);
-                });
-            }
+        let wire;
+        $(component.group.element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStart, ".hole", (e, start) => {
+            wire = createWireAtPoint(Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(start).round(_constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"] / 2).vector);
+            $(wire.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_1__["default"].select);
+            const dragHandle = $(wire.group.element).find(".dragHandle")[0];
+            $(dragHandle).addClass("dragging");
+            $(dragHandle).trigger(_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStart, start);
+            $(e.target).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].drag, (e, drag) => {
+                $(dragHandle).trigger(_events__WEBPACK_IMPORTED_MODULE_1__["default"].drag, drag);
+            });
+            $(e.target).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStop, (e, stop) => {
+                $(dragHandle).removeClass("dragging");
+                $(dragHandle).trigger(_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStop, stop);
+            });
         });
     };
     const createWireAtPoint = (vector) => {
-        const wire = _wire_maps__WEBPACK_IMPORTED_MODULE_4__["default"].layout.make({
-            joints: [{ x: vector.x, y: vector.y }, { x: vector.x, y: vector.y }],
+        const wire = _wire_maps__WEBPACK_IMPORTED_MODULE_3__["default"].layout.make({
+            joints: [vector, vector],
         });
-        _manifest__WEBPACK_IMPORTED_MODULE_3__["default"].addComponent(_manifest__WEBPACK_IMPORTED_MODULE_3__["default"].layout, wire);
+        _manifest__WEBPACK_IMPORTED_MODULE_2__["default"].addComponent(_manifest__WEBPACK_IMPORTED_MODULE_2__["default"].layout, wire);
         return wire;
     };
-})(WireCreation || (WireCreation = {}));
-/* harmony default export */ __webpack_exports__["default"] = (WireCreation);
+    return { init };
+})();
+/* harmony default export */ __webpack_exports__["default"] = (WiresCreatable);
 
 
 /***/ }),
@@ -6178,14 +7083,15 @@ __webpack_require__.r(__webpack_exports__);
 var Events;
 (function (Events) {
     Events.rotate = "rotate";
-    Events.drag = "dragSVG";
+    Events.drag = "drag";
     Events.dragStart = "dragstart";
     Events.dragStop = "dragstop";
-    Events.moved = [Events.rotate, Events.drag, Events.dragStart, Events.dragStop].join(" ");
+    Events.anyMove = [Events.rotate, Events.drag].join(" ");
     Events.place = "place";
     Events.select = "svgSelect";
     Events.deselect = "svgDeselect";
     Events.draw = "draw";
+    Events.anyDraw = [Events.draw, Events.place].join(" ");
 })(Events || (Events = {}));
 /* harmony default export */ __webpack_exports__["default"] = (Events);
 
@@ -6294,25 +7200,41 @@ function getConnectorDirectConnections(connector, allConnectors) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return getMaker; });
 /* harmony import */ var _loadObjectWithDefaults__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./-loadObjectWithDefaults */ "./typescript/circuit/generics/-loadObjectWithDefaults.ts");
+/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! util */ "./node_modules/util/util.js");
+/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(util__WEBPACK_IMPORTED_MODULE_1__);
 
-function getMaker(instanceClass, defaulter, addins = []) {
+
+function getMaker(instanceClass, defaulter, ...addins) {
     return (partialValues, log = true) => {
-        /*LOGSTART*/ if (log) {
+        /*LOGSTART*/
+        if (log) {
             console.groupCollapsed("Loading...");
-        } /*LOGEND*/
+        }
+        /*LOGEND*/
         const values = Object(_loadObjectWithDefaults__WEBPACK_IMPORTED_MODULE_0__["default"])(defaulter, partialValues, log);
-        /*LOGSTART*/ if (log) {
+        /*LOGSTART*/
+        if (log) {
             console.groupEnd();
-        } /*LOGEND*/
+        }
+        /*LOGEND*/
         const component = new instanceClass(values);
-        addins.forEach(addin => addin.init(component));
+        addins.forEach(addin => {
+            if (Object(util__WEBPACK_IMPORTED_MODULE_1__["isArray"])(addin)) {
+                addin[0].init(component, addin[1]);
+            }
+            else {
+                addin.init(component);
+            }
+        }); //addin.init(component))
         component.draw();
         component.makeConnectors();
-        /*LOGSTART*/ if (log) {
+        /*LOGSTART*/
+        if (log) {
             console.groupCollapsed("%s: %o", component.name, component.group.element);
             console.log(component);
             console.groupEnd();
-        } /*LOGEND*/
+        }
+        /*LOGEND*/
         $(component.group.element).addClass(component.name);
         return component;
     };
@@ -7405,11 +8327,7 @@ class Root {
     draw(node) {
         this.element.append(this.group);
         node.appendChild(this.element.element);
-        _addins_draggable__WEBPACK_IMPORTED_MODULE_2__["default"].init(this.group.element, {
-            grid: "off",
-            eventTarget: this.element.element,
-            useHelper: true,
-        });
+        _addins_draggable__WEBPACK_IMPORTED_MODULE_2__["default"].init(this.element.element);
         _addins_scaleable__WEBPACK_IMPORTED_MODULE_3__["default"].init(this.group.element, {
             eventTarget: this.element.element,
         });
@@ -7524,119 +8442,72 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../-vector */ "./typescript/-vector.ts");
 /* harmony import */ var _circuit_events__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../circuit/events */ "./typescript/circuit/events.ts");
 /* harmony import */ var _svg__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../-svg */ "./typescript/svg/-svg.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../~constants */ "./typescript/~constants.ts");
+
 
 
 
 //import * as $ from 'jquery';
-var Draggable;
-(function (Draggable) {
-    Draggable.init = (element, options = {}) => {
-        // Allow an object to be dragged.
-        // Set the drag event to occur on another target, but apply the drag to yourself
-        let eventTarget = options.eventTarget !== undefined ? options.eventTarget : element;
-        // The default grid will snap to board holes, the option can prevent this or redefine the size
-        // TODO USE CONSTANT
-        let grid = options.grid !== undefined ? options.grid : {
-            x: 10,
-            y: 10
+const Draggable = (() => {
+    const init = (container) => {
+        // Parameterise
+        const dragStepThresholdSvg = _constants__WEBPACK_IMPORTED_MODULE_3__["gridSpacing"] / 2;
+        const dragStartThresholdSvg = _constants__WEBPACK_IMPORTED_MODULE_3__["gridSpacing"] / 2;
+        let state = "Idle";
+        let lastMousePosSvg;
+        let element;
+        let onMouseDown = (e) => {
+            // Possible states should be 'Idle'
+            // Get the target element
+            element = e.target;
+            element = $(e.target).closest(":not(g.body,g.body *)").get(0);
+            // Do drag prep
+            const mouseDownDom = { x: e.clientX, y: e.clientY };
+            lastMousePosSvg = Object(_svg__WEBPACK_IMPORTED_MODULE_2__["default"])(element).convertVector(mouseDownDom, "DomToSvg", "relToGroup");
+            // Trigger drag prepped if I care
+            $(document).on("mousemove", onMouseMove);
+            $(document).one("mouseup", onMouseUp);
+            state = "Ready";
         };
-        // Changes the draggables position in the document tree, default is to not
-        // let moveToTop = (options.moveToTop !== undefined) ? (options.moveToTop) : "no";
-        // Styles the draggable
-        let styleClass = options.styleClass !== undefined ? options.styleClass : "dragging";
-        let lastPosition;
-        // Set to draggable (JQuery UI)
-        if ($(eventTarget).draggable("instance") === undefined) {
-            $(eventTarget).draggable({
-                //On drag start
-                start: (event, ui) => {
-                    // Add class for visual feedback (opacity)
-                    $(element).addClass(styleClass);
-                    //Enable grid snapping, the default grid will snap to board holes
-                    if (grid !== "off") {
-                        let gridSvg = Object(_svg__WEBPACK_IMPORTED_MODULE_2__["default"])(element).convertVector(grid, "SvgToDom", "absToDoc");
-                        $(eventTarget).draggable("option", "grid", [gridSvg.x, gridSvg.y]);
-                    }
-                    lastPosition = {
-                        x: ui.position.left,
-                        y: ui.position.top
-                    };
-                },
-                //On each drag step
-                drag: (event, ui) => {
-                    // Amount dragged on this step (In DOM coordinate system)
-                    let dragChangeDom = {
-                        x: ui.position.left - lastPosition.x,
-                        y: ui.position.top - lastPosition.y
-                    };
-                    // Convert amount dragged this step to the coordinate system of the svg element
-                    let dragChangeSvg = Object(_svg__WEBPACK_IMPORTED_MODULE_2__["default"])(element).convertVector(dragChangeDom, "DomToSvg", "absToDoc");
-                    // only do the interesting things when the draggable actually moves.
-                    if (!Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(dragChangeSvg).isCloseTo({ x: 0, y: 0 })) {
-                        //Call on drag functions (via a custom event listener
-                        //so we can keep the svg drag values
-                        $(eventTarget).trigger(_circuit_events__WEBPACK_IMPORTED_MODULE_1__["default"].drag, [ui, dragChangeSvg]);
-                        lastPosition = {
-                            x: ui.position.left,
-                            y: ui.position.top
-                        };
-                    }
-                    //Call constraint functions (via a custom event listener
-                    // $(eventTarget).triggerHandler("dragSVGConstraintCheck", [
-                    //    ui,
-                    //    dragChangeSvg,
-                    //    dragChangeDom
-                    // ]);
-                },
-                //On drag stop
-                stop: (event, ui) => {
-                    // Remove class for visual feedback (opacity)
-                    $(element).removeClass(styleClass);
-                    element.transform.baseVal.consolidate();
+        const onMouseMove = (e) => {
+            // Possible states should 'Ready' or 'Dragging'
+            // Get absolute position of mouse event
+            const mouseMoveToDom = { x: e.clientX, y: e.clientY };
+            const mousePosSvg = Object(_svg__WEBPACK_IMPORTED_MODULE_2__["default"])(element).convertVector(mouseMoveToDom, "DomToSvg", "relToGroup");
+            if (state === "Ready") {
+                if (!Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(mousePosSvg).isCloseTo(lastMousePosSvg, dragStartThresholdSvg / 2)) {
+                    // If new position > threshold from start
+                    $(element).addClass("dragging");
+                    $(element).trigger(_circuit_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStart, lastMousePosSvg);
+                    state = "Dragging";
                 }
-            });
-        }
-        if (options.onDrag !== undefined) {
-            $(eventTarget).on(_circuit_events__WEBPACK_IMPORTED_MODULE_1__["default"].drag, (e, ui, drag) => {
-                if ($(e.target).closest(".ui-draggable").is(eventTarget)) {
-                    if (options.onDrag)
-                        options.onDrag(drag, e);
+                else {
+                    return;
                 }
-            });
-        }
-        ;
-        // Translate by dragged amount if movement not disabled
-        if (options.disableMovement !== true) {
-            $(eventTarget).on(_circuit_events__WEBPACK_IMPORTED_MODULE_1__["default"].drag, (e, ui, drag) => {
-                if ($(e.target).closest(".ui-draggable").is(eventTarget)) {
-                    Object(_svg__WEBPACK_IMPORTED_MODULE_2__["default"])(element).translate(drag, true);
+            }
+            if (state === "Dragging") {
+                if (!Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(mousePosSvg).isCloseTo(lastMousePosSvg, dragStepThresholdSvg / 2)) {
+                    const mouseMoveSvg = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(mousePosSvg).subSum(lastMousePosSvg);
+                    const dragSteps = mouseMoveSvg.scaleWith(1 / dragStepThresholdSvg).round();
+                    const dragSizeSvg = dragSteps.scaleWith(dragStepThresholdSvg);
+                    $(element).trigger(_circuit_events__WEBPACK_IMPORTED_MODULE_1__["default"].drag, dragSizeSvg.vector);
+                    lastMousePosSvg = dragSizeSvg.sumWith(lastMousePosSvg).vector;
                 }
-            });
-        }
-        if (options.onStart !== undefined) {
-            $(eventTarget).on(_circuit_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStart, (e, ui) => {
-                if (options.onStart)
-                    options.onStart(e);
-            });
-        }
-        if (options.onStop !== undefined) {
-            $(eventTarget).on(_circuit_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStop, (e, ui) => {
-                if (options.onStop)
-                    options.onStop(e);
-            });
-        }
-        // When dragging internal svg elements, JQueryUI does not know how to move them.
-        // This is done manually in the ondrag handler ^
-        // For the top level group, the SVG element is used as the target as the
-        // group does not fill the pane.
-        // JQueryUI knows how to drag the SVG element and will do so. This is
-        // undesirable as only the view needs to change.
-        // Using a helper prevents the SVG being moved on the page.
-        if (options.useHelper === true) {
-            $(eventTarget).draggable("option", "helper", () => document.createElement("div"));
-        }
+            }
+        };
+        const onMouseUp = (e) => {
+            // Possible states should be 'Dragging' or 'Ready'     
+            $(document).off("mousemove", onMouseMove);
+            if (state === "Dragging") {
+                $(element).removeClass("dragging");
+                $(element).trigger(_circuit_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStop, lastMousePosSvg);
+            }
+            state = "Idle";
+        };
+        $(container).on("mousedown", onMouseDown);
     };
-})(Draggable || (Draggable = {}));
+    return { init };
+})();
 /* harmony default export */ __webpack_exports__["default"] = (Draggable);
 
 
@@ -7666,7 +8537,7 @@ var Scaleable;
                 return;
             }
             // Change scale by +/-0.05 on each step depending on wheel direction
-            let scaleChange = Math.sign(e.wheelDelta) * 0.05;
+            let scaleChange = Math.sign(e.deltaY) * -0.05;
             // Find the postion and size of the element on screen
             let clientBounds = element.getBoundingClientRect();
             // Find the position relative to the SVG position
@@ -8199,44 +9070,44 @@ var Ui;
             heightStyle: "content"
         });
         // Control Listeners
-        $(document).keydown(function (e) {
-            if (e.key === "z" && e.ctrlKey) {
-                _events__WEBPACK_IMPORTED_MODULE_1__["default"].undo();
-            }
-        });
-        $(document).keydown(function (e) {
-            if (e.key === "y" && e.ctrlKey) {
-                _events__WEBPACK_IMPORTED_MODULE_1__["default"].redo();
+        $(document).keydown(e => {
+            if (e.ctrlKey) {
+                if (e.key === "z") {
+                    _events__WEBPACK_IMPORTED_MODULE_1__["default"].undo();
+                }
+                else if (e.key === "y") {
+                    _events__WEBPACK_IMPORTED_MODULE_1__["default"].redo();
+                }
             }
         });
         // File listeners
-        _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].fileInput.addEventListener('change', (event) => {
-            _events__WEBPACK_IMPORTED_MODULE_1__["default"].fileInput(event);
+        _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].fileInput.addEventListener('change', e => {
+            _events__WEBPACK_IMPORTED_MODULE_1__["default"].fileInput(e);
         });
-        _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].fileSave.addEventListener('click', (event) => {
-            _events__WEBPACK_IMPORTED_MODULE_1__["default"].fileSave(event);
+        _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].fileSave.addEventListener('click', e => {
+            _events__WEBPACK_IMPORTED_MODULE_1__["default"].fileSave(e);
         });
         // Schematic Listeners
-        _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].schematicEditingEnabled.addEventListener('click', () => {
+        _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].schematicEditingEnabled.addEventListener('click', e => {
             const state = _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].schematicEditingEnabled.checked;
             _events__WEBPACK_IMPORTED_MODULE_1__["default"].enableSchematicEditingPress(state);
         });
         // Board Listeners
-        _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].makeStripboard.addEventListener('click', (e) => {
+        _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].makeStripboard.addEventListener('click', e => {
             _events__WEBPACK_IMPORTED_MODULE_1__["default"].makeStripBoardButtonPress();
         });
-        _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].makeHalfBreadboard.addEventListener('click', (e) => {
+        _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].makeHalfBreadboard.addEventListener('click', e => {
             _events__WEBPACK_IMPORTED_MODULE_1__["default"].makeBreadBoardSmallButtonPress();
         });
-        _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].makeFullBreadboard.addEventListener('click', (e) => {
+        _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].makeFullBreadboard.addEventListener('click', e => {
             _events__WEBPACK_IMPORTED_MODULE_1__["default"].makeBreadBoardLargeButtonPress();
         });
-        _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].boardDraggingEnabled.addEventListener('click', (e) => {
+        _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].boardDraggingEnabled.addEventListener('click', e => {
             const state = _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].boardDraggingEnabled.checked;
             _events__WEBPACK_IMPORTED_MODULE_1__["default"].enableBoardDraggingPress(state);
         });
         // Check listeners
-        _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].checkCircuitButton.addEventListener('click', () => {
+        _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].checkCircuitButton.addEventListener('click', e => {
             _events__WEBPACK_IMPORTED_MODULE_1__["default"].checkCircuit();
         });
     }

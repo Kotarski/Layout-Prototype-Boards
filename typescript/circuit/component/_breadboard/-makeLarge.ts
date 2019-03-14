@@ -7,7 +7,7 @@ import Graphical from "../addins/graphical";
 import Draggable from "../addins/draggable";
 import Selectable from "../addins/selectable";
 import Board from "../addins/board";
-import WireCreation from "../addins/wireCreation"
+import WiresCreatable from "../addins/wiresCreatable"
 
 const defaulterLarge: ValueCheck.Defaulter<Types.values> = {
    name: ValueCheck.validate("string", "breadboardlarge"),
@@ -17,11 +17,11 @@ const defaulterLarge: ValueCheck.Defaulter<Types.values> = {
    ),
 };
 
-const makeLarge = getMaker(Large, defaulterLarge, [
+const makeLarge = getMaker(Large, defaulterLarge,
    Graphical,
    Board,
    Selectable,
-   WireCreation,
+   WiresCreatable,
    Draggable
-]);
+);
 export default makeLarge;

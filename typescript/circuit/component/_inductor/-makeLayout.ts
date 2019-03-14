@@ -7,7 +7,7 @@ import Graphical from "../addins/graphical";
 import Draggable from "../addins/draggable";
 import Selectable from "../addins/selectable";
 import Extendable from "../addins/extendable";
-import ConnectionHighlights from "../addins/connectionHighlights"
+import ConnectionsHighlightable from "../addins/connectionsHighlightable"
 
 const defaulterLayout: ValueCheck.Defaulter<Types.values> = {
    name: ValueCheck.validate("string", "inductor"),
@@ -18,11 +18,11 @@ const defaulterLayout: ValueCheck.Defaulter<Types.values> = {
    inductance: ValueCheck.validate("number", 0)
 };
 
-const makeLayout = getMaker(Layout, defaulterLayout, [
+const makeLayout = getMaker(Layout, defaulterLayout,
    Graphical,
    Draggable,
    Selectable,
    Extendable,
-   ConnectionHighlights
-]);
+   ConnectionsHighlightable
+);
 export default makeLayout;

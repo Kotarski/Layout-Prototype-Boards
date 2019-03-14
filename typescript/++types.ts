@@ -1,4 +1,5 @@
 import { Vector as VectorImport } from "./-vector"
+export { Strict, Loose } from "ts-strictargs"
 
 export type polar = {
    radius: number;
@@ -25,6 +26,13 @@ export type DeepPartial<T> = {
 };
 export type baseTypes = "string" | "number" | "boolean" | "symbol" | "undefined" | "object" | "function";
 
+// See https://github.com/Microsoft/TypeScript/issues/12936#issuecomment-462134690
+
+// Checks that Matchee is a subset of Matcher (no extra properties)
+export type Subset<A extends {}, B extends {}> = {
+   [P in keyof B]: P extends keyof A ? (B[P] extends A[P] | undefined ? A[P] : never) : never;
+}
+
 export type NameType<T> = (
    T extends "string" ? string :
    T extends "number" ? number :
@@ -33,4 +41,3 @@ export type NameType<T> = (
    T extends "function" ? Function :
    object
 );
-

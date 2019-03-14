@@ -6,7 +6,7 @@ import Graphical from "../addins/graphical";
 import Draggable from "../addins/draggable";
 import Selectable from "../addins/selectable";
 import Extendable from "../addins/extendable";
-import ConnectionHighlights from "../addins/connectionHighlights";
+import ConnectionsHighlightable from "../addins/connectionsHighlightable";
 import Recolorable from "../addins/recolorable";
 
 const defaulterLayout: ValueCheck.Defaulter<Types.valuesLayout> = {
@@ -18,14 +18,14 @@ const defaulterLayout: ValueCheck.Defaulter<Types.valuesLayout> = {
    color: ValueCheck.color("#545454")
 };
 
-// TODO: Pass in options for extendable and others (options={?}) (() => getRecolorPosition(component))
-export const makeLayout = getMaker(Layout, defaulterLayout, [
+export const makeLayout = getMaker(Layout, defaulterLayout,
    Graphical,
    Draggable,
    Selectable,
-   Extendable,
-   ConnectionHighlights,
+   [Extendable, { canAddJoints: true, canRemoveJoints: true, canRemoveComponent: true }],
+   [ConnectionsHighlightable, {}],
    Recolorable
-]);
+);
 
+//{ canAddJoints: true, canRemoveJoints: true, canRemoveComponent: true }
 export default makeLayout;

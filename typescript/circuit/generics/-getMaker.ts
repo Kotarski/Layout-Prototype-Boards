@@ -1,12 +1,20 @@
 import Component from "../+component";
 import ValueCheck from "../component/~valueCheck";
 import loadObjectWithDefaults from "./-loadObjectWithDefaults";
-import * as GlobalTypes from "../../++types";
+import { DeepPartial } from "../../++types";
+import { isArray } from "util";
 //import * as $ from 'jquery';
 
-type Addin<T extends Component> = {
-   init: (component: T) => void
+type Addin<C extends Component, O extends {} = any> = {
+   init: (component: C, options?: O) => void
 }
+
+type Initialiser<C extends Component, T extends {}> = [Addin<C, T>, T] | Addin<C>
+
+type Initialisers<C extends Component, T extends {}[]> = {
+   [P in keyof T]: T[P] extends T[number] ? Initialiser<C, T[P]> : never;
+}
+
 export default interface getMaker<
    C extends Component,
    V extends ReturnType<C["getProperties"]> & ReturnType<C["getState"]>
@@ -16,41 +24,56 @@ export default interface getMaker<
       defaulter: ValueCheck.Defaulter<V>,
       initialiser: (component: C) => void
    ): (
-         partialValues: GlobalTypes.DeepPartial<V>,
+         partialValues: DeepPartial<V>,
          log: boolean
       ) => C
 }
 export default function getMaker<
    C extends Component,
    V extends ReturnType<C["getProperties"]> & ReturnType<C["getState"]>,
-   >(
-      instanceClass: { new(values: V): C },
-      defaulter: ValueCheck.Defaulter<V>,
-      addins: Addin<C>[] = []) {
+   // A extends Addin<C, O>,
+   OS extends {}[]
+>(
+   instanceClass: { new(values: V): C },
+   defaulter: ValueCheck.Defaulter<V>,
+   ...addins: Initialisers<C, OS>
+) {
    return (
-      partialValues: GlobalTypes.DeepPartial<V>,
+      partialValues: DeepPartial<V>,
       log = true
    ): C => {
-   /*LOGSTART*/if (log) {
+      /*LOGSTART*/
+      if (log) {
          console.groupCollapsed("Loading...");
-      }/*LOGEND*/
+      }
+      /*LOGEND*/
       const values = loadObjectWithDefaults(defaulter, partialValues, log);
-   /*LOGSTART*/if (log) {
+      /*LOGSTART*/
+      if (log) {
          console.groupEnd();
-      }/*LOGEND*/
+      }
+      /*LOGEND*/
 
       const component = new instanceClass(values) as C;
 
-      addins.forEach(addin => addin.init(component))
+      addins.forEach(addin => {
+         if (isArray(addin)) {
+            addin[0].init(component, addin[1])
+         } else {
+            addin.init(component)
+         }
+      })//addin.init(component))
 
       component.draw();
       component.makeConnectors();
 
-   /*LOGSTART*/ if (log) {
+      /*LOGSTART*/
+      if (log) {
          console.groupCollapsed("%s: %o", component.name, component.group.element);
          console.log(component);
          console.groupEnd();
-      } /*LOGEND*/
+      }
+      /*LOGEND*/
 
       $(component.group.element).addClass(component.name)
 

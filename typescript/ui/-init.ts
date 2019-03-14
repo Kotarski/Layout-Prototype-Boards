@@ -55,48 +55,47 @@ namespace Ui {
       });
 
       // Control Listeners
-      $(document).keydown(function (e) {
-         if (e.key === "z" && e.ctrlKey) {
-            Events.undo();
-         }
-      });
-      $(document).keydown(function (e) {
-         if (e.key === "y" && e.ctrlKey) {
-            Events.redo();
+      $(document).keydown(e => {
+         if (e.ctrlKey) {
+            if (e.key === "z") {
+               Events.undo();
+            } else if (e.key === "y") {
+               Events.redo();
+            }
          }
       });
 
       // File listeners
-      NodeElements.fileInput.addEventListener('change', (event: Event) => {
-         Events.fileInput(event);
+      NodeElements.fileInput.addEventListener('change', e => {
+         Events.fileInput(e);
       });
-      NodeElements.fileSave.addEventListener('click', (event: Event) => {
-         Events.fileSave(event);
+      NodeElements.fileSave.addEventListener('click', e => {
+         Events.fileSave(e);
       });
 
       // Schematic Listeners
-      NodeElements.schematicEditingEnabled.addEventListener('click', () => {
+      NodeElements.schematicEditingEnabled.addEventListener('click', e => {
          const state: boolean = NodeElements.schematicEditingEnabled.checked;
          Events.enableSchematicEditingPress(state)
       });
 
       // Board Listeners
-      NodeElements.makeStripboard.addEventListener('click', (e) => {
+      NodeElements.makeStripboard.addEventListener('click', e => {
          Events.makeStripBoardButtonPress();
       });
-      NodeElements.makeHalfBreadboard.addEventListener('click', (e) => {
+      NodeElements.makeHalfBreadboard.addEventListener('click', e => {
          Events.makeBreadBoardSmallButtonPress();
       });
-      NodeElements.makeFullBreadboard.addEventListener('click', (e) => {
+      NodeElements.makeFullBreadboard.addEventListener('click', e => {
          Events.makeBreadBoardLargeButtonPress();
       });
-      NodeElements.boardDraggingEnabled.addEventListener('click', (e) => {
+      NodeElements.boardDraggingEnabled.addEventListener('click', e => {
          const state: boolean = NodeElements.boardDraggingEnabled.checked;
          Events.enableBoardDraggingPress(state);
       });
 
       // Check listeners
-      NodeElements.checkCircuitButton.addEventListener('click', () => {
+      NodeElements.checkCircuitButton.addEventListener('click', e => {
          Events.checkCircuit()
       });
    }
