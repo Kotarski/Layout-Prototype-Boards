@@ -62,7 +62,7 @@ export default function getMaker<
          } else {
             addin.init(component)
          }
-      })//addin.init(component))
+      })
 
       component.draw();
       component.makeConnectors();

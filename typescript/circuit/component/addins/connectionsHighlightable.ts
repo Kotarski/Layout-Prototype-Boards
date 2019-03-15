@@ -49,7 +49,10 @@ const ConnectionsHighlightable = (() => {
    }
 
    const createConnectionsHighlights = (component: Component, propogate: boolean, colorPalette: colorPalette) => {
-      let connectionSets = component.getConnections();
+      // Make sure the connectors are up to date
+      component.makeConnectors();
+
+      const connectionSets = component.getConnections();
       connectionSets.forEach(connectionSet => {
          connectionSet.forEach((connectorConnections, i) => {
             let color = colorPalette[i % colorPalette.length];

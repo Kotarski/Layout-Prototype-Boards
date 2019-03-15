@@ -6298,7 +6298,9 @@ const ConnectionsHighlightable = (() => {
         }
     };
     const createConnectionsHighlights = (component, propogate, colorPalette) => {
-        let connectionSets = component.getConnections();
+        // Make sure the connectors are up to date
+        component.makeConnectors();
+        const connectionSets = component.getConnections();
         connectionSets.forEach(connectionSet => {
             connectionSet.forEach((connectorConnections, i) => {
                 let color = colorPalette[i % colorPalette.length];
@@ -6348,7 +6350,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const Draggable = (() => {
-    const init = (component) => {
+    const init = (component, enablePredicate) => {
         const element = component.group.element;
         $(element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStart, () => {
             _history__WEBPACK_IMPORTED_MODULE_2__["default"].add(component);
@@ -6356,20 +6358,11 @@ const Draggable = (() => {
         });
         $(element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].drag, (e, drag) => {
             if (e.target === element) {
-                // TODO: Cleanup mess once i've confirmed it still works...
-                // component.joints.forEach(joint => {
-                //    joint.x += drag.x;
-                //    joint.y += drag.y;
-                // })
-                component.joints = component.joints.map(j => Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(j, drag).sum().vector);
+                component.joints = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(component.joints).sumWith(drag).vectors;
                 $(element).trigger(_events__WEBPACK_IMPORTED_MODULE_1__["default"].draw);
             }
         });
         $(element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStop, () => {
-            // component.joints.forEach(joint => {
-            //    joint.x = Math.round(joint.x);
-            //    joint.y = Math.round(joint.y);
-            // });
             component.joints = component.joints.map(j => Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(j).round().vector);
         });
         // // TODO, I don't quite like how this is coupled together
@@ -6448,7 +6441,10 @@ const Extendable = (() => {
         initHandles(component);
     };
     const clearHandles = (component) => {
-        $(component.group.element).children(".dragHandle").not(".dragging").remove();
+        $(component.group.element)
+            .children(".dragHandle")
+            .remove(":not(.dragging)")
+            .hide(0); // I.e. hide the dragging one...
     };
     const initHandles = (component) => {
         component.joints.forEach(joint => {
@@ -6665,11 +6661,6 @@ const Recolorable = (() => {
             clearRecolorHandle(component);
         });
     };
-    const refreshComponent = (component) => {
-        component.group.clearChildren(":not(.handle,.connectivityhighlight)");
-        component.makeConnectors();
-        $(component.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw);
-    };
     const createRecolorHandle = (component, colorPalette) => {
         const position = getRecolorPosition(component);
         const recolorSegmentGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["make"])("recolorSegmentGroup");
@@ -6692,7 +6683,7 @@ const Recolorable = (() => {
             }
             ;
             component.color = color;
-            refreshComponent(component);
+            $(component.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw);
         });
     };
     const clearRecolorHandle = (component) => {
@@ -6898,21 +6889,24 @@ const Selectable = (() => {
         setSelectTrigger(component);
         setDisplayHandlers(component);
     };
-    const findSelectionElements = (component) => {
-        return _manifest__WEBPACK_IMPORTED_MODULE_1__["default"].findCorresponding(component).concat(component).map(el => el.group.element);
-    };
     const getSelectsCheck = (component) => (i, element) => ($(element).data("selects") === component);
-    const elementSelectsComponent = (element, component) => {
+    const elementDirectlySelectsComponent = (element, component) => {
         const parents = $(element).parents(); //Ancestors
-        const selectionElements = findSelectionElements(component);
-        const elementCorrespondsToComponent = parents.is(selectionElements);
+        const selectionElement = component.group.element;
+        const elementCorrespondsToComponent = parents.is(selectionElement);
         const secondarySelectionCheck = getSelectsCheck(component);
         const elementIsComponentSelector = parents.is(secondarySelectionCheck);
         return (elementCorrespondsToComponent || elementIsComponentSelector);
     };
+    const elementIndirectlySelectsComponent = (element, component) => {
+        const selectionElements = _manifest__WEBPACK_IMPORTED_MODULE_1__["default"].findCorresponding(component).map(el => el.group.element);
+        return $(element).parents().is(selectionElements);
+    };
+    const elementSelectsComponent = (element, component) => (elementDirectlySelectsComponent(element, component) ||
+        elementIndirectlySelectsComponent(element, component));
     const setSelectTrigger = (component) => {
         // Selecting component triggers select
-        $(component.group.element).one("mousedown", () => {
+        $(component.group.element).one("mousedown", (e) => {
             /*LOGSTART*/ console.groupCollapsed("Selected", component.group.element); /*LOGEND*/
             /*LOGSTART*/ console.log("Primary: %o", component); /*LOGEND*/
             const otherComponents = _manifest__WEBPACK_IMPORTED_MODULE_1__["default"].findCorresponding(component);
@@ -6928,18 +6922,20 @@ const Selectable = (() => {
     const setDeselectTrigger = (component) => {
         // Selecting anywhere else triggers deselect
         $(document).one("mousedown", e => {
-            // Checks target isn't child of component, ignore if so
-            if (elementSelectsComponent(e.target, component)) {
+            // Checks if target is child of component, ignore if so
+            if (elementDirectlySelectsComponent(e.target, component)) {
                 setDeselectTrigger(component);
+                return;
             }
-            else {
-                const otherComponents = _manifest__WEBPACK_IMPORTED_MODULE_1__["default"].findCorresponding(component);
-                const selectComponents = otherComponents.concat(component);
-                selectComponents.forEach(selectComponent => {
+            const otherComponents = _manifest__WEBPACK_IMPORTED_MODULE_1__["default"].findCorresponding(component);
+            const selectComponents = otherComponents.concat(component);
+            selectComponents.forEach(selectComponent => {
+                // Only deselect if not selected by new selection
+                if (!elementSelectsComponent(e.target, selectComponent)) {
                     $(selectComponent.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].deselect);
-                });
-                setSelectTrigger(component);
-            }
+                }
+            });
+            setSelectTrigger(component);
         });
     };
     const setDisplayHandlers = (component) => {
@@ -7225,7 +7221,7 @@ function getMaker(instanceClass, defaulter, ...addins) {
             else {
                 addin.init(component);
             }
-        }); //addin.init(component))
+        });
         component.draw();
         component.makeConnectors();
         /*LOGSTART*/

@@ -8,19 +8,16 @@ const Selectable = (() => {
       setDisplayHandlers(component);
    }
 
-   const findSelectionElements = (component: Component) => {
-      return manifest.findCorresponding(component).concat(component).map(el => el.group.element);
-   }
+
 
    const getSelectsCheck = (component: Component) =>
       (i: any, element: Node) => ($(element).data("selects") === component);
 
-
-   const elementSelectsComponent = (element: Node, component: Component) => {
+   const elementDirectlySelectsComponent = (element: Node, component: Component) => {
       const parents = $(element).parents(); //Ancestors
 
-      const selectionElements = findSelectionElements(component);
-      const elementCorrespondsToComponent = parents.is(selectionElements);
+      const selectionElement = component.group.element;
+      const elementCorrespondsToComponent = parents.is(selectionElement);
 
       const secondarySelectionCheck = getSelectsCheck(component);
       const elementIsComponentSelector = parents.is(secondarySelectionCheck);
@@ -28,9 +25,19 @@ const Selectable = (() => {
       return (elementCorrespondsToComponent || elementIsComponentSelector);
    }
 
+   const elementIndirectlySelectsComponent = (element: Node, component: Component) => {
+      const selectionElements = manifest.findCorresponding(component).map(el => el.group.element);
+      return $(element).parents().is(selectionElements);
+   }
+
+   const elementSelectsComponent = (element: Node, component: Component) => (
+      elementDirectlySelectsComponent(element, component) ||
+      elementIndirectlySelectsComponent(element, component)
+   )
+
    const setSelectTrigger = (component: Component) => {
       // Selecting component triggers select
-      $(component.group.element).one("mousedown", () => {
+      $(component.group.element).one("mousedown", (e) => {
          /*LOGSTART*/console.groupCollapsed("Selected", component.group.element);/*LOGEND*/
          /*LOGSTART*/console.log("Primary: %o", component);/*LOGEND*/
 
@@ -52,19 +59,21 @@ const Selectable = (() => {
    const setDeselectTrigger = (component: Component) => {
       // Selecting anywhere else triggers deselect
       $(document).one("mousedown", e => {
-         // Checks target isn't child of component, ignore if so
-         if (elementSelectsComponent(e.target, component)) {
+         // Checks if target is child of component, ignore if so
+         if (elementDirectlySelectsComponent(e.target, component)) {
             setDeselectTrigger(component);
-         } else {
-
-            const otherComponents = manifest.findCorresponding(component);
-
-            const selectComponents = otherComponents.concat(component);
-            selectComponents.forEach(selectComponent => {
-               $(selectComponent.group.element).trigger(Events.deselect);
-            });
-            setSelectTrigger(component);
+            return;
          }
+
+         const otherComponents = manifest.findCorresponding(component);
+         const selectComponents = otherComponents.concat(component);
+         selectComponents.forEach(selectComponent => {
+            // Only deselect if not selected by new selection
+            if (!elementSelectsComponent(e.target, selectComponent)) {
+               $(selectComponent.group.element).trigger(Events.deselect);
+            }
+         });
+         setSelectTrigger(component);
       })
    }
 
@@ -75,7 +84,7 @@ const Selectable = (() => {
       });
       $(component.group.element).on(Events.deselect, () => {
          $(component.group.element).removeClass("selected");
-      })
+      });
    }
 
    return { init }

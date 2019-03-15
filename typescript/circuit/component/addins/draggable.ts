@@ -9,8 +9,10 @@ import history from "../../history";
 type draggableComponent = Component & { joints: Vector[] };
 
 const Draggable = (() => {
-   const init = (component: draggableComponent) => {
-      const element = component.group.element
+   const init = (component: draggableComponent, enablePredicate: ()=>boolean) => {
+      const element = component.group.element;
+
+      
 
       $(element).on(Events.dragStart, () => {
          history.add(component);
@@ -19,21 +21,12 @@ const Draggable = (() => {
 
       $(element).on(Events.drag, (e, drag: Vector) => {
          if (e.target === element) {
-            // TODO: Cleanup mess once i've confirmed it still works...
-            // component.joints.forEach(joint => {
-            //    joint.x += drag.x;
-            //    joint.y += drag.y;
-            // })
-            component.joints = component.joints.map(j=>vector(j, drag).sum().vector)
+            component.joints = vector(component.joints).sumWith(drag).vectors
             $(element).trigger(Events.draw);
          }
       });
 
       $(element).on(Events.dragStop, () => {
-         // component.joints.forEach(joint => {
-         //    joint.x = Math.round(joint.x);
-         //    joint.y = Math.round(joint.y);
-         // });
          component.joints = component.joints.map(j=>vector(j).round().vector)
       });
 

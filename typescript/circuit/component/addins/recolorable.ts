@@ -34,12 +34,6 @@ const Recolorable = (() => {
       });
    }
 
-   const refreshComponent = (component: recolorableComponent) => {
-      component.group.clearChildren(":not(.handle,.connectivityhighlight)");
-      component.makeConnectors();
-      $(component.group.element).trigger(Events.draw);
-   };
-
    const createRecolorHandle = (component: recolorableComponent, colorPalette: colorPalette) => {
 
       const position = getRecolorPosition(component);
@@ -70,7 +64,7 @@ const Recolorable = (() => {
             color = colorPalette[0];
          };
          component.color = color;
-         refreshComponent(component);
+         $(component.group.element).trigger(Events.draw);
       })
    }
 

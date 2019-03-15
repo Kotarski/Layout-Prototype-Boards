@@ -54,7 +54,10 @@ const Extendable = (() => {
    }
 
    const clearHandles = (component: extendableComponent) => {
-      $(component.group.element).children(".dragHandle").not(".dragging").remove();
+      $(component.group.element)
+         .children(".dragHandle")
+         .remove(":not(.dragging)")
+         .hide(0); // I.e. hide the dragging one...
    }
 
    const initHandles = (component: extendableComponent) => {
