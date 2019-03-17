@@ -19,17 +19,18 @@ const Draggable = (() => {
       let onMouseDown = (e: JQuery.MouseDownEvent) => {
          // Possible states should be 'Idle'
          // Get the target element
-         element = e.target;
-         element = $(e.target).closest(":not(g.body,g.body *)").get(0);
+         element = $(e.target).closest(".draggable").get(0);
 
-         // Do drag prep
-         const mouseDownDom = { x: e.clientX, y: e.clientY }
-         lastMousePosSvg = svg(element).convertVector(mouseDownDom, "DomToSvg", "relToGroup");
+         if (element) {
+            // Do drag prep
+            const mouseDownDom = { x: e.clientX, y: e.clientY }
+            lastMousePosSvg = svg(element).convertVector(mouseDownDom, "DomToSvg", "relToGroup");
 
-         // Trigger drag prepped if I care
-         $(document).on("mousemove", onMouseMove);
-         $(document).one("mouseup", onMouseUp);
-         state = "Ready"
+            // Trigger drag prepped if I care
+            $(document).on("mousemove", onMouseMove);
+            $(document).one("mouseup", onMouseUp);
+            state = "Ready"
+         }
       }
 
       const onMouseMove = (e: JQuery.MouseMoveEvent) => {
@@ -58,7 +59,6 @@ const Draggable = (() => {
                $(element).trigger(Events.drag, dragSizeSvg.vector);
                lastMousePosSvg = dragSizeSvg.sumWith(lastMousePosSvg).vector;
             }
-            
          }
       }
 

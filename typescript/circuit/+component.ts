@@ -60,7 +60,7 @@ export default abstract class Component implements Types.properties, Types.state
 
    constructor(values: Types.properties & Types.state) {
       this.name = values.name;
-      this.disabled = values.disabled || false;
+      this.disabled = values.disabled;
    }
 
    abstract getProperties(): Types.properties;
@@ -86,3 +86,36 @@ export default abstract class Component implements Types.properties, Types.state
 }
 
 
+
+export abstract class Component__ implements Types.properties, Types.state {
+   name: string;
+   group = makeGroup();
+   connectorSets: Types.connector[][] = [];
+   disabled: boolean;
+
+   constructor(values: Types.properties & Types.state) {
+      this.name = values.name;
+      this.disabled = values.disabled;
+   }
+
+   abstract getProperties(): Types.properties;
+
+   abstract getState(): Types.state;
+
+
+   abstract draw(): void;
+
+   /** Builds and draws the components connectors */
+   abstract makeConnectors(): void;
+
+   abstract insertInto(element?: SVGGraphicsElement): void;
+
+   /** Gets other components that this component is connected to, or that
+    * the component specified in "from" is connected to via this component.
+   */
+   abstract getConnections(): Types.connector[][][];
+
+   /** ...
+   */
+   abstract transferFunction(from: Types.connector): Types.connector[];
+}

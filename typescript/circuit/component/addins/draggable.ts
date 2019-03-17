@@ -12,11 +12,13 @@ const Draggable = (() => {
    const init = (component: draggableComponent, enablePredicate: ()=>boolean) => {
       const element = component.group.element;
 
-      
+      $(element).addClass("draggable")
 
-      $(element).on(Events.dragStart, () => {
-         history.add(component);
-         component.insertInto(component.group.element);
+      $(element).on(Events.dragStart, (e) => {
+         if (e.target === element) {
+            history.add(component);
+            component.insertInto(component.group.element);
+         }
       });
 
       $(element).on(Events.drag, (e, drag: Vector) => {
@@ -26,8 +28,10 @@ const Draggable = (() => {
          }
       });
 
-      $(element).on(Events.dragStop, () => {
-         component.joints = component.joints.map(j=>vector(j).round().vector)
+      $(element).on(Events.dragStop, (e) => {
+         if (e.target === element) {
+            component.joints = component.joints.map(j => vector(j).round().vector)
+         }
       });
 
       // // TODO, I don't quite like how this is coupled together

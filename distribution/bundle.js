@@ -1594,13 +1594,14 @@ function sum(inVectors) {
 /*!******************************************!*\
   !*** ./typescript/circuit/+component.ts ***!
   \******************************************/
-/*! exports provided: Types, default */
+/*! exports provided: Types, default, Component__ */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Types", function() { return Types; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Component; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Component__", function() { return Component__; });
 /* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../svg/element/+group */ "./typescript/svg/element/+group.ts");
 var Types;
 (function (Types) {
@@ -1615,7 +1616,15 @@ class Component {
         this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_0__["make"])();
         this.connectorSets = [];
         this.name = values.name;
-        this.disabled = values.disabled || false;
+        this.disabled = values.disabled;
+    }
+}
+class Component__ {
+    constructor(values) {
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_0__["make"])();
+        this.connectorSets = [];
+        this.name = values.name;
+        this.disabled = values.disabled;
     }
 }
 
@@ -1644,6 +1653,7 @@ class Diagram {
         this.root = new _svg_root__WEBPACK_IMPORTED_MODULE_0__["default"]();
         this.group = this.root.group;
         this.root.draw(node);
+        $(this.root.element.element).addClass("draggable");
         $(this.root.element.element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].drag, (e, drag) => {
             if (e.target === this.root.element.element) {
                 this.root.group.translate(drag);
@@ -4570,9 +4580,10 @@ __webpack_require__.r(__webpack_exports__);
 function drawLayout(instance) {
     const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_2__["make"])("body");
     const text = instance.voltage.toFixed(1);
-    bodyGroup.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: 0, y: -35 }, { width: 180, height: 95 }, { x: 10, y: 10 }, "body highlight"), Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: 0, y: -45 }, { width: 160, height: 65 }, { x: 10, y: 10 }, "screen"), Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_1__["make"])("8".repeat(text.length - 1), { x: 0, y: -20 }, "screentext off"), Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_1__["make"])(text, { x: 0, y: -20 }, "screentext on"), Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_3__["make"])({ x: 0, y: 0 }, 5, "hole"));
+    bodyGroup.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: 0, y: -35 }, { width: 180, height: 95 }, { x: 10, y: 10 }, "body highlight"), Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: 0, y: -45 }, { width: 160, height: 65 }, { x: 10, y: 10 }, "screen"), Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_1__["make"])("8".repeat(text.length - 1), { x: 0, y: -20 }, "screentext off"), Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_1__["make"])(text, { x: 0, y: -20 }, "screentext on"));
     return [
-        bodyGroup.translate(instance.joints[_constants__WEBPACK_IMPORTED_MODULE_0__["INDEXCONNECTION"]])
+        bodyGroup.translate(instance.joints[_constants__WEBPACK_IMPORTED_MODULE_0__["INDEXCONNECTION"]]),
+        Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_3__["make"])(instance.joints[_constants__WEBPACK_IMPORTED_MODULE_0__["INDEXCONNECTION"]], 5, "hole")
     ];
 }
 
@@ -6033,7 +6044,7 @@ const defaulterLayout = {
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 80, y: 0 }], l => l >= 2),
     color: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].color("#545454")
 };
-const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], [_addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], { canAddJoints: true, canRemoveJoints: true, canRemoveComponent: true }], [_addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], {}], _addins_recolorable__WEBPACK_IMPORTED_MODULE_8__["default"]);
+const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], [_addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], { reticulatable: true, removable: true }], [_addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], {}], _addins_recolorable__WEBPACK_IMPORTED_MODULE_8__["default"]);
 //{ canAddJoints: true, canRemoveJoints: true, canRemoveComponent: true }
 /* harmony default export */ __webpack_exports__["default"] = (makeLayout);
 
@@ -6072,7 +6083,7 @@ const defaulterSchematic = {
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 10, y: 10 }], l => l >= 2)
 };
 // TODO: Pass in options for extendable and others (options={?}) (true,true)
-const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, _addins_junctions__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], [_addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], { canAddJoints: true, canRemoveJoints: true, canRemoveComponent: true }]);
+const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, _addins_junctions__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], [_addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], { reticulatable: true, removable: true }]);
 /* harmony default export */ __webpack_exports__["default"] = (makeSchematic);
 
 
@@ -6352,9 +6363,12 @@ __webpack_require__.r(__webpack_exports__);
 const Draggable = (() => {
     const init = (component, enablePredicate) => {
         const element = component.group.element;
-        $(element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStart, () => {
-            _history__WEBPACK_IMPORTED_MODULE_2__["default"].add(component);
-            component.insertInto(component.group.element);
+        $(element).addClass("draggable");
+        $(element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStart, (e) => {
+            if (e.target === element) {
+                _history__WEBPACK_IMPORTED_MODULE_2__["default"].add(component);
+                component.insertInto(component.group.element);
+            }
         });
         $(element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].drag, (e, drag) => {
             if (e.target === element) {
@@ -6362,8 +6376,10 @@ const Draggable = (() => {
                 $(element).trigger(_events__WEBPACK_IMPORTED_MODULE_1__["default"].draw);
             }
         });
-        $(element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStop, () => {
-            component.joints = component.joints.map(j => Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(j).round().vector);
+        $(element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStop, (e) => {
+            if (e.target === element) {
+                component.joints = component.joints.map(j => Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(j).round().vector);
+            }
         });
         // // TODO, I don't quite like how this is coupled together
         // if (mappings.getComponentMapSafe(component).isBoard
@@ -6414,8 +6430,8 @@ __webpack_require__.r(__webpack_exports__);
 
 const Extendable = (() => {
     const init = (component, options) => {
-        let { canAddJoints = false, canRemoveJoints = false, canRemoveComponent = false } = Object.assign({}, (options ? options : {}));
-        let element = component.group.element;
+        let { reticulatable = false, removable = false } = Object.assign({}, (options ? options : {}));
+        const element = component.group.element;
         $(element).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].select, () => {
             createHandles(component);
         });
@@ -6430,15 +6446,11 @@ const Extendable = (() => {
         $(element).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].deselect, () => {
             clearHandles(component);
         });
-        if (canAddJoints)
-            initHandleInsertion(component);
-        if (canRemoveJoints)
-            initJointRemoval(component);
-        if (canRemoveComponent)
-            initComponentRemoval(component);
-    };
-    const createHandles = (component) => {
-        initHandles(component);
+        Stretchable.init(component);
+        if (reticulatable)
+            Reticulatable.init(component);
+        if (removable)
+            Removable.init(component);
     };
     const clearHandles = (component) => {
         $(component.group.element)
@@ -6446,13 +6458,23 @@ const Extendable = (() => {
             .remove(":not(.dragging)")
             .hide(0); // I.e. hide the dragging one...
     };
-    const initHandles = (component) => {
+    const createHandles = (component) => {
         component.joints.forEach(joint => {
             addHandle(component, joint);
         });
     };
-    const initHandleInsertion = (component) => {
-        $(component.group.element).dblclick(e => {
+    return { init };
+})();
+const Stretchable = (() => {
+    const init = (component) => {
+    };
+    return { init };
+})();
+const Reticulatable = (() => {
+    const init = (component) => {
+        const element = component.group.element;
+        // Add joint through dblclick
+        $(element).dblclick(e => {
             if ($(e.target).closest(".handle").length < 1) {
                 // Get position in svg coordinates, rounded to grid
                 const position = Object(_vector__WEBPACK_IMPORTED_MODULE_3__["default"])(component.group.convertVector({ x: e.clientX || 0, y: e.clientY || 0 }, "DomToSvg", "relToGroup")).round(_constants__WEBPACK_IMPORTED_MODULE_6__["gridSpacing"] / 2).vector;
@@ -6461,45 +6483,23 @@ const Extendable = (() => {
                 //insert joint at position
                 component.joints.splice(jointIdx, 0, position);
                 addHandle(component, position);
-                $(component.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw, [e]);
+                $(element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw, [e]);
             }
         });
-    };
-    const initJointRemoval = (component) => {
-        $(component.group.element).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].drag, ".dragHandle", (e) => {
+        // Remove joint through drag
+        $(element).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].drag, ".dragHandle", (e) => {
             removeExcessJoints(component, $(e.target).data("point"));
-            $(component.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw, [e]);
+            $(element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw, [e]);
         });
-        $(component.group.element).on("dblclick", ".dragHandle", (e) => {
+        // Remove joint through dblclick
+        $(element).on("dblclick", ".dragHandle", (e) => {
             // If only two joints remain then they can't be removed by dblclick
             if (component.joints.length <= 2)
                 return;
             const point = $(e.target).data("point");
             component.joints = component.joints.filter(Object(_utility_isNot__WEBPACK_IMPORTED_MODULE_5__["default"])(point));
             e.target.remove();
-            $(component.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw, [e]);
-        });
-    };
-    const initComponentRemoval = (component) => {
-        $(component.group.element).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].dragStop, ".dragHandle", (e) => {
-            if (component.joints.length === 2 && Object(_vector__WEBPACK_IMPORTED_MODULE_3__["default"])(component.joints[0]).isCloseTo(component.joints[1])) {
-                _manifest__WEBPACK_IMPORTED_MODULE_1__["default"].removeComponent(component);
-                _history__WEBPACK_IMPORTED_MODULE_2__["default"].mergeLast();
-            }
-        });
-    };
-    const addHandle = (component, point) => {
-        const handle = Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_4__["make"])(point, 5, "handle dragHandle highlight").element;
-        $(handle).data('point', point);
-        component.group.append(handle);
-        $(handle).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].drag, (e, drag) => {
-            point.x += drag.x;
-            point.y += drag.y;
-            $(component.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw);
-        });
-        $(handle).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].dragStop, () => {
-            point.x = Math.round(point.x);
-            point.y = Math.round(point.y);
+            $(element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw, [e]);
         });
     };
     const removeExcessJoints = (component, point) => {
@@ -6526,13 +6526,34 @@ const Extendable = (() => {
         }
         return bestJointIdx;
     };
-    // const getJointFromHandle = (handle: SVGCircleElement): Vector => ({
-    //    // Animval is always just-as or more up-to-date than baseval
-    //    x: handle.cx.animVal.value,
-    //    y: handle.cy.animVal.value
-    // })
     return { init };
 })();
+const Removable = (() => {
+    const init = (component) => {
+        const element = component.group.element;
+        $(element).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].dragStop, ".dragHandle", (e) => {
+            if (component.joints.length === 2 && Object(_vector__WEBPACK_IMPORTED_MODULE_3__["default"])(component.joints[0]).isCloseTo(component.joints[1])) {
+                _manifest__WEBPACK_IMPORTED_MODULE_1__["default"].removeComponent(component);
+                _history__WEBPACK_IMPORTED_MODULE_2__["default"].mergeLast();
+            }
+        });
+    };
+    return { init };
+})();
+const addHandle = (component, point) => {
+    const handle = Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_4__["make"])(point, 5, "handle dragHandle draggable highlight").element;
+    $(handle).data('point', point);
+    component.group.append(handle);
+    $(handle).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].drag, (e, drag) => {
+        point.x += drag.x;
+        point.y += drag.y;
+        $(component.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw);
+    });
+    $(handle).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].dragStop, () => {
+        point.x = Math.round(point.x);
+        point.y = Math.round(point.y);
+    });
+};
 /* harmony default export */ __webpack_exports__["default"] = (Extendable);
 
 
@@ -6906,7 +6927,7 @@ const Selectable = (() => {
         elementIndirectlySelectsComponent(element, component));
     const setSelectTrigger = (component) => {
         // Selecting component triggers select
-        $(component.group.element).one("mousedown", (e) => {
+        $(component.group.element).one("mousedown", () => {
             /*LOGSTART*/ console.groupCollapsed("Selected", component.group.element); /*LOGEND*/
             /*LOGSTART*/ console.log("Primary: %o", component); /*LOGEND*/
             const otherComponents = _manifest__WEBPACK_IMPORTED_MODULE_1__["default"].findCorresponding(component);
@@ -6975,13 +6996,26 @@ __webpack_require__.r(__webpack_exports__);
 
 const WiresCreatable = (() => {
     const init = (component) => {
+        const element = component.group.element;
         // Hole elements will not exist at initialisation,
         // need to use component filtered by .hole selector
         let wire;
-        $(component.group.element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStart, ".hole", (e, start) => {
+        const subtreeObserver = new MutationObserver((mutations) => {
+            mutations.forEach(mutation => {
+                $(mutation.addedNodes).filter(".hole").addClass("draggable");
+            });
+        });
+        subtreeObserver.observe(element, { childList: true });
+        $(element).on("DOMSubtreeModified", () => {
+            $(element).find(".hole").addClass("draggable");
+        });
+        // TODO: Currently at the end of the drag the board ends up selected,
+        // ideally the wire would end selected.
+        $(element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStart, ".hole", (e, start) => {
             wire = createWireAtPoint(Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(start).round(_constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"] / 2).vector);
-            $(wire.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_1__["default"].select);
-            const dragHandle = $(wire.group.element).find(".dragHandle")[0];
+            const wireElement = wire.group.element;
+            $(wireElement).trigger(_events__WEBPACK_IMPORTED_MODULE_1__["default"].select);
+            const dragHandle = $(wireElement).find(".dragHandle")[0];
             $(dragHandle).addClass("dragging");
             $(dragHandle).trigger(_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStart, start);
             $(e.target).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].drag, (e, drag) => {
@@ -6990,6 +7024,7 @@ const WiresCreatable = (() => {
             $(e.target).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStop, (e, stop) => {
                 $(dragHandle).removeClass("dragging");
                 $(dragHandle).trigger(_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStop, stop);
+                $(wireElement).trigger(_events__WEBPACK_IMPORTED_MODULE_1__["default"].deselect);
             });
         });
     };
@@ -8455,15 +8490,17 @@ const Draggable = (() => {
         let onMouseDown = (e) => {
             // Possible states should be 'Idle'
             // Get the target element
-            element = e.target;
-            element = $(e.target).closest(":not(g.body,g.body *)").get(0);
-            // Do drag prep
-            const mouseDownDom = { x: e.clientX, y: e.clientY };
-            lastMousePosSvg = Object(_svg__WEBPACK_IMPORTED_MODULE_2__["default"])(element).convertVector(mouseDownDom, "DomToSvg", "relToGroup");
-            // Trigger drag prepped if I care
-            $(document).on("mousemove", onMouseMove);
-            $(document).one("mouseup", onMouseUp);
-            state = "Ready";
+            element = $(e.target).closest(".draggable").get(0);
+            if (element) {
+                // Do drag prep
+                const mouseDownDom = { x: e.clientX, y: e.clientY };
+                lastMousePosSvg = Object(_svg__WEBPACK_IMPORTED_MODULE_2__["default"])(element).convertVector(mouseDownDom, "DomToSvg", "relToGroup");
+                // Trigger drag prepped if I care
+                // console.log("d", e);
+                $(document).on("mousemove", onMouseMove);
+                $(document).one("mouseup", onMouseUp);
+                state = "Ready";
+            }
         };
         const onMouseMove = (e) => {
             // Possible states should 'Ready' or 'Dragging'
@@ -8486,6 +8523,7 @@ const Draggable = (() => {
                     const mouseMoveSvg = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(mousePosSvg).subSum(lastMousePosSvg);
                     const dragSteps = mouseMoveSvg.scaleWith(1 / dragStepThresholdSvg).round();
                     const dragSizeSvg = dragSteps.scaleWith(dragStepThresholdSvg);
+                    // console.log("s", e);
                     $(element).trigger(_circuit_events__WEBPACK_IMPORTED_MODULE_1__["default"].drag, dragSizeSvg.vector);
                     lastMousePosSvg = dragSizeSvg.sumWith(lastMousePosSvg).vector;
                 }
@@ -8495,6 +8533,7 @@ const Draggable = (() => {
             // Possible states should be 'Dragging' or 'Ready'     
             $(document).off("mousemove", onMouseMove);
             if (state === "Dragging") {
+                // console.log("u", e);
                 $(element).removeClass("dragging");
                 $(element).trigger(_circuit_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStop, lastMousePosSvg);
             }
@@ -9132,8 +9171,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _circuit_manifest__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../circuit/manifest */ "./typescript/circuit/manifest.ts");
 /* harmony import */ var _circuit_component_stripboard_maps__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../circuit/component/_stripboard/-maps */ "./typescript/circuit/component/_stripboard/-maps.ts");
 /* harmony import */ var _circuit_component_breadboard_maps__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../circuit/component/_breadboard/-maps */ "./typescript/circuit/component/_breadboard/-maps.ts");
-/* harmony import */ var _circuit_component_addins_draggable__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../circuit/component/addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
-
 
 
 
@@ -9238,14 +9275,6 @@ var Events;
     Events.makeBreadBoardLargeButtonPress = makeBreadBoardLargeButtonPress;
     function enableBoardDraggingPress(isChecked) {
         _controlValues__WEBPACK_IMPORTED_MODULE_1__["default"].boardDraggingEnabled = isChecked;
-        if (_circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].activeBoard !== undefined) {
-            if (isChecked) {
-                _circuit_component_addins_draggable__WEBPACK_IMPORTED_MODULE_9__["default"].enable(_circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].activeBoard);
-            }
-            else {
-                _circuit_component_addins_draggable__WEBPACK_IMPORTED_MODULE_9__["default"].disable(_circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].activeBoard);
-            }
-        }
     }
     Events.enableBoardDraggingPress = enableBoardDraggingPress;
     // Check

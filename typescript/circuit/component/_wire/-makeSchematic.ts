@@ -23,6 +23,6 @@ export const makeSchematic = getMaker(
    Selectable,
    Graphical,
    Draggable,
-   [Extendable, { canAddJoints: true, canRemoveJoints: true, canRemoveComponent: true }]
+   [Extendable, { reticulatable: true, removable: true}]
 );
 export default makeSchematic;

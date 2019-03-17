@@ -22,7 +22,7 @@ export const makeLayout = getMaker(Layout, defaulterLayout,
    Graphical,
    Draggable,
    Selectable,
-   [Extendable, { canAddJoints: true, canRemoveJoints: true, canRemoveComponent: true }],
+   [Extendable, { reticulatable: true, removable: true }],
    [ConnectionsHighlightable, {}],
    Recolorable
 );

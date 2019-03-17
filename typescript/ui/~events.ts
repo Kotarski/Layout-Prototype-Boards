@@ -9,7 +9,6 @@ import Component from "../circuit/+component";
 import Diagram from "../circuit/+diagram";
 import StripboardMaps from "../circuit/component/_stripboard/-maps";
 import BreadboardMaps from "../circuit/component/_breadboard/-maps";
-import Draggable from "../circuit/component/addins/draggable";
 //import * as $ from 'jquery';
 
 namespace Events {
@@ -107,13 +106,6 @@ namespace Events {
    }
    export function enableBoardDraggingPress(isChecked: boolean) {
       ControlValues.boardDraggingEnabled = isChecked;
-      if (manifest.activeBoard !== undefined) {
-         if (isChecked) {
-            Draggable.enable(manifest.activeBoard)
-         } else {
-            Draggable.disable(manifest.activeBoard)
-         }
-      }
    }
 
    // Check

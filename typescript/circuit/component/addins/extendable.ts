@@ -13,21 +13,19 @@ type extendableComponent = Component & { joints: Vector[] };
 
 const Extendable = (() => {
    type Options = {
-      canAddJoints?: boolean,
-      canRemoveJoints?: boolean,
-      canRemoveComponent?: boolean
+      reticulatable?: boolean,
+      removable?: boolean
    }
    const init = <T extends Strict<Options, T>>(
       component: extendableComponent, options?: T) => {
 
       let {
-         canAddJoints = false,
-         canRemoveJoints = false,
-         canRemoveComponent = false
+         reticulatable = false,
+         removable = false
       } = { ...(options ? options : {}) }
 
+      const element = component.group.element;
 
-      let element = component.group.element;
 
       $(element).on(Events.select, () => {
          createHandles(component);
@@ -44,13 +42,9 @@ const Extendable = (() => {
          clearHandles(component);
       });
 
-      if (canAddJoints) initHandleInsertion(component);
-      if (canRemoveJoints) initJointRemoval(component);
-      if (canRemoveComponent) initComponentRemoval(component);
-   }
-
-   const createHandles = (component: extendableComponent) => {
-      initHandles(component);
+      Stretchable.init(component);
+      if (reticulatable) Reticulatable.init(component);
+      if (removable) Removable.init(component);
    }
 
    const clearHandles = (component: extendableComponent) => {
@@ -60,14 +54,31 @@ const Extendable = (() => {
          .hide(0); // I.e. hide the dragging one...
    }
 
-   const initHandles = (component: extendableComponent) => {
+   const createHandles = (component: extendableComponent) => {
       component.joints.forEach(joint => {
          addHandle(component, joint)
       })
    };
 
-   const initHandleInsertion = (component: extendableComponent) => {
-      $(component.group.element).dblclick(e => {
+
+
+
+   return { init }
+})()
+
+const Stretchable = (() => {
+   const init = (component: extendableComponent) => {
+      
+   }
+   return { init }
+})()
+
+const Reticulatable = (() => {
+   const init = (component: extendableComponent) => {
+      const element = component.group.element;
+
+      // Add joint through dblclick
+      $(element).dblclick(e => {
          if ($(e.target).closest(".handle").length < 1) {
             // Get position in svg coordinates, rounded to grid
             const position = vector(
@@ -80,53 +91,27 @@ const Extendable = (() => {
             //insert joint at position
             component.joints.splice(jointIdx, 0, position);
             addHandle(component, position);
-            $(component.group.element).trigger(Events.draw, [e]);
+            $(element).trigger(Events.draw, [e]);
          }
       });
-   };
-
-   const initJointRemoval = (component: extendableComponent) => {
-      $(component.group.element).on(Events.drag, ".dragHandle", (e) => {
+   
+      // Remove joint through drag
+      $(element).on(Events.drag, ".dragHandle", (e) => {
          removeExcessJoints(component, $(e.target).data("point"));
-         $(component.group.element).trigger(Events.draw, [e]);
+         $(element).trigger(Events.draw, [e]);
       });
 
-      $(component.group.element).on("dblclick", ".dragHandle", (e) => {
+      // Remove joint through dblclick
+      $(element).on("dblclick", ".dragHandle", (e) => {
          // If only two joints remain then they can't be removed by dblclick
          if (component.joints.length <= 2) return;
          
          const point = $(e.target).data("point");
          component.joints = component.joints.filter(isNot(point));
          e.target.remove();
-         $(component.group.element).trigger(Events.draw, [e]);
+         $(element).trigger(Events.draw, [e]);
       });
    }
-
-   const initComponentRemoval = (component: extendableComponent) => {
-      $(component.group.element).on(Events.dragStop, ".dragHandle", (e) => {
-         if (component.joints.length === 2 && vector(component.joints[0]).isCloseTo(component.joints[1])) {
-            manifest.removeComponent(component);
-            history.mergeLast();
-         }
-      });
-   };
-
-   const addHandle = (component: extendableComponent, point: Vector) => {
-      const handle = makeCircle(point, 5, "handle dragHandle highlight").element;
-      $(handle).data('point', point);
-      component.group.append(handle);
-
-      $(handle).on(Events.drag, (e, drag: Vector) => {
-         point.x += drag.x;
-         point.y += drag.y;
-         $(component.group.element).trigger(Events.draw);
-      });
-
-      $(handle).on(Events.dragStop, () => {
-         point.x = Math.round(point.x);
-         point.y = Math.round(point.y);
-      });
-   };
 
    const removeExcessJoints = (component: extendableComponent, point: Vector) => {
       // If only two joints remain then they can't be removed during a drag
@@ -159,14 +144,37 @@ const Extendable = (() => {
 
       return bestJointIdx;
    }
-
-   // const getJointFromHandle = (handle: SVGCircleElement): Vector => ({
-   //    // Animval is always just-as or more up-to-date than baseval
-   //    x: handle.cx.animVal.value,
-   //    y: handle.cy.animVal.value
-   // })
-   
-
    return { init }
 })()
+
+const Removable = (() => {
+   const init = (component: extendableComponent) => {
+      const element = component.group.element;
+      $(element).on(Events.dragStop, ".dragHandle", (e) => {
+         if (component.joints.length === 2 && vector(component.joints[0]).isCloseTo(component.joints[1])) {
+            manifest.removeComponent(component);
+            history.mergeLast();
+         }
+      });
+   }
+   return { init }
+})()
+
+const addHandle = (component: extendableComponent, point: Vector) => {
+   const handle = makeCircle(point, 5, "handle dragHandle draggable highlight").element;
+   $(handle).data('point', point);
+   component.group.append(handle);
+
+   $(handle).on(Events.drag, (e, drag: Vector) => {
+      point.x += drag.x;
+      point.y += drag.y;
+      $(component.group.element).trigger(Events.draw);
+   });
+
+   $(handle).on(Events.dragStop, () => {
+      point.x = Math.round(point.x);
+      point.y = Math.round(point.y);
+   });
+};
+
 export default Extendable;

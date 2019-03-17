@@ -45,4 +45,3 @@ const makeLayout = getMaker(StripboardLayout, defaulterLayout,
    Rotatable
 );
 export default makeLayout;
-

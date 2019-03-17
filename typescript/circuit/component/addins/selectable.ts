@@ -37,7 +37,7 @@ const Selectable = (() => {
 
    const setSelectTrigger = (component: Component) => {
       // Selecting component triggers select
-      $(component.group.element).one("mousedown", (e) => {
+      $(component.group.element).one("mousedown", () => {
          /*LOGSTART*/console.groupCollapsed("Selected", component.group.element);/*LOGEND*/
          /*LOGSTART*/console.log("Primary: %o", component);/*LOGEND*/
 

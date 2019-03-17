@@ -16,10 +16,10 @@ export default function drawLayout(instance: PowerLayout) {
       makeRect({ x: 0, y: -45 }, { width: 160, height: 65 }, { x: 10, y: 10 }, "screen"),
       makeText("8".repeat(text.length - 1), { x: 0, y: -20 }, "screentext off"),
       makeText(text, { x: 0, y: -20 }, "screentext on"),
-      makeCircle({ x: 0, y: 0 }, 5, "hole")
    );
 
    return [
-      bodyGroup.translate(instance.joints[INDEXCONNECTION])
+      bodyGroup.translate(instance.joints[INDEXCONNECTION]),
+      makeCircle(instance.joints[INDEXCONNECTION], 5, "hole")
    ];
 }
