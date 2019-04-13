@@ -3,20 +3,21 @@ import * as Types from "./types";
 import { Vector } from "../../../-vector";
 import deepCopy from "../../../utility/-deepCopy";
 import Insert from "../../../utility/~insert";
-import manifest from "../../manifest";
-import getComponentConnections from "../../generics/-getComponentConnections";
 import makeConnector from "../../generics/-makeConnector";
 import drawLayout from "./-drawLayout";
 import drawSchematic from "./-drawSchematic";
 import { INDEXANODE, INDEXCATHODE } from "./constants";
-abstract class Base extends Component implements Types.values {
+import { makeGroup } from "../../../svg/element/+group";
+abstract class Base implements Types.values {
+   name = "diode" as "diode";
+   group = makeGroup();
+   disabled = false;
    breakdownVoltage: number;
    saturationCurrent: number;
    joints: [Vector, Vector];
    color: string;
 
    constructor(values: Types.values) {
-      super(values);
       this.joints = values.joints;
       this.saturationCurrent = values.saturationCurrent;
       this.breakdownVoltage = values.breakdownVoltage;
@@ -46,32 +47,28 @@ abstract class Base extends Component implements Types.values {
    transferFunction() { return [] };
 }
 
-export class Schematic extends Base {
+export class Schematic extends Base implements Component {
+   form = "schematic" as "schematic"
    draw() {
       //(Prepend so handles appear on top)
       this.group.prepend(drawSchematic(this));
    }
-   getConnections(): ComponentTypes.connector[][][] {
-      return getComponentConnections(this, manifest.schematic);
-   }
-   makeConnectors() {
-      this.connectorSets = [[
+   getConnectors(): ComponentTypes.connector[][] {
+      return [[
          makeConnector(this, "anode", "node", this.joints[INDEXANODE], "+"),
          makeConnector(this, "cathode", "node", this.joints[INDEXCATHODE], "-"),
       ]];
    }
 }
 
-export class Layout extends Base {
+export class Layout extends Base implements Component {
+   form = "layout" as "layout"
    draw() {
       //(Prepend so handles appear on top)
       this.group.prepend(drawLayout(this));
    }
-   getConnections(): ComponentTypes.connector[][][] {
-      return getComponentConnections(this, manifest.layout);
-   }
-   makeConnectors() {
-      this.connectorSets = [[
+   getConnectors(): ComponentTypes.connector[][] {
+      return [[
          makeConnector(this, "anode", "pin", this.joints[INDEXANODE], "+"),
          makeConnector(this, "cathode", "pin", this.joints[INDEXCATHODE], "-"),
       ]];

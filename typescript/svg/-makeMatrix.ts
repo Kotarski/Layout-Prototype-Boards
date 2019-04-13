@@ -1,5 +1,5 @@
-import { make } from "./+element";
+import { makeElement } from "./+element";
 export default function makeMatrix(): SVGMatrix {
-   return make<SVGSVGElement>("svg").createSVGMatrix();
+   return makeElement<SVGSVGElement>("svg").createSVGMatrix();
 }
 

@@ -1,5 +1,6 @@
 import { Vector } from "../../../-vector";
 import { Types } from "../../+component";
+export { Types as Base };
 export interface properties extends Types.properties {
    currentGain: number;
    type: "PNP" | "NPN";

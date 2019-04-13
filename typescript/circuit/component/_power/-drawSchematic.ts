@@ -2,10 +2,10 @@ import { PowerSchematic } from "./~classes";
 import { INDEXCONNECTION } from "./constants";
 import getStandardForm from "../../../utility/-getStandardForm";
 
-import { make as makeText } from "../../../svg/element/+text";
-import { make as makeGroup } from "../../../svg/element/+group";
-import { make as makeLine } from "../../../svg/element/+line";
-import { make as makeRect } from "../../../svg/element/+rect";
+import { makeText as makeText } from "../../../svg/element/+text";
+import { makeGroup as makeGroup } from "../../../svg/element/+group";
+import { makeLine as makeLine } from "../../../svg/element/+line";
+import { makeRect as makeRect } from "../../../svg/element/+rect";
 
 export default function drawSchematic(instance: PowerSchematic) {
    const bodyGroup = makeGroup("body");

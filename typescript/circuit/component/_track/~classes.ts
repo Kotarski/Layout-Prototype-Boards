@@ -3,24 +3,25 @@ import * as Types from "./types";
 import vector, { Vector } from "../../../-vector";
 import deepCopy from "../../../utility/-deepCopy";
 import Insert from "../../../utility/~insert";
-import manifest from "../../manifest";
-import getComponentConnections from "../../generics/-getComponentConnections";
 import makeConnector from "../../generics/-makeConnector";
 import drawLayout from "./-drawLayout";
+import { makeGroup } from "../../../svg/element/+group";
 
-export class Layout extends Component implements Types.properties, Types.state {
-   name: string;
+export class Layout implements Component, Types.properties, Types.state {
+   name = "track" as "track";
+   group = makeGroup();
+   disabled = false;
+   form = "layout" as "layout"
    holeSpacings: number[];
-   connectorSets: ComponentTypes.hole[][] = [];
    style: "breadboard" | "stripboard";
    joints: [Vector, Vector];
+   breaks: number[];
 
    constructor(values: Types.properties & Types.state) {
-      super(values);
-      this.name = values.name;
       this.holeSpacings = values.holeSpacings;
       this.style = values.style;
       this.joints = values.joints;
+      this.breaks = values.breaks;
    }
 
    getProperties(): Types.properties {
@@ -34,7 +35,8 @@ export class Layout extends Component implements Types.properties, Types.state {
    getState(): Types.state {
       return deepCopy({
          joints: this.joints,
-         disabled: this.disabled
+         disabled: this.disabled,
+         breaks: this.breaks
       });
    }
 
@@ -45,16 +47,16 @@ export class Layout extends Component implements Types.properties, Types.state {
    }
 
    /** Builds and draws the components connectors */
-   makeConnectors() {
+   getConnectors(): ComponentTypes.hole[][] {
 
       const start = this.joints[0];
       const step = this.joints[1];
 
 
-      this.connectorSets = [[]];
+      let connectorSets: ComponentTypes.hole[][] = [[]];
       // Create the holes
       let accHs = 0;
-      this.holeSpacings.forEach((hS) => {
+      this.holeSpacings.forEach((hS, idx) => {
          accHs += hS;
 
          let holePos = vector(step)
@@ -62,16 +64,14 @@ export class Layout extends Component implements Types.properties, Types.state {
             .sumWith(start)
             .vector;
 
-         this.connectorSets[0].push(
-            makeConnector(this, "", "hole", holePos)
+         const connectorType = this.breaks.includes(idx) ? "brokenhole" : "hole";
+         connectorSets[0].push(
+            makeConnector(this, "", connectorType, holePos)
          );
       })
-   }
 
-   getConnections(): ComponentTypes.connector[][][] {
-      return getComponentConnections(this, manifest.layout);
+      return connectorSets
    }
-
    insertInto(element?: SVGGraphicsElement) {
       Insert.last(this.group.element, element);
    }
@@ -79,15 +79,16 @@ export class Layout extends Component implements Types.properties, Types.state {
    /** ...
    */
    transferFunction(from: ComponentTypes.hole): ComponentTypes.connector[] {
-      let fromIdx = this.connectorSets[0].indexOf(from);
+      let connectors = this.getConnectors();
+      let fromIdx = connectors[0].findIndex((c)=>vector(c.point).isCloseTo(from.point))
       let connected: ComponentTypes.connector[] = [];
-      for (let i = fromIdx + 1; i < this.connectorSets[0].length; i++) {
-         if (this.connectorSets[0][i].type === "brokenhole") break;
-         connected.push(this.connectorSets[0][i]);
+      for (let i = fromIdx + 1; i < connectors[0].length; i++) {
+         if (connectors[0][i].type === "brokenhole") break;
+         connected.push(connectors[0][i]);
       }
       for (let i = fromIdx - 1; i >= 0; i--) {
-         if (this.connectorSets[0][i].type === "brokenhole") break;
-         connected.push(this.connectorSets[0][i]);
+         if (connectors[0][i].type === "brokenhole") break;
+         connected.push(connectors[0][i]);
       }
 
       return connected;

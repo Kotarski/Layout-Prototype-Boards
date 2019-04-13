@@ -1,7 +1,8 @@
 import Component, { Types as ComponentTypes } from "../../+component";
 import Events from "../../events";
-import { make as makeCircle } from "../../../svg/element/+circle";
-import { make as makeText } from "../../../svg/element/+text";
+import { makeCircle as makeCircle } from "../../../svg/element/+circle";
+import { makeText as makeText } from "../../../svg/element/+text";
+import getComponentConnections from "../../generics/-getComponentConnections";
 //import * as $ from 'jquery';
 
 type colorPalette = string[];
@@ -50,9 +51,8 @@ const ConnectionsHighlightable = (() => {
 
    const createConnectionsHighlights = (component: Component, propogate: boolean, colorPalette: colorPalette) => {
       // Make sure the connectors are up to date
-      component.makeConnectors();
 
-      const connectionSets = component.getConnections();
+      const connectionSets = getComponentConnections(component);
       connectionSets.forEach(connectionSet => {
          connectionSet.forEach((connectorConnections, i) => {
             let color = colorPalette[i % colorPalette.length];

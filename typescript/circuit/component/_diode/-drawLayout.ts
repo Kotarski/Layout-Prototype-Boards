@@ -2,10 +2,10 @@ import { Layout } from "./~classes";
 import vector from "../../../-vector";
 import { INDEXANODE, INDEXCATHODE } from "./constants";
 
-import { make as makePath } from "../../../svg/element/+path";
-import { make as makeGroup } from "../../../svg/element/+group";
-import { make as makeCircle } from "../../../svg/element/+circle";
-import { make as makeRect } from "../../../svg/element/+rect";
+import { makePath as makePath } from "../../../svg/element/+path";
+import { makeGroup as makeGroup } from "../../../svg/element/+group";
+import { makeCircle as makeCircle } from "../../../svg/element/+circle";
+import { makeRect as makeRect } from "../../../svg/element/+rect";
 //import * as $ from 'jquery';
 
 export default function drawLayout(instance: Layout) {

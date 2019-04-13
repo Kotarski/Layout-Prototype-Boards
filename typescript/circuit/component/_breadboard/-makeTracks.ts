@@ -9,7 +9,7 @@ import { gridSpacing } from "../../../~constants";
 export default function makeTracks(parent: Small, size: "small"): Track[];
 export default function makeTracks(parent: Large, size: "large"): Track[];
 export default function makeTracks(parent: Small | Large, size: "small" | "large") {
-   return (size === "small") ? makeTracksSmall(parent) : makeTracksLarge(parent);
+   return (size === "small") ? makeTracksSmall(parent as Small) : makeTracksLarge(parent as Large);
 }
 
 function makeTracksSmall(parent: Small): Track[] {

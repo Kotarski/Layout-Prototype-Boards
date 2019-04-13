@@ -1,9 +1,9 @@
-import { make as makeElement } from "../+element";
+import { makeElement as makeElement } from "../+element";
 import svg from "../-svg";
 //import * as $ from 'jquery';
 
-export type type = ReturnType<typeof make>;
-export function make(classes: string = "") {
+export type group = ReturnType<typeof makeGroup>;
+export function makeGroup(classes: string = "") {
    return svg(makeElement<SVGGElement>("g", classes));
 }
 

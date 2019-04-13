@@ -3,8 +3,8 @@ import vector, { Vector } from "../../../-vector";
 import { INDEXSTART, INDEXSTEP } from "./constants";
 import cumulativeSum from "../../../utility/-cumulativeSum";
 
-import { make as makeCircle } from "../../../svg/element/+circle";
-import { make as makeRect } from "../../../svg/element/+rect";
+import { makeCircle as makeCircle } from "../../../svg/element/+circle";
+import { makeRect as makeRect } from "../../../svg/element/+rect";
 
 import { gridSpacing } from "../../../~constants";
 

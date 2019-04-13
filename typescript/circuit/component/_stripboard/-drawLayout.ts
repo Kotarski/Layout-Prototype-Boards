@@ -2,8 +2,8 @@ import { StripboardLayout } from "./~classes";
 import vector from "../../../-vector";
 import { INDEXCENTRE, INDEXROTATION } from "./constants";
 
-import { make as makeGroup } from "../../../svg/element/+group";
-import { make as makeRect } from "../../../svg/element/+rect";
+import { makeGroup as makeGroup } from "../../../svg/element/+group";
+import { makeRect as makeRect } from "../../../svg/element/+rect";
 import { gridSpacing } from "../../../~constants";
 import makeTracks from "./-makeTracks";
 

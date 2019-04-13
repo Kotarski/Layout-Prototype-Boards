@@ -3,10 +3,10 @@ import vector, { Vector } from "../../../-vector";
 import { INDEXEND1, INDEXEND2 } from "./constants";
 import getStandardForm from "../../../utility/-getStandardForm";
 
-import { make as makePath } from "../../../svg/element/+path";
-import { make as makeText } from "../../../svg/element/+text";
-import { make as makeGroup } from "../../../svg/element/+group";
-import { make as makeRect } from "../../../svg/element/+rect";
+import { makePath as makePath } from "../../../svg/element/+path";
+import { makeText as makeText } from "../../../svg/element/+text";
+import { makeGroup as makeGroup } from "../../../svg/element/+group";
+import { makeRect as makeRect } from "../../../svg/element/+rect";
 
 export default function drawSchematic(instance: Schematic) {
    const bodyGroup = makeGroup("body");

@@ -7,7 +7,7 @@ import { gridSpacing } from "../../../~constants";
 import { Layout as WireLayout } from "../_wire/~classes";
 //import * as $ from 'jquery';
 
-type holeyComponent = Component & { connectorSets: ComponentTypes.hole[][] };
+type holeyComponent = Component & { getConnectors(): ComponentTypes.hole[][] };
 
 const WiresCreatable = (() => {
    const init = (component: holeyComponent) => {

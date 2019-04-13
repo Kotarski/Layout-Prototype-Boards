@@ -10,7 +10,6 @@ const Graphical = (() => {
             $(component.group.element).show();
             component.group.clearChildren(":not(.handle,.connectivityhighlight)");
             component.draw();
-            component.makeConnectors();
          } else {
             $(component.group.element).hide();
          }

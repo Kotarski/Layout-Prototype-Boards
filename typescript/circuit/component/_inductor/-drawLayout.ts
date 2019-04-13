@@ -2,8 +2,8 @@ import { Layout } from "./~classes";
 import vector from "../../../-vector";
 import { INDEXEND1, INDEXEND2 } from "./constants";
 
-import { make as makePath } from "../../../svg/element/+path";
-import { make as makeGroup } from "../../../svg/element/+group";
+import { makePath as makePath } from "../../../svg/element/+path";
+import { makeGroup as makeGroup } from "../../../svg/element/+group";
 
 export default function drawLayout(instance: Layout) {
    const bodyGroup = makeGroup("body");

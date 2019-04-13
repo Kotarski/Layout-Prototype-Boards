@@ -2,7 +2,7 @@ import { Layout } from "./~classes";
 import vector from "../../../-vector";
 import { INDEXCENTRE, INDEXROTATION } from "./constants";
 
-import { make as makeDip } from "../../../svg/element/groups/+dip";
+import { makeDip as makeDip } from "../../../svg/element/groups/+dip";
 
 export default function drawLayout(instance: Layout) {
 

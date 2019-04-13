@@ -2,9 +2,9 @@ import { Layout } from "./~classes";
 import vector from "../../../-vector";
 import { INDEXEND1, INDEXEND2 } from "./constants";
 
-import { make as makePath } from "../../../svg/element/+path";
-import { make as makeGroup } from "../../../svg/element/+group";
-import { make as makeRect } from "../../../svg/element/+rect";
+import { makePath as makePath } from "../../../svg/element/+path";
+import { makeGroup as makeGroup } from "../../../svg/element/+group";
+import { makeRect as makeRect } from "../../../svg/element/+rect";
 //import * as $ from 'jquery';
 
 export default function drawLayout(instance: Layout) {
@@ -20,9 +20,13 @@ export default function drawLayout(instance: Layout) {
 
    let bodyPath = "m-12.5 -6" + "h25" + "c15 -8 15 20 0 12" + "h-25" + "c-15 +8 -15 -20 0 -12" + "Z";
 
+   const body = makePath(bodyPath, "body")
+
+   const bands = getBands(instance.resistance).map(b => b.clipTo(body.element));
+
    bodyGroup.append(
-      makePath(bodyPath, "body"),
-      getBands(instance.resistance),
+      body,
+      bands,
       makePath(bodyPath, "highlight nofill")
    );
 

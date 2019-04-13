@@ -11,9 +11,7 @@ import Junctions from "../addins/junctions"
 const defaulterSchematic: ValueCheck.Defaulter<Types.valuesSchematic> = {
    name: ValueCheck.validate("string", "wire"),
    disabled: ValueCheck.validate("boolean", false),
-   joints: ValueCheck.joints(
-      [{ x: 0, y: 0 }, { x: 10, y: 10 }], l => l >= 2
-   )
+   joints: ValueCheck.joints([{ x: 0, y: 0 }, { x: 10, y: 10 }], l => l >= 2)
 };
 
 // TODO: Pass in options for extendable and others (options={?}) (true,true)

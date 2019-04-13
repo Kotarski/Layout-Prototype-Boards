@@ -2,9 +2,9 @@ import Component from "../../+component";;
 import Events from "../../events";
 import toVector from "../../../utility/polar/-toVector"
 import vector, { Vector } from "../../../-vector";
-import { make as makeCircle } from "../../../svg/element/+circle";
-import { make as makeRect } from "../../../svg/element/+rect";
-import { make as makeGroup } from "../../../svg/element/+group";
+import { makeCircle as makeCircle } from "../../../svg/element/+circle";
+import { makeRect as makeRect } from "../../../svg/element/+rect";
+import { makeGroup as makeGroup } from "../../../svg/element/+group";
 //import * as $ from 'jquery';
 
 type colorPalette = string[];

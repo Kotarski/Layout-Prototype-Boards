@@ -15,6 +15,7 @@ export default function svg<T extends SVGElement>(element: T) {
       getTransforms: ElementFunctions.getTransforms(element),
       setTransforms: ElementFunctions.setTransforms(element),
       convertVector: ElementFunctions.convertVector(element),
+      clipTo: ElementFunctions.clipTo(element),
    } : null;
 
    let groupExtension = (element instanceof SVGGElement || element instanceof SVGSVGElement) ? {

@@ -1,9 +1,9 @@
 import { Vector } from "../../++types";
-import { make as makeElement } from "../+element";
+import { makeElement as makeElement } from "../+element";
 import svg from "../-svg";
 
-export type type = ReturnType<typeof make>;
-export function make(path: string | (Vector[] | (Vector[])[]), classes: string = "") {
+export type path = ReturnType<typeof makePath>;
+export function makePath(path: string | (Vector[] | (Vector[])[]), classes: string = "") {
    const element: SVGPathElement = makeElement("path", classes);
    let pathString = (path instanceof Array) ? getLinePath(path) : path;
    element.setAttribute('d', pathString);

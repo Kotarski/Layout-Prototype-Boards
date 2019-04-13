@@ -6,7 +6,7 @@ import history from "../../history";
 import { Layout as Track } from "../_track/~classes";
 import Flatten from "../../../utility/~flatten";
 import addTransform from "../../../svg/-addTransform";
-import { make as makeCircle } from "../../../svg/element/+circle"
+import { makeCircle as makeCircle } from "../../../svg/element/+circle"
 //import * as $ from 'jquery';
 
 type reversibleBoard = Component & {
@@ -68,7 +68,7 @@ const ReversableBoard = (() => {
       if (parent) parent.appendChild(ghostGroup);
 
       let allValidConnectors = Flatten.flatten2d(manifest.layout.map(el =>
-         Flatten.flatten2d(el.connectorSets.map(connectorSet =>
+         Flatten.flatten2d(el.getConnectors().map(connectorSet =>
             connectorSet.filter(connector => connector.type === "pin")
          ))
       ));
@@ -80,7 +80,7 @@ const ReversableBoard = (() => {
 
          // Add the holes
          //let ctm = (track.group.element.getCTM() || Svg.makeMatrix()).inverse()
-         track.connectorSets[0].forEach((hole, holeIdx) => {
+         track.getConnectors()[0].forEach((hole, holeIdx) => {
 
             let point = hole.point;//(ctm) ? hole.point.matrixTransform(ctm) : hole.point;
 
@@ -106,12 +106,14 @@ const ReversableBoard = (() => {
                   $(breaker.element).addClass("broken");
                   hole.type = "brokenhole";
                   component.trackBreaks.push(holePosition);
+                  track.breaks.push(holePosition.hole);
                } else if (hole.type === "brokenhole") {
                   $(breaker.element).removeClass("broken");
                   hole.type = "hole";
                   component.trackBreaks = component.trackBreaks.filter(trackBreak =>
                      (trackBreak.hole !== holePosition.hole || trackBreak.track !== holePosition.track)
                   );
+                  track.breaks = track.breaks.filter(b=>b !== holePosition.hole);
                }
             });
          });

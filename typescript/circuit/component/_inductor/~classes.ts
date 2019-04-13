@@ -3,18 +3,19 @@ import * as Types from "./types";
 import { Vector } from "../../../-vector";
 import deepCopy from "../../../utility/-deepCopy";
 import Insert from "../../../utility/~insert";
-import manifest from "../../manifest";
-import getComponentConnections from "../../generics/-getComponentConnections";
 import makeConnector from "../../generics/-makeConnector";
 import drawLayout from "./-drawLayout";
 import drawSchematic from "./-drawSchematic";
 import { INDEXEND1, INDEXEND2 } from "./constants";
-abstract class Base extends Component implements Types.values {
+import { makeGroup } from "../../../svg/element/+group";
+abstract class Base implements Types.values {
+   name = "inductor" as "inductor";
+   group = makeGroup();
+   disabled = false;
    inductance: number;
    joints: [Vector, Vector];
 
    constructor(values: Types.values) {
-      super(values);
       this.joints = values.joints;
       this.inductance = values.inductance;
    }
@@ -40,32 +41,28 @@ abstract class Base extends Component implements Types.values {
    transferFunction() { return [] };
 }
 
-export class Schematic extends Base {
+export class Schematic extends Base implements Component {
+   form = "schematic" as "schematic"
    draw() {
       //(Prepend so handles appear on top)
       this.group.prepend(drawSchematic(this));
    }
-   getConnections(): ComponentTypes.connector[][][] {
-      return getComponentConnections(this, manifest.schematic);
-   }
-   makeConnectors() {
-      this.connectorSets = [[
+   getConnectors(): ComponentTypes.connector[][] {
+      return [[
          makeConnector(this, "", "node", this.joints[INDEXEND1]),
          makeConnector(this, "", "node", this.joints[INDEXEND2]),
       ]]
    }
 }
 
-export class Layout extends Base {
+export class Layout extends Base implements Component {
+   form = "layout" as "layout"
    draw() {
       //(Prepend so handles appear on top)
       this.group.prepend(drawLayout(this));
    }
-   getConnections(): ComponentTypes.connector[][][] {
-      return getComponentConnections(this, manifest.layout);
-   }
-   makeConnectors() {
-      this.connectorSets = [[
+   getConnectors(): ComponentTypes.connector[][] {
+      return [[
          makeConnector(this, "", "pin", this.joints[INDEXEND1]),
          makeConnector(this, "", "pin", this.joints[INDEXEND2]),
       ]]

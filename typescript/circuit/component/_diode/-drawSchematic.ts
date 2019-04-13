@@ -3,10 +3,10 @@ import vector, { Vector } from "../../../-vector";
 import { INDEXANODE, INDEXCATHODE } from "./constants";
 import getStandardForm from "../../../utility/-getStandardForm";
 
-import { make as makePath } from "../../../svg/element/+path";
-import { make as makeText } from "../../../svg/element/+text";
-import { make as makeGroup } from "../../../svg/element/+group";
-import { make as makeCircle } from "../../../svg/element/+circle";
+import { makePath as makePath } from "../../../svg/element/+path";
+import { makeText as makeText } from "../../../svg/element/+text";
+import { makeGroup as makeGroup } from "../../../svg/element/+group";
+import { makeCircle as makeCircle } from "../../../svg/element/+circle";
 //import * as $ from 'jquery';
 
 export default function drawSchematic(instance: Schematic) {

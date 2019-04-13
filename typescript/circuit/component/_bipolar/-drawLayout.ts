@@ -2,9 +2,9 @@ import { BipolarLayout } from "./~classes";
 import vector, { Vector } from "../../../-vector";
 import { INDEXBASE, INDEXCOLLECTOR, INDEXEMITTER } from "./constants";
 
-import { make as makePath } from "../../../svg/element/+path";
-import { make as makeText } from "../../../svg/element/+text";
-import { make as makeGroup } from "../../../svg/element/+group";
+import { makePath as makePath } from "../../../svg/element/+path";
+import { makeText as makeText } from "../../../svg/element/+text";
+import { makeGroup as makeGroup } from "../../../svg/element/+group";
 
 export default function drawLayout(instance: BipolarLayout) {
    const bodyGroup = makeGroup("body");

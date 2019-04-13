@@ -3,32 +3,29 @@ import * as Types from "./types";
 import { Vector } from "../../../-vector";
 import deepCopy from "../../../utility/-deepCopy";
 import Insert from "../../../utility/~insert";
-import manifest from "../../manifest";
-import getComponentConnections from "../../generics/-getComponentConnections";
 import makeConnector from "../../generics/-makeConnector";
 import Flatten from "../../../utility/~flatten";
-import isNot from "../../../utility/-isNot";
 import drawLayout from "./-drawLayout";
 import drawSchematic from "./-drawSchematic";
+import { makeGroup } from "../../../svg/element/+group";
 
-abstract class Base extends Component implements Types.properties {
+abstract class Base implements Types.properties {
+   name = "wire" as "wire";
+   group = makeGroup();
+   disabled = false;
    getProperties(): Types.properties {
       return deepCopy({
          name: this.name
       });
    }
-
-   transferFunction(from: ComponentTypes.connector): ComponentTypes.connector[] {
-      return Flatten.flatten2d(this.connectorSets.map(connectorSet => connectorSet.filter(isNot(from))));
-   }
 }
 
-export class Schematic extends Base implements Types.valuesSchematic {
+export class Schematic extends Base implements Component, Types.valuesSchematic {
+   form = "schematic" as "schematic"
    joints: Vector[];
-   connectorSets: ComponentTypes.node[][] = [];
 
    constructor(values: Types.valuesSchematic) {
-      super(values);
+      super();
       this.joints = values.joints;
    }
 
@@ -48,28 +45,30 @@ export class Schematic extends Base implements Types.valuesSchematic {
       Insert.first(this.group.element, element);
    }
 
-   makeConnectors() {
+   getConnectors(): ComponentTypes.node[][] {
       const end1 = this.joints[0];
       const end2 = this.joints[this.joints.length - 1];
 
-      this.connectorSets = [[
-         makeConnector(this, "", "node", end1),
-         makeConnector(this, "", "node", end2)]
+      return [[
+         makeConnector(this, "end1", "node", end1),
+         makeConnector(this, "end2", "node", end2)]
       ]
    }
-
-   getConnections(): ComponentTypes.connector[][][] {
-      return getComponentConnections(this, manifest.schematic);
+   transferFunction(from: ComponentTypes.connector): ComponentTypes.connector[] {
+      return Flatten.flatten2d(this.getConnectors().map(connectorSet => connectorSet.filter(
+         c => !(c.name === from.name && c.component == from.component) 
+      )));
    }
 
 }
 
-export class Layout extends Base implements Types.valuesLayout {
+export class Layout extends Base implements Component, Types.valuesLayout {
+   form = "layout" as "layout"
    joints: Vector[];
    color: string;
 
    constructor(values: Types.valuesLayout) {
-      super(values);
+      super();
       this.joints = values.joints;
       this.color = values.color;
    }
@@ -92,15 +91,17 @@ export class Layout extends Base implements Types.valuesLayout {
       Insert.last(this.group.element, element);
    }
 
-   makeConnectors() {
-      this.connectorSets = [[
-         makeConnector(this, "", "pin", this.joints[0]),
-         makeConnector(this, "", "pin", this.joints[this.joints.length - 1]),]
+   getConnectors(): ComponentTypes.connector[][] {
+      return [[
+         makeConnector(this, "end1", "pin", this.joints[0]),
+         makeConnector(this, "end2", "pin", this.joints[this.joints.length - 1]),]
       ]
    }
-
-   getConnections(): ComponentTypes.connector[][][] {
-      return getComponentConnections(this, manifest.layout);
+   
+   transferFunction(from: ComponentTypes.connector): ComponentTypes.connector[] {
+      return Flatten.flatten2d(this.getConnectors().map(connectorSet => connectorSet.filter(
+         c => !(c.name === from.name && c.component == from.component) 
+      )));
    }
 }
 

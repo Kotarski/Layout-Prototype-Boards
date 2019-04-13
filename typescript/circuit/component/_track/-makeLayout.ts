@@ -16,6 +16,9 @@ const defaulter: ValueCheck.Defaulter<Types.values> = {
    holeSpacings: ValueCheck.validate(
       v => Array.isArray(v) && v.every(ValueCheck.test("number")), [0]
    ),
+   breaks: ValueCheck.validate(
+      v => Array.isArray(v) && v.every(ValueCheck.test("number")), []
+   ),
 };
 
 const makeLayout = getMaker(Layout, defaulter,

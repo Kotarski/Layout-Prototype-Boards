@@ -9,6 +9,7 @@ import mappings from "./mappings";
 import history from "./history";
 import Events from "./events";
 import Diagram from "./+diagram";
+import getComponentConnections from "./generics/-getComponentConnections";
 //import * as $ from 'jquery';
 
 const manifest = (() => {
@@ -102,6 +103,7 @@ const manifest = (() => {
          connectorSets: getMinConnections(schComponent)
       }));
 
+      
 
       // Split the layout components by whether they pass the test
       let passSorted = split(layComponents, (layComponent) => {
@@ -110,10 +112,14 @@ const manifest = (() => {
          // Find the layout components connector sets
          let layConnectorSets = getMinConnections(layComponent);
 
+         
+
          // Find the connector sets for schematic components that are similar
          let schConnectorMinData = schConnectorData.filter(datum =>
             areComponentsSimilar(layComponent)(datum.component)
          );
+
+         console.log(schConnectorMinData,layComponent,layConnectorSets)
 
          // Merge them into one if the component is unique (e.g. power supplies)
          const componentIsUnique = mappings.getComponentMapSafe(layComponent).isUnique;
@@ -297,7 +303,7 @@ const mergeConnectorsSets = (connectorSetGroups: connectorSetGroups): connectorS
 }
 
 const getMinConnections = (component: Component): connectorSetGroup => {
-   return (component.getConnections().map(connectorSet => {
+   return (getComponentConnections(component).map(connectorSet => {
       return (connectorSet.map(connections => {
          let connectorName = connections[0].name;
          connections.shift();

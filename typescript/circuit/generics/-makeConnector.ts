@@ -9,14 +9,12 @@ export default function makeConnector<T extends Types.connectorTypes>(
    symbol?: string
 ): Types.connector & { type: T } {
 
-   let connector = {
+   return {
       name: name,
       symbol: symbol,
       type: type,
       component: component,
       point: position,
    }
-
-   return connector;
 }
 

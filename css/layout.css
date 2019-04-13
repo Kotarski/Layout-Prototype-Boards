@@ -40,7 +40,6 @@
 
 .layout .resistor>.body>.band1 {
    fill: black;
-   clip-path: ellipse(6px 7.5px at 52.5% 50%);
 }
 
 .layout .resistor>.body>.band2 {

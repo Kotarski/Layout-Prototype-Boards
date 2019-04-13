@@ -1,12 +1,12 @@
-import { make as makeGroup } from "../+group";
-import { make as makeText } from "../+text";
-import { make as makePath } from "../+path";
-import { make as makeRect } from "../+rect";
+import { makeGroup as makeGroup } from "../+group";
+import { makeText as makeText } from "../+text";
+import { makePath as makePath } from "../+path";
+import { makeRect as makeRect } from "../+rect";
 
 import { gridSpacing } from "../../../~constants";
 
-export type type = ReturnType<typeof make>;
-export function make(
+export type dip = ReturnType<typeof makeDip>;
+export function makeDip(
    pinsPerSide: number = 4,
    textLineOne: string = "",
    textLineTwo: string = "",

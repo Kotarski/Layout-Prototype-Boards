@@ -6,6 +6,7 @@ import Graphical from "../addins/graphical";
 import Draggable from "../addins/draggable";
 import Selectable from "../addins/selectable";
 import Extendable from "../addins/extendable";
+// import Extendable_ from "../addins/extendable_";
 import ConnectionsHighlightable from "../addins/connectionsHighlightable";
 import Recolorable from "../addins/recolorable";
 
@@ -23,6 +24,7 @@ export const makeLayout = getMaker(Layout, defaulterLayout,
    Draggable,
    Selectable,
    [Extendable, { reticulatable: true, removable: true }],
+   // [Extendable_, { reticulatable: true, removable: true }],
    [ConnectionsHighlightable, {}],
    Recolorable
 );

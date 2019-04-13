@@ -3,28 +3,24 @@ import * as Types from "./types";
 import { Vector } from "../../../-vector";
 import deepCopy from "../../../utility/-deepCopy";
 import Insert from "../../../utility/~insert";
-import manifest from "../../manifest";
-import getComponentConnections from "../../generics/-getComponentConnections";
 import { Layout as Track } from "../_track/~classes";
 import drawLarge from "./-drawLarge";
 import drawSmall from "./-drawSmall";
 import makeTracks from "./-makeTracks";
+import { makeGroup } from "../../../svg/element/+group";
 
-abstract class Base extends Component implements Types.values {
+abstract class Base {
+   group = makeGroup();
+   disabled = false;
+   form = "layout" as "layout"
    joints: [Vector, Vector];
    tracks: Track[] = [];
-   connectorSets: ComponentTypes.hole[][] = [];
 
    constructor(values: Types.values) {
-      super(values);
       this.joints = values.joints
    }
 
-   getProperties(): Types.properties {
-      return deepCopy({
-         name: this.name,
-      });
-   }
+
 
    getState(): Types.state {
       return deepCopy({
@@ -34,32 +30,47 @@ abstract class Base extends Component implements Types.values {
    }
 
    // Handled in the tracks
-   makeConnectors() { }
+   getConnectors(): ComponentTypes.hole[][] { 
+      return this.tracks.map((track) => {
+         return track.getConnectors()[0]
+      })
+   }
 
    insertInto(element?: SVGGraphicsElement) {
       Insert.first(this.group.element, element);
    }
 
    transferFunction() { return [] };
-
-   getConnections(): ComponentTypes.connector[][][] {
-      return getComponentConnections(this, manifest.layout);
-   }
 }
 
-export class Small extends Base {
+export class Small extends Base implements Component, Types.values {
+   name = "breadboardsmall" as "breadboardsmall";
    draw() {
       this.tracks = makeTracks(this, "small");
       //(Prepend so handles appear on top)
       this.group.prepend(drawSmall(this), this.tracks.map(t => t.group));
    }
+
+   getProperties(): Types.properties {
+      return deepCopy({
+         name: this.name,
+      });
+   }
 }
 
-export class Large extends Base {
+export class Large extends Base implements Component, Types.values {
+   name = "breadboardlarge" as "breadboardlarge";
    draw() {
       this.tracks = makeTracks(this, "large");
       //(Prepend so handles appear on top)
       this.group.prepend(drawLarge(this), this.tracks.map(t => t.group));
    }
+
+   getProperties(): Types.properties {
+      return deepCopy({
+         name: this.name,
+      });
+   }
+
 }
 

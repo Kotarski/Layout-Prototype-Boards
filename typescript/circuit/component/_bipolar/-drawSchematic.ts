@@ -1,15 +1,15 @@
 import getStandardForm from "../../../utility/-getStandardForm";
 import vector, { Vector } from "../../../-vector";
-import { BipolarLayout } from "./~classes";
+import { BipolarSchematic } from "./~classes";
 import { INDEXBASE, INDEXCOLLECTOR, INDEXEMITTER } from "./constants";
 
-import { make as makePath } from "../../../svg/element/+path";
-import { make as makeText } from "../../../svg/element/+text";
-import { make as makeGroup } from "../../../svg/element/+group";
-import { make as makeLine } from "../../../svg/element/+line";
-import { make as makeCircle } from "../../../svg/element/+circle";
+import { makePath as makePath } from "../../../svg/element/+path";
+import { makeText as makeText } from "../../../svg/element/+text";
+import { makeGroup as makeGroup } from "../../../svg/element/+group";
+import { makeLine as makeLine } from "../../../svg/element/+line";
+import { makeCircle as makeCircle } from "../../../svg/element/+circle";
 
-export default function drawSchematic(instance: BipolarLayout) {
+export default function drawSchematic(instance: BipolarSchematic) {
    const bodyGroup = makeGroup("body");
 
    const emitterEnd = instance.joints[INDEXEMITTER];

@@ -1,12 +1,11 @@
-import { make as makeElement } from "../+element";
-import { make as makePath } from "./+path";
+import { makeElement as makeElement } from "../+element";
+import { makePath as makePath } from "./+path";
 import { Vector } from "../../++types";
 import svg from "../-svg";
 //import * as $ from 'jquery';
 
-let textPathCount = 0;
-export type type = ReturnType<typeof make>;
-export function make(text: string, startVector: Vector, classes: string = "") {
+export type text = ReturnType<typeof makeText>;
+export function makeText(text: string, startVector: Vector, classes: string = "") {
    const element: SVGTextElement = makeElement("text", classes);
    element.setAttribute('x', startVector.x.toString());
    element.setAttribute('y', startVector.y.toString());
@@ -15,6 +14,8 @@ export function make(text: string, startVector: Vector, classes: string = "") {
 }
 
 export namespace Functions {
+
+   let textPathCount = 0;
    export function followPath<T extends SVGTextElement>(element: T) {
       return (pathString: string) => {
          // Make a new path

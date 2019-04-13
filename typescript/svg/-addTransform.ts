@@ -1,4 +1,4 @@
-import { make } from "./+element";
+import { makeElement } from "./+element";
 
 export default function addTransform(
    element: SVGGraphicsElement,
@@ -17,5 +17,5 @@ export default function addTransform(
 }
 
 function makeTransform(): SVGTransform {
-   return make<SVGSVGElement>("svg").createSVGTransform();
+   return makeElement<SVGSVGElement>("svg").createSVGTransform();
 }

@@ -1,5 +1,5 @@
 import { make as makeSvg } from "./element/+svg";
-import { make as makeGroup } from "./element/+group";
+import { makeGroup as makeGroup } from "./element/+group";
 import Draggable from "./addins/draggable"
 import Scaleable from "./addins/scaleable";
 //import * as $ from 'jquery';

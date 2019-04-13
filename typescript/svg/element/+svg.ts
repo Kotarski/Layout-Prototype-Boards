@@ -1,4 +1,4 @@
-import { make as makeElement } from "../+element";
+import { makeElement as makeElement } from "../+element";
 import svg from "../-svg";
 
 export function make(classes: string = "") {

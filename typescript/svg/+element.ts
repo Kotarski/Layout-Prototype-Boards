@@ -6,7 +6,7 @@ import svg from "../svg/-svg";
 import { svgURI } from "../~constants";
 //import * as $ from 'jquery';
 
-export function make<T extends SVGElement>(type: string, classes: string = "") {
+export function makeElement<T extends SVGElement>(type: string, classes: string = "") {
    const element = document.createElementNS(svgURI, type) as T;
    $(element).addClass(classes);
    return element;
@@ -110,6 +110,35 @@ export namespace Functions {
 
          return convertedVector;
       }
+   }
+
+   let clipCount = 0;
+   export function clipTo<T extends SVGGraphicsElement>(element: T) {
+      return <C extends SVGGraphicsElement>(clip: C) => {
+
+         // Make a clipPath
+         const clipPath = makeElement<SVGGraphicsElement>("clipPath");
+         clipPath.append(clip.cloneNode());
+
+         // Give it a generated (hopefully unique)  ID
+         const clipPathID = "clipForElement" + clipCount;
+         clipPath.setAttribute("id", clipPathID);
+         clipCount += 1;
+
+         // Relative rather than absolute
+         clipPath.setAttribute("clipPathUnits", "userSpaceOnUse");
+
+         // Set the clip-path of the element
+         $(element).css("clip-path", `url(#${clipPathID})`);
+
+         // Group them back together
+         const group = makeElement<SVGGElement>("g");  
+         group.append(element,clipPath)
+
+         return group;
+      }
+
+
    }
 }
 

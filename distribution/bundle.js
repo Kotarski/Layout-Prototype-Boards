@@ -1590,47 +1590,6 @@ function sum(inVectors) {
 
 /***/ }),
 
-/***/ "./typescript/circuit/+component.ts":
-/*!******************************************!*\
-  !*** ./typescript/circuit/+component.ts ***!
-  \******************************************/
-/*! exports provided: Types, default, Component__ */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Types", function() { return Types; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Component; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Component__", function() { return Component__; });
-/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../svg/element/+group */ "./typescript/svg/element/+group.ts");
-var Types;
-(function (Types) {
-    ;
-    ;
-    ;
-    ;
-})(Types || (Types = {}));
-
-class Component {
-    constructor(values) {
-        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_0__["make"])();
-        this.connectorSets = [];
-        this.name = values.name;
-        this.disabled = values.disabled;
-    }
-}
-class Component__ {
-    constructor(values) {
-        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_0__["make"])();
-        this.connectorSets = [];
-        this.name = values.name;
-        this.disabled = values.disabled;
-    }
-}
-
-
-/***/ }),
-
 /***/ "./typescript/circuit/+diagram.ts":
 /*!****************************************!*\
   !*** ./typescript/circuit/+diagram.ts ***!
@@ -1899,7 +1858,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function drawLayout(instance) {
-    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["make"])("body");
+    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])("body");
     const emitterEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEMITTER"]];
     const collectorEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCOLLECTOR"]];
     const baseEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXBASE"]];
@@ -1917,11 +1876,11 @@ function drawLayout(instance) {
         "h " + (32) +
         "v " + (-3) +
         "Z";
-    bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["make"])(semiCircleString, "body highlight"), Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_3__["make"])(instance.type, { x: 0, y: 4 }, "text"));
+    bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(semiCircleString, "body highlight"), Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_3__["makeText"])(instance.type, { x: 0, y: 4 }, "text"));
     return [
-        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["make"])(joints, "lead"),
+        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(joints, "lead"),
         bodyGroup.translate(centre).rotate(rotation),
-        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["make"])(joints, "leadguide")
+        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(joints, "leadguide")
     ];
 }
 
@@ -1955,7 +1914,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function drawSchematic(instance) {
-    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["make"])("body");
+    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])("body");
     const emitterEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXEMITTER"]];
     const collectorEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXCOLLECTOR"]];
     const baseEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXBASE"]];
@@ -1970,23 +1929,23 @@ function drawSchematic(instance) {
     //   base to the right
     bodyGroup.append(
     //Highlight
-    Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_7__["make"])({ x: 10, y: 0 }, 30, "extrathick highlight"), 
+    Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_7__["makeCircle"])({ x: 10, y: 0 }, 30, "extrathick highlight"), 
     //Base Vertical Bar
-    Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_6__["make"])({ x: 25, y: -15 }, { x: 25, y: +15 }, "line medium-thick nocap"), 
+    Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_6__["makeLine"])({ x: 25, y: -15 }, { x: 25, y: +15 }, "line medium-thick nocap"), 
     //Collector Angled Line
-    Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_6__["make"])({ x: 25, y: -5 }, { x: 0, y: -20 }, "line thin"), 
+    Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_6__["makeLine"])({ x: 25, y: -5 }, { x: 0, y: -20 }, "line thin"), 
     //Emitter Angled Line
-    Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_6__["make"])({ x: 25, y: 5 }, { x: 0, y: 20 }, "line thin"), 
+    Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_6__["makeLine"])({ x: 25, y: 5 }, { x: 0, y: 20 }, "line thin"), 
     //Base Horizontal Line to circle
-    Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_6__["make"])({ x: 25, y: 0 }, { x: 40, y: 0 }, "line thin"), 
+    Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_6__["makeLine"])({ x: 25, y: 0 }, { x: 40, y: 0 }, "line thin"), 
     //Collector Vertical Line to circle
-    Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_6__["make"])({ x: 0, y: -20 }, { x: 0, y: -28 }, "line thin"), 
+    Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_6__["makeLine"])({ x: 0, y: -20 }, { x: 0, y: -28 }, "line thin"), 
     //Emitter Vertical Line to circle
-    Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_6__["make"])({ x: 0, y: 20 }, { x: 0, y: 28 }, "line thin"), 
+    Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_6__["makeLine"])({ x: 0, y: 20 }, { x: 0, y: 28 }, "line thin"), 
     //Arrow
-    Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])(arrowJoints, "body black thin"), 
+    Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])(arrowJoints, "body black thin"), 
     //Circle
-    Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_7__["make"])({ x: 10, y: 0 }, 30, "line medium nofill"));
+    Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_7__["makeCircle"])({ x: 10, y: 0 }, 30, "line medium nofill"));
     // Image centre does not take base into account
     // Is always directly between the emitter and collector
     const centre = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(emitterEnd, collectorEnd).centre().vector;
@@ -2009,10 +1968,10 @@ function drawSchematic(instance) {
         [baseStart, baseEnd],
     ];
     const text = Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_0__["default"])(instance.currentGain, '');
-    const textEl = Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_4__["make"])(text, Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])({ x: -40, y: 0 }).scaleWith(scale), "text");
+    const textEl = Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_4__["makeText"])(text, Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])({ x: -40, y: 0 }).scaleWith(scale), "text");
     return [
         bodyGroup.translate(centre).rotate(rotation).scale(scale, false),
-        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])(joints, "line thin"),
+        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])(joints, "line thin"),
         textEl.translate(centre).rotatePosition(rotation),
     ];
 }
@@ -2232,16 +2191,13 @@ const INDEXBASE = 2;
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "BipolarSchematic", function() { return BipolarSchematic; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "BipolarLayout", function() { return BipolarLayout; });
-/* harmony import */ var _component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../+component */ "./typescript/circuit/+component.ts");
-/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_bipolar/constants.ts");
-/* harmony import */ var _manifest__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../manifest */ "./typescript/circuit/manifest.ts");
-/* harmony import */ var _generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../generics/-getComponentConnections */ "./typescript/circuit/generics/-getComponentConnections.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_bipolar/-drawLayout.ts");
-/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_bipolar/-drawSchematic.ts");
-
+/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
+/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_bipolar/constants.ts");
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_bipolar/-drawLayout.ts");
+/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_bipolar/-drawSchematic.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 ;
 
 
@@ -2250,64 +2206,66 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
-//import * as $ from 'jquery';
-class BipolarBase extends _component__WEBPACK_IMPORTED_MODULE_0__["default"] {
+class BipolarBase {
     constructor(values) {
-        super(values);
+        this.name = "bipolar";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_6__["makeGroup"])();
+        this.disabled = false;
         $(this.group.element).addClass("component " + this.name);
         this.joints = values.joints;
         this.type = values.type;
         this.currentGain = values.currentGain;
     }
     getProperties() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
             name: this.name,
             currentGain: this.currentGain,
             type: this.type
         });
     }
     getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
             joints: this.joints,
             disabled: this.disabled
         });
     }
     insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_2__["default"].last(this.group.element, element);
+        _utility_insert__WEBPACK_IMPORTED_MODULE_1__["default"].last(this.group.element, element);
     }
     transferFunction() { return []; }
     ;
 }
 class BipolarSchematic extends BipolarBase {
+    constructor() {
+        super(...arguments);
+        this.form = "schematic";
+    }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_8__["default"])(this));
+        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_5__["default"])(this));
     }
-    getConnections() {
-        return Object(_generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_5__["default"])(this, _manifest__WEBPACK_IMPORTED_MODULE_4__["default"].schematic);
-    }
-    makeConnectors() {
-        this.connectorSets = [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "emitter", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXEMITTER"]], "e"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "collector", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXCOLLECTOR"]], "c"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "base", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXBASE"]], "b")
+    getConnectors() {
+        return [[
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "emitter", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXEMITTER"]], "e"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "collector", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXCOLLECTOR"]], "c"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "base", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXBASE"]], "b")
             ]];
     }
 }
 class BipolarLayout extends BipolarBase {
+    constructor() {
+        super(...arguments);
+        this.form = "layout";
+    }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_7__["default"])(this));
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_4__["default"])(this));
     }
-    getConnections() {
-        return Object(_generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_5__["default"])(this, _manifest__WEBPACK_IMPORTED_MODULE_4__["default"].layout);
-    }
-    makeConnectors() {
-        this.connectorSets = [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "emitter", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXEMITTER"]], "e"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "collector", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXCOLLECTOR"]], "c"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "base", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXBASE"]], "b")
+    getConnectors() {
+        return [[
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "emitter", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXEMITTER"]], "e"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "collector", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXCOLLECTOR"]], "c"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "base", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXBASE"]], "b")
             ]];
     }
 }
@@ -2340,7 +2298,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function drawLarge(instance) {
-    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["make"])("body");
+    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["makeGroup"])("body");
     const centre = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCENTRE"]];
     const rotationPoint = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXROTATION"]];
     let rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(centre).getAngleTo(rotationPoint);
@@ -2378,27 +2336,27 @@ function drawLarge(instance) {
     };
     bodyGroup.append([
         //Body
-        Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: 0, y: 0 }, size, { x: 4, y: 4 }, "body"),
+        Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["makeRect"])({ x: 0, y: 0 }, size, { x: 4, y: 4 }, "body"),
         //Centre rut
-        Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: 0, y: 0 }, { width: size.width, height: gS * 0.75, }, { x: 0, y: 0 }, "rut"),
+        Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["makeRect"])({ x: 0, y: 0 }, { width: size.width, height: gS * 0.75, }, { x: 0, y: 0 }, "rut"),
         //Body Highlights
-        Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: 0, y: 0 }, size, { x: 4, y: 4 }, "body highlight"),
+        Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["makeRect"])({ x: 0, y: 0 }, size, { x: 4, y: 4 }, "body highlight"),
         //Power rail positives
-        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["make"])(railPairPathString + plussesPathString, "rail positive"),
+        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(railPairPathString + plussesPathString, "rail positive"),
         //Power rail negatives
-        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["make"])(railPairPathString + minusesPathString, "rail negative").translate({ x: 0, y: gS * 3 }),
+        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(railPairPathString + minusesPathString, "rail negative").translate({ x: 0, y: gS * 3 }),
         //Text Left (portrait)
-        Object(_svg_element_groups_textSequence__WEBPACK_IMPORTED_MODULE_5__["make"])({ x: 31.5 * gS - gS / 6, y: -6.5 * gS }, { x: 0, y: gS }, { start: 1, length: 64 }).rotate(90),
+        Object(_svg_element_groups_textSequence__WEBPACK_IMPORTED_MODULE_5__["makeTextSeq"])({ x: 31.5 * gS - gS / 6, y: -6.5 * gS }, { x: 0, y: gS }, { start: 1, length: 64 }).rotate(90),
         //Text Right (portrait)
-        Object(_svg_element_groups_textSequence__WEBPACK_IMPORTED_MODULE_5__["make"])({ x: 31.5 * gS - gS / 6, y: 6.5 * gS }, { x: 0, y: gS }, { start: 1, length: 64 }).rotate(90),
+        Object(_svg_element_groups_textSequence__WEBPACK_IMPORTED_MODULE_5__["makeTextSeq"])({ x: 31.5 * gS - gS / 6, y: 6.5 * gS }, { x: 0, y: gS }, { start: 1, length: 64 }).rotate(90),
         //Text Top Left (portrait)
-        Object(_svg_element_groups_textSequence__WEBPACK_IMPORTED_MODULE_5__["make"])({ x: 32.5 * gS - gS / 4, y: -5.5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90),
+        Object(_svg_element_groups_textSequence__WEBPACK_IMPORTED_MODULE_5__["makeTextSeq"])({ x: 32.5 * gS - gS / 4, y: -5.5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90),
         //Text Bottom Left (portrait)
-        Object(_svg_element_groups_textSequence__WEBPACK_IMPORTED_MODULE_5__["make"])({ x: -32.5 * gS, y: -5.5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90),
+        Object(_svg_element_groups_textSequence__WEBPACK_IMPORTED_MODULE_5__["makeTextSeq"])({ x: -32.5 * gS, y: -5.5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90),
         //Text Top Right (portrait)
-        Object(_svg_element_groups_textSequence__WEBPACK_IMPORTED_MODULE_5__["make"])({ x: 32.5 * gS - gS / 4, y: 5.5 * gS }, { x: -gS, y: 0 }, "jihgf").rotate(90),
+        Object(_svg_element_groups_textSequence__WEBPACK_IMPORTED_MODULE_5__["makeTextSeq"])({ x: 32.5 * gS - gS / 4, y: 5.5 * gS }, { x: -gS, y: 0 }, "jihgf").rotate(90),
         //Text Bottom Right (portrait)
-        Object(_svg_element_groups_textSequence__WEBPACK_IMPORTED_MODULE_5__["make"])({ x: -32.5 * gS, y: 5.5 * gS }, { x: -gS, y: 0 }, "jihgf").rotate(90),
+        Object(_svg_element_groups_textSequence__WEBPACK_IMPORTED_MODULE_5__["makeTextSeq"])({ x: -32.5 * gS, y: 5.5 * gS }, { x: -gS, y: 0 }, "jihgf").rotate(90),
     ]);
     return [
         bodyGroup.translate(centre).rotate(rotation)
@@ -2433,7 +2391,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function drawSmall(instance) {
-    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["make"])("body");
+    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["makeGroup"])("body");
     const centre = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCENTRE"]];
     const rotationPoint = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXROTATION"]];
     let rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(centre).getAngleTo(rotationPoint);
@@ -2467,27 +2425,27 @@ function drawSmall(instance) {
     };
     bodyGroup.append([
         //Body
-        Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: 0, y: 0 }, size, { x: 4, y: 4 }, "body"),
+        Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["makeRect"])({ x: 0, y: 0 }, size, { x: 4, y: 4 }, "body"),
         //Centre rut
-        Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: 0, y: 0 }, { width: size.width, height: gS * 0.75, }, { x: 0, y: 0 }, "rut"),
+        Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["makeRect"])({ x: 0, y: 0 }, { width: size.width, height: gS * 0.75, }, { x: 0, y: 0 }, "rut"),
         //Body Highlights
-        Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: 0, y: 0 }, size, { x: 4, y: 4 }, "body highlight"),
+        Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["makeRect"])({ x: 0, y: 0 }, size, { x: 4, y: 4 }, "body highlight"),
         //Power rail positives
-        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["make"])(railPairPathString + plussesPathString, "rail positive"),
+        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(railPairPathString + plussesPathString, "rail positive"),
         //Power rail negatives
-        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["make"])(railPairPathString + minusesPathString, "rail negative").translate({ x: 0, y: gS * 3 }),
+        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(railPairPathString + minusesPathString, "rail negative").translate({ x: 0, y: gS * 3 }),
         //Text Left (portrait)
-        Object(_svg_element_groups_textSequence__WEBPACK_IMPORTED_MODULE_5__["make"])({ x: 14.5 * gS - gS / 6, y: -6.5 * gS }, { x: 0, y: gS }, { start: 1, length: 30 }).rotate(90),
+        Object(_svg_element_groups_textSequence__WEBPACK_IMPORTED_MODULE_5__["makeTextSeq"])({ x: 14.5 * gS - gS / 6, y: -6.5 * gS }, { x: 0, y: gS }, { start: 1, length: 30 }).rotate(90),
         //Text Right (portrait)
-        Object(_svg_element_groups_textSequence__WEBPACK_IMPORTED_MODULE_5__["make"])({ x: 14.5 * gS - gS / 6, y: 6.5 * gS }, { x: 0, y: gS }, { start: 1, length: 30 }).rotate(90),
+        Object(_svg_element_groups_textSequence__WEBPACK_IMPORTED_MODULE_5__["makeTextSeq"])({ x: 14.5 * gS - gS / 6, y: 6.5 * gS }, { x: 0, y: gS }, { start: 1, length: 30 }).rotate(90),
         //Text Top Left (portrait)
-        Object(_svg_element_groups_textSequence__WEBPACK_IMPORTED_MODULE_5__["make"])({ x: 15.5 * gS - gS / 4, y: -5.5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90),
+        Object(_svg_element_groups_textSequence__WEBPACK_IMPORTED_MODULE_5__["makeTextSeq"])({ x: 15.5 * gS - gS / 4, y: -5.5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90),
         //Text Bottom Left (portrait)
-        Object(_svg_element_groups_textSequence__WEBPACK_IMPORTED_MODULE_5__["make"])({ x: -15.5 * gS, y: -5.5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90),
+        Object(_svg_element_groups_textSequence__WEBPACK_IMPORTED_MODULE_5__["makeTextSeq"])({ x: -15.5 * gS, y: -5.5 * gS }, { x: gS, y: 0 }, "abcde").rotate(90),
         //Text Top Right (portrait)
-        Object(_svg_element_groups_textSequence__WEBPACK_IMPORTED_MODULE_5__["make"])({ x: 15.5 * gS - gS / 4, y: 5.5 * gS }, { x: -gS, y: 0 }, "jihgf").rotate(90),
+        Object(_svg_element_groups_textSequence__WEBPACK_IMPORTED_MODULE_5__["makeTextSeq"])({ x: 15.5 * gS - gS / 4, y: 5.5 * gS }, { x: -gS, y: 0 }, "jihgf").rotate(90),
         //Text Bottom Right (portrait)
-        Object(_svg_element_groups_textSequence__WEBPACK_IMPORTED_MODULE_5__["make"])({ x: -15.5 * gS, y: 5.5 * gS }, { x: -gS, y: 0 }, "jihgf").rotate(90),
+        Object(_svg_element_groups_textSequence__WEBPACK_IMPORTED_MODULE_5__["makeTextSeq"])({ x: -15.5 * gS, y: 5.5 * gS }, { x: -gS, y: 0 }, "jihgf").rotate(90),
     ]);
     return [
         bodyGroup.translate(centre).rotate(rotation)
@@ -2779,63 +2737,74 @@ const INDEXROTATION = 1;
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Small", function() { return Small; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Large", function() { return Large; });
-/* harmony import */ var _component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../+component */ "./typescript/circuit/+component.ts");
-/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
-/* harmony import */ var _manifest__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../manifest */ "./typescript/circuit/manifest.ts");
-/* harmony import */ var _generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../generics/-getComponentConnections */ "./typescript/circuit/generics/-getComponentConnections.ts");
-/* harmony import */ var _drawLarge__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./-drawLarge */ "./typescript/circuit/component/_breadboard/-drawLarge.ts");
-/* harmony import */ var _drawSmall__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./-drawSmall */ "./typescript/circuit/component/_breadboard/-drawSmall.ts");
-/* harmony import */ var _makeTracks__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./-makeTracks */ "./typescript/circuit/component/_breadboard/-makeTracks.ts");
+/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
+/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
+/* harmony import */ var _drawLarge__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawLarge */ "./typescript/circuit/component/_breadboard/-drawLarge.ts");
+/* harmony import */ var _drawSmall__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawSmall */ "./typescript/circuit/component/_breadboard/-drawSmall.ts");
+/* harmony import */ var _makeTracks__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-makeTracks */ "./typescript/circuit/component/_breadboard/-makeTracks.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 
 
 
 
 
 
-
-
-class Base extends _component__WEBPACK_IMPORTED_MODULE_0__["default"] {
+class Base {
     constructor(values) {
-        super(values);
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])();
+        this.disabled = false;
+        this.form = "layout";
         this.tracks = [];
-        this.connectorSets = [];
         this.joints = values.joints;
     }
-    getProperties() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
-            name: this.name,
-        });
-    }
     getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
             joints: this.joints,
             disabled: this.disabled
         });
     }
     // Handled in the tracks
-    makeConnectors() { }
+    getConnectors() {
+        return this.tracks.map((track) => {
+            return track.getConnectors()[0];
+        });
+    }
     insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_2__["default"].first(this.group.element, element);
+        _utility_insert__WEBPACK_IMPORTED_MODULE_1__["default"].first(this.group.element, element);
     }
     transferFunction() { return []; }
     ;
-    getConnections() {
-        return Object(_generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_4__["default"])(this, _manifest__WEBPACK_IMPORTED_MODULE_3__["default"].layout);
-    }
 }
 class Small extends Base {
+    constructor() {
+        super(...arguments);
+        this.name = "breadboardsmall";
+    }
     draw() {
-        this.tracks = Object(_makeTracks__WEBPACK_IMPORTED_MODULE_7__["default"])(this, "small");
+        this.tracks = Object(_makeTracks__WEBPACK_IMPORTED_MODULE_4__["default"])(this, "small");
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSmall__WEBPACK_IMPORTED_MODULE_6__["default"])(this), this.tracks.map(t => t.group));
+        this.group.prepend(Object(_drawSmall__WEBPACK_IMPORTED_MODULE_3__["default"])(this), this.tracks.map(t => t.group));
+    }
+    getProperties() {
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
+            name: this.name,
+        });
     }
 }
 class Large extends Base {
+    constructor() {
+        super(...arguments);
+        this.name = "breadboardlarge";
+    }
     draw() {
-        this.tracks = Object(_makeTracks__WEBPACK_IMPORTED_MODULE_7__["default"])(this, "large");
+        this.tracks = Object(_makeTracks__WEBPACK_IMPORTED_MODULE_4__["default"])(this, "large");
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLarge__WEBPACK_IMPORTED_MODULE_5__["default"])(this), this.tracks.map(t => t.group));
+        this.group.prepend(Object(_drawLarge__WEBPACK_IMPORTED_MODULE_2__["default"])(this), this.tracks.map(t => t.group));
+    }
+    getProperties() {
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
+            name: this.name,
+        });
     }
 }
 
@@ -2870,7 +2839,7 @@ __webpack_require__.r(__webpack_exports__);
 
 //import * as $ from 'jquery';
 function drawLayout(instance) {
-    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["make"])("body");
+    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])("body");
     const cathodeEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCATHODE"]];
     const anodeEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXANODE"]];
     const centre = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(cathodeEnd, anodeEnd).centre().vector;
@@ -2884,15 +2853,15 @@ function drawLayout(instance) {
         const bodyPathString = "m14 0 A14 14 0 1 0 " + (bodyArcEndPoint) + " " + (bodyArcEndPoint);
         const minusPathString = "m14 0 A14 14 0 0 1 " + (bodyArcEndPoint) + " " + (bodyArcEndPoint);
         const pathForTextString = "m" + (textArcEndPoint) + " " + (textArcEndPoint) + "A12.5 12.5 0 1 1 12.5 0";
-        bodyGroup.append(Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_6__["make"])({ x: 0, y: 0 }, 16, "highlight nofill"), Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])(bodyPathString, "body").rotate(157.5), Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])(minusPathString, "minus").rotate(157.5), Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_4__["make"])(text, { x: 1, y: 0 }, "text").followPath(pathForTextString).rotate(157.5));
+        bodyGroup.append(Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_6__["makeCircle"])({ x: 0, y: 0 }, 16, "highlight nofill"), Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])(bodyPathString, "body").rotate(157.5), Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])(minusPathString, "minus").rotate(157.5), Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_4__["makeText"])(text, { x: 1, y: 0 }, "text").followPath(pathForTextString).rotate(157.5));
     }
     else {
         // Ceramic
         $(bodyGroup.element).addClass("ceramic");
-        bodyGroup.append(Object(_svg_element_ellipse__WEBPACK_IMPORTED_MODULE_7__["make"])({ x: 0, y: 0 }, { x: 16, y: 8 }, "body highlight nofill"), Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_4__["make"])(text, { x: 0, y: 0 }, "text"));
+        bodyGroup.append(Object(_svg_element_ellipse__WEBPACK_IMPORTED_MODULE_7__["makeEllipse"])({ x: 0, y: 0 }, { x: 16, y: 8 }, "body highlight nofill"), Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_4__["makeText"])(text, { x: 0, y: 0 }, "text"));
     }
     return [
-        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])([cathodeEnd, anodeEnd], "lead"),
+        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])([cathodeEnd, anodeEnd], "lead"),
         bodyGroup.translate(centre).rotate(rotation)
     ];
 }
@@ -2927,7 +2896,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function drawSchematic(instance) {
-    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["make"])("body");
+    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])("body");
     const cathodeEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCATHODE"]];
     const anodeEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXANODE"]];
     let centre = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(cathodeEnd, anodeEnd).centre().vector;
@@ -2935,17 +2904,17 @@ function drawSchematic(instance) {
     let [cathodeStart, anodeStart] = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])({ x: -6, y: 0 }, { x: 6, y: 0 }).rotate(rotation).sumWith(centre).vectors;
     //Text
     let text = Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__["default"])(instance.capacitance, 'F');
-    bodyGroup.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_7__["make"])(Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(0), { width: 15, height: 30 }, Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(2), "highlight highlightwithfill extrathick"), Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_6__["make"])({ x: -4, y: -15 }, { x: -4, y: +15 }, "line thick nocap"), Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_6__["make"])({ x: +4, y: -15 }, { x: +4, y: +15 }, "line thick nocap"));
+    bodyGroup.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_7__["makeRect"])(Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(0), { width: 15, height: 30 }, Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(2), "highlight highlightwithfill extrathick"), Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_6__["makeLine"])({ x: -4, y: -15 }, { x: -4, y: +15 }, "line thick nocap"), Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_6__["makeLine"])({ x: +4, y: -15 }, { x: +4, y: +15 }, "line thick nocap"));
     if (instance.isPolarised) {
-        bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])([
+        bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])([
             [{ x: +15, y: -10 }, { x: +7, y: -10 }],
             [{ x: +11, y: -6 }, { x: +11, y: -14 }]
         ], "line thin"));
     }
     return [
-        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])([[cathodeStart, cathodeEnd], [anodeStart, anodeEnd]], "line thin"),
+        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])([[cathodeStart, cathodeEnd], [anodeStart, anodeEnd]], "line thin"),
         bodyGroup.translate(centre).rotate(rotation),
-        Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_4__["make"])(text, { x: 0, y: -20 }, "text").translate(centre).rotatePosition(rotation)
+        Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_4__["makeText"])(text, { x: 0, y: -20 }, "text").translate(centre).rotatePosition(rotation)
     ];
 }
 
@@ -3167,15 +3136,13 @@ const INDEXANODE = 1;
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Schematic", function() { return Schematic; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
-/* harmony import */ var _component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../+component */ "./typescript/circuit/+component.ts");
-/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
-/* harmony import */ var _manifest__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../manifest */ "./typescript/circuit/manifest.ts");
-/* harmony import */ var _generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../generics/-getComponentConnections */ "./typescript/circuit/generics/-getComponentConnections.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_capacitor/constants.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_capacitor/-drawLayout.ts");
-/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_capacitor/-drawSchematic.ts");
+/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
+/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_capacitor/constants.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_capacitor/-drawLayout.ts");
+/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_capacitor/-drawSchematic.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 
 
 
@@ -3183,76 +3150,78 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
-
-class Base extends _component__WEBPACK_IMPORTED_MODULE_0__["default"] {
+class Base {
     constructor(values) {
-        super(values);
+        this.name = "capacitor";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_6__["makeGroup"])();
+        this.disabled = false;
         this.joints = values.joints;
         this.capacitance = values.capacitance;
         this.isPolarised = values.isPolarised;
     }
     getProperties() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
             name: this.name,
             capacitance: this.capacitance,
             isPolarised: this.isPolarised
         });
     }
     getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
             joints: this.joints,
             disabled: this.disabled
         });
     }
     insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_2__["default"].last(this.group.element, element);
+        _utility_insert__WEBPACK_IMPORTED_MODULE_1__["default"].last(this.group.element, element);
     }
     transferFunction() { return []; }
     ;
 }
 class Schematic extends Base {
+    constructor() {
+        super(...arguments);
+        this.form = "schematic";
+    }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_8__["default"])(this));
+        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_5__["default"])(this));
     }
-    getConnections() {
-        return Object(_generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_4__["default"])(this, _manifest__WEBPACK_IMPORTED_MODULE_3__["default"].schematic);
-    }
-    makeConnectors() {
+    getConnectors() {
         if (this.isPolarised) {
-            this.connectorSets = [[
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__["default"])(this, "cathode", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXCATHODE"]], "-"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__["default"])(this, "anode", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXANODE"]], "+"),
+            return [[
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "cathode", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXCATHODE"]], "-"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "anode", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXANODE"]], "+"),
                 ]];
         }
         else {
-            this.connectorSets = [[
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXCATHODE"]]),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXANODE"]]),
+            return [[
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXCATHODE"]]),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXANODE"]]),
                 ]];
         }
     }
 }
 class Layout extends Base {
+    constructor() {
+        super(...arguments);
+        this.form = "layout";
+    }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_7__["default"])(this));
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_4__["default"])(this));
     }
-    getConnections() {
-        return Object(_generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_4__["default"])(this, _manifest__WEBPACK_IMPORTED_MODULE_3__["default"].layout);
-    }
-    makeConnectors() {
+    getConnectors() {
         if (this.isPolarised) {
-            this.connectorSets = [[
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__["default"])(this, "cathode", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXCATHODE"]], "-"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__["default"])(this, "anode", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXANODE"]], "+"),
+            return [[
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "cathode", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXCATHODE"]], "-"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "anode", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXANODE"]], "+"),
                 ]];
         }
         else {
-            this.connectorSets = [[
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXCATHODE"]]),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXANODE"]]),
+            return [[
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXCATHODE"]]),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXANODE"]]),
                 ]];
         }
     }
@@ -3285,13 +3254,13 @@ __webpack_require__.r(__webpack_exports__);
 
 //import * as $ from 'jquery';
 function drawLayout(instance) {
-    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["make"])("body");
+    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["makeGroup"])("body");
     const cathodeEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCATHODE"]];
     const anodeEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXANODE"]];
     const centre = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(cathodeEnd, anodeEnd).centre().vector;
     const rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(anodeEnd).getAngleTo(cathodeEnd);
     if (instance.color === "N/A") {
-        bodyGroup.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_5__["make"])({ x: -5.5, y: 0 }, { width: 29, height: 15 }, { x: 0, y: 0 }, "body"), Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_5__["make"])({ x: 17.5, y: 0 }, { width: 5, height: 15 }, { x: 0, y: 0 }, "body"), Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_5__["make"])({ x: 12, y: 0 }, { width: 6, height: 15 }, { x: 0, y: 0 }, "cathode"), Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_5__["make"])({ x: 0, y: 0 }, { width: 40, height: 15 }, { x: 1, y: 1 }, "highlight nofill"));
+        bodyGroup.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_5__["makeRect"])({ x: -5.5, y: 0 }, { width: 29, height: 15 }, { x: 0, y: 0 }, "body"), Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_5__["makeRect"])({ x: 17.5, y: 0 }, { width: 5, height: 15 }, { x: 0, y: 0 }, "body"), Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_5__["makeRect"])({ x: 12, y: 0 }, { width: 6, height: 15 }, { x: 0, y: 0 }, "cathode"), Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_5__["makeRect"])({ x: 0, y: 0 }, { width: 40, height: 15 }, { x: 1, y: 1 }, "highlight nofill"));
     }
     else {
         $(bodyGroup.element).addClass("led");
@@ -3301,13 +3270,13 @@ function drawLayout(instance) {
         const highlightString = "M " + (10) + " " + (16) +
             "a " + (18.8) + " " + (18.8) + " " + (0) + " " + (1) + " " + (0) + " " + (-20) + " " + (0) +
             "Z";
-        const edge = Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["make"])(bodyString, "edge");
-        const middle = Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: 0, y: 0 }, 14, "centre");
+        const edge = Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(bodyString, "edge");
+        const middle = Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_4__["makeCircle"])({ x: 0, y: 0 }, 14, "centre");
         $([edge.element, middle.element]).css("fill", instance.color);
-        bodyGroup.append(edge, Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["make"])(bodyString, "darkener"), middle, Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: 0, y: 0 }, 8, "lightener"), Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["make"])(highlightString, "nofill highlight")).rotate(-90);
+        bodyGroup.append(edge, Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(bodyString, "darkener"), middle, Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_4__["makeCircle"])({ x: 0, y: 0 }, 8, "lightener"), Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(highlightString, "nofill highlight")).rotate(-90);
     }
     return [
-        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["make"])([cathodeEnd, anodeEnd], "lead"),
+        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])([cathodeEnd, anodeEnd], "lead"),
         bodyGroup.translate(centre).rotate(rotation)
     ];
 }
@@ -3341,7 +3310,7 @@ __webpack_require__.r(__webpack_exports__);
 
 //import * as $ from 'jquery';
 function drawSchematic(instance) {
-    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["make"])("body");
+    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])("body");
     const cathodeEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCATHODE"]];
     const anodeEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXANODE"]];
     const centre = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(cathodeEnd, anodeEnd).centre().vector;
@@ -3352,13 +3321,13 @@ function drawSchematic(instance) {
         ? Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__["default"])(instance.breakdownVoltage, 'V')
         : Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__["default"])(instance.saturationCurrent, 'A');
     const bodyPath = 'M 12 0 L -12 12 L -12 -12 L 12 0 Z';
-    bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])(bodyPath, "body highlight highlightwithfill extrathick"), Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])(bodyPath, "body black"), 
+    bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])(bodyPath, "body highlight highlightwithfill extrathick"), Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])(bodyPath, "body black"), 
     // Polarisation Line
-    Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])('M 12 -12 L 12 12', "line medium"));
+    Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])('M 12 -12 L 12 12', "line medium"));
     if (instance.color === "N/A" || instance.color === undefined) {
         if (instance.breakdownVoltage < 51) {
             // Add the "wings" for xener
-            bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])([[{ x: 12, y: -12 }, { x: 18, y: -12 },], [{ x: 12, y: 12 }, { x: 6, y: 12 }]], "line medium"));
+            bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])([[{ x: 12, y: -12 }, { x: 18, y: -12 },], [{ x: 12, y: 12 }, { x: 6, y: 12 }]], "line medium"));
         }
     }
     else {
@@ -3366,17 +3335,17 @@ function drawSchematic(instance) {
         const arrowJointsBase = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])([{ x: 0, y: 3 }, { x: -4, y: 0 }, { x: 0, y: -3 }, { x: -4, y: 0 }, { x: 8, y: 0 }]);
         const arrowJoints1 = arrowJointsBase.sumWith({ x: -16, y: -10 }).rotate(-116.43).vectors;
         const arrowJoints2 = arrowJointsBase.sumWith({ x: -16, y: 0 }).rotate(-116.43).vectors;
-        const colorCircle = Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_6__["make"])({ x: -4, y: 0 }, 4, "line thin");
+        const colorCircle = Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_6__["makeCircle"])({ x: -4, y: 0 }, 4, "line thin");
         $(colorCircle.element).css("fill", instance.color);
         $(colorCircle.element).css("stroke", instance.color);
-        bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])(arrowJoints1, "line black thin"), //Arrow1
-        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])(arrowJoints2, "line black thin"), //Arrow2
+        bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])(arrowJoints1, "line black thin"), //Arrow1
+        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])(arrowJoints2, "line black thin"), //Arrow2
         colorCircle //Color Indicator
         );
     }
-    const textEl = Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_4__["make"])(text, { x: 0, y: -15 }, "text");
+    const textEl = Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_4__["makeText"])(text, { x: 0, y: -15 }, "text");
     return [
-        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])([[cathodeStart, cathodeEnd], [anodeStart, anodeEnd]], "line thin"),
+        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])([[cathodeStart, cathodeEnd], [anodeStart, anodeEnd]], "line thin"),
         bodyGroup.translate(centre).rotate(rotation),
         textEl.translate(centre).rotatePosition(rotation),
     ];
@@ -3600,15 +3569,13 @@ const INDEXCATHODE = 1;
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Schematic", function() { return Schematic; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
-/* harmony import */ var _component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../+component */ "./typescript/circuit/+component.ts");
-/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
-/* harmony import */ var _manifest__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../manifest */ "./typescript/circuit/manifest.ts");
-/* harmony import */ var _generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../generics/-getComponentConnections */ "./typescript/circuit/generics/-getComponentConnections.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_diode/-drawLayout.ts");
-/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_diode/-drawSchematic.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_diode/constants.ts");
+/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
+/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_diode/-drawLayout.ts");
+/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_diode/-drawSchematic.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_diode/constants.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 
 
 
@@ -3616,18 +3583,18 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
-
-class Base extends _component__WEBPACK_IMPORTED_MODULE_0__["default"] {
+class Base {
     constructor(values) {
-        super(values);
+        this.name = "diode";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_6__["makeGroup"])();
+        this.disabled = false;
         this.joints = values.joints;
         this.saturationCurrent = values.saturationCurrent;
         this.breakdownVoltage = values.breakdownVoltage;
         this.color = values.color;
     }
     getProperties() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
             name: this.name,
             breakdownVoltage: this.breakdownVoltage,
             saturationCurrent: this.saturationCurrent,
@@ -3635,44 +3602,46 @@ class Base extends _component__WEBPACK_IMPORTED_MODULE_0__["default"] {
         });
     }
     getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
             joints: this.joints,
             disabled: this.disabled
         });
     }
     insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_2__["default"].last(this.group.element, element);
+        _utility_insert__WEBPACK_IMPORTED_MODULE_1__["default"].last(this.group.element, element);
     }
     transferFunction() { return []; }
     ;
 }
 class Schematic extends Base {
+    constructor() {
+        super(...arguments);
+        this.form = "schematic";
+    }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_7__["default"])(this));
+        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_4__["default"])(this));
     }
-    getConnections() {
-        return Object(_generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_4__["default"])(this, _manifest__WEBPACK_IMPORTED_MODULE_3__["default"].schematic);
-    }
-    makeConnectors() {
-        this.connectorSets = [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__["default"])(this, "anode", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_8__["INDEXANODE"]], "+"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__["default"])(this, "cathode", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_8__["INDEXCATHODE"]], "-"),
+    getConnectors() {
+        return [[
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "anode", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXANODE"]], "+"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "cathode", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXCATHODE"]], "-"),
             ]];
     }
 }
 class Layout extends Base {
+    constructor() {
+        super(...arguments);
+        this.form = "layout";
+    }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_6__["default"])(this));
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
     }
-    getConnections() {
-        return Object(_generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_4__["default"])(this, _manifest__WEBPACK_IMPORTED_MODULE_3__["default"].layout);
-    }
-    makeConnectors() {
-        this.connectorSets = [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__["default"])(this, "anode", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_8__["INDEXANODE"]], "+"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__["default"])(this, "cathode", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_8__["INDEXCATHODE"]], "-"),
+    getConnectors() {
+        return [[
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "anode", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXANODE"]], "+"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "cathode", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXCATHODE"]], "-"),
             ]];
     }
 }
@@ -3699,7 +3668,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function drawLayout(instance) {
-    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["make"])("body");
+    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["makeGroup"])("body");
     const end1 = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND1"]];
     const end2 = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND2"]];
     let centre = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(end1, end2).centre().vector;
@@ -3718,9 +3687,9 @@ function drawLayout(instance) {
         bodyEdgePath += "M" + (x0) + " " + (coilBottom) + "L" + (x1) + " " + (coilTop);
     }
     bodyPath += "L" + (-coilStart) + " " + (coilTop);
-    bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["make"])(bodyPath, "highlight highlightwithfill"), Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["make"])(bodyPath, "body"), Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["make"])(bodyEdgePath, "bodyEdge"));
+    bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(bodyPath, "highlight highlightwithfill"), Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(bodyPath, "body"), Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(bodyEdgePath, "bodyEdge"));
     return [
-        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["make"])([end1, end2], "lead"),
+        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])([end1, end2], "lead"),
         bodyGroup.translate(centre).rotate(rotation)
     ];
 }
@@ -3753,7 +3722,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function drawSchematic(instance) {
-    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["make"])("body");
+    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])("body");
     const end1 = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND1"]];
     const end2 = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND2"]];
     let centre = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(end1, end2).centre().vector;
@@ -3761,10 +3730,10 @@ function drawSchematic(instance) {
     let [start1, start2] = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])({ x: -20, y: 0 }, { x: 20, y: 0 }).rotate(rotation).sumWith(centre).vectors;
     //Text
     let text = Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__["default"])(instance.inductance, 'H');
-    bodyGroup.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_6__["make"])({ x: 0, y: -2 }, { width: 40, height: 12 }, Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(2), "highlight highlightwithfill extrathick"), Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])('M-20 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0', "line medium"));
-    let textEl = Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_4__["make"])(text, { x: 0, y: -13 }, "text");
+    bodyGroup.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_6__["makeRect"])({ x: 0, y: -2 }, { width: 40, height: 12 }, Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(2), "highlight highlightwithfill extrathick"), Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])('M-20 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0', "line medium"));
+    let textEl = Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_4__["makeText"])(text, { x: 0, y: -13 }, "text");
     return [
-        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])([[start1, end1], [start2, end2]], "line thin"),
+        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])([[start1, end1], [start2, end2]], "line thin"),
         bodyGroup.translate(centre).rotate(rotation),
         textEl.translate(centre).rotatePosition(rotation),
     ];
@@ -3980,15 +3949,13 @@ const INDEXEND2 = 1;
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Schematic", function() { return Schematic; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
-/* harmony import */ var _component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../+component */ "./typescript/circuit/+component.ts");
-/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
-/* harmony import */ var _manifest__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../manifest */ "./typescript/circuit/manifest.ts");
-/* harmony import */ var _generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../generics/-getComponentConnections */ "./typescript/circuit/generics/-getComponentConnections.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_inductor/-drawLayout.ts");
-/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_inductor/-drawSchematic.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_inductor/constants.ts");
+/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
+/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_inductor/-drawLayout.ts");
+/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_inductor/-drawSchematic.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_inductor/constants.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 
 
 
@@ -3996,59 +3963,61 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
-
-class Base extends _component__WEBPACK_IMPORTED_MODULE_0__["default"] {
+class Base {
     constructor(values) {
-        super(values);
+        this.name = "inductor";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_6__["makeGroup"])();
+        this.disabled = false;
         this.joints = values.joints;
         this.inductance = values.inductance;
     }
     getProperties() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
             name: this.name,
             inductance: this.inductance,
         });
     }
     getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
             joints: this.joints,
             disabled: this.disabled
         });
     }
     insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_2__["default"].last(this.group.element, element);
+        _utility_insert__WEBPACK_IMPORTED_MODULE_1__["default"].last(this.group.element, element);
     }
     transferFunction() { return []; }
     ;
 }
 class Schematic extends Base {
+    constructor() {
+        super(...arguments);
+        this.form = "schematic";
+    }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_7__["default"])(this));
+        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_4__["default"])(this));
     }
-    getConnections() {
-        return Object(_generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_4__["default"])(this, _manifest__WEBPACK_IMPORTED_MODULE_3__["default"].schematic);
-    }
-    makeConnectors() {
-        this.connectorSets = [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_8__["INDEXEND1"]]),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_8__["INDEXEND2"]]),
+    getConnectors() {
+        return [[
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXEND1"]]),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXEND2"]]),
             ]];
     }
 }
 class Layout extends Base {
+    constructor() {
+        super(...arguments);
+        this.form = "layout";
+    }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_6__["default"])(this));
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
     }
-    getConnections() {
-        return Object(_generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_4__["default"])(this, _manifest__WEBPACK_IMPORTED_MODULE_3__["default"].layout);
-    }
-    makeConnectors() {
-        this.connectorSets = [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_8__["INDEXEND1"]]),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_8__["INDEXEND2"]]),
+    getConnectors() {
+        return [[
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXEND1"]]),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXEND2"]]),
             ]];
     }
 }
@@ -4078,10 +4047,10 @@ function drawLayout(instance) {
     const rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(centre).getAngleTo(rotationPoint);
     //TODO Make DIP draw in centre? So this can be tidied.
     if (instance.isDual) {
-        return Object(_svg_element_groups_dip__WEBPACK_IMPORTED_MODULE_2__["make"])(4, "", "TL072", "").translate(Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(-30)).rotate(rotation, Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(30)).translate(centre);
+        return Object(_svg_element_groups_dip__WEBPACK_IMPORTED_MODULE_2__["makeDip"])(4, "", "TL072", "").translate(Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(-30)).rotate(rotation, Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(30)).translate(centre);
     }
     else {
-        return Object(_svg_element_groups_dip__WEBPACK_IMPORTED_MODULE_2__["make"])(4, "", "TL071", "").translate(Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(-30)).rotate(rotation, Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(30)).translate(centre);
+        return Object(_svg_element_groups_dip__WEBPACK_IMPORTED_MODULE_2__["makeDip"])(4, "", "TL071", "").translate(Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(-30)).rotate(rotation, Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(30)).translate(centre);
     }
 }
 
@@ -4109,7 +4078,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function drawSchematic(instance) {
-    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["make"])("body");
+    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["makeGroup"])("body");
     const inPEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXINPOS"]];
     const inNEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXINNEG"]];
     const outEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXOUT"]];
@@ -4123,13 +4092,13 @@ function drawSchematic(instance) {
     //   base to the right
     bodyGroup.append(
     //Highlight
-    Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["make"])(bodyJoints, "highlight highlightwithfill extrathick"), 
+    Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(bodyJoints, "highlight highlightwithfill extrathick"), 
     //Main body triangle
-    Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["make"])(bodyJoints, "body white"), 
+    Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(bodyJoints, "body white"), 
     //Plus
-    Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: -22, y: -10 }, { x: -14, y: -10 }, "line thin"), Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: -18, y: -6 }, { x: -18, y: -14 }, "line thin"), 
+    Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_4__["makeLine"])({ x: -22, y: -10 }, { x: -14, y: -10 }, "line thin"), Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_4__["makeLine"])({ x: -18, y: -6 }, { x: -18, y: -14 }, "line thin"), 
     //Minus
-    Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: -22, y: +10 }, { x: -14, y: +10 }, "line thin"));
+    Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_4__["makeLine"])({ x: -22, y: +10 }, { x: -14, y: +10 }, "line thin"));
     // Image centre does not take base into account
     // Is always directly between the emitter and collector
     let centre = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(pow1End, pow2End).centre().vector;
@@ -4155,7 +4124,7 @@ function drawSchematic(instance) {
     ];
     return [
         bodyGroup.translate(centre).rotate(rotation).scale(scale, false),
-        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["make"])(joints, "line thin"),
+        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(joints, "line thin"),
     ];
 }
 
@@ -4409,17 +4378,15 @@ const INDEXROTATION = 1;
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Schematic", function() { return Schematic; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
-/* harmony import */ var _component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../+component */ "./typescript/circuit/+component.ts");
-/* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
-/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
-/* harmony import */ var _manifest__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../manifest */ "./typescript/circuit/manifest.ts");
-/* harmony import */ var _generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../generics/-getComponentConnections */ "./typescript/circuit/generics/-getComponentConnections.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_opAmp/-drawLayout.ts");
-/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_opAmp/-drawSchematic.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_opAmp/constants.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../../../~constants */ "./typescript/~constants.ts");
+/* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
+/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
+/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_opAmp/-drawLayout.ts");
+/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_opAmp/-drawSchematic.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_opAmp/constants.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../../~constants */ "./typescript/~constants.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 
 
 
@@ -4429,21 +4396,21 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
-
-class Base extends _component__WEBPACK_IMPORTED_MODULE_0__["default"] {
+class Base {
     constructor(values) {
-        super(values);
+        this.name = "opamp";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_8__["makeGroup"])();
+        this.disabled = false;
         this.offsetVoltage = values.offsetVoltage;
     }
     getProperties() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_2__["default"])({
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
             name: this.name,
             offsetVoltage: this.offsetVoltage
         });
     }
     insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_3__["default"].last(this.group.element, element);
+        _utility_insert__WEBPACK_IMPORTED_MODULE_2__["default"].last(this.group.element, element);
     }
     transferFunction() { return []; }
     ;
@@ -4451,45 +4418,44 @@ class Base extends _component__WEBPACK_IMPORTED_MODULE_0__["default"] {
 class Schematic extends Base {
     constructor(values) {
         super(values);
+        this.form = "schematic";
         this.offsetVoltage = values.offsetVoltage;
         this.joints = values.joints;
     }
     getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_2__["default"])({
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
             joints: this.joints,
             disabled: this.disabled
         });
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_8__["default"])(this));
+        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_5__["default"])(this));
     }
-    getConnections() {
-        return Object(_generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_5__["default"])(this, _manifest__WEBPACK_IMPORTED_MODULE_4__["default"].schematic);
-    }
-    makeConnectors() {
-        let [posPower, negPower] = (this.joints[_constants__WEBPACK_IMPORTED_MODULE_9__["INDEXPOW1"]].y < this.joints[_constants__WEBPACK_IMPORTED_MODULE_9__["INDEXPOW2"]].y)
-            ? [this.joints[_constants__WEBPACK_IMPORTED_MODULE_9__["INDEXPOW1"]], this.joints[_constants__WEBPACK_IMPORTED_MODULE_9__["INDEXPOW2"]]]
-            : [this.joints[_constants__WEBPACK_IMPORTED_MODULE_9__["INDEXPOW2"]], this.joints[_constants__WEBPACK_IMPORTED_MODULE_9__["INDEXPOW1"]]];
-        this.connectorSets = [[
+    getConnectors() {
+        let [posPower, negPower] = (this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXPOW1"]].y < this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXPOW2"]].y)
+            ? [this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXPOW1"]], this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXPOW2"]]]
+            : [this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXPOW2"]], this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXPOW1"]]];
+        return [[
                 // The ordering here is important so the colors line up between layout and schematic
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "vcc+", "node", posPower, "v+"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "out", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_9__["INDEXOUT"]], "o"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "in-", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_9__["INDEXINNEG"]], "i-"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "in+", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_9__["INDEXINPOS"]], "i+"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "vcc-", "node", negPower, "v-"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "vcc+", "node", posPower, "v+"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "out", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXOUT"]], "o"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "in-", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXINNEG"]], "i-"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "in+", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXINPOS"]], "i+"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "vcc-", "node", negPower, "v-"),
             ]];
     }
 }
 class Layout extends Base {
     constructor(values) {
         super(values);
+        this.form = "layout";
         this.offsetVoltage = values.offsetVoltage;
         this.isDual = values.isDual;
         this.joints = values.joints;
     }
     getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_2__["default"])({
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
             isDual: this.isDual,
             joints: this.joints,
             disabled: this.disabled
@@ -4497,16 +4463,13 @@ class Layout extends Base {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_7__["default"])(this));
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_4__["default"])(this));
     }
-    getConnections() {
-        return Object(_generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_5__["default"])(this, _manifest__WEBPACK_IMPORTED_MODULE_4__["default"].layout);
-    }
-    makeConnectors() {
-        let gs = _constants__WEBPACK_IMPORTED_MODULE_10__["gridSpacing"];
-        let c = this.joints[_constants__WEBPACK_IMPORTED_MODULE_9__["INDEXCENTRE"]];
-        let r = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(this.joints[_constants__WEBPACK_IMPORTED_MODULE_9__["INDEXCENTRE"]]).getAngleTo(this.joints[_constants__WEBPACK_IMPORTED_MODULE_9__["INDEXROTATION"]]);
-        let connectorPoints = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])([
+    getConnectors() {
+        const gs = _constants__WEBPACK_IMPORTED_MODULE_7__["gridSpacing"];
+        const c = this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXCENTRE"]];
+        const r = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXCENTRE"]]).getAngleTo(this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXROTATION"]]);
+        const connectorPoints = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])([
             { x: 0 * gs, y: 3 * gs },
             { x: 1 * gs, y: 3 * gs },
             { x: 2 * gs, y: 3 * gs },
@@ -4515,34 +4478,34 @@ class Layout extends Base {
             { x: 2 * gs, y: 0 * gs },
             { x: 1 * gs, y: 0 * gs },
             { x: 0 * gs, y: 0 * gs } //8
-        ]).sumWith(Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(-30)).rotate(r).sumWith(c).vectors;
+        ]).sumWith(Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(-30)).rotate(r).sumWith(c).vectors;
         if (this.isDual) {
             // Note that the power selectors physically occupy the same space.
-            this.connectorSets = [[
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "vcc+", "pin", connectorPoints[7], "v+"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "out", "pin", connectorPoints[6], "1o"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "in-", "pin", connectorPoints[5], "1i-"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "in+", "pin", connectorPoints[4], "1i+"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "vcc-", "pin", connectorPoints[3], "v-"),
+            return [[
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "vcc+", "pin", connectorPoints[7], "v+"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "out", "pin", connectorPoints[6], "1o"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "in-", "pin", connectorPoints[5], "1i-"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "in+", "pin", connectorPoints[4], "1i+"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "vcc-", "pin", connectorPoints[3], "v-"),
                 ], [
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "vcc+", "pin", connectorPoints[7], "v+"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "out", "pin", connectorPoints[0], "2o"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "in-", "pin", connectorPoints[1], "2i-"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "in+", "pin", connectorPoints[2], "2i+"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "vcc-", "pin", connectorPoints[3], "v-"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "vcc+", "pin", connectorPoints[7], "v+"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "out", "pin", connectorPoints[0], "2o"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "in-", "pin", connectorPoints[1], "2i-"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "in+", "pin", connectorPoints[2], "2i+"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "vcc-", "pin", connectorPoints[3], "v-"),
                 ]];
         }
         else {
-            this.connectorSets = [[
+            return [[
                     // The ordering here is important so the colors line up between layout and schematic
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "vcc+", "pin", connectorPoints[6], "v+"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "out", "pin", connectorPoints[5], "o"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "in-", "pin", connectorPoints[1], "i-"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "in+", "pin", connectorPoints[2], "i+"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "vcc-", "pin", connectorPoints[3], "v-"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "nc", "pin", connectorPoints[7], "nc"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "offset n1", "pin", connectorPoints[4], "nc"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "offset n2", "pin", connectorPoints[0], "nc"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "vcc+", "pin", connectorPoints[6], "v+"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "out", "pin", connectorPoints[5], "o"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "in-", "pin", connectorPoints[1], "i-"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "in+", "pin", connectorPoints[2], "i+"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "vcc-", "pin", connectorPoints[3], "v-"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "nc", "pin", connectorPoints[7], "nc"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "offset n1", "pin", connectorPoints[4], "nc"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "offset n2", "pin", connectorPoints[0], "nc"),
                 ]];
         }
     }
@@ -4550,7 +4513,6 @@ class Layout extends Base {
         this.isDual = true;
         this.group.clearChildren();
         this.draw();
-        this.makeConnectors();
     }
 }
 
@@ -4578,12 +4540,12 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function drawLayout(instance) {
-    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_2__["make"])("body");
+    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_2__["makeGroup"])("body");
     const text = instance.voltage.toFixed(1);
-    bodyGroup.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: 0, y: -35 }, { width: 180, height: 95 }, { x: 10, y: 10 }, "body highlight"), Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: 0, y: -45 }, { width: 160, height: 65 }, { x: 10, y: 10 }, "screen"), Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_1__["make"])("8".repeat(text.length - 1), { x: 0, y: -20 }, "screentext off"), Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_1__["make"])(text, { x: 0, y: -20 }, "screentext on"));
+    bodyGroup.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["makeRect"])({ x: 0, y: -35 }, { width: 180, height: 95 }, { x: 10, y: 10 }, "body highlight"), Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["makeRect"])({ x: 0, y: -45 }, { width: 160, height: 65 }, { x: 10, y: 10 }, "screen"), Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_1__["makeText"])("8".repeat(text.length - 1), { x: 0, y: -20 }, "screentext off"), Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_1__["makeText"])(text, { x: 0, y: -20 }, "screentext on"));
     return [
         bodyGroup.translate(instance.joints[_constants__WEBPACK_IMPORTED_MODULE_0__["INDEXCONNECTION"]]),
-        Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_3__["make"])(instance.joints[_constants__WEBPACK_IMPORTED_MODULE_0__["INDEXCONNECTION"]], 5, "hole")
+        Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_3__["makeCircle"])(instance.joints[_constants__WEBPACK_IMPORTED_MODULE_0__["INDEXCONNECTION"]], 5, "hole")
     ];
 }
 
@@ -4613,7 +4575,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function drawSchematic(instance) {
-    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["make"])("body");
+    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["makeGroup"])("body");
     if (instance.voltage < 0) {
         bodyGroup.append(powerNegativeGraphics(instance.voltage));
     }
@@ -4630,28 +4592,28 @@ function drawSchematic(instance) {
 function powerNegativeGraphics(voltage) {
     const text = Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_1__["default"])(voltage, "V");
     return [
-        Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_5__["make"])({ x: 0, y: 18 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
-        Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: -12, y: 15 }, { x: 12, y: 15 }, "line medium"),
-        Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_2__["make"])(text, { x: 0, y: 27 }, "text bold"),
-        Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: 0, y: 15 }, { x: 0, y: 0 }, "line thin")
+        Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_5__["makeRect"])({ x: 0, y: 18 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
+        Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_4__["makeLine"])({ x: -12, y: 15 }, { x: 12, y: 15 }, "line medium"),
+        Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_2__["makeText"])(text, { x: 0, y: 27 }, "text bold"),
+        Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_4__["makeLine"])({ x: 0, y: 15 }, { x: 0, y: 0 }, "line thin")
     ];
 }
 function powerPositiveGraphics(voltage) {
     const text = Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_1__["default"])(voltage, "V");
     return [
-        Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_5__["make"])({ x: 0, y: -18 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
-        Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: -12, y: -15 }, { x: 12, y: -15 }, "line medium"),
-        Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_2__["make"])(text, { x: 0, y: -17 }, "text bold"),
-        Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: 0, y: -15 }, { x: 0, y: 0 }, "line thin")
+        Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_5__["makeRect"])({ x: 0, y: -18 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
+        Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_4__["makeLine"])({ x: -12, y: -15 }, { x: 12, y: -15 }, "line medium"),
+        Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_2__["makeText"])(text, { x: 0, y: -17 }, "text bold"),
+        Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_4__["makeLine"])({ x: 0, y: -15 }, { x: 0, y: 0 }, "line thin")
     ];
 }
 function powerGroundGraphics() {
     return [
-        Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_5__["make"])({ x: 0, y: 15 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
-        Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: -18, y: 10 }, { x: 18, y: 10 }, "line medium"),
-        Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: -12, y: 15 }, { x: 12, y: 15 }, "line medium"),
-        Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: -6, y: 20 }, { x: 6, y: 20 }, "line medium"),
-        Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: 0, y: 10 }, { x: 0, y: 0 }, "line thin")
+        Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_5__["makeRect"])({ x: 0, y: 15 }, { width: 40, height: 20 }, { x: 2, y: 2 }, "highlight highlightwithfill extrathick"),
+        Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_4__["makeLine"])({ x: -18, y: 10 }, { x: 18, y: 10 }, "line medium"),
+        Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_4__["makeLine"])({ x: -12, y: 15 }, { x: 12, y: 15 }, "line medium"),
+        Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_4__["makeLine"])({ x: -6, y: 20 }, { x: 6, y: 20 }, "line medium"),
+        Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_4__["makeLine"])({ x: 0, y: 10 }, { x: 0, y: 0 }, "line thin")
     ];
 }
 
@@ -4868,36 +4830,34 @@ const INDEXCONNECTION = 0;
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "PowerSchematic", function() { return PowerSchematic; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "PowerLayout", function() { return PowerLayout; });
-/* harmony import */ var _component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../+component */ "./typescript/circuit/+component.ts");
-/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
-/* harmony import */ var _manifest__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../manifest */ "./typescript/circuit/manifest.ts");
-/* harmony import */ var _generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../generics/-getComponentConnections */ "./typescript/circuit/generics/-getComponentConnections.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_power/-drawLayout.ts");
-/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_power/-drawSchematic.ts");
+/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
+/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_power/-drawLayout.ts");
+/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_power/-drawSchematic.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 
 
 
 
 
 
-
-
-class PowerBase extends _component__WEBPACK_IMPORTED_MODULE_0__["default"] {
+class PowerBase {
     constructor(values) {
-        super(values);
+        this.name = "power";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])();
+        this.disabled = false;
         this.voltage = values.voltage;
         this.joints = values.joints;
     }
     getProperties() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
             name: this.name,
             voltage: this.voltage
         });
     }
     getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
             joints: this.joints,
             disabled: this.disabled
         });
@@ -4906,440 +4866,41 @@ class PowerBase extends _component__WEBPACK_IMPORTED_MODULE_0__["default"] {
     ;
 }
 class PowerSchematic extends PowerBase {
+    constructor() {
+        super(...arguments);
+        this.form = "schematic";
+    }
     insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_2__["default"].last(this.group.element, element);
+        _utility_insert__WEBPACK_IMPORTED_MODULE_1__["default"].last(this.group.element, element);
     }
     /** Builds and draws the components connectors */
-    makeConnectors() {
-        this.connectorSets = [
-            [Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__["default"])(this, "", "node", this.joints[0])]
+    getConnectors() {
+        return [
+            [Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "node", this.joints[0])]
         ];
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_7__["default"])(this));
-    }
-    getConnections() {
-        return Object(_generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_4__["default"])(this, _manifest__WEBPACK_IMPORTED_MODULE_3__["default"].schematic);
+        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_4__["default"])(this));
     }
 }
 class PowerLayout extends PowerBase {
     constructor() {
         super(...arguments);
-        this.connectorSets = [];
+        this.form = "layout";
     }
     insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_2__["default"].after(this.group.element, element, ".board");
+        _utility_insert__WEBPACK_IMPORTED_MODULE_1__["default"].after(this.group.element, element, ".board");
     }
     /** Builds and draws the components connectors */
-    makeConnectors() {
-        this.connectorSets = [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__["default"])(this, "", "hole", this.joints[0])
+    getConnectors() {
+        return [[
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "hole", this.joints[0])
             ]];
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_6__["default"])(this));
-    }
-    getConnections() {
-        return Object(_generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_4__["default"])(this, _manifest__WEBPACK_IMPORTED_MODULE_3__["default"].layout);
-    }
-}
-
-
-/***/ }),
-
-/***/ "./typescript/circuit/component/_resistor/-drawLayout.ts":
-/*!***************************************************************!*\
-  !*** ./typescript/circuit/component/_resistor/-drawLayout.ts ***!
-  \***************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return drawLayout; });
-/* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_resistor/constants.ts");
-/* harmony import */ var _svg_element_path__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../svg/element/+path */ "./typescript/svg/element/+path.ts");
-/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
-/* harmony import */ var _svg_element_rect__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../svg/element/+rect */ "./typescript/svg/element/+rect.ts");
-
-
-
-
-
-//import * as $ from 'jquery';
-function drawLayout(instance) {
-    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["make"])("body");
-    const end1 = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND1"]];
-    const end2 = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND2"]];
-    let centre = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(end1, end2).centre().vector;
-    let rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(end1).getAngleTo(end2);
-    let bodyPath = "m-12.5 -6" + "h25" + "c15 -8 15 20 0 12" + "h-25" + "c-15 +8 -15 -20 0 -12" + "Z";
-    bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["make"])(bodyPath, "body"), getBands(instance.resistance), Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["make"])(bodyPath, "highlight nofill"));
-    return [
-        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["make"])([end1, end2], "lead"),
-        bodyGroup.translate(centre).rotate(rotation)
-    ];
-}
-function getBands(num) {
-    // We don't need a value field
-    let exp = num.toExponential(1);
-    let sigFig1 = exp.slice(exp.indexOf(".") - 1)[0];
-    let sigFig2 = exp.slice(exp.indexOf(".") + 1)[0];
-    let multiplier = (parseInt(exp.slice(exp.indexOf("e") + 1), 10) - 1).toString();
-    let colours = {
-        "-3": "pink",
-        "-2": "silver",
-        "-1": "gold",
-        "0": "black",
-        "1": "brown",
-        "2": "red",
-        "3": "#FF7F26",
-        "4": "yellow",
-        "5": "green",
-        "6": "blue",
-        "7": "violet",
-        "8": "grey",
-        "9": "white"
-    };
-    let b1 = Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: -17.5, y: 0 }, { width: 3, height: 18 }, undefined, "band1");
-    let b2 = Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: -11, y: 0 }, { width: 3, height: 12 }, undefined, "band2");
-    let b3 = Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: -4, y: 0 }, { width: 3, height: 12 }, undefined, "band3");
-    let b4 = Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["make"])({ x: 3.5, y: 0 }, { width: 4, height: 12 }, undefined, "band4");
-    $(b1.element).css("fill", colours[sigFig1]);
-    $(b2.element).css("fill", colours[sigFig2]);
-    $(b3.element).css("fill", colours[multiplier]);
-    $(b4.element).css("fill", "transparent");
-    return [b1, b2, b3, b4];
-}
-
-
-/***/ }),
-
-/***/ "./typescript/circuit/component/_resistor/-drawSchematic.ts":
-/*!******************************************************************!*\
-  !*** ./typescript/circuit/component/_resistor/-drawSchematic.ts ***!
-  \******************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return drawSchematic; });
-/* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_resistor/constants.ts");
-/* harmony import */ var _utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../utility/-getStandardForm */ "./typescript/utility/-getStandardForm.ts");
-/* harmony import */ var _svg_element_path__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../svg/element/+path */ "./typescript/svg/element/+path.ts");
-/* harmony import */ var _svg_element_text__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../svg/element/+text */ "./typescript/svg/element/+text.ts");
-/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
-/* harmony import */ var _svg_element_rect__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../svg/element/+rect */ "./typescript/svg/element/+rect.ts");
-
-
-
-
-
-
-
-function drawSchematic(instance) {
-    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["make"])("body");
-    const end1 = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND1"]];
-    const end2 = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND2"]];
-    let centre = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(end1, end2).centre().vector;
-    let rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(end1).getAngleTo(end2);
-    let [start1, start2] = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])({ x: -24, y: 0 }, { x: 24, y: 0 }).rotate(rotation).sumWith(centre).vectors;
-    //Text
-    let text = Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__["default"])(instance.resistance, 'Ω');
-    bodyGroup.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_6__["make"])(Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(0), { width: 46, height: 18 }, Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(2), "highlight highlightwithfill extrathick"), Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_6__["make"])(Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(0), { width: 46, height: 18 }, Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(2), "body white"));
-    let textEl = Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_4__["make"])(text, { x: 0, y: -15 }, "text");
-    return [
-        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["make"])([[start1, end1], [start2, end2]], "line thin"),
-        bodyGroup.translate(centre).rotate(rotation),
-        textEl.translate(centre).rotatePosition(rotation),
-    ];
-}
-
-
-/***/ }),
-
-/***/ "./typescript/circuit/component/_resistor/-loadLayout.ts":
-/*!***************************************************************!*\
-  !*** ./typescript/circuit/component/_resistor/-loadLayout.ts ***!
-  \***************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return loadLayout; });
-/* harmony import */ var _makeLayout__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./-makeLayout */ "./typescript/circuit/component/_resistor/-makeLayout.ts");
-
-function loadLayout(raw) {
-    const name = (raw.name);
-    const resistance = (raw.resistance);
-    const joints = (raw.joints);
-    return Object(_makeLayout__WEBPACK_IMPORTED_MODULE_0__["default"])({ name, resistance, joints });
-}
-
-
-/***/ }),
-
-/***/ "./typescript/circuit/component/_resistor/-loadSchematic.ts":
-/*!******************************************************************!*\
-  !*** ./typescript/circuit/component/_resistor/-loadSchematic.ts ***!
-  \******************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return loadSchematic; });
-/* harmony import */ var _makeSchematic__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./-makeSchematic */ "./typescript/circuit/component/_resistor/-makeSchematic.ts");
-/* harmony import */ var _valueCheck__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../~valueCheck */ "./typescript/circuit/component/~valueCheck.ts");
-/* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
-
-
-
-function loadSchematic(raw) {
-    const name = (raw.name);
-    const resistance = (raw.resistance || raw.value);
-    //Joints Block
-    const orientations = ["LR", "RL", "UD", "DU"];
-    const orientation = _valueCheck__WEBPACK_IMPORTED_MODULE_1__["default"].validate(orientations, "LR")(raw.orientation);
-    const where = _valueCheck__WEBPACK_IMPORTED_MODULE_1__["default"].where({ x: 0, y: 0 })(raw.where);
-    const joints = (raw.joints || deriveJoints(orientation, where));
-    return Object(_makeSchematic__WEBPACK_IMPORTED_MODULE_0__["default"])({ name, resistance, joints, });
-}
-const deriveJoints = (orientation, where) => {
-    const baseJoints = ({
-        LR: [{ x: -30, y: 0 }, { x: 30, y: 0 }],
-        UD: [{ x: 0, y: -30 }, { x: 0, y: 30 }],
-        RL: [{ x: 30, y: 0 }, { x: -30, y: 0 }],
-        DU: [{ x: 0, y: 30 }, { x: 0, y: -30 }]
-    })[orientation];
-    return Object(_vector__WEBPACK_IMPORTED_MODULE_2__["default"])(baseJoints).sumWith(where).vectors;
-};
-
-
-/***/ }),
-
-/***/ "./typescript/circuit/component/_resistor/-makeLayout.ts":
-/*!***************************************************************!*\
-  !*** ./typescript/circuit/component/_resistor/-makeLayout.ts ***!
-  \***************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _valueCheck__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../~valueCheck */ "./typescript/circuit/component/~valueCheck.ts");
-/* harmony import */ var _classes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./~classes */ "./typescript/circuit/component/_resistor/~classes.ts");
-/* harmony import */ var _generics_getMaker__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../generics/-getMaker */ "./typescript/circuit/generics/-getMaker.ts");
-/* harmony import */ var _addins_graphical__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../addins/graphical */ "./typescript/circuit/component/addins/graphical.ts");
-/* harmony import */ var _addins_draggable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
-/* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
-/* harmony import */ var _addins_extendable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/extendable */ "./typescript/circuit/component/addins/extendable.ts");
-/* harmony import */ var _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionsHighlightable */ "./typescript/circuit/component/addins/connectionsHighlightable.ts");
-
-
-
-
-
-
-
-
-const defaulterLayout = {
-    name: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("string", "resistor"),
-    disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
-    joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
-    resistance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
-};
-const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"]);
-/* harmony default export */ __webpack_exports__["default"] = (makeLayout);
-
-
-/***/ }),
-
-/***/ "./typescript/circuit/component/_resistor/-makeSchematic.ts":
-/*!******************************************************************!*\
-  !*** ./typescript/circuit/component/_resistor/-makeSchematic.ts ***!
-  \******************************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _valueCheck__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../~valueCheck */ "./typescript/circuit/component/~valueCheck.ts");
-/* harmony import */ var _classes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./~classes */ "./typescript/circuit/component/_resistor/~classes.ts");
-/* harmony import */ var _generics_getMaker__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../generics/-getMaker */ "./typescript/circuit/generics/-getMaker.ts");
-/* harmony import */ var _addins_graphical__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../addins/graphical */ "./typescript/circuit/component/addins/graphical.ts");
-/* harmony import */ var _addins_draggable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
-/* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
-/* harmony import */ var _addins_extendable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/extendable */ "./typescript/circuit/component/addins/extendable.ts");
-/* harmony import */ var _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionsHighlightable */ "./typescript/circuit/component/addins/connectionsHighlightable.ts");
-
-
-
-
-
-
-
-
-const defaulterSchematic = {
-    name: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("string", "resistor"),
-    disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
-    joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
-    resistance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
-};
-const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]);
-/* harmony default export */ __webpack_exports__["default"] = (makeSchematic);
-
-
-/***/ }),
-
-/***/ "./typescript/circuit/component/_resistor/-maps.ts":
-/*!*********************************************************!*\
-  !*** ./typescript/circuit/component/_resistor/-maps.ts ***!
-  \*********************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _generics_makeMap__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../generics/-makeMap */ "./typescript/circuit/generics/-makeMap.ts");
-/* harmony import */ var _classes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./~classes */ "./typescript/circuit/component/_resistor/~classes.ts");
-/* harmony import */ var _makeSchematic__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-makeSchematic */ "./typescript/circuit/component/_resistor/-makeSchematic.ts");
-/* harmony import */ var _makeLayout__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-makeLayout */ "./typescript/circuit/component/_resistor/-makeLayout.ts");
-/* harmony import */ var _loadSchematic__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-loadSchematic */ "./typescript/circuit/component/_resistor/-loadSchematic.ts");
-/* harmony import */ var _loadLayout__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./-loadLayout */ "./typescript/circuit/component/_resistor/-loadLayout.ts");
-
-
-
-
-
-
-const schematicMap = {
-    savename: "makeResistor",
-    diagramType: "schematic",
-    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"],
-    make: _makeSchematic__WEBPACK_IMPORTED_MODULE_2__["default"],
-    load: _loadSchematic__WEBPACK_IMPORTED_MODULE_4__["default"],
-};
-const layoutMap = {
-    savename: "makeLayoutResistor",
-    diagramType: "layout",
-    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["Layout"],
-    make: _makeLayout__WEBPACK_IMPORTED_MODULE_3__["default"],
-    load: _loadLayout__WEBPACK_IMPORTED_MODULE_5__["default"],
-};
-const maps = {
-    schematic: Object(_generics_makeMap__WEBPACK_IMPORTED_MODULE_0__["default"])(schematicMap, layoutMap),
-    layout: Object(_generics_makeMap__WEBPACK_IMPORTED_MODULE_0__["default"])(layoutMap, schematicMap)
-};
-/* harmony default export */ __webpack_exports__["default"] = (maps);
-
-
-/***/ }),
-
-/***/ "./typescript/circuit/component/_resistor/constants.ts":
-/*!*************************************************************!*\
-  !*** ./typescript/circuit/component/_resistor/constants.ts ***!
-  \*************************************************************/
-/*! exports provided: INDEXEND1, INDEXEND2 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "INDEXEND1", function() { return INDEXEND1; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "INDEXEND2", function() { return INDEXEND2; });
-const INDEXEND1 = 0;
-const INDEXEND2 = 1;
-
-
-/***/ }),
-
-/***/ "./typescript/circuit/component/_resistor/~classes.ts":
-/*!************************************************************!*\
-  !*** ./typescript/circuit/component/_resistor/~classes.ts ***!
-  \************************************************************/
-/*! exports provided: Schematic, Layout */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Schematic", function() { return Schematic; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
-/* harmony import */ var _component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../+component */ "./typescript/circuit/+component.ts");
-/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
-/* harmony import */ var _manifest__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../manifest */ "./typescript/circuit/manifest.ts");
-/* harmony import */ var _generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../generics/-getComponentConnections */ "./typescript/circuit/generics/-getComponentConnections.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_resistor/-drawLayout.ts");
-/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_resistor/-drawSchematic.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_resistor/constants.ts");
-
-
-
-
-
-
-
-
-
-class Base extends _component__WEBPACK_IMPORTED_MODULE_0__["default"] {
-    constructor(values) {
-        super(values);
-        this.joints = values.joints;
-        this.resistance = values.resistance;
-    }
-    getProperties() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
-            name: this.name,
-            resistance: this.resistance
-        });
-    }
-    getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
-            joints: this.joints,
-            disabled: this.disabled
-        });
-    }
-    insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_2__["default"].last(this.group.element, element);
-    }
-    transferFunction() { return []; }
-    ;
-}
-class Schematic extends Base {
-    draw() {
-        //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_7__["default"])(this));
-    }
-    getConnections() {
-        return Object(_generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_4__["default"])(this, _manifest__WEBPACK_IMPORTED_MODULE_3__["default"].schematic);
-    }
-    makeConnectors() {
-        this.connectorSets = [
-            [Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_8__["INDEXEND1"]]),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_8__["INDEXEND2"]]),]
-        ];
-    }
-}
-class Layout extends Base {
-    draw() {
-        //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_6__["default"])(this));
-    }
-    getConnections() {
-        return Object(_generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_4__["default"])(this, _manifest__WEBPACK_IMPORTED_MODULE_3__["default"].layout);
-    }
-    makeConnectors() {
-        this.connectorSets = [
-            [Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_8__["INDEXEND1"]]),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_8__["INDEXEND2"]]),]
-        ];
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
     }
 }
 
@@ -5369,7 +4930,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function drawLayout(instance) {
-    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_2__["make"])("body");
+    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_2__["makeGroup"])("body");
     const rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCENTRE"]]).getAngleTo(instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXROTATION"]]);
     instance.tracks = Object(_makeTracks__WEBPACK_IMPORTED_MODULE_5__["default"])(instance);
     const size = {
@@ -5377,7 +4938,7 @@ function drawLayout(instance) {
         height: (instance.rows + 0.5) * _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"]
     };
     const cornerRounding = { x: 3, y: 3 };
-    bodyGroup.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_3__["make"])(Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(0), size, cornerRounding, "body highlight").translate(instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCENTRE"]]).rotate(rotation), instance.tracks.map(t => t.group));
+    bodyGroup.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_3__["makeRect"])(Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(0), size, cornerRounding, "body highlight").translate(instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCENTRE"]]).rotate(rotation), instance.tracks.map(t => t.group));
     return bodyGroup;
 }
 
@@ -5490,10 +5051,12 @@ function makeTracks(parent) {
             .sumWith(start).vector;
         // The offset between each hole and the next in gridSpacings
         const holeSpacings = [0, ...Array(parent.columns - 1).fill(1)];
+        const breaks = parent.trackBreaks.filter(b => b.track === row).map(b => b.hole);
         return _track_maps__WEBPACK_IMPORTED_MODULE_0__["default"].make({
             holeSpacings: holeSpacings,
             style: "stripboard",
-            joints: [rowStart, step]
+            joints: [rowStart, step],
+            breaks: breaks
         }, false);
     });
     return tracks;
@@ -5562,61 +5125,50 @@ const INDEXROTATION = 1;
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "StripboardLayout", function() { return StripboardLayout; });
-/* harmony import */ var _component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../+component */ "./typescript/circuit/+component.ts");
-/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
-/* harmony import */ var _manifest__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../manifest */ "./typescript/circuit/manifest.ts");
-/* harmony import */ var _generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../generics/-getComponentConnections */ "./typescript/circuit/generics/-getComponentConnections.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_stripboard/-drawLayout.ts");
+/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
+/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_stripboard/-drawLayout.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 
 
 
 
-
-
-class StripboardLayout extends _component__WEBPACK_IMPORTED_MODULE_0__["default"] {
+class StripboardLayout {
     constructor(values) {
-        super(values);
+        this.name = "stripboard";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["makeGroup"])();
+        this.disabled = false;
+        this.form = "layout";
         this.tracks = [];
-        this.connectorSets = [];
         this.rows = values.rows;
         this.columns = values.columns;
         this.trackBreaks = values.trackBreaks;
         this.joints = values.joints;
     }
     getProperties() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
             name: this.name,
             rows: this.rows,
             columns: this.columns
         });
     }
     getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
             joints: this.joints,
             disabled: this.disabled,
             trackBreaks: this.trackBreaks
         });
     }
-    makeConnectors() {
-        this.tracks.forEach(track => track.makeConnectors());
-        this.tracks.forEach((track, trackIdx) => {
-            let trackBreaks = this.trackBreaks.filter(trackBreak => trackBreak.track === trackIdx);
-            track.connectorSets[0].forEach((hole, holeIdx) => {
-                if (trackBreaks.some(trackBreak => trackBreak.hole === holeIdx)) {
-                    hole.type = "brokenhole";
-                }
-            });
+    getConnectors() {
+        return this.tracks.map((track) => {
+            return track.getConnectors()[0];
         });
     }
     draw() {
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_5__["default"])(this));
-    }
-    getConnections() {
-        return Object(_generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_4__["default"])(this, _manifest__WEBPACK_IMPORTED_MODULE_3__["default"].layout);
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_2__["default"])(this));
     }
     insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_2__["default"].first(this.group.element, element);
+        _utility_insert__WEBPACK_IMPORTED_MODULE_1__["default"].first(this.group.element, element);
     }
     transferFunction() { return []; }
     ;
@@ -5647,8 +5199,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const drawStripboardHole = (position) => Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_3__["make"])(position, 4, "hole");
-const drawBreadboardHole = (position) => Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["make"])(position, { width: 8, height: 8 }, Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(0.5), "hole");
+const drawStripboardHole = (position) => Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_3__["makeCircle"])(position, 4, "hole");
+const drawBreadboardHole = (position) => Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["makeRect"])(position, { width: 8, height: 8 }, Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(0.5), "hole");
 function drawLayout(instance) {
     const holeFunc = (instance.style === "breadboard") ? drawBreadboardHole : drawStripboardHole;
     const start = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXSTART"]];
@@ -5671,7 +5223,7 @@ const drawTrack = (holePositions) => {
         width: radius + _constants__WEBPACK_IMPORTED_MODULE_5__["gridSpacing"] * 0.8,
         height: _constants__WEBPACK_IMPORTED_MODULE_5__["gridSpacing"] * 14 / 16
     };
-    return Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["make"])(centre, size, Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(0), 'body').rotate(angle, centre);
+    return Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["makeRect"])(centre, size, Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(0), 'body').rotate(angle, centre);
 };
 
 
@@ -5719,6 +5271,7 @@ const defaulter = {
     disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
     holeSpacings: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate(v => Array.isArray(v) && v.every(_valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].test("number")), [0]),
+    breaks: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate(v => Array.isArray(v) && v.every(_valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].test("number")), []),
 };
 const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulter, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeLayout);
@@ -5782,84 +5335,83 @@ const INDEXSTEP = 1;
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
-/* harmony import */ var _component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../+component */ "./typescript/circuit/+component.ts");
-/* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
-/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
-/* harmony import */ var _manifest__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../manifest */ "./typescript/circuit/manifest.ts");
-/* harmony import */ var _generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../generics/-getComponentConnections */ "./typescript/circuit/generics/-getComponentConnections.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_track/-drawLayout.ts");
+/* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
+/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
+/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_track/-drawLayout.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 
 
 
 
 
 
-
-
-class Layout extends _component__WEBPACK_IMPORTED_MODULE_0__["default"] {
+class Layout {
     constructor(values) {
-        super(values);
-        this.connectorSets = [];
-        this.name = values.name;
+        this.name = "track";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])();
+        this.disabled = false;
+        this.form = "layout";
         this.holeSpacings = values.holeSpacings;
         this.style = values.style;
         this.joints = values.joints;
+        this.breaks = values.breaks;
     }
     getProperties() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_2__["default"])({
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
             name: this.name,
             holeSpacings: this.holeSpacings,
             style: this.style
         });
     }
     getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_2__["default"])({
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
             joints: this.joints,
-            disabled: this.disabled
+            disabled: this.disabled,
+            breaks: this.breaks
         });
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_7__["default"])(this));
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_4__["default"])(this));
     }
     /** Builds and draws the components connectors */
-    makeConnectors() {
+    getConnectors() {
         const start = this.joints[0];
         const step = this.joints[1];
-        this.connectorSets = [[]];
+        let connectorSets = [[]];
         // Create the holes
         let accHs = 0;
-        this.holeSpacings.forEach((hS) => {
+        this.holeSpacings.forEach((hS, idx) => {
             accHs += hS;
-            let holePos = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(step)
+            let holePos = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(step)
                 .scaleWith(accHs)
                 .sumWith(start)
                 .vector;
-            this.connectorSets[0].push(Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_6__["default"])(this, "", "hole", holePos));
+            const connectorType = this.breaks.includes(idx) ? "brokenhole" : "hole";
+            connectorSets[0].push(Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "", connectorType, holePos));
         });
-    }
-    getConnections() {
-        return Object(_generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_5__["default"])(this, _manifest__WEBPACK_IMPORTED_MODULE_4__["default"].layout);
+        return connectorSets;
     }
     insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_3__["default"].last(this.group.element, element);
+        _utility_insert__WEBPACK_IMPORTED_MODULE_2__["default"].last(this.group.element, element);
     }
     /** ...
     */
     transferFunction(from) {
-        let fromIdx = this.connectorSets[0].indexOf(from);
+        let connectors = this.getConnectors();
+        let fromIdx = connectors[0].findIndex((c) => Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(c.point).isCloseTo(from.point));
         let connected = [];
-        for (let i = fromIdx + 1; i < this.connectorSets[0].length; i++) {
-            if (this.connectorSets[0][i].type === "brokenhole")
+        for (let i = fromIdx + 1; i < connectors[0].length; i++) {
+            if (connectors[0][i].type === "brokenhole")
                 break;
-            connected.push(this.connectorSets[0][i]);
+            connected.push(connectors[0][i]);
         }
         for (let i = fromIdx - 1; i >= 0; i--) {
-            if (this.connectorSets[0][i].type === "brokenhole")
+            if (connectors[0][i].type === "brokenhole")
                 break;
-            connected.push(this.connectorSets[0][i]);
+            connected.push(connectors[0][i]);
         }
         return connected;
     }
@@ -5884,7 +5436,7 @@ __webpack_require__.r(__webpack_exports__);
 
 //import * as $ from 'jquery';
 function drawLayout(instance) {
-    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_1__["make"])("body");
+    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_1__["makeGroup"])("body");
     const joints = instance.joints;
     let coverPath, leadPath = "";
     //The proportion of half the end joints that is cover not lead
@@ -5903,11 +5455,11 @@ function drawLayout(instance) {
     coverPath += getSegmentTowardsJointMid(joints[joints.length - 2], joints[joints.length - 1], coverRatio);
     // Draw lead path to end
     leadPath += getSegmentTowardsJointMid(joints[joints.length - 2], joints[joints.length - 1], 1);
-    let cover = Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_0__["make"])(coverPath, "cover");
+    let cover = Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_0__["makePath"])(coverPath, "cover");
     $(cover.element).css("stroke", instance.color);
     //Style and add lead, cover
     //(Prepend so handles appear on top)
-    bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_0__["make"])(leadPath, "lead"), Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_0__["make"])(coverPath, "leadhighlight highlight"), cover);
+    bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_0__["makePath"])(leadPath, "lead"), Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_0__["makePath"])(coverPath, "leadhighlight highlight"), cover);
     return bodyGroup;
 }
 function getBezierBetweenJoints(joints) {
@@ -5958,7 +5510,7 @@ __webpack_require__.r(__webpack_exports__);
 
 function drawSchematic(instance) {
     return [
-        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_0__["make"])(instance.joints, "line thin")
+        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_0__["makePath"])(instance.joints, "line thin")
     ];
 }
 
@@ -6036,6 +5588,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+// import Extendable_ from "../addins/extendable_";
 
 
 const defaulterLayout = {
@@ -6044,7 +5597,9 @@ const defaulterLayout = {
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 80, y: 0 }], l => l >= 2),
     color: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].color("#545454")
 };
-const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], [_addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], { reticulatable: true, removable: true }], [_addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], {}], _addins_recolorable__WEBPACK_IMPORTED_MODULE_8__["default"]);
+const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], [_addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], { reticulatable: true, removable: true }], 
+// [Extendable_, { reticulatable: true, removable: true }],
+[_addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], {}], _addins_recolorable__WEBPACK_IMPORTED_MODULE_8__["default"]);
 //{ canAddJoints: true, canRemoveJoints: true, canRemoveComponent: true }
 /* harmony default export */ __webpack_exports__["default"] = (makeLayout);
 
@@ -6144,17 +5699,13 @@ const maps = {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Schematic", function() { return Schematic; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
-/* harmony import */ var _component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../+component */ "./typescript/circuit/+component.ts");
-/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
-/* harmony import */ var _manifest__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../manifest */ "./typescript/circuit/manifest.ts");
-/* harmony import */ var _generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../generics/-getComponentConnections */ "./typescript/circuit/generics/-getComponentConnections.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _utility_flatten__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../utility/~flatten */ "./typescript/utility/~flatten.ts");
-/* harmony import */ var _utility_isNot__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../../utility/-isNot */ "./typescript/utility/-isNot.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_wire/-drawLayout.ts");
-/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_wire/-drawSchematic.ts");
-
+/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
+/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _utility_flatten__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../utility/~flatten */ "./typescript/utility/~flatten.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_wire/-drawLayout.ts");
+/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_wire/-drawSchematic.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 ;
 
 
@@ -6163,58 +5714,59 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
-
-class Base extends _component__WEBPACK_IMPORTED_MODULE_0__["default"] {
+class Base {
+    constructor() {
+        this.name = "wire";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_6__["makeGroup"])();
+        this.disabled = false;
+    }
     getProperties() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
             name: this.name
         });
-    }
-    transferFunction(from) {
-        return _utility_flatten__WEBPACK_IMPORTED_MODULE_6__["default"].flatten2d(this.connectorSets.map(connectorSet => connectorSet.filter(Object(_utility_isNot__WEBPACK_IMPORTED_MODULE_7__["default"])(from))));
     }
 }
 class Schematic extends Base {
     constructor(values) {
-        super(values);
-        this.connectorSets = [];
+        super();
+        this.form = "schematic";
         this.joints = values.joints;
     }
     getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
             joints: this.joints,
             disabled: this.disabled
         });
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_9__["default"])(this));
+        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_5__["default"])(this));
     }
     insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_2__["default"].first(this.group.element, element);
+        _utility_insert__WEBPACK_IMPORTED_MODULE_1__["default"].first(this.group.element, element);
     }
-    makeConnectors() {
+    getConnectors() {
         const end1 = this.joints[0];
         const end2 = this.joints[this.joints.length - 1];
-        this.connectorSets = [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__["default"])(this, "", "node", end1),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__["default"])(this, "", "node", end2)
+        return [[
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "end1", "node", end1),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "end2", "node", end2)
             ]
         ];
     }
-    getConnections() {
-        return Object(_generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_4__["default"])(this, _manifest__WEBPACK_IMPORTED_MODULE_3__["default"].schematic);
+    transferFunction(from) {
+        return _utility_flatten__WEBPACK_IMPORTED_MODULE_3__["default"].flatten2d(this.getConnectors().map(connectorSet => connectorSet.filter(c => !(c.name === from.name && c.component == from.component))));
     }
 }
 class Layout extends Base {
     constructor(values) {
-        super(values);
+        super();
+        this.form = "layout";
         this.joints = values.joints;
         this.color = values.color;
     }
     getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
             joints: this.joints,
             color: this.color,
             disabled: this.disabled
@@ -6222,20 +5774,20 @@ class Layout extends Base {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_8__["default"])(this));
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_4__["default"])(this));
     }
     insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_2__["default"].last(this.group.element, element);
+        _utility_insert__WEBPACK_IMPORTED_MODULE_1__["default"].last(this.group.element, element);
     }
-    makeConnectors() {
-        this.connectorSets = [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__["default"])(this, "", "pin", this.joints[0]),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_5__["default"])(this, "", "pin", this.joints[this.joints.length - 1]),
+    getConnectors() {
+        return [[
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "end1", "pin", this.joints[0]),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "end2", "pin", this.joints[this.joints.length - 1]),
             ]
         ];
     }
-    getConnections() {
-        return Object(_generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_4__["default"])(this, _manifest__WEBPACK_IMPORTED_MODULE_3__["default"].layout);
+    transferFunction(from) {
+        return _utility_flatten__WEBPACK_IMPORTED_MODULE_3__["default"].flatten2d(this.getConnectors().map(connectorSet => connectorSet.filter(c => !(c.name === from.name && c.component == from.component))));
     }
 }
 
@@ -6251,14 +5803,12 @@ class Layout extends Base {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _utility_flatten__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/~flatten */ "./typescript/utility/~flatten.ts");
-
 const Board = (() => {
     const init = (component) => {
         $(component.group.element).addClass("board");
-        Object.defineProperty(component, 'connectorSets', {
-            get: () => _utility_flatten__WEBPACK_IMPORTED_MODULE_0__["default"].flatten2d(component.tracks.map(track => track.connectorSets))
-        });
+        // Object.defineProperty(component, 'connectorSets', {
+        //    get: () => Flatten.flatten2d(component.tracks.map(track => track.getConnectors()))
+        // });
     };
     return { init };
 })();
@@ -6279,6 +5829,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../events */ "./typescript/circuit/events.ts");
 /* harmony import */ var _svg_element_circle__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../svg/element/+circle */ "./typescript/svg/element/+circle.ts");
 /* harmony import */ var _svg_element_text__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../svg/element/+text */ "./typescript/svg/element/+text.ts");
+/* harmony import */ var _generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../generics/-getComponentConnections */ "./typescript/circuit/generics/-getComponentConnections.ts");
+
 
 
 
@@ -6300,18 +5852,17 @@ const ConnectionsHighlightable = (() => {
         });
     };
     const createConnectorHighlights = (component, connection, color) => {
-        let highlight = Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_1__["make"])(connection.point, 4, "highlight highlightwithfill connectivityhighlight");
+        let highlight = Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_1__["makeCircle"])(connection.point, 4, "highlight highlightwithfill connectivityhighlight");
         $(highlight.element).css({ "fill": color, "stroke": color });
         component.group.append(highlight);
         if (connection.symbol !== undefined) {
-            let symbol = Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_2__["make"])(connection.symbol, connection.point, "text connectivityhighlight");
+            let symbol = Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_2__["makeText"])(connection.symbol, connection.point, "text connectivityhighlight");
             component.group.append(symbol);
         }
     };
     const createConnectionsHighlights = (component, propogate, colorPalette) => {
         // Make sure the connectors are up to date
-        component.makeConnectors();
-        const connectionSets = component.getConnections();
+        const connectionSets = Object(_generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_3__["default"])(component);
         connectionSets.forEach(connectionSet => {
             connectionSet.forEach((connectorConnections, i) => {
                 let color = colorPalette[i % colorPalette.length];
@@ -6541,7 +6092,7 @@ const Removable = (() => {
     return { init };
 })();
 const addHandle = (component, point) => {
-    const handle = Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_4__["make"])(point, 5, "handle dragHandle draggable highlight").element;
+    const handle = Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_4__["makeCircle"])(point, 5, "handle dragHandle draggable highlight").element;
     $(handle).data('point', point);
     component.group.append(handle);
     $(handle).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].drag, (e, drag) => {
@@ -6580,7 +6131,6 @@ const Graphical = (() => {
                 $(component.group.element).show();
                 component.group.clearChildren(":not(.handle,.connectivityhighlight)");
                 component.draw();
-                component.makeConnectors();
             }
             else {
                 $(component.group.element).hide();
@@ -6622,8 +6172,8 @@ const Junctions = (() => {
         });
     };
     const createJunctions = (component) => {
-        let otherConnectors = _utility_flatten__WEBPACK_IMPORTED_MODULE_3__["default"].flatten2d(_manifest__WEBPACK_IMPORTED_MODULE_2__["default"].schematic.map(component => _utility_flatten__WEBPACK_IMPORTED_MODULE_3__["default"].flatten2d(component.connectorSets).filter(connector => (connector.type === "node"))));
-        component.connectorSets.forEach(connectorSet => connectorSet.forEach(connector => {
+        let otherConnectors = _utility_flatten__WEBPACK_IMPORTED_MODULE_3__["default"].flatten2d(_manifest__WEBPACK_IMPORTED_MODULE_2__["default"].schematic.map(component => _utility_flatten__WEBPACK_IMPORTED_MODULE_3__["default"].flatten2d(component.getConnectors()).filter(connector => (connector.type === "node"))));
+        component.getConnectors().forEach(connectorSet => connectorSet.forEach(connector => {
             let point = connector.point;
             let attachedConnectors = otherConnectors.filter(other => {
                 return Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(point).isCloseTo(other.point);
@@ -6631,7 +6181,7 @@ const Junctions = (() => {
             if (attachedConnectors.length === 3) {
                 //let ctm = Active.schematic.root.group.element.getCTM();
                 //point = (ctm) ? point.matrixTransform(ctm.inverse()) : point;
-                component.group.prepend(Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_4__["make"])(point, 5, "junction black"));
+                component.group.prepend(Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_4__["makeCircle"])(point, 5, "junction black"));
             }
         }));
     };
@@ -6684,11 +6234,11 @@ const Recolorable = (() => {
     };
     const createRecolorHandle = (component, colorPalette) => {
         const position = getRecolorPosition(component);
-        const recolorSegmentGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["make"])("recolorSegmentGroup");
-        const recolorHandle = Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_3__["make"])(position, 7, "handle recolorHandle");
+        const recolorSegmentGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])("recolorSegmentGroup");
+        const recolorHandle = Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_3__["makeCircle"])(position, 7, "handle recolorHandle");
         //Segments
-        const segment1 = Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["make"])(position, { width: 10, height: 20 }, undefined, "recolorHandleSegment").rotate(45, position).translate({ x: -4, y: -4 });
-        const segment2 = Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["make"])(position, { width: 10, height: 20 }, undefined, "recolorHandleSegment").rotate(45, position).translate({ x: 4, y: 4 });
+        const segment1 = Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["makeRect"])(position, { width: 10, height: 20 }, undefined, "recolorHandleSegment").rotate(45, position).translate({ x: -4, y: -4 });
+        const segment2 = Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["makeRect"])(position, { width: 10, height: 20 }, undefined, "recolorHandleSegment").rotate(45, position).translate({ x: 4, y: 4 });
         $(segment1.element).css("fill", "#4fd56b");
         $(segment2.element).css("fill", "#d54f6b");
         recolorSegmentGroup.append(segment1, segment2);
@@ -6795,16 +6345,16 @@ const ReversableBoard = (() => {
         let parent = (component.group.element.parentElement);
         if (parent)
             parent.appendChild(ghostGroup);
-        let allValidConnectors = _utility_flatten__WEBPACK_IMPORTED_MODULE_4__["default"].flatten2d(_manifest__WEBPACK_IMPORTED_MODULE_2__["default"].layout.map(el => _utility_flatten__WEBPACK_IMPORTED_MODULE_4__["default"].flatten2d(el.connectorSets.map(connectorSet => connectorSet.filter(connector => connector.type === "pin")))));
+        let allValidConnectors = _utility_flatten__WEBPACK_IMPORTED_MODULE_4__["default"].flatten2d(_manifest__WEBPACK_IMPORTED_MODULE_2__["default"].layout.map(el => _utility_flatten__WEBPACK_IMPORTED_MODULE_4__["default"].flatten2d(el.getConnectors().map(connectorSet => connectorSet.filter(connector => connector.type === "pin")))));
         // ...
         component.tracks.forEach((track, trackIdx) => {
             let trackGhostGroup = $(track.group.element).clone()[0];
             ghostGroup.appendChild(trackGhostGroup);
             // Add the holes
             //let ctm = (track.group.element.getCTM() || Svg.makeMatrix()).inverse()
-            track.connectorSets[0].forEach((hole, holeIdx) => {
+            track.getConnectors()[0].forEach((hole, holeIdx) => {
                 let point = hole.point; //(ctm) ? hole.point.matrixTransform(ctm) : hole.point;
-                let breaker = Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_6__["make"])(point, 6, "breaker");
+                let breaker = Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_6__["makeCircle"])(point, 6, "breaker");
                 if (hole.type === "brokenhole") {
                     $(breaker.element).addClass("broken");
                 }
@@ -6820,11 +6370,13 @@ const ReversableBoard = (() => {
                         $(breaker.element).addClass("broken");
                         hole.type = "brokenhole";
                         component.trackBreaks.push(holePosition);
+                        track.breaks.push(holePosition.hole);
                     }
                     else if (hole.type === "brokenhole") {
                         $(breaker.element).removeClass("broken");
                         hole.type = "hole";
                         component.trackBreaks = component.trackBreaks.filter(trackBreak => (trackBreak.hole !== holePosition.hole || trackBreak.track !== holePosition.track));
+                        track.breaks = track.breaks.filter(b => b !== holePosition.hole);
                     }
                 });
             });
@@ -7042,6 +6594,405 @@ const WiresCreatable = (() => {
 
 /***/ }),
 
+/***/ "./typescript/circuit/component/resistor/-drawLayout.ts":
+/*!**************************************************************!*\
+  !*** ./typescript/circuit/component/resistor/-drawLayout.ts ***!
+  \**************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return drawLayout; });
+/* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/resistor/constants.ts");
+/* harmony import */ var _svg_element_path__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../svg/element/+path */ "./typescript/svg/element/+path.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
+/* harmony import */ var _svg_element_rect__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../svg/element/+rect */ "./typescript/svg/element/+rect.ts");
+
+
+
+
+
+//import * as $ from 'jquery';
+function drawLayout(instance) {
+    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["makeGroup"])("body");
+    const end1 = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND1"]];
+    const end2 = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND2"]];
+    let centre = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(end1, end2).centre().vector;
+    let rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(end1).getAngleTo(end2);
+    let bodyPath = "m-12.5 -6" + "h25" + "c15 -8 15 20 0 12" + "h-25" + "c-15 +8 -15 -20 0 -12" + "Z";
+    const body = Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(bodyPath, "body");
+    const bands = getBands(instance.resistance).map(b => b.clipTo(body.element));
+    bodyGroup.append(body, bands, Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(bodyPath, "highlight nofill"));
+    return [
+        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])([end1, end2], "lead"),
+        bodyGroup.translate(centre).rotate(rotation)
+    ];
+}
+function getBands(num) {
+    // We don't need a value field
+    let exp = num.toExponential(1);
+    let sigFig1 = exp.slice(exp.indexOf(".") - 1)[0];
+    let sigFig2 = exp.slice(exp.indexOf(".") + 1)[0];
+    let multiplier = (parseInt(exp.slice(exp.indexOf("e") + 1), 10) - 1).toString();
+    let colours = {
+        "-3": "pink",
+        "-2": "silver",
+        "-1": "gold",
+        "0": "black",
+        "1": "brown",
+        "2": "red",
+        "3": "#FF7F26",
+        "4": "yellow",
+        "5": "green",
+        "6": "blue",
+        "7": "violet",
+        "8": "grey",
+        "9": "white"
+    };
+    let b1 = Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["makeRect"])({ x: -17.5, y: 0 }, { width: 3, height: 18 }, undefined, "band1");
+    let b2 = Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["makeRect"])({ x: -11, y: 0 }, { width: 3, height: 12 }, undefined, "band2");
+    let b3 = Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["makeRect"])({ x: -4, y: 0 }, { width: 3, height: 12 }, undefined, "band3");
+    let b4 = Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["makeRect"])({ x: 3.5, y: 0 }, { width: 4, height: 12 }, undefined, "band4");
+    $(b1.element).css("fill", colours[sigFig1]);
+    $(b2.element).css("fill", colours[sigFig2]);
+    $(b3.element).css("fill", colours[multiplier]);
+    $(b4.element).css("fill", "transparent");
+    return [b1, b2, b3, b4];
+}
+
+
+/***/ }),
+
+/***/ "./typescript/circuit/component/resistor/-drawSchematic.ts":
+/*!*****************************************************************!*\
+  !*** ./typescript/circuit/component/resistor/-drawSchematic.ts ***!
+  \*****************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return drawSchematic; });
+/* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/resistor/constants.ts");
+/* harmony import */ var _utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../utility/-getStandardForm */ "./typescript/utility/-getStandardForm.ts");
+/* harmony import */ var _svg_element_path__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../svg/element/+path */ "./typescript/svg/element/+path.ts");
+/* harmony import */ var _svg_element_text__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../svg/element/+text */ "./typescript/svg/element/+text.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
+/* harmony import */ var _svg_element_rect__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../svg/element/+rect */ "./typescript/svg/element/+rect.ts");
+
+
+
+
+
+
+
+function drawSchematic(instance) {
+    const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])("body");
+    const end1 = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND1"]];
+    const end2 = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND2"]];
+    let centre = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(end1, end2).centre().vector;
+    let rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(end1).getAngleTo(end2);
+    let [start1, start2] = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])({ x: -24, y: 0 }, { x: 24, y: 0 }).rotate(rotation).sumWith(centre).vectors;
+    //Text
+    let text = Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__["default"])(instance.resistance, 'Ω');
+    bodyGroup.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_6__["makeRect"])(Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(0), { width: 46, height: 18 }, Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(2), "highlight highlightwithfill extrathick"), Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_6__["makeRect"])(Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(0), { width: 46, height: 18 }, Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(2), "body white"));
+    let textEl = Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_4__["makeText"])(text, { x: 0, y: -15 }, "text");
+    return [
+        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])([[start1, end1], [start2, end2]], "line thin"),
+        bodyGroup.translate(centre).rotate(rotation),
+        textEl.translate(centre).rotatePosition(rotation),
+    ];
+}
+
+
+/***/ }),
+
+/***/ "./typescript/circuit/component/resistor/-loadLayout.ts":
+/*!**************************************************************!*\
+  !*** ./typescript/circuit/component/resistor/-loadLayout.ts ***!
+  \**************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return loadLayout; });
+/* harmony import */ var _makeLayout__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./-makeLayout */ "./typescript/circuit/component/resistor/-makeLayout.ts");
+
+function loadLayout(raw) {
+    const name = (raw.name);
+    const resistance = (raw.resistance);
+    const joints = (raw.joints);
+    return Object(_makeLayout__WEBPACK_IMPORTED_MODULE_0__["default"])({ name, resistance, joints });
+}
+
+
+/***/ }),
+
+/***/ "./typescript/circuit/component/resistor/-loadSchematic.ts":
+/*!*****************************************************************!*\
+  !*** ./typescript/circuit/component/resistor/-loadSchematic.ts ***!
+  \*****************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return loadSchematic; });
+/* harmony import */ var _makeSchematic__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./-makeSchematic */ "./typescript/circuit/component/resistor/-makeSchematic.ts");
+/* harmony import */ var _valueCheck__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../~valueCheck */ "./typescript/circuit/component/~valueCheck.ts");
+/* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
+
+
+
+function loadSchematic(raw) {
+    const name = (raw.name);
+    const resistance = (raw.resistance || raw.value);
+    //Joints Block
+    const orientations = ["LR", "RL", "UD", "DU"];
+    const orientation = _valueCheck__WEBPACK_IMPORTED_MODULE_1__["default"].validate(orientations, "LR")(raw.orientation);
+    const where = _valueCheck__WEBPACK_IMPORTED_MODULE_1__["default"].where({ x: 0, y: 0 })(raw.where);
+    const joints = (raw.joints || deriveJoints(orientation, where));
+    return Object(_makeSchematic__WEBPACK_IMPORTED_MODULE_0__["default"])({ name, resistance, joints, });
+}
+const deriveJoints = (orientation, where) => {
+    const baseJoints = ({
+        LR: [{ x: -30, y: 0 }, { x: 30, y: 0 }],
+        UD: [{ x: 0, y: -30 }, { x: 0, y: 30 }],
+        RL: [{ x: 30, y: 0 }, { x: -30, y: 0 }],
+        DU: [{ x: 0, y: 30 }, { x: 0, y: -30 }]
+    })[orientation];
+    return Object(_vector__WEBPACK_IMPORTED_MODULE_2__["default"])(baseJoints).sumWith(where).vectors;
+};
+
+
+/***/ }),
+
+/***/ "./typescript/circuit/component/resistor/-makeLayout.ts":
+/*!**************************************************************!*\
+  !*** ./typescript/circuit/component/resistor/-makeLayout.ts ***!
+  \**************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _valueCheck__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../~valueCheck */ "./typescript/circuit/component/~valueCheck.ts");
+/* harmony import */ var _classes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./~classes */ "./typescript/circuit/component/resistor/~classes.ts");
+/* harmony import */ var _generics_getMaker__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../generics/-getMaker */ "./typescript/circuit/generics/-getMaker.ts");
+/* harmony import */ var _addins_graphical__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../addins/graphical */ "./typescript/circuit/component/addins/graphical.ts");
+/* harmony import */ var _addins_draggable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
+/* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
+/* harmony import */ var _addins_extendable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/extendable */ "./typescript/circuit/component/addins/extendable.ts");
+/* harmony import */ var _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionsHighlightable */ "./typescript/circuit/component/addins/connectionsHighlightable.ts");
+
+
+
+
+
+
+
+
+const defaulterLayout = {
+    name: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("string", "resistor"),
+    disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
+    joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
+    resistance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
+};
+const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"]);
+/* harmony default export */ __webpack_exports__["default"] = (makeLayout);
+
+
+/***/ }),
+
+/***/ "./typescript/circuit/component/resistor/-makeSchematic.ts":
+/*!*****************************************************************!*\
+  !*** ./typescript/circuit/component/resistor/-makeSchematic.ts ***!
+  \*****************************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _valueCheck__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../~valueCheck */ "./typescript/circuit/component/~valueCheck.ts");
+/* harmony import */ var _classes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./~classes */ "./typescript/circuit/component/resistor/~classes.ts");
+/* harmony import */ var _generics_getMaker__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../generics/-getMaker */ "./typescript/circuit/generics/-getMaker.ts");
+/* harmony import */ var _addins_graphical__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../addins/graphical */ "./typescript/circuit/component/addins/graphical.ts");
+/* harmony import */ var _addins_draggable__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../addins/draggable */ "./typescript/circuit/component/addins/draggable.ts");
+/* harmony import */ var _addins_selectable__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../addins/selectable */ "./typescript/circuit/component/addins/selectable.ts");
+/* harmony import */ var _addins_extendable__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../addins/extendable */ "./typescript/circuit/component/addins/extendable.ts");
+/* harmony import */ var _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../addins/connectionsHighlightable */ "./typescript/circuit/component/addins/connectionsHighlightable.ts");
+
+
+
+
+
+
+
+
+const defaulterSchematic = {
+    name: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("string", "resistor"),
+    disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
+    joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
+    resistance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
+};
+const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]);
+/* harmony default export */ __webpack_exports__["default"] = (makeSchematic);
+
+
+/***/ }),
+
+/***/ "./typescript/circuit/component/resistor/-maps.ts":
+/*!********************************************************!*\
+  !*** ./typescript/circuit/component/resistor/-maps.ts ***!
+  \********************************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _generics_makeMap__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../generics/-makeMap */ "./typescript/circuit/generics/-makeMap.ts");
+/* harmony import */ var _classes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./~classes */ "./typescript/circuit/component/resistor/~classes.ts");
+/* harmony import */ var _makeSchematic__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-makeSchematic */ "./typescript/circuit/component/resistor/-makeSchematic.ts");
+/* harmony import */ var _makeLayout__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-makeLayout */ "./typescript/circuit/component/resistor/-makeLayout.ts");
+/* harmony import */ var _loadSchematic__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-loadSchematic */ "./typescript/circuit/component/resistor/-loadSchematic.ts");
+/* harmony import */ var _loadLayout__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./-loadLayout */ "./typescript/circuit/component/resistor/-loadLayout.ts");
+
+
+
+
+
+
+const schematicMap = {
+    savename: "makeResistor",
+    diagramType: "schematic",
+    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"],
+    make: _makeSchematic__WEBPACK_IMPORTED_MODULE_2__["default"],
+    load: _loadSchematic__WEBPACK_IMPORTED_MODULE_4__["default"],
+};
+const layoutMap = {
+    savename: "makeLayoutResistor",
+    diagramType: "layout",
+    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["Layout"],
+    make: _makeLayout__WEBPACK_IMPORTED_MODULE_3__["default"],
+    load: _loadLayout__WEBPACK_IMPORTED_MODULE_5__["default"],
+};
+const maps = {
+    schematic: Object(_generics_makeMap__WEBPACK_IMPORTED_MODULE_0__["default"])(schematicMap, layoutMap),
+    layout: Object(_generics_makeMap__WEBPACK_IMPORTED_MODULE_0__["default"])(layoutMap, schematicMap)
+};
+/* harmony default export */ __webpack_exports__["default"] = (maps);
+
+
+/***/ }),
+
+/***/ "./typescript/circuit/component/resistor/constants.ts":
+/*!************************************************************!*\
+  !*** ./typescript/circuit/component/resistor/constants.ts ***!
+  \************************************************************/
+/*! exports provided: INDEXEND1, INDEXEND2 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "INDEXEND1", function() { return INDEXEND1; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "INDEXEND2", function() { return INDEXEND2; });
+const INDEXEND1 = 0;
+const INDEXEND2 = 1;
+
+
+/***/ }),
+
+/***/ "./typescript/circuit/component/resistor/~classes.ts":
+/*!***********************************************************!*\
+  !*** ./typescript/circuit/component/resistor/~classes.ts ***!
+  \***********************************************************/
+/*! exports provided: Schematic, Layout */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Schematic", function() { return Schematic; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
+/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
+/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/resistor/-drawLayout.ts");
+/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/resistor/-drawSchematic.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/resistor/constants.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
+
+
+
+
+
+
+
+class Base {
+    constructor(values) {
+        this.name = "resistor";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_6__["makeGroup"])();
+        this.disabled = false;
+        this.joints = values.joints;
+        this.resistance = values.resistance;
+    }
+    getProperties() {
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
+            name: this.name,
+            resistance: this.resistance
+        });
+    }
+    getState() {
+        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
+            joints: this.joints,
+            disabled: this.disabled
+        });
+    }
+    insertInto(element) {
+        _utility_insert__WEBPACK_IMPORTED_MODULE_1__["default"].last(this.group.element, element);
+    }
+    transferFunction() { return []; }
+    ;
+}
+class Schematic extends Base {
+    constructor() {
+        super(...arguments);
+        this.form = "schematic";
+    }
+    draw() {
+        //(Prepend so handles appear on top)
+        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_4__["default"])(this));
+    }
+    getConnectors() {
+        return [
+            [Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXEND1"]]),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXEND2"]]),]
+        ];
+    }
+}
+class Layout extends Base {
+    constructor() {
+        super(...arguments);
+        this.form = "layout";
+    }
+    draw() {
+        //(Prepend so handles appear on top)
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
+    }
+    getConnectors() {
+        return [
+            [Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXEND1"]]),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXEND2"]]),]
+        ];
+    }
+}
+
+
+/***/ }),
+
 /***/ "./typescript/circuit/component/~valueCheck.ts":
 /*!*****************************************************!*\
   !*** ./typescript/circuit/component/~valueCheck.ts ***!
@@ -7142,17 +7093,23 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utility_flatten__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../utility/~flatten */ "./typescript/utility/~flatten.ts");
 /* harmony import */ var _mappings__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../mappings */ "./typescript/circuit/mappings.ts");
 /* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../-vector */ "./typescript/-vector.ts");
+/* harmony import */ var _utility_isNot__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../utility/-isNot */ "./typescript/utility/-isNot.ts");
+/* harmony import */ var _manifest__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../manifest */ "./typescript/circuit/manifest.ts");
+
+
 
 
 
 /** Returns an array of connected connectors for each connector in each connector set
  * of the component
  */
-function getComponentConnections(component, otherComponents) {
+function getComponentConnections(component) {
+    // Get all of the other components
+    const otherComponents = _manifest__WEBPACK_IMPORTED_MODULE_4__["default"][component.form].filter(Object(_utility_isNot__WEBPACK_IMPORTED_MODULE_3__["default"])(component));
     // Get all of the other connectors
-    const allConnectors = _utility_flatten__WEBPACK_IMPORTED_MODULE_0__["default"].flatten3d(otherComponents.map(el => el.connectorSets));
+    const allConnectors = _utility_flatten__WEBPACK_IMPORTED_MODULE_0__["default"].flatten3d(otherComponents.map(el => el.getConnectors()));
     // For each connector set ([])
-    return component.connectorSets.map(connectorSet => {
+    return component.getConnectors().map(connectorSet => {
         // Find the unique nets
         const uniqueNetConnectors = getUniqueNetConnectors(connectorSet);
         // For each unique net ([][])
@@ -7258,7 +7215,6 @@ function getMaker(instanceClass, defaulter, ...addins) {
             }
         });
         component.draw();
-        component.makeConnectors();
         /*LOGSTART*/
         if (log) {
             console.groupCollapsed("%s: %o", component.name, component.group.element);
@@ -7315,14 +7271,13 @@ function loadObjectWithDefaults(defaulter, partial, log = true) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return makeConnector; });
 function makeConnector(component, name, type, position, symbol) {
-    let connector = {
+    return {
         name: name,
         symbol: symbol,
         type: type,
         component: component,
         point: position,
     };
-    return connector;
 }
 
 
@@ -7380,6 +7335,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _mappings__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./mappings */ "./typescript/circuit/mappings.ts");
 /* harmony import */ var _history__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./history */ "./typescript/circuit/history.ts");
 /* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./events */ "./typescript/circuit/events.ts");
+/* harmony import */ var _generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./generics/-getComponentConnections */ "./typescript/circuit/generics/-getComponentConnections.ts");
+
 
 
 
@@ -7477,6 +7434,7 @@ const manifest = (() => {
             let layConnectorSets = getMinConnections(layComponent);
             // Find the connector sets for schematic components that are similar
             let schConnectorMinData = schConnectorData.filter(datum => areComponentsSimilar(layComponent)(datum.component));
+            console.log(schConnectorMinData, layComponent, layConnectorSets);
             // Merge them into one if the component is unique (e.g. power supplies)
             const componentIsUnique = _mappings__WEBPACK_IMPORTED_MODULE_6__["default"].getComponentMapSafe(layComponent).isUnique;
             if (componentIsUnique) {
@@ -7615,7 +7573,7 @@ const mergeConnectorsSets = (connectorSetGroups) => {
     });
 };
 const getMinConnections = (component) => {
-    return (component.getConnections().map(connectorSet => {
+    return (Object(_generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_9__["default"])(component).map(connectorSet => {
         return (connectorSet.map(connections => {
             let connectorName = connections[0].name;
             connections.shift();
@@ -7667,7 +7625,7 @@ const connectorSetMatch = _utility_curry__WEBPACK_IMPORTED_MODULE_2__["default"]
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _utility_tuple__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/-tuple */ "./typescript/utility/-tuple.ts");
 /* harmony import */ var _component_wire_maps__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./component/_wire/-maps */ "./typescript/circuit/component/_wire/-maps.ts");
-/* harmony import */ var _component_resistor_maps__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./component/_resistor/-maps */ "./typescript/circuit/component/_resistor/-maps.ts");
+/* harmony import */ var _component_resistor_maps__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./component/resistor/-maps */ "./typescript/circuit/component/resistor/-maps.ts");
 /* harmony import */ var _component_capacitor_maps__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./component/_capacitor/-maps */ "./typescript/circuit/component/_capacitor/-maps.ts");
 /* harmony import */ var _component_inductor_maps__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./component/_inductor/-maps */ "./typescript/circuit/component/_inductor/-maps.ts");
 /* harmony import */ var _component_diode_maps__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./component/_diode/-maps */ "./typescript/circuit/component/_diode/-maps.ts");
@@ -8211,12 +8169,12 @@ $(document).ready(() => {
 /*!************************************!*\
   !*** ./typescript/svg/+element.ts ***!
   \************************************/
-/*! exports provided: make, Functions */
+/*! exports provided: makeElement, Functions */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "make", function() { return make; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "makeElement", function() { return makeElement; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Functions", function() { return Functions; });
 /* harmony import */ var _addTransform__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./-addTransform */ "./typescript/svg/-addTransform.ts");
 /* harmony import */ var _makeMatrix__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./-makeMatrix */ "./typescript/svg/-makeMatrix.ts");
@@ -8227,7 +8185,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 //import * as $ from 'jquery';
-function make(type, classes = "") {
+function makeElement(type, classes = "") {
     const element = document.createElementNS(_constants__WEBPACK_IMPORTED_MODULE_3__["svgURI"], type);
     $(element).addClass(classes);
     return element;
@@ -8325,6 +8283,27 @@ var Functions;
         };
     }
     Functions.convertVector = convertVector;
+    let clipCount = 0;
+    function clipTo(element) {
+        return (clip) => {
+            // Make a clipPath
+            const clipPath = makeElement("clipPath");
+            clipPath.append(clip.cloneNode());
+            // Give it a generated (hopefully unique)  ID
+            const clipPathID = "clipForElement" + clipCount;
+            clipPath.setAttribute("id", clipPathID);
+            clipCount += 1;
+            // Relative rather than absolute
+            clipPath.setAttribute("clipPathUnits", "userSpaceOnUse");
+            // Set the clip-path of the element
+            $(element).css("clip-path", `url(#${clipPathID})`);
+            // Group them back together
+            const group = makeElement("g");
+            group.append(element, clipPath);
+            return group;
+        };
+    }
+    Functions.clipTo = clipTo;
 })(Functions || (Functions = {}));
 
 
@@ -8352,7 +8331,7 @@ __webpack_require__.r(__webpack_exports__);
 class Root {
     constructor(classes = "") {
         this.element = Object(_element_svg__WEBPACK_IMPORTED_MODULE_0__["make"])();
-        this.group = Object(_element_group__WEBPACK_IMPORTED_MODULE_1__["make"])();
+        this.group = Object(_element_group__WEBPACK_IMPORTED_MODULE_1__["makeGroup"])();
         $(this.element.element).addClass(classes);
     }
     draw(node) {
@@ -8393,7 +8372,7 @@ function addTransform(element, transformationFunction, insertBefore = true) {
     transforms.consolidate();
 }
 function makeTransform() {
-    return Object(_element__WEBPACK_IMPORTED_MODULE_0__["make"])("svg").createSVGTransform();
+    return Object(_element__WEBPACK_IMPORTED_MODULE_0__["makeElement"])("svg").createSVGTransform();
 }
 
 
@@ -8412,7 +8391,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./+element */ "./typescript/svg/+element.ts");
 
 function makeMatrix() {
-    return Object(_element__WEBPACK_IMPORTED_MODULE_0__["make"])("svg").createSVGMatrix();
+    return Object(_element__WEBPACK_IMPORTED_MODULE_0__["makeElement"])("svg").createSVGMatrix();
 }
 
 
@@ -8445,6 +8424,7 @@ function svg(element) {
         getTransforms: _element__WEBPACK_IMPORTED_MODULE_0__["Functions"].getTransforms(element),
         setTransforms: _element__WEBPACK_IMPORTED_MODULE_0__["Functions"].setTransforms(element),
         convertVector: _element__WEBPACK_IMPORTED_MODULE_0__["Functions"].convertVector(element),
+        clipTo: _element__WEBPACK_IMPORTED_MODULE_0__["Functions"].clipTo(element),
     } : null;
     let groupExtension = (element instanceof SVGGElement || element instanceof SVGSVGElement) ? {
         append: _element_group__WEBPACK_IMPORTED_MODULE_1__["Functions"].append(element),
@@ -8496,7 +8476,6 @@ const Draggable = (() => {
                 const mouseDownDom = { x: e.clientX, y: e.clientY };
                 lastMousePosSvg = Object(_svg__WEBPACK_IMPORTED_MODULE_2__["default"])(element).convertVector(mouseDownDom, "DomToSvg", "relToGroup");
                 // Trigger drag prepped if I care
-                // console.log("d", e);
                 $(document).on("mousemove", onMouseMove);
                 $(document).one("mouseup", onMouseUp);
                 state = "Ready";
@@ -8523,7 +8502,6 @@ const Draggable = (() => {
                     const mouseMoveSvg = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(mousePosSvg).subSum(lastMousePosSvg);
                     const dragSteps = mouseMoveSvg.scaleWith(1 / dragStepThresholdSvg).round();
                     const dragSizeSvg = dragSteps.scaleWith(dragStepThresholdSvg);
-                    // console.log("s", e);
                     $(element).trigger(_circuit_events__WEBPACK_IMPORTED_MODULE_1__["default"].drag, dragSizeSvg.vector);
                     lastMousePosSvg = dragSizeSvg.sumWith(lastMousePosSvg).vector;
                 }
@@ -8533,7 +8511,6 @@ const Draggable = (() => {
             // Possible states should be 'Dragging' or 'Ready'     
             $(document).off("mousemove", onMouseMove);
             if (state === "Dragging") {
-                // console.log("u", e);
                 $(element).removeClass("dragging");
                 $(element).trigger(_circuit_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStop, lastMousePosSvg);
             }
@@ -8634,18 +8611,18 @@ var Scaleable;
 /*!*******************************************!*\
   !*** ./typescript/svg/element/+circle.ts ***!
   \*******************************************/
-/*! exports provided: make */
+/*! exports provided: makeCircle */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "make", function() { return make; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "makeCircle", function() { return makeCircle; });
 /* harmony import */ var _element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../+element */ "./typescript/svg/+element.ts");
 /* harmony import */ var _svg__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../-svg */ "./typescript/svg/-svg.ts");
 
 
-function make(centreVector, radius, classes = "") {
-    const element = Object(_element__WEBPACK_IMPORTED_MODULE_0__["make"])("circle", classes);
+function makeCircle(centreVector, radius, classes = "") {
+    const element = Object(_element__WEBPACK_IMPORTED_MODULE_0__["makeElement"])("circle", classes);
     element.setAttribute("cx", centreVector.x.toString());
     element.setAttribute("cy", centreVector.y.toString());
     element.setAttribute("r", radius.toString());
@@ -8659,18 +8636,18 @@ function make(centreVector, radius, classes = "") {
 /*!********************************************!*\
   !*** ./typescript/svg/element/+ellipse.ts ***!
   \********************************************/
-/*! exports provided: make */
+/*! exports provided: makeEllipse */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "make", function() { return make; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "makeEllipse", function() { return makeEllipse; });
 /* harmony import */ var _element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../+element */ "./typescript/svg/+element.ts");
 /* harmony import */ var _svg__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../-svg */ "./typescript/svg/-svg.ts");
 
 
-function make(centreVector, radiusVector, classes = "") {
-    const element = Object(_element__WEBPACK_IMPORTED_MODULE_0__["make"])("ellipse", classes);
+function makeEllipse(centreVector, radiusVector, classes = "") {
+    const element = Object(_element__WEBPACK_IMPORTED_MODULE_0__["makeElement"])("ellipse", classes);
     element.setAttribute("cx", centreVector.x.toString());
     element.setAttribute("cy", centreVector.y.toString());
     element.setAttribute("rx", radiusVector.x.toString());
@@ -8685,19 +8662,19 @@ function make(centreVector, radiusVector, classes = "") {
 /*!******************************************!*\
   !*** ./typescript/svg/element/+group.ts ***!
   \******************************************/
-/*! exports provided: make, Functions */
+/*! exports provided: makeGroup, Functions */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "make", function() { return make; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "makeGroup", function() { return makeGroup; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Functions", function() { return Functions; });
 /* harmony import */ var _element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../+element */ "./typescript/svg/+element.ts");
 /* harmony import */ var _svg__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../-svg */ "./typescript/svg/-svg.ts");
 
 
-function make(classes = "") {
-    return Object(_svg__WEBPACK_IMPORTED_MODULE_1__["default"])(Object(_element__WEBPACK_IMPORTED_MODULE_0__["make"])("g", classes));
+function makeGroup(classes = "") {
+    return Object(_svg__WEBPACK_IMPORTED_MODULE_1__["default"])(Object(_element__WEBPACK_IMPORTED_MODULE_0__["makeElement"])("g", classes));
 }
 var Functions;
 (function (Functions) {
@@ -8749,18 +8726,18 @@ var Functions;
 /*!*****************************************!*\
   !*** ./typescript/svg/element/+line.ts ***!
   \*****************************************/
-/*! exports provided: make */
+/*! exports provided: makeLine */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "make", function() { return make; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "makeLine", function() { return makeLine; });
 /* harmony import */ var _element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../+element */ "./typescript/svg/+element.ts");
 /* harmony import */ var _svg__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../-svg */ "./typescript/svg/-svg.ts");
 
 
-function make(startVector, endVector, classes = "") {
-    const element = Object(_element__WEBPACK_IMPORTED_MODULE_0__["make"])("line", classes);
+function makeLine(startVector, endVector, classes = "") {
+    const element = Object(_element__WEBPACK_IMPORTED_MODULE_0__["makeElement"])("line", classes);
     element.setAttribute("x1", startVector.x.toString());
     element.setAttribute("y1", startVector.y.toString());
     element.setAttribute("x2", endVector.x.toString());
@@ -8775,18 +8752,18 @@ function make(startVector, endVector, classes = "") {
 /*!*****************************************!*\
   !*** ./typescript/svg/element/+path.ts ***!
   \*****************************************/
-/*! exports provided: make */
+/*! exports provided: makePath */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "make", function() { return make; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "makePath", function() { return makePath; });
 /* harmony import */ var _element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../+element */ "./typescript/svg/+element.ts");
 /* harmony import */ var _svg__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../-svg */ "./typescript/svg/-svg.ts");
 
 
-function make(path, classes = "") {
-    const element = Object(_element__WEBPACK_IMPORTED_MODULE_0__["make"])("path", classes);
+function makePath(path, classes = "") {
+    const element = Object(_element__WEBPACK_IMPORTED_MODULE_0__["makeElement"])("path", classes);
     let pathString = (path instanceof Array) ? getLinePath(path) : path;
     element.setAttribute('d', pathString);
     return Object(_svg__WEBPACK_IMPORTED_MODULE_1__["default"])(element);
@@ -8818,18 +8795,18 @@ function getSingleLinePath(joints) {
 /*!*****************************************!*\
   !*** ./typescript/svg/element/+rect.ts ***!
   \*****************************************/
-/*! exports provided: make */
+/*! exports provided: makeRect */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "make", function() { return make; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "makeRect", function() { return makeRect; });
 /* harmony import */ var _element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../+element */ "./typescript/svg/+element.ts");
 /* harmony import */ var _svg__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../-svg */ "./typescript/svg/-svg.ts");
 
 
-function make(centre, size, cornerRounding = { x: 0, y: 0 }, classes = "") {
-    const element = Object(_element__WEBPACK_IMPORTED_MODULE_0__["make"])("rect", classes);
+function makeRect(centre, size, cornerRounding = { x: 0, y: 0 }, classes = "") {
+    const element = Object(_element__WEBPACK_IMPORTED_MODULE_0__["makeElement"])("rect", classes);
     element.setAttribute("x", (centre.x - size.width / 2).toString());
     element.setAttribute("y", (centre.y - size.height / 2).toString());
     element.setAttribute("width", size.width.toString());
@@ -8857,7 +8834,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function make(classes = "") {
-    const element = Object(_element__WEBPACK_IMPORTED_MODULE_0__["make"])("svg", classes);
+    const element = Object(_element__WEBPACK_IMPORTED_MODULE_0__["makeElement"])("svg", classes);
     return Object(_svg__WEBPACK_IMPORTED_MODULE_1__["default"])(element);
 }
 
@@ -8868,12 +8845,12 @@ function make(classes = "") {
 /*!*****************************************!*\
   !*** ./typescript/svg/element/+text.ts ***!
   \*****************************************/
-/*! exports provided: make, Functions */
+/*! exports provided: makeText, Functions */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "make", function() { return make; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "makeText", function() { return makeText; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Functions", function() { return Functions; });
 /* harmony import */ var _element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../+element */ "./typescript/svg/+element.ts");
 /* harmony import */ var _path__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./+path */ "./typescript/svg/element/+path.ts");
@@ -8881,10 +8858,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-//import * as $ from 'jquery';
-let textPathCount = 0;
-function make(text, startVector, classes = "") {
-    const element = Object(_element__WEBPACK_IMPORTED_MODULE_0__["make"])("text", classes);
+function makeText(text, startVector, classes = "") {
+    const element = Object(_element__WEBPACK_IMPORTED_MODULE_0__["makeElement"])("text", classes);
     element.setAttribute('x', startVector.x.toString());
     element.setAttribute('y', startVector.y.toString());
     element.appendChild(document.createTextNode(text));
@@ -8892,17 +8867,18 @@ function make(text, startVector, classes = "") {
 }
 var Functions;
 (function (Functions) {
+    let textPathCount = 0;
     function followPath(element) {
         return (pathString) => {
             // Make a new path
-            let path = Object(_path__WEBPACK_IMPORTED_MODULE_1__["make"])(pathString);
+            let path = Object(_path__WEBPACK_IMPORTED_MODULE_1__["makePath"])(pathString);
             $(path.element).hide();
             // Give it a generated (hopefully unique)  ID
             let pathID = "pathForText" + textPathCount;
             path.element.setAttribute("id", pathID);
             textPathCount += 1;
             // Make the text path, and link it to the path
-            let textPathEl = Object(_element__WEBPACK_IMPORTED_MODULE_0__["make"])("textPath");
+            let textPathEl = Object(_element__WEBPACK_IMPORTED_MODULE_0__["makeElement"])("textPath");
             textPathEl.setAttribute("href", "#" + pathID);
             // Get text content, remove from textEl and add to text pathEl
             let text = $(element).text();
@@ -8953,12 +8929,12 @@ var Functions;
 /*!***********************************************!*\
   !*** ./typescript/svg/element/groups/+dip.ts ***!
   \***********************************************/
-/*! exports provided: make */
+/*! exports provided: makeDip */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "make", function() { return make; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "makeDip", function() { return makeDip; });
 /* harmony import */ var _group__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../+group */ "./typescript/svg/element/+group.ts");
 /* harmony import */ var _text__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../+text */ "./typescript/svg/element/+text.ts");
 /* harmony import */ var _path__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../+path */ "./typescript/svg/element/+path.ts");
@@ -8969,8 +8945,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-function make(pinsPerSide = 4, textLineOne = "", textLineTwo = "", textLineThree = "", classes = "") {
-    const element = Object(_group__WEBPACK_IMPORTED_MODULE_0__["make"])("dip" + classes);
+function makeDip(pinsPerSide = 4, textLineOne = "", textLineTwo = "", textLineThree = "", classes = "") {
+    const element = Object(_group__WEBPACK_IMPORTED_MODULE_0__["makeGroup"])("dip" + classes);
     let bodySize = {
         width: _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"] * pinsPerSide,
         height: _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"] * 2.8
@@ -8989,14 +8965,14 @@ function make(pinsPerSide = 4, textLineOne = "", textLineTwo = "", textLineThree
         + "Z";
     // let pinXBase = 0;
     for (let i = 0; i < pinsPerSide; i++) {
-        element.append(Object(_path__WEBPACK_IMPORTED_MODULE_2__["make"])(pinString, "pin").scale({ x: 1, y: -1 }).translate({ x: _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"] * i, y: 0 }), Object(_path__WEBPACK_IMPORTED_MODULE_2__["make"])(pinString, "pin").translate({ x: _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"] * i, y: 3 * _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"] }));
+        element.append(Object(_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(pinString, "pin").scale({ x: 1, y: -1 }).translate({ x: _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"] * i, y: 0 }), Object(_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(pinString, "pin").translate({ x: _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"] * i, y: 3 * _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"] }));
     }
     ;
     let notchString = "M " + (-0.5 * _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"]) + " " + (centre.y) +
         "v " + (8) +
         "a " + (1) + " " + (1) + " " + (0) + " " + (0) + " " + (0) + " " + (0) + " " + (-16) +
         "Z";
-    element.append(Object(_rect__WEBPACK_IMPORTED_MODULE_3__["make"])(centre, bodySize, { x: 5, y: 5 }, "body"), Object(_path__WEBPACK_IMPORTED_MODULE_2__["make"])(notchString, "notch"), Object(_rect__WEBPACK_IMPORTED_MODULE_3__["make"])(centre, bodySize, { x: 5, y: 5 }, "body highlight"), Object(_text__WEBPACK_IMPORTED_MODULE_1__["make"])(textLineOne, { x: 0.25 * _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"], y: 1 * _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"] }, "text"), Object(_text__WEBPACK_IMPORTED_MODULE_1__["make"])(textLineTwo, { x: 0.25 * _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"], y: 1.75 * _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"] }, "text"), Object(_text__WEBPACK_IMPORTED_MODULE_1__["make"])(textLineThree, { x: 0.25 * _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"], y: 2.5 * _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"] }, "text"));
+    element.append(Object(_rect__WEBPACK_IMPORTED_MODULE_3__["makeRect"])(centre, bodySize, { x: 5, y: 5 }, "body"), Object(_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(notchString, "notch"), Object(_rect__WEBPACK_IMPORTED_MODULE_3__["makeRect"])(centre, bodySize, { x: 5, y: 5 }, "body highlight"), Object(_text__WEBPACK_IMPORTED_MODULE_1__["makeText"])(textLineOne, { x: 0.25 * _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"], y: 1 * _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"] }, "text"), Object(_text__WEBPACK_IMPORTED_MODULE_1__["makeText"])(textLineTwo, { x: 0.25 * _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"], y: 1.75 * _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"] }, "text"), Object(_text__WEBPACK_IMPORTED_MODULE_1__["makeText"])(textLineThree, { x: 0.25 * _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"], y: 2.5 * _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"] }, "text"));
     return element;
 }
 
@@ -9007,18 +8983,18 @@ function make(pinsPerSide = 4, textLineOne = "", textLineTwo = "", textLineThree
 /*!********************************************************!*\
   !*** ./typescript/svg/element/groups/+textSequence.ts ***!
   \********************************************************/
-/*! exports provided: make */
+/*! exports provided: makeTextSeq */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "make", function() { return make; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "makeTextSeq", function() { return makeTextSeq; });
 /* harmony import */ var _group__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../+group */ "./typescript/svg/element/+group.ts");
 /* harmony import */ var _text__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../+text */ "./typescript/svg/element/+text.ts");
 
 
-function make(start, gap, sequence, classes = "") {
-    const element = Object(_group__WEBPACK_IMPORTED_MODULE_0__["make"])(classes);
+function makeTextSeq(start, gap, sequence, classes = "") {
+    const element = Object(_group__WEBPACK_IMPORTED_MODULE_0__["makeGroup"])(classes);
     let textArray = [];
     if (sequence instanceof Array) {
         // Converts to text (using 'String(val)')
@@ -9031,7 +9007,7 @@ function make(start, gap, sequence, classes = "") {
         // Its the object
         textArray = [...Array(sequence.length).keys()].map(v => (v + sequence.start).toString());
     }
-    element.append(textArray.map((txt, i) => Object(_text__WEBPACK_IMPORTED_MODULE_1__["make"])(txt, { x: gap.x * i, y: gap.y * i }, "text")));
+    element.append(textArray.map((txt, i) => Object(_text__WEBPACK_IMPORTED_MODULE_1__["makeText"])(txt, { x: gap.x * i, y: gap.y * i }, "text")));
     element.translate(start);
     return element;
 }

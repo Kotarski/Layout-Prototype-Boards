@@ -1,7 +1,7 @@
-import { type as groupType } from "../../svg/element/+group"
+import { group } from "../../svg/element/+group"
 export type participant = {
    getState: () => {};
-   group?: groupType;
+   group?: group;
 }
 
 export type development<C extends participant> = {

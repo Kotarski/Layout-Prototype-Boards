@@ -2,9 +2,9 @@ import { Schematic } from "./~classes";
 import vector, { Vector } from "../../../-vector";
 import { INDEXINPOS, INDEXINNEG, INDEXOUT, INDEXPOW1, INDEXPOW2 } from "./constants";
 
-import { make as makePath } from "../../../svg/element/+path";
-import { make as makeGroup } from "../../../svg/element/+group";
-import { make as makeLine } from "../../../svg/element/+line";
+import { makePath as makePath } from "../../../svg/element/+path";
+import { makeGroup as makeGroup } from "../../../svg/element/+group";
+import { makeLine as makeLine } from "../../../svg/element/+line";
 
 export default function drawSchematic(instance: Schematic) {
    const bodyGroup = makeGroup("body");

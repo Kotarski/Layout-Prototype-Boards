@@ -2,10 +2,10 @@ import { Large } from "./~classes";
 import vector from "../../../-vector";
 import { INDEXCENTRE, INDEXROTATION } from "./constants";
 
-import { make as makePath } from "../../../svg/element/+path";
-import { make as makeGroup } from "../../../svg/element/+group";
-import { make as makeRect } from "../../../svg/element/+rect";
-import { make as makeTextSequence } from "../../../svg/element/groups/+textSequence";
+import { makePath as makePath } from "../../../svg/element/+path";
+import { makeGroup as makeGroup } from "../../../svg/element/+group";
+import { makeRect as makeRect } from "../../../svg/element/+rect";
+import { makeTextSeq as makeTextSequence } from "../../../svg/element/groups/+textSequence";
 import { gridSpacing } from "../../../~constants";
 
 export default function drawLarge(instance: Large) {

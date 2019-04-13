@@ -1,6 +1,6 @@
+import Component from "../../+component";
 
-
-interface Addin {
-   init: () => void
-   draw?: () => void
+export type Addin<C extends Component, O extends {} = any> = {
+   init: (component: C, options?: O) => void,
+   draw? : (component: C) => void
 }

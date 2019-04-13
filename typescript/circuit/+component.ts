@@ -51,71 +51,28 @@ export namespace Types {
 
 }
 
-import { make as makeGroup } from "../svg/element/+group";
-export default abstract class Component implements Types.properties, Types.state {
+import { group } from "../svg/element/+group";
+
+export default interface Component extends Types.properties, Types.state {
    name: string;
-   group = makeGroup();
-   connectorSets: Types.connector[][] = [];
+   form: "schematic"|"layout"
    disabled: boolean;
+   group: group;
 
-   constructor(values: Types.properties & Types.state) {
-      this.name = values.name;
-      this.disabled = values.disabled;
-   }
+   getProperties(): Types.properties;
 
-   abstract getProperties(): Types.properties;
-
-   abstract getState(): Types.state;
+   getState(): Types.state;
 
 
-   abstract draw(): void;
+   draw(): void;
 
-   /** Builds and draws the components connectors */
-   abstract makeConnectors(): void;
+   
+   getConnectors(): Types.connector[][];
 
-   abstract insertInto(element?: SVGGraphicsElement): void;
-
-   /** Gets other components that this component is connected to, or that
-    * the component specified in "from" is connected to via this component.
-   */
-   abstract getConnections(): Types.connector[][][];
+   insertInto(element?: SVGGraphicsElement): void;
 
    /** ...
    */
-   abstract transferFunction(from: Types.connector): Types.connector[];
+   transferFunction(from: Types.connector): Types.connector[];
 }
 
-
-
-export abstract class Component__ implements Types.properties, Types.state {
-   name: string;
-   group = makeGroup();
-   connectorSets: Types.connector[][] = [];
-   disabled: boolean;
-
-   constructor(values: Types.properties & Types.state) {
-      this.name = values.name;
-      this.disabled = values.disabled;
-   }
-
-   abstract getProperties(): Types.properties;
-
-   abstract getState(): Types.state;
-
-
-   abstract draw(): void;
-
-   /** Builds and draws the components connectors */
-   abstract makeConnectors(): void;
-
-   abstract insertInto(element?: SVGGraphicsElement): void;
-
-   /** Gets other components that this component is connected to, or that
-    * the component specified in "from" is connected to via this component.
-   */
-   abstract getConnections(): Types.connector[][][];
-
-   /** ...
-   */
-   abstract transferFunction(from: Types.connector): Types.connector[];
-}

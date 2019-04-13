@@ -1,9 +1,9 @@
 import { Vector } from "../../../++types";
-import { make as makeGroup } from "../+group";
-import { make as makeText } from "../+text";
+import { makeGroup as makeGroup } from "../+group";
+import { makeText as makeText } from "../+text";
 
-export type type = ReturnType<typeof make>;
-export function make(
+export type textseq = ReturnType<typeof makeTextSeq>;
+export function makeTextSeq(
    start: Vector,
    gap: Vector,
    sequence: (string | number)[] | string | { start: number; length: number },

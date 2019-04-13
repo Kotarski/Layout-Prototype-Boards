@@ -1,8 +1,8 @@
 import { Layout } from "./~classes";
 import { Vector } from "../../../-vector";
 
-import { make as makePath } from "../../../svg/element/+path";
-import { make as makeGroup } from "../../../svg/element/+group";
+import { makePath as makePath } from "../../../svg/element/+path";
+import { makeGroup as makeGroup } from "../../../svg/element/+group";
 //import * as $ from 'jquery';
 
 export default function drawLayout(instance: Layout) {

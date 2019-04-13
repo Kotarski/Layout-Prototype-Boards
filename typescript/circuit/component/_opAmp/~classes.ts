@@ -3,20 +3,21 @@ import * as Types from "./types";
 import vector, { Vector } from "../../../-vector";
 import deepCopy from "../../../utility/-deepCopy";
 import Insert from "../../../utility/~insert";
-import manifest from "../../manifest";
-import getComponentConnections from "../../generics/-getComponentConnections";
 import makeConnector from "../../generics/-makeConnector";
 import drawLayout from "./-drawLayout";
 import drawSchematic from "./-drawSchematic";
 import { INDEXINPOS, INDEXINNEG, INDEXOUT, INDEXPOW1, INDEXPOW2, INDEXCENTRE, INDEXROTATION } from "./constants";
 
 import { gridSpacing } from "../../../~constants";
+import { makeGroup } from "../../../svg/element/+group";
 
-abstract class Base extends Component implements Types.properties {
+abstract class Base implements Types.properties {
+   name = "opamp" as "opamp";
+   group = makeGroup();
+   disabled = false;
    offsetVoltage: number;
 
    constructor(values: Types.valuesSchematic | Types.valuesLayout) {
-      super(values);
       this.offsetVoltage = values.offsetVoltage;
    }
 
@@ -36,7 +37,8 @@ abstract class Base extends Component implements Types.properties {
    transferFunction() { return [] };
 }
 
-export class Schematic extends Base implements Types.valuesSchematic {
+export class Schematic extends Base implements Component, Types.valuesSchematic {
+   form = "schematic" as "schematic"
    joints: [Vector, Vector, Vector, Vector, Vector];
    constructor(values: Types.valuesSchematic) {
       super(values);
@@ -53,16 +55,13 @@ export class Schematic extends Base implements Types.valuesSchematic {
       //(Prepend so handles appear on top)
       this.group.prepend(drawSchematic(this));
    }
-   getConnections(): ComponentTypes.connector[][][] {
-      return getComponentConnections(this, manifest.schematic);
-   }
-   makeConnectors() {
+   getConnectors(): ComponentTypes.connector[][] {
 
       let [posPower, negPower] = (this.joints[INDEXPOW1].y < this.joints[INDEXPOW2].y)
          ? [this.joints[INDEXPOW1], this.joints[INDEXPOW2]]
          : [this.joints[INDEXPOW2], this.joints[INDEXPOW1]];
 
-      this.connectorSets = [[
+      return [[
          // The ordering here is important so the colors line up between layout and schematic
          makeConnector(this, "vcc+", "node", posPower, "v+"),              //7
          makeConnector(this, "out", "node", this.joints[INDEXOUT], "o"),   //6
@@ -76,7 +75,8 @@ export class Schematic extends Base implements Types.valuesSchematic {
    }
 }
 
-export class Layout extends Base implements Types.valuesLayout {
+export class Layout extends Base implements Component, Types.valuesLayout {
+   form = "layout" as "layout"
    isDual: boolean;
    joints: [Vector, Vector];
    constructor(values: Types.valuesLayout) {
@@ -96,16 +96,13 @@ export class Layout extends Base implements Types.valuesLayout {
       //(Prepend so handles appear on top)
       this.group.prepend(drawLayout(this));
    }
-   getConnections(): ComponentTypes.connector[][][] {
-      return getComponentConnections(this, manifest.layout);
-   }
-   makeConnectors() {
-      let gs = gridSpacing;
+   getConnectors(): ComponentTypes.connector[][] {
+      const gs = gridSpacing;
 
-      let c = this.joints[INDEXCENTRE];
-      let r = vector(this.joints[INDEXCENTRE]).getAngleTo(this.joints[INDEXROTATION]);
+      const c = this.joints[INDEXCENTRE];
+      const r = vector(this.joints[INDEXCENTRE]).getAngleTo(this.joints[INDEXROTATION]);
 
-      let connectorPoints = vector([
+      const connectorPoints = vector([
          { x: 0 * gs, y: 3 * gs },//1
          { x: 1 * gs, y: 3 * gs },//2
          { x: 2 * gs, y: 3 * gs },//3
@@ -119,7 +116,7 @@ export class Layout extends Base implements Types.valuesLayout {
 
       if (this.isDual) {
          // Note that the power selectors physically occupy the same space.
-         this.connectorSets = [[
+         return [[
             makeConnector(this, "vcc+", "pin", connectorPoints[7], "v+"),  //8
             makeConnector(this, "out", "pin", connectorPoints[6], "1o"),   //7
             makeConnector(this, "in-", "pin", connectorPoints[5], "1i-"),  //6
@@ -133,7 +130,7 @@ export class Layout extends Base implements Types.valuesLayout {
             makeConnector(this, "vcc-", "pin", connectorPoints[3], "v-"),  //4
          ]];
       } else {
-         this.connectorSets = [[
+         return [[
             // The ordering here is important so the colors line up between layout and schematic
             makeConnector(this, "vcc+", "pin", connectorPoints[6], "v+"),  //7
             makeConnector(this, "out", "pin", connectorPoints[5], "o"),    //6
@@ -151,7 +148,6 @@ export class Layout extends Base implements Types.valuesLayout {
       this.isDual = true;
       this.group.clearChildren();
       this.draw();
-      this.makeConnectors();
    }
 
 }

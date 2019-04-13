@@ -24,10 +24,13 @@ export default function makeTracks(parent: Stripboard): Track[] {
       // The offset between each hole and the next in gridSpacings
       const holeSpacings: number[] = [0, ...Array(parent.columns - 1).fill(1)];
 
+      const breaks = parent.trackBreaks.filter(b => b.track === row).map(b => b.hole);
+
       return TrackMap.make({
          holeSpacings: holeSpacings,
          style: "stripboard",
-         joints: [rowStart, step]
+         joints: [rowStart, step],
+         breaks: breaks
       }, false);
    })
 

@@ -3,11 +3,11 @@ import vector from "../../../-vector";
 import Events from "../../events";
 import manifest from "../../manifest";
 import Flatten from "../../../utility/~flatten";
-import { make as makeCircle } from "../../../svg/element/+circle";
+import { makeCircle as makeCircle } from "../../../svg/element/+circle";
 //import * as $ from 'jquery';
 
 type nodeComponent = Component & {
-   connectorSets: ComponentTypes.node[][],
+   getConnectors: () => ComponentTypes.node[][]
 }
 
 const Junctions = (() => {
@@ -21,12 +21,12 @@ const Junctions = (() => {
 
    const createJunctions = (component: nodeComponent) => {
       let otherConnectors = Flatten.flatten2d(manifest.schematic.map(component =>
-         Flatten.flatten2d(component.connectorSets).filter(connector =>
+         Flatten.flatten2d(component.getConnectors()).filter(connector =>
             (connector.type === "node")
          )
       ));
 
-      component.connectorSets.forEach(connectorSet => connectorSet.forEach(connector => {
+      component.getConnectors().forEach(connectorSet => connectorSet.forEach(connector => {
          let point = connector.point;
          let attachedConnectors = otherConnectors.filter(other => {
             return vector(point).isCloseTo(other.point)

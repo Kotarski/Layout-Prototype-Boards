@@ -4,19 +4,24 @@ import deepCopy from "../../../utility/-deepCopy";
 import Insert from "../../../utility/~insert";
 import * as Types from "./types";
 import { INDEXBASE, INDEXCOLLECTOR, INDEXEMITTER } from "./constants";
-import manifest from "../../manifest";
-import getComponentConnections from "../../generics/-getComponentConnections";
 import makeConnector from "../../generics/-makeConnector";
 import drawLayout from "./-drawLayout";
 import drawSchematic from "./-drawSchematic";
+import { makeGroup } from "../../../svg/element/+group";
 //import * as $ from 'jquery';
 
-abstract class BipolarBase extends Component implements Types.values {
+interface name {
+   name: "bipolar"
+}
+
+abstract class BipolarBase implements Types.values, name {
+   name = "bipolar" as "bipolar";
+   group = makeGroup();
+   disabled = false;
    currentGain: number;
    type: "NPN" | "PNP"
    joints: [Vector, Vector, Vector];
    constructor(values: Types.values) {
-      super(values);
       $(this.group.element).addClass("component " + this.name);
       this.joints = values.joints;
       this.type = values.type;
@@ -45,16 +50,14 @@ abstract class BipolarBase extends Component implements Types.values {
    transferFunction() { return [] };
 }
 
-export class BipolarSchematic extends BipolarBase {
+export class BipolarSchematic extends BipolarBase implements Component {
+   form = "schematic" as "schematic"
    draw() {
       //(Prepend so handles appear on top)
       this.group.prepend(drawSchematic(this));
    }
-   getConnections(): ComponentTypes.connector[][][] {
-      return getComponentConnections(this, manifest.schematic);
-   }
-   makeConnectors() {
-      this.connectorSets = [[
+   getConnectors(): ComponentTypes.connector[][] {
+      return [[
          makeConnector(this, "emitter", "node", this.joints[INDEXEMITTER], "e"),
          makeConnector(this, "collector", "node", this.joints[INDEXCOLLECTOR], "c"),
          makeConnector(this, "base", "node", this.joints[INDEXBASE], "b")
@@ -62,16 +65,14 @@ export class BipolarSchematic extends BipolarBase {
    }
 }
 
-export class BipolarLayout extends BipolarBase {
+export class BipolarLayout extends BipolarBase implements Component {
+   form = "layout" as "layout"
    draw() {
       //(Prepend so handles appear on top)
       this.group.prepend(drawLayout(this));
    }
-   getConnections(): ComponentTypes.connector[][][] {
-      return getComponentConnections(this, manifest.layout);
-   }
-   makeConnectors() {
-      this.connectorSets = [[
+   getConnectors(): ComponentTypes.connector[][] {
+      return [[
          makeConnector(this, "emitter", "pin", this.joints[INDEXEMITTER], "e"),
          makeConnector(this, "collector", "pin", this.joints[INDEXCOLLECTOR], "c"),
          makeConnector(this, "base", "pin", this.joints[INDEXBASE], "b")

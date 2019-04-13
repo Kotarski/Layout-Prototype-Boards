@@ -1,10 +1,10 @@
 import { PowerLayout } from "./~classes";
 import { INDEXCONNECTION } from "./constants";
 
-import { make as makeText } from "../../../svg/element/+text";
-import { make as makeGroup } from "../../../svg/element/+group";
-import { make as makeCircle } from "../../../svg/element/+circle";
-import { make as makeRect } from "../../../svg/element/+rect";
+import { makeText as makeText } from "../../../svg/element/+text";
+import { makeGroup as makeGroup } from "../../../svg/element/+group";
+import { makeCircle as makeCircle } from "../../../svg/element/+circle";
+import { makeRect as makeRect } from "../../../svg/element/+rect";
 
 export default function drawLayout(instance: PowerLayout) {
    const bodyGroup = makeGroup("body");

@@ -3,7 +3,7 @@ import Component from "../../+component";
 import manifest from "../../manifest";
 import history from "../../history";
 import vector, { Vector } from "../../../-vector";
-import { make as makeCircle } from "../../../svg/element/+circle";
+import { makeCircle as makeCircle } from "../../../svg/element/+circle";
 import isNot from "../../../utility/-isNot";
 import { Strict } from "../../../++types";
 import { gridSpacing } from "../../../~constants";

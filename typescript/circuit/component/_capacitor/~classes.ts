@@ -3,19 +3,20 @@ import * as Types from "./types";
 import { Vector } from "../../../-vector";
 import deepCopy from "../../../utility/-deepCopy";
 import Insert from "../../../utility/~insert";
-import manifest from "../../manifest";
-import getComponentConnections from "../../generics/-getComponentConnections";
 import makeConnector from "../../generics/-makeConnector";
 import { INDEXANODE, INDEXCATHODE } from "./constants";
 import drawLayout from "./-drawLayout";
 import drawSchematic from "./-drawSchematic";
-abstract class Base extends Component implements Types.values {
+import { makeGroup } from "../../../svg/element/+group";
+abstract class Base implements Types.values {
+   name = "capacitor" as "capacitor";
+   group = makeGroup();
+   disabled = false;
    capacitance: number;
    isPolarised: boolean;
    joints: [Vector, Vector];
 
    constructor(values: Types.values) {
-      super(values);
       this.joints = values.joints;
       this.capacitance = values.capacitance;
       this.isPolarised = values.isPolarised;
@@ -43,24 +44,22 @@ abstract class Base extends Component implements Types.values {
    transferFunction() { return [] };
 }
 
-export class Schematic extends Base {
+export class Schematic extends Base implements Component {
+   form = "schematic" as "schematic"
    draw() {
       //(Prepend so handles appear on top)
       this.group.prepend(drawSchematic(this));
    }
 
-   getConnections(): ComponentTypes.connector[][][] {
-      return getComponentConnections(this, manifest.schematic);
-   }
 
-   makeConnectors() {
+   getConnectors(): ComponentTypes.connector[][] {
       if (this.isPolarised) {
-         this.connectorSets = [[
+         return [[
             makeConnector(this, "cathode", "node", this.joints[INDEXCATHODE], "-"),
             makeConnector(this, "anode", "node", this.joints[INDEXANODE], "+"),
          ]]
       } else {
-         this.connectorSets = [[
+         return [[
             makeConnector(this, "", "node", this.joints[INDEXCATHODE]),
             makeConnector(this, "", "node", this.joints[INDEXANODE]),
          ]]
@@ -68,24 +67,22 @@ export class Schematic extends Base {
    }
 }
 
-export class Layout extends Base {
+export class Layout extends Base implements Component {
+   form = "layout" as "layout"
    draw() {
       //(Prepend so handles appear on top)
       this.group.prepend(drawLayout(this));
    }
 
-   getConnections(): ComponentTypes.connector[][][] {
-      return getComponentConnections(this, manifest.layout);
-   }
 
-   makeConnectors() {
+   getConnectors(): ComponentTypes.connector[][] {
       if (this.isPolarised) {
-         this.connectorSets = [[
+         return [[
             makeConnector(this, "cathode", "pin", this.joints[INDEXCATHODE], "-"),
             makeConnector(this, "anode", "pin", this.joints[INDEXANODE], "+"),
          ]]
       } else {
-         this.connectorSets = [[
+         return [[
             makeConnector(this, "", "pin", this.joints[INDEXCATHODE]),
             makeConnector(this, "", "pin", this.joints[INDEXANODE]),
          ]]

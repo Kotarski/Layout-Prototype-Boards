@@ -3,15 +3,19 @@ import Component, { Types } from "../+component";
 import flatten from "../../utility/~flatten";
 import mappings from "../mappings";
 import vector from "../../-vector"
+import isNot from "../../utility/-isNot";
+import manifest from "../manifest";
 
 /** Returns an array of connected connectors for each connector in each connector set 
  * of the component
  */
-export default function getComponentConnections(component: Component, otherComponents: Component[]): Types.connector[][][] {
+export default function getComponentConnections(component: Component): Types.connector[][][] {
+   // Get all of the other components
+   const otherComponents = manifest[component.form].filter(isNot(component));
    // Get all of the other connectors
-   const allConnectors = flatten.flatten3d(otherComponents.map(el => el.connectorSets));
+   const allConnectors = flatten.flatten3d(otherComponents.map(el => el.getConnectors()));
    // For each connector set ([])
-   return component.connectorSets.map(connectorSet => {
+   return component.getConnectors().map(connectorSet => {
       // Find the unique nets
       const uniqueNetConnectors = getUniqueNetConnectors(connectorSet);
       // For each unique net ([][])

@@ -3,11 +3,8 @@ import ValueCheck from "../component/~valueCheck";
 import loadObjectWithDefaults from "./-loadObjectWithDefaults";
 import { DeepPartial } from "../../++types";
 import { isArray } from "util";
+import { Addin } from "../component/addins/++types";
 //import * as $ from 'jquery';
-
-type Addin<C extends Component, O extends {} = any> = {
-   init: (component: C, options?: O) => void
-}
 
 type Initialiser<C extends Component, T extends {}> = [Addin<C, T>, T] | Addin<C>
 
@@ -65,7 +62,6 @@ export default function getMaker<
       })
 
       component.draw();
-      component.makeConnectors();
 
       /*LOGSTART*/
       if (log) {
