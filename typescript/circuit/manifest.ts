@@ -1,5 +1,5 @@
 import Active from "../~active";
-import Component, { Types as ComponentTypes } from "./+component";
+import Component, { Types as ComponentTypes, insert } from "./+component";
 import { Layout as OpAmp } from "./component/_opAmp/~classes"
 import Curry from "../utility/~curry";
 import split from "../utility/-split";
@@ -60,7 +60,7 @@ const manifest = (() => {
    }
 
    const placeComponent = (component: Component, diagram: Diagram) => {
-      component.insertInto(diagram.root.group.element);
+      insert(component, diagram.root.group.element);
       $(component.group.element).trigger(Events.place);
    }
 

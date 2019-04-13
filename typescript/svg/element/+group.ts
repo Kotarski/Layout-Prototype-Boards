@@ -9,14 +9,14 @@ export function makeGroup(classes: string = "") {
 
 export namespace Functions {
    type ElementSet = (
-      SVGGraphicsElement |
-      { element: SVGGraphicsElement }
-      | SVGGraphicsElement[] |
-      { element: SVGGraphicsElement }[])[];
+      SVGElement |
+      { element: SVGElement }
+      | SVGElement[] |
+      { element: SVGElement }[])[];
 
    export function append<T extends SVGGElement>(element: T) {
       return (...elements: ElementSet) => {
-         addChildren(element, (child: SVGGraphicsElement) => {
+         addChildren(element, (child: SVGElement) => {
             element.appendChild(child);
          }, ...elements);
          return svg(element);
@@ -27,7 +27,7 @@ export namespace Functions {
    export function prepend<T extends SVGGElement>(element: T) {
       return (...elements: ElementSet) => {
          let firstChild = element.firstChild;
-         addChildren(element, (child: SVGGraphicsElement) => {
+         addChildren(element, (child: SVGElement) => {
             element.insertBefore(child, firstChild);
          }, ...elements);
          return svg(element);
@@ -43,14 +43,14 @@ export namespace Functions {
 
    function addChildren<GT extends SVGGElement>(
       to: GT,
-      addCallback: (element: SVGGraphicsElement) => void,
+      addCallback: (element: SVGElement) => void,
       ...elements: ElementSet
    ): GT {
       elements.forEach(item => {
          //item = item instanceof Array ? item : [item];
          let asArray = item instanceof Array ? item : [item]
          asArray.forEach(member => {
-            let element = member instanceof SVGGraphicsElement ? member : member.element;
+            let element = member instanceof SVGElement ? member : member.element;
             addCallback(element)
          });
       })

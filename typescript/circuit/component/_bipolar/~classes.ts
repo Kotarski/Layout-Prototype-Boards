@@ -1,7 +1,6 @@
 import { Vector } from "../../../-vector";
 import Component, { Types as ComponentTypes } from "../../+component";;
 import deepCopy from "../../../utility/-deepCopy";
-import Insert from "../../../utility/~insert";
 import * as Types from "./types";
 import { INDEXBASE, INDEXCOLLECTOR, INDEXEMITTER } from "./constants";
 import makeConnector from "../../generics/-makeConnector";
@@ -43,8 +42,8 @@ abstract class BipolarBase implements Types.values, name {
       });
    }
 
-   insertInto(element?: SVGGraphicsElement) {
-      Insert.last(this.group.element, element);
+   flags = {
+      order: "fore" as "fore"
    }
 
    transferFunction() { return [] };

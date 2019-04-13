@@ -2,7 +2,6 @@ import Component, { Types as ComponentTypes } from "../../+component";
 import * as Types from "./types";
 import { Vector } from "../../../-vector";
 import deepCopy from "../../../utility/-deepCopy";
-import Insert from "../../../utility/~insert";
 import makeConnector from "../../generics/-makeConnector";
 import drawLayout from "./-drawLayout";
 import drawSchematic from "./-drawSchematic";
@@ -35,8 +34,8 @@ abstract class Base implements Types.values {
       });
    }
 
-   insertInto(element?: SVGGraphicsElement) {
-      Insert.last(this.group.element, element);
+   flags = {
+      order: "fore" as "fore"
    }
 
    transferFunction() { return [] };

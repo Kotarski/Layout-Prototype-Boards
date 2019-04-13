@@ -52,6 +52,7 @@ export namespace Types {
 }
 
 import { group } from "../svg/element/+group";
+import Insert from "../utility/~insert";
 
 export default interface Component extends Types.properties, Types.state {
    name: string;
@@ -69,10 +70,13 @@ export default interface Component extends Types.properties, Types.state {
    
    getConnectors(): Types.connector[][];
 
-   insertInto(element?: SVGGraphicsElement): void;
-
-   /** ...
-   */
    transferFunction(from: Types.connector): Types.connector[];
+
+   flags: {
+      order: "back"|"mid"|"fore"
+   }
 }
 
+export function insert(component: Component, target?: Element) {
+   Insert.before(component.group.element, target, "marker-"+component.flags.order);
+}

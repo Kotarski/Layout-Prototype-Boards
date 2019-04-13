@@ -1590,6 +1590,33 @@ function sum(inVectors) {
 
 /***/ }),
 
+/***/ "./typescript/circuit/+component.ts":
+/*!******************************************!*\
+  !*** ./typescript/circuit/+component.ts ***!
+  \******************************************/
+/*! exports provided: Types, insert */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Types", function() { return Types; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "insert", function() { return insert; });
+/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/~insert */ "./typescript/utility/~insert.ts");
+var Types;
+(function (Types) {
+    ;
+    ;
+    ;
+    ;
+})(Types || (Types = {}));
+
+function insert(component, target) {
+    _utility_insert__WEBPACK_IMPORTED_MODULE_0__["default"].before(component.group.element, target, "marker-" + component.flags.order);
+}
+
+
+/***/ }),
+
 /***/ "./typescript/circuit/+diagram.ts":
 /*!****************************************!*\
   !*** ./typescript/circuit/+diagram.ts ***!
@@ -2192,14 +2219,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "BipolarSchematic", function() { return BipolarSchematic; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "BipolarLayout", function() { return BipolarLayout; });
 /* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_bipolar/constants.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_bipolar/-drawLayout.ts");
-/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_bipolar/-drawSchematic.ts");
-/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_bipolar/constants.ts");
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_bipolar/-drawLayout.ts");
+/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_bipolar/-drawSchematic.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 ;
-
 
 
 
@@ -2209,8 +2234,11 @@ __webpack_require__.r(__webpack_exports__);
 class BipolarBase {
     constructor(values) {
         this.name = "bipolar";
-        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_6__["makeGroup"])();
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])();
         this.disabled = false;
+        this.flags = {
+            order: "fore"
+        };
         $(this.group.element).addClass("component " + this.name);
         this.joints = values.joints;
         this.type = values.type;
@@ -2229,9 +2257,6 @@ class BipolarBase {
             disabled: this.disabled
         });
     }
-    insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_1__["default"].last(this.group.element, element);
-    }
     transferFunction() { return []; }
     ;
 }
@@ -2242,13 +2267,13 @@ class BipolarSchematic extends BipolarBase {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_5__["default"])(this));
+        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_4__["default"])(this));
     }
     getConnectors() {
         return [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "emitter", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXEMITTER"]], "e"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "collector", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXCOLLECTOR"]], "c"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "base", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXBASE"]], "b")
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "emitter", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEMITTER"]], "e"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "collector", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCOLLECTOR"]], "c"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "base", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXBASE"]], "b")
             ]];
     }
 }
@@ -2259,13 +2284,13 @@ class BipolarLayout extends BipolarBase {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_4__["default"])(this));
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
     }
     getConnectors() {
         return [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "emitter", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXEMITTER"]], "e"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "collector", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXCOLLECTOR"]], "c"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "base", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXBASE"]], "b")
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "emitter", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEMITTER"]], "e"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "collector", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCOLLECTOR"]], "c"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "base", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXBASE"]], "b")
             ]];
     }
 }
@@ -2738,12 +2763,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Small", function() { return Small; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Large", function() { return Large; });
 /* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
-/* harmony import */ var _drawLarge__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawLarge */ "./typescript/circuit/component/_breadboard/-drawLarge.ts");
-/* harmony import */ var _drawSmall__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawSmall */ "./typescript/circuit/component/_breadboard/-drawSmall.ts");
-/* harmony import */ var _makeTracks__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-makeTracks */ "./typescript/circuit/component/_breadboard/-makeTracks.ts");
-/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
-
+/* harmony import */ var _drawLarge__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./-drawLarge */ "./typescript/circuit/component/_breadboard/-drawLarge.ts");
+/* harmony import */ var _drawSmall__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawSmall */ "./typescript/circuit/component/_breadboard/-drawSmall.ts");
+/* harmony import */ var _makeTracks__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-makeTracks */ "./typescript/circuit/component/_breadboard/-makeTracks.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 
 
 
@@ -2751,10 +2774,13 @@ __webpack_require__.r(__webpack_exports__);
 
 class Base {
     constructor(values) {
-        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])();
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
         this.disabled = false;
         this.form = "layout";
         this.tracks = [];
+        this.flags = {
+            order: "back"
+        };
         this.joints = values.joints;
     }
     getState() {
@@ -2769,9 +2795,6 @@ class Base {
             return track.getConnectors()[0];
         });
     }
-    insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_1__["default"].first(this.group.element, element);
-    }
     transferFunction() { return []; }
     ;
 }
@@ -2781,9 +2804,9 @@ class Small extends Base {
         this.name = "breadboardsmall";
     }
     draw() {
-        this.tracks = Object(_makeTracks__WEBPACK_IMPORTED_MODULE_4__["default"])(this, "small");
+        this.tracks = Object(_makeTracks__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "small");
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSmall__WEBPACK_IMPORTED_MODULE_3__["default"])(this), this.tracks.map(t => t.group));
+        this.group.prepend(Object(_drawSmall__WEBPACK_IMPORTED_MODULE_2__["default"])(this), this.tracks.map(t => t.group));
     }
     getProperties() {
         return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
@@ -2797,9 +2820,9 @@ class Large extends Base {
         this.name = "breadboardlarge";
     }
     draw() {
-        this.tracks = Object(_makeTracks__WEBPACK_IMPORTED_MODULE_4__["default"])(this, "large");
+        this.tracks = Object(_makeTracks__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "large");
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLarge__WEBPACK_IMPORTED_MODULE_2__["default"])(this), this.tracks.map(t => t.group));
+        this.group.prepend(Object(_drawLarge__WEBPACK_IMPORTED_MODULE_1__["default"])(this), this.tracks.map(t => t.group));
     }
     getProperties() {
         return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
@@ -3137,13 +3160,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Schematic", function() { return Schematic; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
 /* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_capacitor/constants.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_capacitor/-drawLayout.ts");
-/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_capacitor/-drawSchematic.ts");
-/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
-
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_capacitor/constants.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_capacitor/-drawLayout.ts");
+/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_capacitor/-drawSchematic.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 
 
 
@@ -3153,8 +3174,11 @@ __webpack_require__.r(__webpack_exports__);
 class Base {
     constructor(values) {
         this.name = "capacitor";
-        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_6__["makeGroup"])();
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])();
         this.disabled = false;
+        this.flags = {
+            order: "fore"
+        };
         this.joints = values.joints;
         this.capacitance = values.capacitance;
         this.isPolarised = values.isPolarised;
@@ -3172,9 +3196,6 @@ class Base {
             disabled: this.disabled
         });
     }
-    insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_1__["default"].last(this.group.element, element);
-    }
     transferFunction() { return []; }
     ;
 }
@@ -3185,19 +3206,19 @@ class Schematic extends Base {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_5__["default"])(this));
+        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_4__["default"])(this));
     }
     getConnectors() {
         if (this.isPolarised) {
             return [[
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "cathode", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXCATHODE"]], "-"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "anode", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXANODE"]], "+"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "cathode", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXCATHODE"]], "-"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "anode", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXANODE"]], "+"),
                 ]];
         }
         else {
             return [[
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXCATHODE"]]),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXANODE"]]),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXCATHODE"]]),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXANODE"]]),
                 ]];
         }
     }
@@ -3209,19 +3230,19 @@ class Layout extends Base {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_4__["default"])(this));
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
     }
     getConnectors() {
         if (this.isPolarised) {
             return [[
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "cathode", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXCATHODE"]], "-"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "anode", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXANODE"]], "+"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "cathode", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXCATHODE"]], "-"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "anode", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXANODE"]], "+"),
                 ]];
         }
         else {
             return [[
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXCATHODE"]]),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXANODE"]]),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXCATHODE"]]),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXANODE"]]),
                 ]];
         }
     }
@@ -3570,13 +3591,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Schematic", function() { return Schematic; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
 /* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_diode/-drawLayout.ts");
-/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_diode/-drawSchematic.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_diode/constants.ts");
-/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
-
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_diode/-drawLayout.ts");
+/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_diode/-drawSchematic.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_diode/constants.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 
 
 
@@ -3586,8 +3605,11 @@ __webpack_require__.r(__webpack_exports__);
 class Base {
     constructor(values) {
         this.name = "diode";
-        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_6__["makeGroup"])();
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])();
         this.disabled = false;
+        this.flags = {
+            order: "fore"
+        };
         this.joints = values.joints;
         this.saturationCurrent = values.saturationCurrent;
         this.breakdownVoltage = values.breakdownVoltage;
@@ -3607,9 +3629,6 @@ class Base {
             disabled: this.disabled
         });
     }
-    insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_1__["default"].last(this.group.element, element);
-    }
     transferFunction() { return []; }
     ;
 }
@@ -3620,12 +3639,12 @@ class Schematic extends Base {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_4__["default"])(this));
+        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
     }
     getConnectors() {
         return [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "anode", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXANODE"]], "+"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "cathode", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXCATHODE"]], "-"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "anode", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXANODE"]], "+"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "cathode", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXCATHODE"]], "-"),
             ]];
     }
 }
@@ -3636,12 +3655,12 @@ class Layout extends Base {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_2__["default"])(this));
     }
     getConnectors() {
         return [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "anode", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXANODE"]], "+"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "cathode", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXCATHODE"]], "-"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "anode", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXANODE"]], "+"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "cathode", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXCATHODE"]], "-"),
             ]];
     }
 }
@@ -3950,13 +3969,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Schematic", function() { return Schematic; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
 /* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_inductor/-drawLayout.ts");
-/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_inductor/-drawSchematic.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_inductor/constants.ts");
-/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
-
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_inductor/-drawLayout.ts");
+/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_inductor/-drawSchematic.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_inductor/constants.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 
 
 
@@ -3966,8 +3983,11 @@ __webpack_require__.r(__webpack_exports__);
 class Base {
     constructor(values) {
         this.name = "inductor";
-        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_6__["makeGroup"])();
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])();
         this.disabled = false;
+        this.flags = {
+            order: "fore"
+        };
         this.joints = values.joints;
         this.inductance = values.inductance;
     }
@@ -3983,9 +4003,6 @@ class Base {
             disabled: this.disabled
         });
     }
-    insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_1__["default"].last(this.group.element, element);
-    }
     transferFunction() { return []; }
     ;
 }
@@ -3996,12 +4013,12 @@ class Schematic extends Base {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_4__["default"])(this));
+        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
     }
     getConnectors() {
         return [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXEND1"]]),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXEND2"]]),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXEND1"]]),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXEND2"]]),
             ]];
     }
 }
@@ -4012,12 +4029,12 @@ class Layout extends Base {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_2__["default"])(this));
     }
     getConnectors() {
         return [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXEND1"]]),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXEND2"]]),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXEND1"]]),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXEND2"]]),
             ]];
     }
 }
@@ -4380,14 +4397,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
 /* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
 /* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_opAmp/-drawLayout.ts");
-/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_opAmp/-drawSchematic.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_opAmp/constants.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../../~constants */ "./typescript/~constants.ts");
-/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
-
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_opAmp/-drawLayout.ts");
+/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_opAmp/-drawSchematic.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_opAmp/constants.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../~constants */ "./typescript/~constants.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 
 
 
@@ -4399,8 +4414,11 @@ __webpack_require__.r(__webpack_exports__);
 class Base {
     constructor(values) {
         this.name = "opamp";
-        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_8__["makeGroup"])();
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_7__["makeGroup"])();
         this.disabled = false;
+        this.flags = {
+            order: "fore"
+        };
         this.offsetVoltage = values.offsetVoltage;
     }
     getProperties() {
@@ -4408,9 +4426,6 @@ class Base {
             name: this.name,
             offsetVoltage: this.offsetVoltage
         });
-    }
-    insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_2__["default"].last(this.group.element, element);
     }
     transferFunction() { return []; }
     ;
@@ -4430,19 +4445,19 @@ class Schematic extends Base {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_5__["default"])(this));
+        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_4__["default"])(this));
     }
     getConnectors() {
-        let [posPower, negPower] = (this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXPOW1"]].y < this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXPOW2"]].y)
-            ? [this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXPOW1"]], this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXPOW2"]]]
-            : [this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXPOW2"]], this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXPOW1"]]];
+        let [posPower, negPower] = (this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXPOW1"]].y < this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXPOW2"]].y)
+            ? [this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXPOW1"]], this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXPOW2"]]]
+            : [this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXPOW2"]], this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXPOW1"]]];
         return [[
                 // The ordering here is important so the colors line up between layout and schematic
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "vcc+", "node", posPower, "v+"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "out", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXOUT"]], "o"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "in-", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXINNEG"]], "i-"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "in+", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXINPOS"]], "i+"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "vcc-", "node", negPower, "v-"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "vcc+", "node", posPower, "v+"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "out", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXOUT"]], "o"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "in-", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXINNEG"]], "i-"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "in+", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXINPOS"]], "i+"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "vcc-", "node", negPower, "v-"),
             ]];
     }
 }
@@ -4463,12 +4478,12 @@ class Layout extends Base {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_4__["default"])(this));
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
     }
     getConnectors() {
-        const gs = _constants__WEBPACK_IMPORTED_MODULE_7__["gridSpacing"];
-        const c = this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXCENTRE"]];
-        const r = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXCENTRE"]]).getAngleTo(this.joints[_constants__WEBPACK_IMPORTED_MODULE_6__["INDEXROTATION"]]);
+        const gs = _constants__WEBPACK_IMPORTED_MODULE_6__["gridSpacing"];
+        const c = this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXCENTRE"]];
+        const r = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXCENTRE"]]).getAngleTo(this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXROTATION"]]);
         const connectorPoints = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])([
             { x: 0 * gs, y: 3 * gs },
             { x: 1 * gs, y: 3 * gs },
@@ -4482,30 +4497,30 @@ class Layout extends Base {
         if (this.isDual) {
             // Note that the power selectors physically occupy the same space.
             return [[
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "vcc+", "pin", connectorPoints[7], "v+"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "out", "pin", connectorPoints[6], "1o"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "in-", "pin", connectorPoints[5], "1i-"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "in+", "pin", connectorPoints[4], "1i+"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "vcc-", "pin", connectorPoints[3], "v-"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "vcc+", "pin", connectorPoints[7], "v+"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "out", "pin", connectorPoints[6], "1o"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "in-", "pin", connectorPoints[5], "1i-"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "in+", "pin", connectorPoints[4], "1i+"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "vcc-", "pin", connectorPoints[3], "v-"),
                 ], [
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "vcc+", "pin", connectorPoints[7], "v+"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "out", "pin", connectorPoints[0], "2o"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "in-", "pin", connectorPoints[1], "2i-"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "in+", "pin", connectorPoints[2], "2i+"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "vcc-", "pin", connectorPoints[3], "v-"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "vcc+", "pin", connectorPoints[7], "v+"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "out", "pin", connectorPoints[0], "2o"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "in-", "pin", connectorPoints[1], "2i-"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "in+", "pin", connectorPoints[2], "2i+"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "vcc-", "pin", connectorPoints[3], "v-"),
                 ]];
         }
         else {
             return [[
                     // The ordering here is important so the colors line up between layout and schematic
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "vcc+", "pin", connectorPoints[6], "v+"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "out", "pin", connectorPoints[5], "o"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "in-", "pin", connectorPoints[1], "i-"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "in+", "pin", connectorPoints[2], "i+"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "vcc-", "pin", connectorPoints[3], "v-"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "nc", "pin", connectorPoints[7], "nc"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "offset n1", "pin", connectorPoints[4], "nc"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "offset n2", "pin", connectorPoints[0], "nc"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "vcc+", "pin", connectorPoints[6], "v+"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "out", "pin", connectorPoints[5], "o"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "in-", "pin", connectorPoints[1], "i-"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "in+", "pin", connectorPoints[2], "i+"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "vcc-", "pin", connectorPoints[3], "v-"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "nc", "pin", connectorPoints[7], "nc"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "offset n1", "pin", connectorPoints[4], "nc"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "offset n2", "pin", connectorPoints[0], "nc"),
                 ]];
         }
     }
@@ -4831,12 +4846,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "PowerSchematic", function() { return PowerSchematic; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "PowerLayout", function() { return PowerLayout; });
 /* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_power/-drawLayout.ts");
-/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_power/-drawSchematic.ts");
-/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
-
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_power/-drawLayout.ts");
+/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_power/-drawSchematic.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 
 
 
@@ -4845,7 +4858,7 @@ __webpack_require__.r(__webpack_exports__);
 class PowerBase {
     constructor(values) {
         this.name = "power";
-        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])();
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
         this.disabled = false;
         this.voltage = values.voltage;
         this.joints = values.joints;
@@ -4869,38 +4882,38 @@ class PowerSchematic extends PowerBase {
     constructor() {
         super(...arguments);
         this.form = "schematic";
-    }
-    insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_1__["default"].last(this.group.element, element);
+        this.flags = {
+            order: "fore"
+        };
     }
     /** Builds and draws the components connectors */
     getConnectors() {
         return [
-            [Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "node", this.joints[0])]
+            [Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "node", this.joints[0])]
         ];
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_4__["default"])(this));
+        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
     }
 }
 class PowerLayout extends PowerBase {
     constructor() {
         super(...arguments);
         this.form = "layout";
-    }
-    insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_1__["default"].after(this.group.element, element, ".board");
+        this.flags = {
+            order: "mid"
+        };
     }
     /** Builds and draws the components connectors */
     getConnectors() {
         return [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "hole", this.joints[0])
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "hole", this.joints[0])
             ]];
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_2__["default"])(this));
     }
 }
 
@@ -5126,20 +5139,21 @@ const INDEXROTATION = 1;
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "StripboardLayout", function() { return StripboardLayout; });
 /* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_stripboard/-drawLayout.ts");
-/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
-
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_stripboard/-drawLayout.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 
 
 
 class StripboardLayout {
     constructor(values) {
         this.name = "stripboard";
-        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["makeGroup"])();
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_2__["makeGroup"])();
         this.disabled = false;
         this.form = "layout";
         this.tracks = [];
+        this.flags = {
+            order: "back"
+        };
         this.rows = values.rows;
         this.columns = values.columns;
         this.trackBreaks = values.trackBreaks;
@@ -5165,10 +5179,7 @@ class StripboardLayout {
         });
     }
     draw() {
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_2__["default"])(this));
-    }
-    insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_1__["default"].first(this.group.element, element);
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_1__["default"])(this));
     }
     transferFunction() { return []; }
     ;
@@ -5337,11 +5348,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
 /* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
 /* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_track/-drawLayout.ts");
-/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
-
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_track/-drawLayout.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 
 
 
@@ -5350,9 +5359,12 @@ __webpack_require__.r(__webpack_exports__);
 class Layout {
     constructor(values) {
         this.name = "track";
-        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])();
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
         this.disabled = false;
         this.form = "layout";
+        this.flags = {
+            order: "fore"
+        };
         this.holeSpacings = values.holeSpacings;
         this.style = values.style;
         this.joints = values.joints;
@@ -5374,7 +5386,7 @@ class Layout {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_4__["default"])(this));
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
     }
     /** Builds and draws the components connectors */
     getConnectors() {
@@ -5390,12 +5402,9 @@ class Layout {
                 .sumWith(start)
                 .vector;
             const connectorType = this.breaks.includes(idx) ? "brokenhole" : "hole";
-            connectorSets[0].push(Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "", connectorType, holePos));
+            connectorSets[0].push(Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", connectorType, holePos));
         });
         return connectorSets;
-    }
-    insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_2__["default"].last(this.group.element, element);
     }
     /** ...
     */
@@ -5700,14 +5709,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Schematic", function() { return Schematic; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
 /* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _utility_flatten__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../utility/~flatten */ "./typescript/utility/~flatten.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_wire/-drawLayout.ts");
-/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_wire/-drawSchematic.ts");
-/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _utility_flatten__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../utility/~flatten */ "./typescript/utility/~flatten.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_wire/-drawLayout.ts");
+/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_wire/-drawSchematic.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 ;
-
 
 
 
@@ -5717,7 +5724,7 @@ __webpack_require__.r(__webpack_exports__);
 class Base {
     constructor() {
         this.name = "wire";
-        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_6__["makeGroup"])();
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])();
         this.disabled = false;
     }
     getProperties() {
@@ -5730,6 +5737,9 @@ class Schematic extends Base {
     constructor(values) {
         super();
         this.form = "schematic";
+        this.flags = {
+            order: "back"
+        };
         this.joints = values.joints;
     }
     getState() {
@@ -5740,28 +5750,28 @@ class Schematic extends Base {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_5__["default"])(this));
-    }
-    insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_1__["default"].first(this.group.element, element);
+        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_4__["default"])(this));
     }
     getConnectors() {
         const end1 = this.joints[0];
         const end2 = this.joints[this.joints.length - 1];
         return [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "end1", "node", end1),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "end2", "node", end2)
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "end1", "node", end1),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "end2", "node", end2)
             ]
         ];
     }
     transferFunction(from) {
-        return _utility_flatten__WEBPACK_IMPORTED_MODULE_3__["default"].flatten2d(this.getConnectors().map(connectorSet => connectorSet.filter(c => !(c.name === from.name && c.component == from.component))));
+        return _utility_flatten__WEBPACK_IMPORTED_MODULE_2__["default"].flatten2d(this.getConnectors().map(connectorSet => connectorSet.filter(c => !(c.name === from.name && c.component == from.component))));
     }
 }
 class Layout extends Base {
     constructor(values) {
         super();
         this.form = "layout";
+        this.flags = {
+            order: "fore"
+        };
         this.joints = values.joints;
         this.color = values.color;
     }
@@ -5774,20 +5784,17 @@ class Layout extends Base {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_4__["default"])(this));
-    }
-    insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_1__["default"].last(this.group.element, element);
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
     }
     getConnectors() {
         return [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "end1", "pin", this.joints[0]),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "end2", "pin", this.joints[this.joints.length - 1]),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "end1", "pin", this.joints[0]),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "end2", "pin", this.joints[this.joints.length - 1]),
             ]
         ];
     }
     transferFunction(from) {
-        return _utility_flatten__WEBPACK_IMPORTED_MODULE_3__["default"].flatten2d(this.getConnectors().map(connectorSet => connectorSet.filter(c => !(c.name === from.name && c.component == from.component))));
+        return _utility_flatten__WEBPACK_IMPORTED_MODULE_2__["default"].flatten2d(this.getConnectors().map(connectorSet => connectorSet.filter(c => !(c.name === from.name && c.component == from.component))));
     }
 }
 
@@ -5904,9 +5911,11 @@ const ConnectionsHighlightable = (() => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
-/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../events */ "./typescript/circuit/events.ts");
-/* harmony import */ var _history__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../history */ "./typescript/circuit/history.ts");
+/* harmony import */ var _component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../+component */ "./typescript/circuit/+component.ts");
+/* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../events */ "./typescript/circuit/events.ts");
+/* harmony import */ var _history__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../history */ "./typescript/circuit/history.ts");
+
 
 // import mappings from "../../mappings";
 
@@ -5915,21 +5924,21 @@ const Draggable = (() => {
     const init = (component, enablePredicate) => {
         const element = component.group.element;
         $(element).addClass("draggable");
-        $(element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStart, (e) => {
+        $(element).on(_events__WEBPACK_IMPORTED_MODULE_2__["default"].dragStart, (e) => {
             if (e.target === element) {
-                _history__WEBPACK_IMPORTED_MODULE_2__["default"].add(component);
-                component.insertInto(component.group.element);
+                _history__WEBPACK_IMPORTED_MODULE_3__["default"].add(component);
+                Object(_component__WEBPACK_IMPORTED_MODULE_0__["insert"])(component);
             }
         });
-        $(element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].drag, (e, drag) => {
+        $(element).on(_events__WEBPACK_IMPORTED_MODULE_2__["default"].drag, (e, drag) => {
             if (e.target === element) {
-                component.joints = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(component.joints).sumWith(drag).vectors;
-                $(element).trigger(_events__WEBPACK_IMPORTED_MODULE_1__["default"].draw);
+                component.joints = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(component.joints).sumWith(drag).vectors;
+                $(element).trigger(_events__WEBPACK_IMPORTED_MODULE_2__["default"].draw);
             }
         });
-        $(element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].dragStop, (e) => {
+        $(element).on(_events__WEBPACK_IMPORTED_MODULE_2__["default"].dragStop, (e) => {
             if (e.target === element) {
-                component.joints = component.joints.map(j => Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(j).round().vector);
+                component.joints = component.joints.map(j => Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(j).round().vector);
             }
         });
         // // TODO, I don't quite like how this is coupled together
@@ -6452,8 +6461,10 @@ const Rotatable = (() => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../events */ "./typescript/circuit/events.ts");
-/* harmony import */ var _manifest__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../manifest */ "./typescript/circuit/manifest.ts");
+/* harmony import */ var _component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../+component */ "./typescript/circuit/+component.ts");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../events */ "./typescript/circuit/events.ts");
+/* harmony import */ var _manifest__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../manifest */ "./typescript/circuit/manifest.ts");
+
 
 
 //import * as $ from 'jquery';
@@ -6472,7 +6483,7 @@ const Selectable = (() => {
         return (elementCorrespondsToComponent || elementIsComponentSelector);
     };
     const elementIndirectlySelectsComponent = (element, component) => {
-        const selectionElements = _manifest__WEBPACK_IMPORTED_MODULE_1__["default"].findCorresponding(component).map(el => el.group.element);
+        const selectionElements = _manifest__WEBPACK_IMPORTED_MODULE_2__["default"].findCorresponding(component).map(el => el.group.element);
         return $(element).parents().is(selectionElements);
     };
     const elementSelectsComponent = (element, component) => (elementDirectlySelectsComponent(element, component) ||
@@ -6482,11 +6493,11 @@ const Selectable = (() => {
         $(component.group.element).one("mousedown", () => {
             /*LOGSTART*/ console.groupCollapsed("Selected", component.group.element); /*LOGEND*/
             /*LOGSTART*/ console.log("Primary: %o", component); /*LOGEND*/
-            const otherComponents = _manifest__WEBPACK_IMPORTED_MODULE_1__["default"].findCorresponding(component);
+            const otherComponents = _manifest__WEBPACK_IMPORTED_MODULE_2__["default"].findCorresponding(component);
             /*LOGSTART*/ console.log("Secondaries: %o", otherComponents); /*LOGEND*/
             const selectComponents = otherComponents.concat(component);
             selectComponents.forEach(selectComponent => {
-                $(selectComponent.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].select);
+                $(selectComponent.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_1__["default"].select);
             });
             setDeselectTrigger(component);
             /*LOGSTART*/ console.groupEnd(); /*LOGEND*/
@@ -6500,23 +6511,23 @@ const Selectable = (() => {
                 setDeselectTrigger(component);
                 return;
             }
-            const otherComponents = _manifest__WEBPACK_IMPORTED_MODULE_1__["default"].findCorresponding(component);
+            const otherComponents = _manifest__WEBPACK_IMPORTED_MODULE_2__["default"].findCorresponding(component);
             const selectComponents = otherComponents.concat(component);
             selectComponents.forEach(selectComponent => {
                 // Only deselect if not selected by new selection
                 if (!elementSelectsComponent(e.target, selectComponent)) {
-                    $(selectComponent.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].deselect);
+                    $(selectComponent.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_1__["default"].deselect);
                 }
             });
             setSelectTrigger(component);
         });
     };
     const setDisplayHandlers = (component) => {
-        $(component.group.element).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].select, () => {
+        $(component.group.element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].select, () => {
             $(component.group.element).addClass("selected");
-            component.insertInto(component.group.element);
+            Object(_component__WEBPACK_IMPORTED_MODULE_0__["insert"])(component);
         });
-        $(component.group.element).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].deselect, () => {
+        $(component.group.element).on(_events__WEBPACK_IMPORTED_MODULE_1__["default"].deselect, () => {
             $(component.group.element).removeClass("selected");
         });
     };
@@ -6918,13 +6929,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Schematic", function() { return Schematic; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
 /* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/~insert */ "./typescript/utility/~insert.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/resistor/-drawLayout.ts");
-/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/resistor/-drawSchematic.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/resistor/constants.ts");
-/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
-
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/resistor/-drawLayout.ts");
+/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/resistor/-drawSchematic.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/resistor/constants.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 
 
 
@@ -6934,8 +6943,11 @@ __webpack_require__.r(__webpack_exports__);
 class Base {
     constructor(values) {
         this.name = "resistor";
-        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_6__["makeGroup"])();
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])();
         this.disabled = false;
+        this.flags = {
+            order: "fore"
+        };
         this.joints = values.joints;
         this.resistance = values.resistance;
     }
@@ -6951,9 +6963,6 @@ class Base {
             disabled: this.disabled
         });
     }
-    insertInto(element) {
-        _utility_insert__WEBPACK_IMPORTED_MODULE_1__["default"].last(this.group.element, element);
-    }
     transferFunction() { return []; }
     ;
 }
@@ -6964,12 +6973,12 @@ class Schematic extends Base {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_4__["default"])(this));
+        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
     }
     getConnectors() {
         return [
-            [Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXEND1"]]),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXEND2"]]),]
+            [Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXEND1"]]),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXEND2"]]),]
         ];
     }
 }
@@ -6980,12 +6989,12 @@ class Layout extends Base {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_2__["default"])(this));
     }
     getConnectors() {
         return [
-            [Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXEND1"]]),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXEND2"]]),]
+            [Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXEND1"]]),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXEND2"]]),]
         ];
     }
 }
@@ -7327,15 +7336,17 @@ const history = Object(_history_factory__WEBPACK_IMPORTED_MODULE_0__["default"])
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _active__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../~active */ "./typescript/~active.ts");
-/* harmony import */ var _component_opAmp_classes__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./component/_opAmp/~classes */ "./typescript/circuit/component/_opAmp/~classes.ts");
-/* harmony import */ var _utility_curry__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utility/~curry */ "./typescript/utility/~curry.ts");
-/* harmony import */ var _utility_split__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../utility/-split */ "./typescript/utility/-split.ts");
-/* harmony import */ var _utility_is__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utility/-is */ "./typescript/utility/-is.ts");
-/* harmony import */ var _utility_isUnaryMap__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../utility/-isUnaryMap */ "./typescript/utility/-isUnaryMap.ts");
-/* harmony import */ var _mappings__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./mappings */ "./typescript/circuit/mappings.ts");
-/* harmony import */ var _history__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./history */ "./typescript/circuit/history.ts");
-/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./events */ "./typescript/circuit/events.ts");
-/* harmony import */ var _generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./generics/-getComponentConnections */ "./typescript/circuit/generics/-getComponentConnections.ts");
+/* harmony import */ var _component__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./+component */ "./typescript/circuit/+component.ts");
+/* harmony import */ var _component_opAmp_classes__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./component/_opAmp/~classes */ "./typescript/circuit/component/_opAmp/~classes.ts");
+/* harmony import */ var _utility_curry__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../utility/~curry */ "./typescript/utility/~curry.ts");
+/* harmony import */ var _utility_split__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../utility/-split */ "./typescript/utility/-split.ts");
+/* harmony import */ var _utility_is__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../utility/-is */ "./typescript/utility/-is.ts");
+/* harmony import */ var _utility_isUnaryMap__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../utility/-isUnaryMap */ "./typescript/utility/-isUnaryMap.ts");
+/* harmony import */ var _mappings__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./mappings */ "./typescript/circuit/mappings.ts");
+/* harmony import */ var _history__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./history */ "./typescript/circuit/history.ts");
+/* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./events */ "./typescript/circuit/events.ts");
+/* harmony import */ var _generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./generics/-getComponentConnections */ "./typescript/circuit/generics/-getComponentConnections.ts");
+
 
 
 
@@ -7367,7 +7378,7 @@ const manifest = (() => {
         manifest.layout = savedManifest.layout;
         if (!savedManifest.layout || savedManifest.layout.length === 0)
             completeManifestLayout();
-        manifest.activeBoard = manifest.layout.find(component => _mappings__WEBPACK_IMPORTED_MODULE_6__["default"].getComponentMapSafe(component).isBoard === true);
+        manifest.activeBoard = manifest.layout.find(component => _mappings__WEBPACK_IMPORTED_MODULE_7__["default"].getComponentMapSafe(component).isBoard === true);
         draw();
     };
     const addComponent = (manifestSection, ...components) => {
@@ -7379,7 +7390,7 @@ const manifest = (() => {
             diagram = _active__WEBPACK_IMPORTED_MODULE_0__["default"].layout;
         }
         components.forEach(component => component.disabled = true);
-        _history__WEBPACK_IMPORTED_MODULE_7__["default"].add(manifest, ...components);
+        _history__WEBPACK_IMPORTED_MODULE_8__["default"].add(manifest, ...components);
         components.forEach(component => {
             component.disabled = false;
             manifestSection.push(component);
@@ -7387,15 +7398,15 @@ const manifest = (() => {
         });
     };
     const placeComponent = (component, diagram) => {
-        component.insertInto(diagram.root.group.element);
-        $(component.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_8__["default"].place);
+        Object(_component__WEBPACK_IMPORTED_MODULE_1__["insert"])(component, diagram.root.group.element);
+        $(component.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_9__["default"].place);
     };
     const draw = () => {
         manifest.schematic.forEach(component => placeComponent(component, _active__WEBPACK_IMPORTED_MODULE_0__["default"].schematic));
         manifest.layout.forEach(component => placeComponent(component, _active__WEBPACK_IMPORTED_MODULE_0__["default"].layout));
     };
     const removeComponent = (...components) => {
-        _history__WEBPACK_IMPORTED_MODULE_7__["default"].add(manifest, ...components);
+        _history__WEBPACK_IMPORTED_MODULE_8__["default"].add(manifest, ...components);
         manifest.layout = manifest.layout.filter(el => !components.includes(el));
         manifest.schematic = manifest.schematic.filter(el => !components.includes(el));
         components.forEach(component => {
@@ -7404,7 +7415,7 @@ const manifest = (() => {
         });
     };
     const findCorresponding = (component) => {
-        if (!_mappings__WEBPACK_IMPORTED_MODULE_6__["default"].getComponentMapSafe(component).correspondsTo)
+        if (!_mappings__WEBPACK_IMPORTED_MODULE_7__["default"].getComponentMapSafe(component).correspondsTo)
             return [];
         //Find component
         if (manifest.layout.includes(component)) {
@@ -7420,14 +7431,14 @@ const manifest = (() => {
     const checkAll = () => {
         /*LOGSTART*/ console.groupCollapsed("Check Data"); /*LOGEND*/
         // Only look at components which need to be compared
-        let layComponents = manifest.layout.filter(c => _mappings__WEBPACK_IMPORTED_MODULE_6__["default"].getComponentMapSafe(c).correspondsTo);
-        let schComponents = manifest.schematic.filter(c => _mappings__WEBPACK_IMPORTED_MODULE_6__["default"].getComponentMapSafe(c).correspondsTo);
+        let layComponents = manifest.layout.filter(c => _mappings__WEBPACK_IMPORTED_MODULE_7__["default"].getComponentMapSafe(c).correspondsTo);
+        let schComponents = manifest.schematic.filter(c => _mappings__WEBPACK_IMPORTED_MODULE_7__["default"].getComponentMapSafe(c).correspondsTo);
         let schConnectorData = schComponents.map(schComponent => ({
             component: schComponent,
             connectorSets: getMinConnections(schComponent)
         }));
         // Split the layout components by whether they pass the test
-        let passSorted = Object(_utility_split__WEBPACK_IMPORTED_MODULE_3__["default"])(layComponents, (layComponent) => {
+        let passSorted = Object(_utility_split__WEBPACK_IMPORTED_MODULE_4__["default"])(layComponents, (layComponent) => {
             if (schConnectorData.length === 0)
                 return false;
             // Find the layout components connector sets
@@ -7436,7 +7447,7 @@ const manifest = (() => {
             let schConnectorMinData = schConnectorData.filter(datum => areComponentsSimilar(layComponent)(datum.component));
             console.log(schConnectorMinData, layComponent, layConnectorSets);
             // Merge them into one if the component is unique (e.g. power supplies)
-            const componentIsUnique = _mappings__WEBPACK_IMPORTED_MODULE_6__["default"].getComponentMapSafe(layComponent).isUnique;
+            const componentIsUnique = _mappings__WEBPACK_IMPORTED_MODULE_7__["default"].getComponentMapSafe(layComponent).isUnique;
             if (componentIsUnique) {
                 let merged = mergeConnectorsSets(schConnectorMinData.map(datum => datum.connectorSets));
                 schConnectorMinData.forEach(datum => {
@@ -7485,7 +7496,7 @@ const manifest = (() => {
         clear: clear
     };
 })();
-const arePropertiesEqual = _utility_curry__WEBPACK_IMPORTED_MODULE_2__["default"].makeOptional((A, B) => {
+const arePropertiesEqual = _utility_curry__WEBPACK_IMPORTED_MODULE_3__["default"].makeOptional((A, B) => {
     let Akeys = Object.keys(A);
     let Bkeys = Object.keys(B);
     return ((Akeys.length === Bkeys.length) &&
@@ -7493,7 +7504,7 @@ const arePropertiesEqual = _utility_curry__WEBPACK_IMPORTED_MODULE_2__["default"
             return (B.hasOwnProperty(key) && A[key] === B[key]);
         }));
 });
-const areComponentsSimilar = _utility_curry__WEBPACK_IMPORTED_MODULE_2__["default"].makeOptional((componentA, componentB) => {
+const areComponentsSimilar = _utility_curry__WEBPACK_IMPORTED_MODULE_3__["default"].makeOptional((componentA, componentB) => {
     return (componentA.name === componentB.name &&
         arePropertiesEqual(componentA.getProperties(), componentB.getProperties()));
 });
@@ -7503,18 +7514,18 @@ const createMissingLayoutElements = () => {
         let properties = schematicElement.getProperties();
         let match = layoutCopy.find(layoutElement => arePropertiesEqual(properties, layoutElement.getProperties()));
         if (match) {
-            if (!_mappings__WEBPACK_IMPORTED_MODULE_6__["default"].getComponentMapSafe(match).isUnique) {
-                layoutCopy = layoutCopy.filter(Object(_utility_is__WEBPACK_IMPORTED_MODULE_4__["default"])(match));
+            if (!_mappings__WEBPACK_IMPORTED_MODULE_7__["default"].getComponentMapSafe(match).isUnique) {
+                layoutCopy = layoutCopy.filter(Object(_utility_is__WEBPACK_IMPORTED_MODULE_5__["default"])(match));
             }
         }
         else {
-            const correspondsTo = _mappings__WEBPACK_IMPORTED_MODULE_6__["default"].getComponentMapSafe(schematicElement).correspondsTo;
+            const correspondsTo = _mappings__WEBPACK_IMPORTED_MODULE_7__["default"].getComponentMapSafe(schematicElement).correspondsTo;
             if (correspondsTo !== undefined) {
                 const newComponentMaker = correspondsTo.make;
                 const newComponent = newComponentMaker(schematicElement.getProperties());
                 //mappings.getLayoutInstanceFromSchematic(schematicElement);
                 manifest.layout.push(newComponent);
-                if (_mappings__WEBPACK_IMPORTED_MODULE_6__["default"].getComponentMapSafe(newComponent).isUnique) {
+                if (_mappings__WEBPACK_IMPORTED_MODULE_7__["default"].getComponentMapSafe(newComponent).isUnique) {
                     layoutCopy.push(newComponent);
                 }
             }
@@ -7523,7 +7534,7 @@ const createMissingLayoutElements = () => {
 };
 const mergeSingleOpAmps = () => {
     // For dual op amps
-    let layoutOpAmps = manifest.layout.filter(layoutElement => (layoutElement["constructor"] === _component_opAmp_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"]));
+    let layoutOpAmps = manifest.layout.filter(layoutElement => (layoutElement["constructor"] === _component_opAmp_classes__WEBPACK_IMPORTED_MODULE_2__["Layout"]));
     let opAmpGroups = [];
     layoutOpAmps.forEach((opAmp, i) => {
         let groupIdx = opAmpGroups.findIndex(group => arePropertiesEqual(opAmp.getProperties(), group[0].getProperties()));
@@ -7573,36 +7584,36 @@ const mergeConnectorsSets = (connectorSetGroups) => {
     });
 };
 const getMinConnections = (component) => {
-    return (Object(_generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_9__["default"])(component).map(connectorSet => {
+    return (Object(_generics_getComponentConnections__WEBPACK_IMPORTED_MODULE_10__["default"])(component).map(connectorSet => {
         return (connectorSet.map(connections => {
             let connectorName = connections[0].name;
             connections.shift();
-            let blackHole = connections.find(connection => _mappings__WEBPACK_IMPORTED_MODULE_6__["default"].getComponentMapSafe(connection.component).isUnique === true);
+            let blackHole = connections.find(connection => _mappings__WEBPACK_IMPORTED_MODULE_7__["default"].getComponentMapSafe(connection.component).isUnique === true);
             if (blackHole)
-                connections = connections.filter(Object(_utility_is__WEBPACK_IMPORTED_MODULE_4__["default"])(blackHole));
+                connections = connections.filter(Object(_utility_is__WEBPACK_IMPORTED_MODULE_5__["default"])(blackHole));
             return {
                 name: connectorName,
-                connections: connections.filter((connection) => _mappings__WEBPACK_IMPORTED_MODULE_6__["default"].getComponentMapSafe(connection.component).correspondsTo)
+                connections: connections.filter((connection) => _mappings__WEBPACK_IMPORTED_MODULE_7__["default"].getComponentMapSafe(connection.component).correspondsTo)
             };
         })).filter(c => c.connections.length !== 0);
     }));
 };
-const connectorSetsHaveMatch = _utility_curry__WEBPACK_IMPORTED_MODULE_2__["default"].makeOptional((connectorSetsA, connectorSetsB) => {
+const connectorSetsHaveMatch = _utility_curry__WEBPACK_IMPORTED_MODULE_3__["default"].makeOptional((connectorSetsA, connectorSetsB) => {
     return connectorSetsA.some(connectorSetA => {
         return connectorSetsB.some(connectorSetMatch(connectorSetA));
     });
 });
-const connectorSetMatch = _utility_curry__WEBPACK_IMPORTED_MODULE_2__["default"].makeOptional((connectorSetA, connectorSetB) => {
+const connectorSetMatch = _utility_curry__WEBPACK_IMPORTED_MODULE_3__["default"].makeOptional((connectorSetA, connectorSetB) => {
     // Returns true if both connector sets have the same set of connectors 
     // connected to the same set of connections...
     // Every connector in each connector set has a match in the corresponding set.
-    return Object(_utility_isUnaryMap__WEBPACK_IMPORTED_MODULE_5__["default"])(connectorSetA, connectorSetB, (connectorA, connectorB) => {
+    return Object(_utility_isUnaryMap__WEBPACK_IMPORTED_MODULE_6__["default"])(connectorSetA, connectorSetB, (connectorA, connectorB) => {
         if (connectorA.name !== connectorB.name)
             return false;
         const connectionsA = connectorA.connections;
         const connectionsB = connectorB.connections;
         // Every connection in each connector has a match in the corresponding connector
-        return Object(_utility_isUnaryMap__WEBPACK_IMPORTED_MODULE_5__["default"])(connectionsA, connectionsB, (connectionA, connectionB) => {
+        return Object(_utility_isUnaryMap__WEBPACK_IMPORTED_MODULE_6__["default"])(connectionsA, connectionsB, (connectionA, connectionB) => {
             // Connections are the same if:
             return (connectionA.name === connectionB.name
                 && areComponentsSimilar(connectionA.component, connectionB.component));
@@ -8323,6 +8334,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _element_group__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./element/+group */ "./typescript/svg/element/+group.ts");
 /* harmony import */ var _addins_draggable__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./addins/draggable */ "./typescript/svg/addins/draggable.ts");
 /* harmony import */ var _addins_scaleable__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./addins/scaleable */ "./typescript/svg/addins/scaleable.ts");
+/* harmony import */ var _element__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./+element */ "./typescript/svg/+element.ts");
+
 
 
 
@@ -8336,6 +8349,7 @@ class Root {
     }
     draw(node) {
         this.element.append(this.group);
+        this.group.append(Object(_element__WEBPACK_IMPORTED_MODULE_4__["makeElement"])("marker-back"), Object(_element__WEBPACK_IMPORTED_MODULE_4__["makeElement"])("marker-mid"), Object(_element__WEBPACK_IMPORTED_MODULE_4__["makeElement"])("marker-fore"));
         node.appendChild(this.element.element);
         _addins_draggable__WEBPACK_IMPORTED_MODULE_2__["default"].init(this.element.element);
         _addins_scaleable__WEBPACK_IMPORTED_MODULE_3__["default"].init(this.group.element, {
@@ -8710,7 +8724,7 @@ var Functions;
             //item = item instanceof Array ? item : [item];
             let asArray = item instanceof Array ? item : [item];
             asArray.forEach(member => {
-                let element = member instanceof SVGGraphicsElement ? member : member.element;
+                let element = member instanceof SVGElement ? member : member.element;
                 addCallback(element);
             });
         });

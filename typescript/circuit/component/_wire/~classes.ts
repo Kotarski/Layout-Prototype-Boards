@@ -2,7 +2,6 @@ import Component, { Types as ComponentTypes } from "../../+component";;
 import * as Types from "./types";
 import { Vector } from "../../../-vector";
 import deepCopy from "../../../utility/-deepCopy";
-import Insert from "../../../utility/~insert";
 import makeConnector from "../../generics/-makeConnector";
 import Flatten from "../../../utility/~flatten";
 import drawLayout from "./-drawLayout";
@@ -41,8 +40,8 @@ export class Schematic extends Base implements Component, Types.valuesSchematic 
       this.group.prepend(drawSchematic(this));
    }
 
-   insertInto(element?: SVGGraphicsElement) {
-      Insert.first(this.group.element, element);
+   flags = {
+      order: "back" as "back"
    }
 
    getConnectors(): ComponentTypes.node[][] {
@@ -87,8 +86,8 @@ export class Layout extends Base implements Component, Types.valuesLayout {
       this.group.prepend(drawLayout(this));
    }
 
-   insertInto(element?: SVGGraphicsElement) {
-      Insert.last(this.group.element, element);
+   flags = {
+      order: "fore" as "fore"
    }
 
    getConnectors(): ComponentTypes.connector[][] {

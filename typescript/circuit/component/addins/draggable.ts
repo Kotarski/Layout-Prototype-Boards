@@ -1,4 +1,4 @@
-import Component from "../../+component";
+import Component, { insert } from "../../+component";
 import vector, { Vector } from "../../../-vector";
 // import mappings from "../../mappings";
 import Events from "../../events";
@@ -17,7 +17,7 @@ const Draggable = (() => {
       $(element).on(Events.dragStart, (e) => {
          if (e.target === element) {
             history.add(component);
-            component.insertInto(component.group.element);
+            insert(component);
          }
       });
 

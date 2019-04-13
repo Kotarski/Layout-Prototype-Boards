@@ -1,4 +1,4 @@
-import Component from "../../+component";
+import Component, { insert } from "../../+component";
 import Events from "../../events";
 import manifest from "../../manifest";
 //import * as $ from 'jquery';
@@ -80,7 +80,7 @@ const Selectable = (() => {
    const setDisplayHandlers = (component: Component) => {
       $(component.group.element).on(Events.select, () => {
          $(component.group.element).addClass("selected");
-         component.insertInto(component.group.element);
+         insert(component);
       });
       $(component.group.element).on(Events.deselect, () => {
          $(component.group.element).removeClass("selected");

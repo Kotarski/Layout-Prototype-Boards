@@ -2,7 +2,6 @@ import Component, { Types as ComponentTypes } from "../../+component";
 import * as Types from "./types";
 import vector, { Vector } from "../../../-vector";
 import deepCopy from "../../../utility/-deepCopy";
-import Insert from "../../../utility/~insert";
 import makeConnector from "../../generics/-makeConnector";
 import drawLayout from "./-drawLayout";
 import { makeGroup } from "../../../svg/element/+group";
@@ -72,8 +71,8 @@ export class Layout implements Component, Types.properties, Types.state {
 
       return connectorSets
    }
-   insertInto(element?: SVGGraphicsElement) {
-      Insert.last(this.group.element, element);
+   flags = {
+      order: "fore" as "fore"
    }
 
    /** ...

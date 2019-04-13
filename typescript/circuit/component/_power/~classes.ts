@@ -2,7 +2,6 @@ import Component, { Types as ComponentTypes } from "../../+component";
 import * as Types from "./types";
 import { Vector } from "../../../-vector";
 import deepCopy from "../../../utility/-deepCopy";
-import Insert from "../../../utility/~insert";
 import makeConnector from "../../generics/-makeConnector";
 import drawLayout from "./-drawLayout";
 import drawSchematic from "./-drawSchematic";
@@ -38,8 +37,8 @@ abstract class PowerBase implements Types.values {
 
 export class PowerSchematic extends PowerBase implements Component {
    form = "schematic" as "schematic"
-   insertInto(element?: SVGGraphicsElement) {
-      Insert.last(this.group.element, element);
+   flags = {
+      order: "fore" as "fore"
    }
 
    /** Builds and draws the components connectors */
@@ -57,8 +56,8 @@ export class PowerSchematic extends PowerBase implements Component {
 
 export class PowerLayout extends PowerBase implements Component {
    form = "layout" as "layout"
-   insertInto(element?: SVGGraphicsElement) {
-      Insert.after(this.group.element, element, ".board");
+   flags = {
+      order: "mid" as "mid"
    }
 
    /** Builds and draws the components connectors */

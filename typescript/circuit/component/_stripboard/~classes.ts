@@ -1,7 +1,6 @@
 import Component, { Types as ComponentTypes } from "../../+component";
 import * as Types from "./types";
 import deepCopy from "../../../utility/-deepCopy";
-import Insert from "../../../utility/~insert";
 import { Layout as Track } from "../_track/~classes";
 import drawLayout from "./-drawLayout";
 import { Vector } from "../../../++types";
@@ -50,8 +49,8 @@ export class StripboardLayout implements Component, Types.values {
    draw() {
       this.group.prepend(drawLayout(this))
    }
-   insertInto(element?: SVGGraphicsElement) {
-      Insert.first(this.group.element, element);
+   flags = {
+      order: "back" as "back"
    }
 
    transferFunction() { return [] };

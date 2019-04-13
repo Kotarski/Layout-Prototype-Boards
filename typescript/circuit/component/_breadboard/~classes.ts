@@ -2,7 +2,6 @@ import Component, { Types as ComponentTypes } from "../../+component";
 import * as Types from "./types";
 import { Vector } from "../../../-vector";
 import deepCopy from "../../../utility/-deepCopy";
-import Insert from "../../../utility/~insert";
 import { Layout as Track } from "../_track/~classes";
 import drawLarge from "./-drawLarge";
 import drawSmall from "./-drawSmall";
@@ -36,8 +35,8 @@ abstract class Base {
       })
    }
 
-   insertInto(element?: SVGGraphicsElement) {
-      Insert.first(this.group.element, element);
+   flags = {
+      order: "back" as "back"
    }
 
    transferFunction() { return [] };
