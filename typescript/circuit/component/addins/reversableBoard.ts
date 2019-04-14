@@ -10,8 +10,10 @@ import { makeCircle as makeCircle } from "../../../svg/element/+circle"
 //import * as $ from 'jquery';
 
 type reversibleBoard = Component & {
+   states: {
+      trackBreaks: { track: number, hole: number }[];
+   }  
    tracks: Track[],
-   trackBreaks: { track: number, hole: number }[];
 }
 
 const ReversableBoard = (() => {
@@ -67,7 +69,7 @@ const ReversableBoard = (() => {
       let parent = (component.group.element.parentElement);
       if (parent) parent.appendChild(ghostGroup);
 
-      let allValidConnectors = Flatten.flatten2d(manifest.layout.map(el =>
+      let allValidConnectors = Flatten.flatten2d(manifest.states.layout.map(el =>
          Flatten.flatten2d(el.getConnectors().map(connectorSet =>
             connectorSet.filter(connector => connector.type === "pin")
          ))
@@ -105,15 +107,15 @@ const ReversableBoard = (() => {
                if (hole.type === "hole") {
                   $(breaker.element).addClass("broken");
                   hole.type = "brokenhole";
-                  component.trackBreaks.push(holePosition);
-                  track.breaks.push(holePosition.hole);
+                  component.states.trackBreaks.push(holePosition);
+                  track.states.breaks.push(holePosition.hole);
                } else if (hole.type === "brokenhole") {
                   $(breaker.element).removeClass("broken");
                   hole.type = "hole";
-                  component.trackBreaks = component.trackBreaks.filter(trackBreak =>
+                  component.states.trackBreaks = component.states.trackBreaks.filter(trackBreak =>
                      (trackBreak.hole !== holePosition.hole || trackBreak.track !== holePosition.track)
                   );
-                  track.breaks = track.breaks.filter(b=>b !== holePosition.hole);
+                  track.states.breaks = track.states.breaks.filter(b=>b !== holePosition.hole);
                }
             });
          });

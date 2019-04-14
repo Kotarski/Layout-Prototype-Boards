@@ -12,8 +12,8 @@ import { gridSpacing } from "../../../~constants";
 export default function drawSmall(instance: Small) {
    const bodyGroup = makeGroup("body");
 
-   const centre = instance.joints[INDEXCENTRE];
-   const rotationPoint = instance.joints[INDEXROTATION];
+   const centre = instance.states.joints[INDEXCENTRE];
+   const rotationPoint = instance.states.joints[INDEXROTATION];
 
    let rotation = vector(centre).getAngleTo(rotationPoint);
 

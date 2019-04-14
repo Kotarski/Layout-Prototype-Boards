@@ -1,45 +1,26 @@
 import Component, { Types as ComponentTypes } from "../../+component";
 import * as Types from "./types";
-import deepCopy from "../../../utility/-deepCopy";
 import { Layout as Track } from "../_track/~classes";
 import drawLayout from "./-drawLayout";
-import { Vector } from "../../../++types";
 import { makeGroup } from "../../../svg/element/+group";
 
-export class StripboardLayout implements Component, Types.values {
-   name = "stripboard" as "stripboard";
+export class StripboardLayout implements Component, Types.stripboard<"layout"> {
+   type = "stripboard" as "stripboard";
    group = makeGroup();
-   disabled = false;
    form = "layout" as "layout"
    tracks: Track[] = [];
-   trackBreaks: Types.trackBreak[];
-   rows: number;
-   columns: number;
-   joints: [Vector, Vector];
-
+   properties: Types.properties;
+   states: Types.state;
    constructor(values: Types.properties & Types.state) {
-      this.rows = values.rows;
-      this.columns = values.columns;
-      this.trackBreaks = values.trackBreaks;
-      this.joints = values.joints;
+      this.properties = {
+         rows: values.rows,
+         columns: values.columns
+      }
+      this.states = {
+         joints: values.joints,
+         trackBreaks: values.trackBreaks
+      }
    }
-
-   getProperties(): Types.properties {
-      return deepCopy({
-         name: this.name,
-         rows: this.rows,
-         columns: this.columns
-      });
-   }
-
-   getState(): Types.state {
-      return deepCopy({
-         joints: this.joints,
-         disabled: this.disabled,
-         trackBreaks: this.trackBreaks
-      });
-   }
-
    getConnectors(): ComponentTypes.hole[][] {
       return this.tracks.map((track) => {
          return track.getConnectors()[0]
@@ -50,7 +31,8 @@ export class StripboardLayout implements Component, Types.values {
       this.group.prepend(drawLayout(this))
    }
    flags = {
-      order: "back" as "back"
+      order: "back" as "back",
+      disabled: false
    }
 
    transferFunction() { return [] };

@@ -1,12 +1,14 @@
 import { group } from "../../svg/element/+group"
 export type participant = {
-   getState: () => {};
+   states: {};
+   flags:{};
    group?: group;
 }
 
 export type development<C extends participant> = {
    participant: C,
-   state: Partial<ReturnType<C["getState"]>>
+   states: Partial<C["states"]>,
+   flags: Partial<C["flags"]>
 }
 
 export type event = development<participant>[];

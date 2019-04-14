@@ -9,8 +9,6 @@ import Selectable from "../addins/selectable";
 import ConnectionsHighlightable from "../addins/connectionsHighlightable";
 
 const defaulterSchematic: ValueCheck.Defaulter<Types.values> = {
-   name: ValueCheck.validate("string", "power"),
-   disabled: ValueCheck.validate("boolean", false),
    joints: ValueCheck.joints<[Vector]>(
       [{ x: 0, y: 0 }]
    ),

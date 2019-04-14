@@ -9,7 +9,7 @@ import { Strict } from "../../../++types";
 import { gridSpacing } from "../../../~constants";
 //import * as $ from 'jquery';
 
-type extendableComponent = Component & { joints: Vector[] };
+type extendableComponent = Component & { states: { joints: Vector[] } };
 
 const Extendable = (() => {
    type Options = {
@@ -55,7 +55,7 @@ const Extendable = (() => {
    }
 
    const createHandles = (component: extendableComponent) => {
-      component.joints.forEach(joint => {
+      component.states.joints.forEach(joint => {
          addHandle(component, joint)
       })
    };
@@ -89,7 +89,7 @@ const Reticulatable = (() => {
             const jointIdx = getJointInsertionIdx(component, position);
 
             //insert joint at position
-            component.joints.splice(jointIdx, 0, position);
+            component.states.joints.splice(jointIdx, 0, position);
             addHandle(component, position);
             $(element).trigger(Events.draw, [e]);
          }
@@ -104,10 +104,10 @@ const Reticulatable = (() => {
       // Remove joint through dblclick
       $(element).on("dblclick", ".dragHandle", (e) => {
          // If only two joints remain then they can't be removed by dblclick
-         if (component.joints.length <= 2) return;
+         if (component.states.joints.length <= 2) return;
          
          const point = $(e.target).data("point");
-         component.joints = component.joints.filter(isNot(point));
+         component.states.joints = component.states.joints.filter(isNot(point));
          e.target.remove();
          $(element).trigger(Events.draw, [e]);
       });
@@ -115,9 +115,9 @@ const Reticulatable = (() => {
 
    const removeExcessJoints = (component: extendableComponent, point: Vector) => {
       // If only two joints remain then they can't be removed during a drag
-      if (component.joints.length <= 2) return;
+      if (component.states.joints.length <= 2) return;
 
-      component.joints = component.joints.filter((joint) => {
+      component.states.joints = component.states.joints.filter((joint) => {
          return (joint === point) || !vector(point).isCloseTo(joint)
       });
 
@@ -127,7 +127,7 @@ const Reticulatable = (() => {
    }
 
    const getJointInsertionIdx = (component: extendableComponent, point: Vector) => {
-      let jointAngles = component.joints.map((j) =>
+      let jointAngles = component.states.joints.map((j) =>
          Math.atan2(point.y - j.y, point.x - j.x) * 180 / Math.PI
       );
 
@@ -151,7 +151,7 @@ const Removable = (() => {
    const init = (component: extendableComponent) => {
       const element = component.group.element;
       $(element).on(Events.dragStop, ".dragHandle", (e) => {
-         if (component.joints.length === 2 && vector(component.joints[0]).isCloseTo(component.joints[1])) {
+         if (component.states.joints.length === 2 && vector(component.states.joints[0]).isCloseTo(component.states.joints[1])) {
             manifest.removeComponent(component);
             history.mergeLast();
          }
@@ -164,6 +164,9 @@ const addHandle = (component: extendableComponent, point: Vector) => {
    const handle = makeCircle(point, 5, "handle dragHandle draggable highlight").element;
    $(handle).data('point', point);
    component.group.append(handle);
+   $(handle).on(Events.dragStart, () => {
+      history.add(component);
+   })
 
    $(handle).on(Events.drag, (e, drag: Vector) => {
       point.x += drag.x;

@@ -11,8 +11,8 @@ export default function drawLayout(instance: Layout) {
    const bodyGroup = makeGroup("body");
 
 
-   const end1 = instance.joints[INDEXEND1];
-   const end2 = instance.joints[INDEXEND2];
+   const end1 = instance.states.joints[INDEXEND1];
+   const end2 = instance.states.joints[INDEXEND2];
 
    let centre = vector(end1, end2).centre().vector;
 
@@ -22,7 +22,7 @@ export default function drawLayout(instance: Layout) {
 
    const body = makePath(bodyPath, "body")
 
-   const bands = getBands(instance.resistance).map(b => b.clipTo(body.element));
+   const bands = getBands(instance.properties.resistance).map(b => b.clipTo(body.element));
 
    bodyGroup.append(
       body,

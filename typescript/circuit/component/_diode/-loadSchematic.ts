@@ -3,7 +3,6 @@ import ValueCheck from "../~valueCheck";
 import vector, { Vector } from "../../../-vector"
 
 export default function loadSchematic(raw: any) {
-   const name = (raw.name);
    const breakdownVoltage = (raw.breakdownVoltage);
    const saturationCurrent = (raw.saturationCurrent);
    const color = (raw.color || raw.colour);
@@ -13,7 +12,7 @@ export default function loadSchematic(raw: any) {
    const where = ValueCheck.where({ x: 0, y: 0 })(raw.where);
    const joints = (raw.joints || deriveJoints(orientation, where));
 
-   return makeSchematic({ name, breakdownVoltage, saturationCurrent, color, joints });
+   return makeSchematic({ breakdownVoltage, saturationCurrent, color, joints });
 }
 
 const deriveJoints = (orientation: "LR" | "RL" | "UD" | "DU", where: Vector) => {

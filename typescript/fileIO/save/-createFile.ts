@@ -1,9 +1,10 @@
 import manifest from "../../circuit/manifest";
 import mappings from "../../circuit/mappings";
+import { getProperties, getStates } from "../../circuit/+component";
 
 function createFile(): string {
    let componentStrings: string[] = [];
-   manifest.layout.concat(manifest.schematic).forEach(component => {
+   manifest.states.layout.concat(manifest.states.schematic).forEach(component => {
       try {
          const componentMap = mappings.getComponentMap(component);
          if (componentMap === undefined) {
@@ -11,15 +12,13 @@ function createFile(): string {
             throw new Error("Could not save component")
          }
 
-         let componentObject = {
-            func: mappings.getComponentMapSafe(component).savename,
-            ...component.getProperties(),
-            ...component.getState()
-         }
          // Don't save disabled objects
-         if (componentObject.disabled === false) {
-            // Remove disabled field (no need to save it)
-            delete componentObject.disabled;
+         if (component.flags.disabled === false) {
+            let componentObject = {
+               func: mappings.getComponentMapSafe(component).savename,
+               properties: getProperties(component),
+               states: getStates(component)
+            }
             componentStrings.push(JSON.stringify(componentObject));
          }
       } catch (e) {

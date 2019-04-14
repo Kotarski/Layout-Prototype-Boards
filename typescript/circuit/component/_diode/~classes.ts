@@ -1,52 +1,34 @@
 import Component, { Types as ComponentTypes } from "../../+component";
 import * as Types from "./types";
-import { Vector } from "../../../-vector";
-import deepCopy from "../../../utility/-deepCopy";
 import makeConnector from "../../generics/-makeConnector";
 import drawLayout from "./-drawLayout";
 import drawSchematic from "./-drawSchematic";
 import { INDEXANODE, INDEXCATHODE } from "./constants";
 import { makeGroup } from "../../../svg/element/+group";
-abstract class Base implements Types.values {
-   name = "diode" as "diode";
+abstract class Base {
+   type = "diode" as "diode";
    group = makeGroup();
-   disabled = false;
-   breakdownVoltage: number;
-   saturationCurrent: number;
-   joints: [Vector, Vector];
-   color: string;
-
+   properties: Types.properties;
+   states: Types.state;
    constructor(values: Types.values) {
-      this.joints = values.joints;
-      this.saturationCurrent = values.saturationCurrent;
-      this.breakdownVoltage = values.breakdownVoltage;
-      this.color = values.color;
+      this.properties = {
+         saturationCurrent: values.saturationCurrent,
+         breakdownVoltage: values.breakdownVoltage,
+         color: values.color
+      }
+      this.states = {
+         joints: values.joints
+      }
    }
-
-   getProperties(): Types.properties {
-      return deepCopy({
-         name: this.name,
-         breakdownVoltage: this.breakdownVoltage,
-         saturationCurrent: this.saturationCurrent,
-         color: this.color
-      });
-   }
-
-   getState(): Types.state {
-      return deepCopy({
-         joints: this.joints,
-         disabled: this.disabled
-      });
-   }
-
    flags = {
-      order: "fore" as "fore"
+      order: "fore" as "fore",
+      disabled: false
    }
 
    transferFunction() { return [] };
 }
 
-export class Schematic extends Base implements Component {
+export class Schematic extends Base implements Component, Types.diode<"schematic"> {
    form = "schematic" as "schematic"
    draw() {
       //(Prepend so handles appear on top)
@@ -54,13 +36,13 @@ export class Schematic extends Base implements Component {
    }
    getConnectors(): ComponentTypes.connector[][] {
       return [[
-         makeConnector(this, "anode", "node", this.joints[INDEXANODE], "+"),
-         makeConnector(this, "cathode", "node", this.joints[INDEXCATHODE], "-"),
+         makeConnector(this, "anode", "node", this.states.joints[INDEXANODE], "+"),
+         makeConnector(this, "cathode", "node", this.states.joints[INDEXCATHODE], "-"),
       ]];
    }
 }
 
-export class Layout extends Base implements Component {
+export class Layout extends Base implements Component, Types.diode<"layout"> {
    form = "layout" as "layout"
    draw() {
       //(Prepend so handles appear on top)
@@ -68,8 +50,8 @@ export class Layout extends Base implements Component {
    }
    getConnectors(): ComponentTypes.connector[][] {
       return [[
-         makeConnector(this, "anode", "pin", this.joints[INDEXANODE], "+"),
-         makeConnector(this, "cathode", "pin", this.joints[INDEXCATHODE], "-"),
+         makeConnector(this, "anode", "pin", this.states.joints[INDEXANODE], "+"),
+         makeConnector(this, "cathode", "pin", this.states.joints[INDEXCATHODE], "-"),
       ]];
    }
 }

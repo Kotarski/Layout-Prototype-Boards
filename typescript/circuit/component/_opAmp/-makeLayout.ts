@@ -10,8 +10,6 @@ import Rotatable from "../addins/rotatable";
 import ConnectionsHighlightable from "../addins/connectionsHighlightable"
 
 const defaulterLayout: ValueCheck.Defaulter<Types.valuesLayout> = {
-   name: ValueCheck.validate("string", "opAmp"),
-   disabled: ValueCheck.validate("boolean", false),
    isDual: ValueCheck.validate("boolean", false),
    joints: ValueCheck.joints<[Vector, Vector]>(
       [{ x: 30, y: 30 }, { x: 40, y: 30 }]

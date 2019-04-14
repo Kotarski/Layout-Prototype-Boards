@@ -1,5 +1,6 @@
 import NodeElements from "../~nodeElements";
 import Events from "./~events";
+import history from "../circuit/history";
 //import * as $ from 'jquery';
 namespace Ui {
    export function init() {
@@ -57,6 +58,7 @@ namespace Ui {
       // Control Listeners
       $(document).keydown(e => {
          if (e.ctrlKey) {
+            console.log(history.getState())
             if (e.key === "z") {
                Events.undo();
             } else if (e.key === "y") {

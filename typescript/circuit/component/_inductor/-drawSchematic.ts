@@ -11,8 +11,8 @@ import { makeRect as makeRect } from "../../../svg/element/+rect";
 export default function drawSchematic(instance: Schematic) {
    const bodyGroup = makeGroup("body");
 
-   const end1 = instance.joints[INDEXEND1];
-   const end2 = instance.joints[INDEXEND2];
+   const end1 = instance.states.joints[INDEXEND1];
+   const end2 = instance.states.joints[INDEXEND2];
 
    let centre = vector(end1, end2).centre().vector;
    let rotation = vector(end1).getAngleTo(end2);
@@ -22,7 +22,7 @@ export default function drawSchematic(instance: Schematic) {
    ).rotate(rotation).sumWith(centre).vectors;
 
    //Text
-   let text = getStandardForm(instance.inductance, 'H');
+   let text = getStandardForm(instance.properties.inductance, 'H');
 
    bodyGroup.append(
       makeRect({ x: 0, y: -2 }, { width: 40, height: 12 }, vector(2), "highlight highlightwithfill extrathick"),

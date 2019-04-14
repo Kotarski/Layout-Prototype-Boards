@@ -2,12 +2,9 @@ import { Vector } from "../-vector";
 import getMaker from "./generics/-getMaker"
 export namespace Types {
    export interface properties {
-      name: string;
    };
 
-   export interface state {
-      disabled: boolean;
-   };
+   export interface state {};
 
    export interface insertionFunction {
       (group: SVGGElement, target: SVGGElement, ...any: any[]): void;
@@ -53,17 +50,14 @@ export namespace Types {
 
 import { group } from "../svg/element/+group";
 import Insert from "../utility/~insert";
+import deepCopy from "../utility/-deepCopy";
 
 export default interface Component extends Types.properties, Types.state {
-   name: string;
+   type: string;
    form: "schematic"|"layout"
-   disabled: boolean;
    group: group;
-
-   getProperties(): Types.properties;
-
-   getState(): Types.state;
-
+   properties: Types.properties;
+   states: Types.state;
 
    draw(): void;
 
@@ -73,10 +67,29 @@ export default interface Component extends Types.properties, Types.state {
    transferFunction(from: Types.connector): Types.connector[];
 
    flags: {
-      order: "back"|"mid"|"fore"
+      order: "back" | "mid" | "fore";
+      disabled: boolean;
    }
 }
 
+type copyable<T extends {copy?: (()=>T)}> = T&{ copy?: (()=>T) }
+
 export function insert(component: Component, target?: Element) {
    Insert.before(component.group.element, target, "marker-"+component.flags.order);
+}
+
+
+export function getProperties<C extends { properties: copyable<C["properties"]> }>(component: C): C["properties"] {
+   if (component.properties.copy) return component.properties.copy()
+   return deepCopy(component.properties)
+}
+
+export function getStates<C extends { states: copyable<C["states"]> }>(component: C): C["states"] {
+   if (component.states.copy) return component.states.copy()
+   return deepCopy(component.states)
+}
+
+export function getFlags<C extends { flags: copyable<C["flags"]> }>(component: C): C["flags"] {
+   if (component.flags.copy) return component.flags.copy()
+   return deepCopy(component.flags)
 }

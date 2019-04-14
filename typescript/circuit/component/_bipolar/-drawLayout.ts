@@ -9,9 +9,9 @@ import { makeGroup as makeGroup } from "../../../svg/element/+group";
 export default function drawLayout(instance: BipolarLayout) {
    const bodyGroup = makeGroup("body");
 
-   const emitterEnd = instance.joints[INDEXEMITTER];
-   const collectorEnd = instance.joints[INDEXCOLLECTOR];
-   const baseEnd = instance.joints[INDEXBASE];
+   const emitterEnd = instance.states.joints[INDEXEMITTER];
+   const collectorEnd = instance.states.joints[INDEXCOLLECTOR];
+   const baseEnd = instance.states.joints[INDEXBASE];
 
    const centre = vector(emitterEnd, collectorEnd, baseEnd).centre().vector;
    const rotation = vector(emitterEnd).getAngleTo(baseEnd);
@@ -36,7 +36,7 @@ export default function drawLayout(instance: BipolarLayout) {
 
    bodyGroup.append(
       makePath(semiCircleString, "body highlight"),
-      makeText(instance.type, { x: 0, y: 4 }, "text")
+      makeText(instance.properties.type, { x: 0, y: 4 }, "text")
    );
 
    return [

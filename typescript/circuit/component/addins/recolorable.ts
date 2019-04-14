@@ -8,7 +8,7 @@ import { makeGroup as makeGroup } from "../../../svg/element/+group";
 //import * as $ from 'jquery';
 
 type colorPalette = string[];
-type recolorableComponent = Component & { color: string, joints: Vector[] };
+type recolorableComponent = Component & { states: { color: string, joints: Vector[] }};
 
 const Recolorable = (() => {
    const init = (
@@ -56,14 +56,14 @@ const Recolorable = (() => {
       component.group.append(recolorHandle, recolorSegmentGroup);
 
       $(recolorHandle.element).on("click", () => {
-         let colorIndex = colorPalette.indexOf(component.color);
+         let colorIndex = colorPalette.indexOf(component.states.color);
          let color: string;
          if (colorIndex >= 0) {
             color = colorPalette[(colorIndex + 1) % colorPalette.length];
          } else {
             color = colorPalette[0];
          };
-         component.color = color;
+         component.states.color = color;
          $(component.group.element).trigger(Events.draw);
       })
    }
@@ -74,9 +74,9 @@ const Recolorable = (() => {
    }
 
    const getRecolorPosition = (component: recolorableComponent): Vector => {
-      const angle = vector(component.joints[0]).getAngleTo(component.joints[1]);
+      const angle = vector(component.states.joints[0]).getAngleTo(component.states.joints[1]);
       const offset = toVector(12, angle + 45);
-      return vector(component.joints[0]).sumWith(offset).vector;
+      return vector(component.states.joints[0]).sumWith(offset).vector;
    }
 
    const defaultColorPalette: colorPalette = [

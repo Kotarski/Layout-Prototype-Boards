@@ -17,14 +17,14 @@ function makeTracksSmall(parent: Small): Track[] {
 
    let gS = gridSpacing;
 
-   let rotation = vector(parent.joints[0]).getAngleTo(parent.joints[1]);
+   let rotation = vector(parent.states.joints[0]).getAngleTo(parent.states.joints[1]);
 
    let powerTrackYPositions = [-9.5, -8.5, 8.5, 9.5];
    for (let y of powerTrackYPositions) {
 
       const start = vector({ x: gS * -14, y: y * gS })
          .rotate(rotation)
-         .sumWith(parent.joints[0]);
+         .sumWith(parent.states.joints[0]);
 
       const step = vector({ x: gS, y: 0 }).rotate(rotation);
 
@@ -43,7 +43,7 @@ function makeTracksSmall(parent: Small): Track[] {
 
          const start = vector({ x: (x - 14.5) * gS, y: y * gS })
             .rotate(rotation)
-            .sumWith(parent.joints[0]);
+            .sumWith(parent.states.joints[0]);
 
          const step = vector({ x: 0, y: gS }).rotate(rotation);
 
@@ -63,7 +63,7 @@ function makeTracksLarge(parent: Large): Track[] {
 
    let gS = gridSpacing;
 
-   let rotation = vector(parent.joints[0]).getAngleTo(parent.joints[1]);
+   let rotation = vector(parent.states.joints[0]).getAngleTo(parent.states.joints[1]);
 
 
    let powerTrackYPositions = [-9.5, -8.5, 8.5, 9.5];
@@ -73,7 +73,7 @@ function makeTracksLarge(parent: Large): Track[] {
 
          const start = vector({ x: x * gS, y: y * gS })
             .rotate(rotation)
-            .sumWith(parent.joints[0]);
+            .sumWith(parent.states.joints[0]);
 
          const step = vector({ x: gS, y: 0 }).rotate(rotation);
 
@@ -93,7 +93,7 @@ function makeTracksLarge(parent: Large): Track[] {
 
          const start = vector({ x: (x - 31.5) * gS, y: y * gS })
             .rotate(rotation)
-            .sumWith(parent.joints[0]);
+            .sumWith(parent.states.joints[0]);
 
          const step = vector({ x: 0, y: gS }).rotate(rotation);
 

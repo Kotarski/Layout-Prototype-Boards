@@ -12,13 +12,13 @@ const drawStripboardHole = (position: Vector) => makeCircle(position, 4, "hole")
 const drawBreadboardHole = (position: Vector) => makeRect(position, { width: 8, height: 8 }, vector(0.5), "hole");
 
 export default function drawLayout(instance: Layout) {
-   const holeFunc = (instance.style === "breadboard") ? drawBreadboardHole : drawStripboardHole;
+   const holeFunc = (instance.properties.style === "breadboard") ? drawBreadboardHole : drawStripboardHole;
 
-   const start = instance.joints[INDEXSTART];
-   const step = instance.joints[INDEXSTEP];
+   const start = instance.states.joints[INDEXSTART];
+   const step = instance.states.joints[INDEXSTEP];
 
    // Create the holes
-   const holePositions = vector(step).scaleMap(cumulativeSum(...instance.holeSpacings)).sumWith(start).vectors;
+   const holePositions = vector(step).scaleMap(cumulativeSum(...instance.properties.holeSpacings)).sumWith(start).vectors;
 
    const holes = holePositions.map(hp => holeFunc(hp))
 

@@ -12,13 +12,13 @@ import { makeCircle as makeCircle } from "../../../svg/element/+circle";
 export default function drawSchematic(instance: BipolarSchematic) {
    const bodyGroup = makeGroup("body");
 
-   const emitterEnd = instance.joints[INDEXEMITTER];
-   const collectorEnd = instance.joints[INDEXCOLLECTOR];
-   const baseEnd = instance.joints[INDEXBASE];
+   const emitterEnd = instance.states.joints[INDEXEMITTER];
+   const collectorEnd = instance.states.joints[INDEXCOLLECTOR];
+   const baseEnd = instance.states.joints[INDEXBASE];
 
    // Same as vector([{ x: 7, y: 6 }, { x: 7, y: -6 }, { x: -7, y: 0 }, { x: 7, y: 6 }])
    //    .rotate(149 | -31).sumWith({ x: 18, y: -9.2 } | { x: 6, y: -16.4 })
-   const arrowJoints = (instance.type === "PNP")
+   const arrowJoints = (instance.properties.type === "PNP")
       ? [{ x: 15, y: -18 }, { x: 9, y: -7.5 }, { x: 24, y: -5.5 }, { x: 15, y: -18 }]
       : [{ x: 9, y: -7.5 }, { x: 15, y: -18 }, { x: 0, y: -20 }, { x: 9, y: -7.5 }];
 
@@ -78,7 +78,7 @@ export default function drawSchematic(instance: BipolarSchematic) {
       [baseStart, baseEnd],
    ]
 
-   const text = getStandardForm(instance.currentGain, '')
+   const text = getStandardForm(instance.properties.currentGain, '')
    const textEl = makeText(text, vector({ x: -40, y: 0 }).scaleWith(scale), "text");
 
    return [

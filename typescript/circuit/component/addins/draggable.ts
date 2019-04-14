@@ -6,7 +6,7 @@ import history from "../../history";
 // import ControlValues from "../../../~controlValues";
 //import * as $ from 'jquery';
 
-type draggableComponent = Component & { joints: Vector[] };
+type draggableComponent = Component & { states: { joints: Vector[] } };
 
 const Draggable = (() => {
    const init = (component: draggableComponent, enablePredicate: ()=>boolean) => {
@@ -23,14 +23,14 @@ const Draggable = (() => {
 
       $(element).on(Events.drag, (e, drag: Vector) => {
          if (e.target === element) {
-            component.joints = vector(component.joints).sumWith(drag).vectors
+            component.states.joints = vector(component.states.joints).sumWith(drag).vectors
             $(element).trigger(Events.draw);
          }
       });
 
       $(element).on(Events.dragStop, (e) => {
          if (e.target === element) {
-            component.joints = component.joints.map(j => vector(j).round().vector)
+            component.states.joints = component.states.joints.map(j => vector(j).round().vector)
          }
       });
 

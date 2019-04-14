@@ -12,8 +12,8 @@ import { makeRect as makeRect } from "../../../svg/element/+rect";
 export default function drawSchematic(instance: Schematic) {
    const bodyGroup = makeGroup("body");
 
-   const cathodeEnd = instance.joints[INDEXCATHODE];
-   const anodeEnd = instance.joints[INDEXANODE];
+   const cathodeEnd = instance.states.joints[INDEXCATHODE];
+   const anodeEnd = instance.states.joints[INDEXANODE];
 
    let centre = vector(cathodeEnd, anodeEnd).centre().vector;
    let rotation = vector(cathodeEnd).getAngleTo(anodeEnd);
@@ -23,7 +23,7 @@ export default function drawSchematic(instance: Schematic) {
    ).rotate(rotation).sumWith(centre).vectors;
 
    //Text
-   let text = getStandardForm(instance.capacitance, 'F')
+   let text = getStandardForm(instance.properties.capacitance, 'F')
 
    bodyGroup.append(
       makeRect(vector(0), { width: 15, height: 30 }, vector(2), "highlight highlightwithfill extrathick"),
@@ -31,7 +31,7 @@ export default function drawSchematic(instance: Schematic) {
       makeLine({ x: +4, y: -15 }, { x: +4, y: +15 }, "line thick nocap"),
    );
 
-   if (instance.isPolarised) {
+   if (instance.properties.isPolarised) {
       bodyGroup.append(makePath([
          [{ x: +15, y: -10 }, { x: +7, y: -10 }],
          [{ x: +11, y: -6 }, { x: +11, y: -14 }]

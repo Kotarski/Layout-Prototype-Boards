@@ -9,11 +9,11 @@ import { makeLine as makeLine } from "../../../svg/element/+line";
 export default function drawSchematic(instance: Schematic) {
    const bodyGroup = makeGroup("body");
 
-   const inPEnd = instance.joints[INDEXINPOS];
-   const inNEnd = instance.joints[INDEXINNEG];
-   const outEnd = instance.joints[INDEXOUT];
-   const pow1End = instance.joints[INDEXPOW1];
-   const pow2End = instance.joints[INDEXPOW2];
+   const inPEnd = instance.states.joints[INDEXINPOS];
+   const inNEnd = instance.states.joints[INDEXINNEG];
+   const outEnd = instance.states.joints[INDEXOUT];
+   const pow1End = instance.states.joints[INDEXPOW1];
+   const pow2End = instance.states.joints[INDEXPOW2];
 
    // Corners of the body triangle
    const bodyJoints = [{ x: -25, y: -25 }, { x: 25, y: 0 }, { x: -25, y: 25 }, { x: -25, y: -25 }];

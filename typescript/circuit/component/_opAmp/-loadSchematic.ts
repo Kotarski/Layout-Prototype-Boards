@@ -4,7 +4,6 @@ import vector, { Vector } from "../../../-vector";
 import PowerMaps from "../_power/-maps"
 
 export default function loadSchematic(raw: any) {
-   const name = (raw.name);
    const offsetVoltage = (raw.offsetVoltage);
 
    //Joints Block
@@ -15,7 +14,7 @@ export default function loadSchematic(raw: any) {
    const where = ValueCheck.where({ x: 0, y: 0 })(raw.where);
    const joints = (raw.joints || deriveJoints(orientation, inputAtTop, where));
 
-   const opAmp = makeSchematic({ name, offsetVoltage, joints });
+   const opAmp = makeSchematic({ offsetVoltage, joints });
 
    // Also make the power connections
    const isNumber = ValueCheck.test("number");

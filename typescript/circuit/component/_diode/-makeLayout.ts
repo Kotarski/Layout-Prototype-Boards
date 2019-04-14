@@ -10,8 +10,6 @@ import Extendable from "../addins/extendable";
 import ConnectionsHighlightable from "../addins/connectionsHighlightable"
 
 const defaulterLayout: ValueCheck.Defaulter<Types.values> = {
-   name: ValueCheck.validate("string", "diode"),
-   disabled: ValueCheck.validate("boolean", false),
    joints: ValueCheck.joints<[Vector, Vector]>(
       [{ x: 0, y: 0 }, { x: 80, y: 0 }]
    ),

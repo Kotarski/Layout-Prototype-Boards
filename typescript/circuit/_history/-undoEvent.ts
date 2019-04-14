@@ -2,6 +2,7 @@ import { historystate, event } from "./types";
 //import * as $ from 'jquery';
 //TODO: Remove Events dependancy
 import Events from "../events";
+import { getStates, getFlags } from "../+component";
 export default function undoEvent(state: historystate): historystate {
    if (state.currentIdx <= 0) return state;
 
@@ -10,12 +11,14 @@ export default function undoEvent(state: historystate): historystate {
    // Get the current state of all participants that will be reverted
    const redoEvent = currentEvent.map(development => development.participant).map(participant => ({
       participant,
-      state: participant.getState()
+      states: getStates(participant),
+      flags: getFlags(participant)
    }));
 
    // Revert the current participants
    currentEvent.forEach(development => {
-      Object.assign(development.participant, development.state);
+      Object.assign(development.participant.states, development.states);
+      Object.assign(development.participant.flags, development.flags);
       if (development.participant.group) {
          $(development.participant.group.element).trigger(Events.draw);
       }

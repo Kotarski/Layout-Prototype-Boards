@@ -14,7 +14,7 @@ type Initialisers<C extends Component, T extends {}[]> = {
 
 export default interface getMaker<
    C extends Component,
-   V extends ReturnType<C["getProperties"]> & ReturnType<C["getState"]>
+   V extends C["properties"] & C["states"]
    > {
    (
       instanceClass: { new(values: V): C },
@@ -27,7 +27,7 @@ export default interface getMaker<
 }
 export default function getMaker<
    C extends Component,
-   V extends ReturnType<C["getProperties"]> & ReturnType<C["getState"]>,
+   V extends C["properties"] & C["states"],
    // A extends Addin<C, O>,
    OS extends {}[]
 >(
@@ -65,13 +65,13 @@ export default function getMaker<
 
       /*LOGSTART*/
       if (log) {
-         console.groupCollapsed("%s: %o", component.name, component.group.element);
+         console.groupCollapsed("%s: %o", component.type, component.group.element);
          console.log(component);
          console.groupEnd();
       }
       /*LOGEND*/
 
-      $(component.group.element).addClass(component.name)
+      $(component.group.element).addClass(component.type)
 
       return component;
    }

@@ -1594,14 +1594,18 @@ function sum(inVectors) {
 /*!******************************************!*\
   !*** ./typescript/circuit/+component.ts ***!
   \******************************************/
-/*! exports provided: Types, insert */
+/*! exports provided: Types, insert, getProperties, getStates, getFlags */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Types", function() { return Types; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "insert", function() { return insert; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getProperties", function() { return getProperties; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getStates", function() { return getStates; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getFlags", function() { return getFlags; });
 /* harmony import */ var _utility_insert__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utility/~insert */ "./typescript/utility/~insert.ts");
+/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
 var Types;
 (function (Types) {
     ;
@@ -1610,8 +1614,24 @@ var Types;
     ;
 })(Types || (Types = {}));
 
+
 function insert(component, target) {
     _utility_insert__WEBPACK_IMPORTED_MODULE_0__["default"].before(component.group.element, target, "marker-" + component.flags.order);
+}
+function getProperties(component) {
+    if (component.properties.copy)
+        return component.properties.copy();
+    return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])(component.properties);
+}
+function getStates(component) {
+    if (component.states.copy)
+        return component.states.copy();
+    return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])(component.states);
+}
+function getFlags(component) {
+    if (component.flags.copy)
+        return component.flags.copy();
+    return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])(component.flags);
 }
 
 
@@ -1661,6 +1681,8 @@ class Diagram {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return addEvent; });
+/* harmony import */ var _component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../+component */ "./typescript/circuit/+component.ts");
+
 function addEvent(state, ...participants) {
     // Discard events after the current one if they exist
     const currentIdx = state.currentIdx + 1, lastIdx = currentIdx;
@@ -1668,7 +1690,8 @@ function addEvent(state, ...participants) {
     // Create new event
     const newEvent = participants.map(participant => ({
         participant,
-        state: participant.getState()
+        states: Object(_component__WEBPACK_IMPORTED_MODULE_0__["getStates"])(participant),
+        flags: Object(_component__WEBPACK_IMPORTED_MODULE_0__["getFlags"])(participant)
     }));
     // Return new state
     const events = [...previousEvents, newEvent];
@@ -1772,7 +1795,7 @@ function mergeEvents(state, mergeCount) {
     });
     const events = [...previousEvents, mergedEvent];
     const lastIdx = mergeStartIdx;
-    const currentIdx = (state.currentIdx > state.lastIdx)
+    const currentIdx = (state.currentIdx > lastIdx)
         ? lastIdx
         : state.currentIdx;
     return { events, currentIdx, lastIdx };
@@ -1792,7 +1815,9 @@ function mergeEvents(state, mergeCount) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return redoEvent; });
 /* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ "./typescript/circuit/events.ts");
+/* harmony import */ var _component__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../+component */ "./typescript/circuit/+component.ts");
 //TODO: Remove Events dependancy
+
 
 function redoEvent(state) {
     if (state.currentIdx >= state.lastIdx)
@@ -1803,11 +1828,13 @@ function redoEvent(state) {
     // Get the current state of all participants that will be reverted
     const undoEvent = currentEvent.map(development => development.participant).map(participant => ({
         participant,
-        state: participant.getState()
+        states: Object(_component__WEBPACK_IMPORTED_MODULE_1__["getStates"])(participant),
+        flags: Object(_component__WEBPACK_IMPORTED_MODULE_1__["getFlags"])(participant)
     }));
     // Unrevert the current participants
     currentEvent.forEach(development => {
-        Object.assign(development.participant, development.state);
+        Object.assign(development.participant.states, development.states);
+        Object.assign(development.participant.flags, development.flags);
         if (development.participant.group) {
             $(development.participant.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].place);
         }
@@ -1833,8 +1860,10 @@ function redoEvent(state) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return undoEvent; });
 /* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../events */ "./typescript/circuit/events.ts");
+/* harmony import */ var _component__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../+component */ "./typescript/circuit/+component.ts");
 //import * as $ from 'jquery';
 //TODO: Remove Events dependancy
+
 
 function undoEvent(state) {
     if (state.currentIdx <= 0)
@@ -1843,11 +1872,13 @@ function undoEvent(state) {
     // Get the current state of all participants that will be reverted
     const redoEvent = currentEvent.map(development => development.participant).map(participant => ({
         participant,
-        state: participant.getState()
+        states: Object(_component__WEBPACK_IMPORTED_MODULE_1__["getStates"])(participant),
+        flags: Object(_component__WEBPACK_IMPORTED_MODULE_1__["getFlags"])(participant)
     }));
     // Revert the current participants
     currentEvent.forEach(development => {
-        Object.assign(development.participant, development.state);
+        Object.assign(development.participant.states, development.states);
+        Object.assign(development.participant.flags, development.flags);
         if (development.participant.group) {
             $(development.participant.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw);
         }
@@ -1886,9 +1917,9 @@ __webpack_require__.r(__webpack_exports__);
 
 function drawLayout(instance) {
     const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])("body");
-    const emitterEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEMITTER"]];
-    const collectorEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCOLLECTOR"]];
-    const baseEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXBASE"]];
+    const emitterEnd = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEMITTER"]];
+    const collectorEnd = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCOLLECTOR"]];
+    const baseEnd = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXBASE"]];
     const centre = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(emitterEnd, collectorEnd, baseEnd).centre().vector;
     const rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(emitterEnd).getAngleTo(baseEnd);
     const [emitterStart, collectorStart, baseStart] = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])({ x: -12, y: 3 }, { x: 0, y: -2 }, { x: 12, y: 3 }).rotate(rotation).sumWith(centre).vectors;
@@ -1903,7 +1934,7 @@ function drawLayout(instance) {
         "h " + (32) +
         "v " + (-3) +
         "Z";
-    bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(semiCircleString, "body highlight"), Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_3__["makeText"])(instance.type, { x: 0, y: 4 }, "text"));
+    bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(semiCircleString, "body highlight"), Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_3__["makeText"])(instance.properties.type, { x: 0, y: 4 }, "text"));
     return [
         Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(joints, "lead"),
         bodyGroup.translate(centre).rotate(rotation),
@@ -1942,12 +1973,12 @@ __webpack_require__.r(__webpack_exports__);
 
 function drawSchematic(instance) {
     const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])("body");
-    const emitterEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXEMITTER"]];
-    const collectorEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXCOLLECTOR"]];
-    const baseEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXBASE"]];
+    const emitterEnd = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXEMITTER"]];
+    const collectorEnd = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXCOLLECTOR"]];
+    const baseEnd = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXBASE"]];
     // Same as vector([{ x: 7, y: 6 }, { x: 7, y: -6 }, { x: -7, y: 0 }, { x: 7, y: 6 }])
     //    .rotate(149 | -31).sumWith({ x: 18, y: -9.2 } | { x: 6, y: -16.4 })
-    const arrowJoints = (instance.type === "PNP")
+    const arrowJoints = (instance.properties.type === "PNP")
         ? [{ x: 15, y: -18 }, { x: 9, y: -7.5 }, { x: 24, y: -5.5 }, { x: 15, y: -18 }]
         : [{ x: 9, y: -7.5 }, { x: 15, y: -18 }, { x: 0, y: -20 }, { x: 9, y: -7.5 }];
     // The drawings orientation (before transforms) is: 
@@ -1994,7 +2025,7 @@ function drawSchematic(instance) {
         [collectorStart, collectorEnd],
         [baseStart, baseEnd],
     ];
-    const text = Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_0__["default"])(instance.currentGain, '');
+    const text = Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_0__["default"])(instance.properties.currentGain, '');
     const textEl = Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_4__["makeText"])(text, Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])({ x: -40, y: 0 }).scaleWith(scale), "text");
     return [
         bodyGroup.translate(centre).rotate(rotation).scale(scale, false),
@@ -2019,11 +2050,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _makeLayout__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./-makeLayout */ "./typescript/circuit/component/_bipolar/-makeLayout.ts");
 
 function loadLayout(raw) {
-    const name = (raw.name);
     const currentGain = (raw.currentGain);
     const type = (raw.type);
     const joints = (raw.joints);
-    return Object(_makeLayout__WEBPACK_IMPORTED_MODULE_0__["default"])({ name, currentGain, type, joints });
+    return Object(_makeLayout__WEBPACK_IMPORTED_MODULE_0__["default"])({ currentGain, type, joints });
 }
 
 
@@ -2046,14 +2076,13 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function loadSchematic(raw) {
-    const name = (raw.name);
     const currentGain = (raw.currentGain);
     const type = (raw.type);
     // Joints Block
     const orientation = _valueCheck__WEBPACK_IMPORTED_MODULE_2__["default"].validate(["LR", "RL"], "LR")(raw.orientation);
     const where = _valueCheck__WEBPACK_IMPORTED_MODULE_2__["default"].where({ x: 0, y: 0 })(raw.where);
     const joints = (raw.joints || deriveJoints(orientation, type, where));
-    return Object(_makeSchematic__WEBPACK_IMPORTED_MODULE_0__["default"])({ name, currentGain, type, joints });
+    return Object(_makeSchematic__WEBPACK_IMPORTED_MODULE_0__["default"])({ currentGain, type, joints });
 }
 const deriveJoints = (orientation, type, where) => {
     const [emitter, collector] = type === "PNP"
@@ -2095,8 +2124,6 @@ __webpack_require__.r(__webpack_exports__);
 
 const defaulterLayout = {
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 20, y: -20 }, { x: 40, y: 0 }]),
-    disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
-    name: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("string", "bipolar"),
     currentGain: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0),
     type: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate(["NPN", "PNP"], "NPN")
 };
@@ -2132,8 +2159,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterSchematic = {
-    name: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("string", "bipolar"),
-    disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: -50, y: 0 }, { x: +10, y: -50 }, { x: +10, y: +50 }]),
     currentGain: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0),
     type: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate(["NPN", "PNP"], "NPN")
@@ -2218,44 +2243,34 @@ const INDEXBASE = 2;
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "BipolarSchematic", function() { return BipolarSchematic; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "BipolarLayout", function() { return BipolarLayout; });
-/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_bipolar/constants.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_bipolar/-drawLayout.ts");
-/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_bipolar/-drawSchematic.ts");
-/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_bipolar/constants.ts");
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_bipolar/-drawLayout.ts");
+/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_bipolar/-drawSchematic.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 ;
 
 
 
 
 
-
+//import * as $ from 'jquery';
 class BipolarBase {
     constructor(values) {
-        this.name = "bipolar";
-        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])();
-        this.disabled = false;
+        this.type = "bipolar";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
         this.flags = {
-            order: "fore"
+            order: "fore",
+            disabled: false
         };
-        $(this.group.element).addClass("component " + this.name);
-        this.joints = values.joints;
-        this.type = values.type;
-        this.currentGain = values.currentGain;
-    }
-    getProperties() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
-            name: this.name,
-            currentGain: this.currentGain,
-            type: this.type
-        });
-    }
-    getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
-            joints: this.joints,
-            disabled: this.disabled
-        });
+        $(this.group.element).addClass("component " + this.type);
+        this.properties = {
+            type: values.type,
+            currentGain: values.currentGain
+        };
+        this.states = {
+            joints: values.joints
+        };
     }
     transferFunction() { return []; }
     ;
@@ -2267,13 +2282,13 @@ class BipolarSchematic extends BipolarBase {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_4__["default"])(this));
+        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
     }
     getConnectors() {
         return [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "emitter", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEMITTER"]], "e"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "collector", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCOLLECTOR"]], "c"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "base", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXBASE"]], "b")
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "emitter", "node", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_0__["INDEXEMITTER"]], "e"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "collector", "node", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_0__["INDEXCOLLECTOR"]], "c"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "base", "node", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_0__["INDEXBASE"]], "b")
             ]];
     }
 }
@@ -2284,13 +2299,13 @@ class BipolarLayout extends BipolarBase {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_2__["default"])(this));
     }
     getConnectors() {
         return [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "emitter", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEMITTER"]], "e"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "collector", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCOLLECTOR"]], "c"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "base", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXBASE"]], "b")
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "emitter", "pin", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_0__["INDEXEMITTER"]], "e"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "collector", "pin", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_0__["INDEXCOLLECTOR"]], "c"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "base", "pin", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_0__["INDEXBASE"]], "b")
             ]];
     }
 }
@@ -2324,8 +2339,8 @@ __webpack_require__.r(__webpack_exports__);
 
 function drawLarge(instance) {
     const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["makeGroup"])("body");
-    const centre = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCENTRE"]];
-    const rotationPoint = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXROTATION"]];
+    const centre = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCENTRE"]];
+    const rotationPoint = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXROTATION"]];
     let rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(centre).getAngleTo(rotationPoint);
     const gS = _constants__WEBPACK_IMPORTED_MODULE_6__["gridSpacing"];
     // Power Rails strings:
@@ -2417,8 +2432,8 @@ __webpack_require__.r(__webpack_exports__);
 
 function drawSmall(instance) {
     const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["makeGroup"])("body");
-    const centre = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCENTRE"]];
-    const rotationPoint = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXROTATION"]];
+    const centre = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCENTRE"]];
+    const rotationPoint = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXROTATION"]];
     let rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(centre).getAngleTo(rotationPoint);
     const gS = _constants__WEBPACK_IMPORTED_MODULE_6__["gridSpacing"];
     // Power Rails strings:
@@ -2493,9 +2508,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _makeLarge__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./-makeLarge */ "./typescript/circuit/component/_breadboard/-makeLarge.ts");
 
 function loadLarge(raw) {
-    const name = (raw.name);
     const joints = (raw.joints);
-    return Object(_makeLarge__WEBPACK_IMPORTED_MODULE_0__["default"])({ name, joints });
+    return Object(_makeLarge__WEBPACK_IMPORTED_MODULE_0__["default"])({ joints });
 }
 
 
@@ -2514,9 +2528,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _makeSmall__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./-makeSmall */ "./typescript/circuit/component/_breadboard/-makeSmall.ts");
 
 function loadSmall(raw) {
-    const name = (raw.name);
     const joints = (raw.joints);
-    return Object(_makeSmall__WEBPACK_IMPORTED_MODULE_0__["default"])({ name, joints });
+    return Object(_makeSmall__WEBPACK_IMPORTED_MODULE_0__["default"])({ joints });
 }
 
 
@@ -2548,8 +2561,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterLarge = {
-    name: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("string", "breadboardlarge"),
-    disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
 };
 const makeLarge = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Large"], defaulterLarge, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_board__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_wiresCreatable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"]);
@@ -2586,8 +2597,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterSmall = {
-    name: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("string", "breadboardsmall"),
-    disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
 };
 const makeSmall = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Small"], defaulterSmall, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_board__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_wiresCreatable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_rotatable__WEBPACK_IMPORTED_MODULE_8__["default"]);
@@ -2618,12 +2627,12 @@ function makeTracks(parent, size) {
 function makeTracksSmall(parent) {
     let tracks = [];
     let gS = _constants__WEBPACK_IMPORTED_MODULE_2__["gridSpacing"];
-    let rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(parent.joints[0]).getAngleTo(parent.joints[1]);
+    let rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(parent.states.joints[0]).getAngleTo(parent.states.joints[1]);
     let powerTrackYPositions = [-9.5, -8.5, 8.5, 9.5];
     for (let y of powerTrackYPositions) {
         const start = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])({ x: gS * -14, y: y * gS })
             .rotate(rotation)
-            .sumWith(parent.joints[0]);
+            .sumWith(parent.states.joints[0]);
         const step = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])({ x: gS, y: 0 }).rotate(rotation);
         let track = _track_maps__WEBPACK_IMPORTED_MODULE_0__["default"].make({
             holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1],
@@ -2637,7 +2646,7 @@ function makeTracksSmall(parent) {
         for (let y of mainGridTrackYPositions) {
             const start = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])({ x: (x - 14.5) * gS, y: y * gS })
                 .rotate(rotation)
-                .sumWith(parent.joints[0]);
+                .sumWith(parent.states.joints[0]);
             const step = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])({ x: 0, y: gS }).rotate(rotation);
             let track = _track_maps__WEBPACK_IMPORTED_MODULE_0__["default"].make({
                 holeSpacings: [0, 1, 1, 1, 1],
@@ -2651,14 +2660,14 @@ function makeTracksSmall(parent) {
 function makeTracksLarge(parent) {
     let tracks = [];
     let gS = _constants__WEBPACK_IMPORTED_MODULE_2__["gridSpacing"];
-    let rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(parent.joints[0]).getAngleTo(parent.joints[1]);
+    let rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(parent.states.joints[0]).getAngleTo(parent.states.joints[1]);
     let powerTrackYPositions = [-9.5, -8.5, 8.5, 9.5];
     let powerTrackXPositions = [-29.5, 1.5];
     for (let x of powerTrackXPositions) {
         for (let y of powerTrackYPositions) {
             const start = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])({ x: x * gS, y: y * gS })
                 .rotate(rotation)
-                .sumWith(parent.joints[0]);
+                .sumWith(parent.states.joints[0]);
             const step = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])({ x: gS, y: 0 }).rotate(rotation);
             let track = _track_maps__WEBPACK_IMPORTED_MODULE_0__["default"].make({
                 holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1],
@@ -2673,7 +2682,7 @@ function makeTracksLarge(parent) {
         for (let y of mainGridTrackYPositions) {
             const start = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])({ x: (x - 31.5) * gS, y: y * gS })
                 .rotate(rotation)
-                .sumWith(parent.joints[0]);
+                .sumWith(parent.states.joints[0]);
             const step = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])({ x: 0, y: gS }).rotate(rotation);
             let track = _track_maps__WEBPACK_IMPORTED_MODULE_0__["default"].make({
                 holeSpacings: [0, 1, 1, 1, 1],
@@ -2762,32 +2771,23 @@ const INDEXROTATION = 1;
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Small", function() { return Small; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Large", function() { return Large; });
-/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _drawLarge__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./-drawLarge */ "./typescript/circuit/component/_breadboard/-drawLarge.ts");
-/* harmony import */ var _drawSmall__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawSmall */ "./typescript/circuit/component/_breadboard/-drawSmall.ts");
-/* harmony import */ var _makeTracks__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-makeTracks */ "./typescript/circuit/component/_breadboard/-makeTracks.ts");
-/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
-
+/* harmony import */ var _drawLarge__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./-drawLarge */ "./typescript/circuit/component/_breadboard/-drawLarge.ts");
+/* harmony import */ var _drawSmall__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./-drawSmall */ "./typescript/circuit/component/_breadboard/-drawSmall.ts");
+/* harmony import */ var _makeTracks__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-makeTracks */ "./typescript/circuit/component/_breadboard/-makeTracks.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 
 
 
 
 class Base {
-    constructor(values) {
-        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
-        this.disabled = false;
+    constructor() {
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["makeGroup"])();
         this.form = "layout";
         this.tracks = [];
         this.flags = {
-            order: "back"
+            order: "back",
+            disabled: false
         };
-        this.joints = values.joints;
-    }
-    getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
-            joints: this.joints,
-            disabled: this.disabled
-        });
     }
     // Handled in the tracks
     getConnectors() {
@@ -2799,35 +2799,33 @@ class Base {
     ;
 }
 class Small extends Base {
-    constructor() {
-        super(...arguments);
-        this.name = "breadboardsmall";
+    constructor(values) {
+        super();
+        this.type = "breadboardsmall";
+        this.properties = {};
+        this.states = {
+            joints: values.joints
+        };
     }
     draw() {
-        this.tracks = Object(_makeTracks__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "small");
+        this.tracks = Object(_makeTracks__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "small");
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSmall__WEBPACK_IMPORTED_MODULE_2__["default"])(this), this.tracks.map(t => t.group));
-    }
-    getProperties() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
-            name: this.name,
-        });
+        this.group.prepend(Object(_drawSmall__WEBPACK_IMPORTED_MODULE_1__["default"])(this), this.tracks.map(t => t.group));
     }
 }
 class Large extends Base {
-    constructor() {
-        super(...arguments);
-        this.name = "breadboardlarge";
+    constructor(values) {
+        super();
+        this.type = "breadboardlarge";
+        this.properties = {};
+        this.states = {
+            joints: values.joints
+        };
     }
     draw() {
-        this.tracks = Object(_makeTracks__WEBPACK_IMPORTED_MODULE_3__["default"])(this, "large");
+        this.tracks = Object(_makeTracks__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "large");
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLarge__WEBPACK_IMPORTED_MODULE_1__["default"])(this), this.tracks.map(t => t.group));
-    }
-    getProperties() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
-            name: this.name,
-        });
+        this.group.prepend(Object(_drawLarge__WEBPACK_IMPORTED_MODULE_0__["default"])(this), this.tracks.map(t => t.group));
     }
 }
 
@@ -2863,12 +2861,12 @@ __webpack_require__.r(__webpack_exports__);
 //import * as $ from 'jquery';
 function drawLayout(instance) {
     const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])("body");
-    const cathodeEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCATHODE"]];
-    const anodeEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXANODE"]];
+    const cathodeEnd = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCATHODE"]];
+    const anodeEnd = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXANODE"]];
     const centre = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(cathodeEnd, anodeEnd).centre().vector;
     const rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(cathodeEnd).getAngleTo(anodeEnd);
-    const text = Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__["default"])(instance.capacitance, 'F');
-    if (instance.isPolarised) {
+    const text = Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__["default"])(instance.properties.capacitance, 'F');
+    if (instance.properties.isPolarised) {
         // Electrolytic
         $(bodyGroup.element).addClass("electrolytic");
         const bodyArcEndPoint = 14 / Math.SQRT2;
@@ -2920,15 +2918,15 @@ __webpack_require__.r(__webpack_exports__);
 
 function drawSchematic(instance) {
     const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])("body");
-    const cathodeEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCATHODE"]];
-    const anodeEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXANODE"]];
+    const cathodeEnd = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCATHODE"]];
+    const anodeEnd = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXANODE"]];
     let centre = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(cathodeEnd, anodeEnd).centre().vector;
     let rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(cathodeEnd).getAngleTo(anodeEnd);
     let [cathodeStart, anodeStart] = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])({ x: -6, y: 0 }, { x: 6, y: 0 }).rotate(rotation).sumWith(centre).vectors;
     //Text
-    let text = Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__["default"])(instance.capacitance, 'F');
+    let text = Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__["default"])(instance.properties.capacitance, 'F');
     bodyGroup.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_7__["makeRect"])(Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(0), { width: 15, height: 30 }, Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(2), "highlight highlightwithfill extrathick"), Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_6__["makeLine"])({ x: -4, y: -15 }, { x: -4, y: +15 }, "line thick nocap"), Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_6__["makeLine"])({ x: +4, y: -15 }, { x: +4, y: +15 }, "line thick nocap"));
-    if (instance.isPolarised) {
+    if (instance.properties.isPolarised) {
         bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])([
             [{ x: +15, y: -10 }, { x: +7, y: -10 }],
             [{ x: +11, y: -6 }, { x: +11, y: -14 }]
@@ -2957,11 +2955,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _makeLayout__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./-makeLayout */ "./typescript/circuit/component/_capacitor/-makeLayout.ts");
 
 function loadLayout(raw) {
-    const name = (raw.name);
     const capacitance = (raw.capacitance);
     const isPolarised = (raw.isPolarised);
     const joints = (raw.joints);
-    return Object(_makeLayout__WEBPACK_IMPORTED_MODULE_0__["default"])({ name, capacitance, isPolarised, joints });
+    return Object(_makeLayout__WEBPACK_IMPORTED_MODULE_0__["default"])({ capacitance, isPolarised, joints });
 }
 
 
@@ -2984,7 +2981,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function loadSchematic(raw) {
-    const name = (raw.name);
     const capacitance = (raw.capacitance || raw.value);
     //Polarisation Block
     const isPolarised = (raw.isPolarised || derivePolarisation(capacitance, raw.polarised));
@@ -2992,7 +2988,7 @@ function loadSchematic(raw) {
     const orientation = _valueCheck__WEBPACK_IMPORTED_MODULE_1__["default"].validate(orientations, "LR")(raw.orientation);
     const where = _valueCheck__WEBPACK_IMPORTED_MODULE_1__["default"].where({ x: 0, y: 0 })(raw.where);
     const joints = (raw.joints || deriveJoints(orientation, where));
-    return Object(_makeSchematic__WEBPACK_IMPORTED_MODULE_0__["default"])({ name, capacitance, isPolarised, joints });
+    return Object(_makeSchematic__WEBPACK_IMPORTED_MODULE_0__["default"])({ capacitance, isPolarised, joints });
 }
 const derivePolarisation = (capacitance, polarisation) => {
     const isPolarValid = _valueCheck__WEBPACK_IMPORTED_MODULE_1__["default"].test(["polar", "non-polar"]);
@@ -3037,8 +3033,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterLayout = {
-    name: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("string", "capacitor"),
-    disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
     isPolarised: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 80, y: 0 }]),
     capacitance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
@@ -3075,8 +3069,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterSchematic = {
-    name: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("string", "capacitor"),
-    disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
     isPolarised: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
     capacitance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
@@ -3159,13 +3151,11 @@ const INDEXANODE = 1;
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Schematic", function() { return Schematic; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
-/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_capacitor/constants.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_capacitor/-drawLayout.ts");
-/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_capacitor/-drawSchematic.ts");
-/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
-
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_capacitor/constants.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_capacitor/-drawLayout.ts");
+/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_capacitor/-drawSchematic.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 
 
 
@@ -3173,28 +3163,19 @@ __webpack_require__.r(__webpack_exports__);
 
 class Base {
     constructor(values) {
-        this.name = "capacitor";
-        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])();
-        this.disabled = false;
+        this.type = "capacitor";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
         this.flags = {
-            order: "fore"
+            order: "fore",
+            disabled: false
         };
-        this.joints = values.joints;
-        this.capacitance = values.capacitance;
-        this.isPolarised = values.isPolarised;
-    }
-    getProperties() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
-            name: this.name,
-            capacitance: this.capacitance,
-            isPolarised: this.isPolarised
-        });
-    }
-    getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
-            joints: this.joints,
-            disabled: this.disabled
-        });
+        this.properties = {
+            capacitance: values.capacitance,
+            isPolarised: values.isPolarised
+        };
+        this.states = {
+            joints: values.joints,
+        };
     }
     transferFunction() { return []; }
     ;
@@ -3206,19 +3187,19 @@ class Schematic extends Base {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_4__["default"])(this));
+        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
     }
     getConnectors() {
-        if (this.isPolarised) {
+        if (this.properties.isPolarised) {
             return [[
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "cathode", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXCATHODE"]], "-"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "anode", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXANODE"]], "+"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "cathode", "node", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCATHODE"]], "-"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "anode", "node", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXANODE"]], "+"),
                 ]];
         }
         else {
             return [[
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXCATHODE"]]),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXANODE"]]),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "", "node", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCATHODE"]]),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "", "node", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXANODE"]]),
                 ]];
         }
     }
@@ -3230,19 +3211,19 @@ class Layout extends Base {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_2__["default"])(this));
     }
     getConnectors() {
-        if (this.isPolarised) {
+        if (this.properties.isPolarised) {
             return [[
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "cathode", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXCATHODE"]], "-"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "anode", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXANODE"]], "+"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "cathode", "pin", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCATHODE"]], "-"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "anode", "pin", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXANODE"]], "+"),
                 ]];
         }
         else {
             return [[
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXCATHODE"]]),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_2__["INDEXANODE"]]),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "", "pin", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCATHODE"]]),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "", "pin", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXANODE"]]),
                 ]];
         }
     }
@@ -3276,11 +3257,11 @@ __webpack_require__.r(__webpack_exports__);
 //import * as $ from 'jquery';
 function drawLayout(instance) {
     const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["makeGroup"])("body");
-    const cathodeEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCATHODE"]];
-    const anodeEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXANODE"]];
+    const cathodeEnd = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCATHODE"]];
+    const anodeEnd = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXANODE"]];
     const centre = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(cathodeEnd, anodeEnd).centre().vector;
     const rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(anodeEnd).getAngleTo(cathodeEnd);
-    if (instance.color === "N/A") {
+    if (instance.properties.color === "N/A") {
         bodyGroup.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_5__["makeRect"])({ x: -5.5, y: 0 }, { width: 29, height: 15 }, { x: 0, y: 0 }, "body"), Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_5__["makeRect"])({ x: 17.5, y: 0 }, { width: 5, height: 15 }, { x: 0, y: 0 }, "body"), Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_5__["makeRect"])({ x: 12, y: 0 }, { width: 6, height: 15 }, { x: 0, y: 0 }, "cathode"), Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_5__["makeRect"])({ x: 0, y: 0 }, { width: 40, height: 15 }, { x: 1, y: 1 }, "highlight nofill"));
     }
     else {
@@ -3293,7 +3274,7 @@ function drawLayout(instance) {
             "Z";
         const edge = Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(bodyString, "edge");
         const middle = Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_4__["makeCircle"])({ x: 0, y: 0 }, 14, "centre");
-        $([edge.element, middle.element]).css("fill", instance.color);
+        $([edge.element, middle.element]).css("fill", instance.properties.color);
         bodyGroup.append(edge, Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(bodyString, "darkener"), middle, Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_4__["makeCircle"])({ x: 0, y: 0 }, 8, "lightener"), Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(highlightString, "nofill highlight")).rotate(-90);
     }
     return [
@@ -3332,21 +3313,21 @@ __webpack_require__.r(__webpack_exports__);
 //import * as $ from 'jquery';
 function drawSchematic(instance) {
     const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])("body");
-    const cathodeEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCATHODE"]];
-    const anodeEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXANODE"]];
+    const cathodeEnd = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCATHODE"]];
+    const anodeEnd = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXANODE"]];
     const centre = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(cathodeEnd, anodeEnd).centre().vector;
     const rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(anodeEnd).getAngleTo(cathodeEnd);
     let [cathodeStart, anodeStart] = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])({ x: -12, y: 0 }, { x: 12, y: 0 }).rotate(rotation).sumWith(centre).vectors;
     //Text
-    let text = (instance.breakdownVoltage < 51)
-        ? Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__["default"])(instance.breakdownVoltage, 'V')
-        : Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__["default"])(instance.saturationCurrent, 'A');
+    let text = (instance.properties.breakdownVoltage < 51)
+        ? Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__["default"])(instance.properties.breakdownVoltage, 'V')
+        : Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__["default"])(instance.properties.saturationCurrent, 'A');
     const bodyPath = 'M 12 0 L -12 12 L -12 -12 L 12 0 Z';
     bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])(bodyPath, "body highlight highlightwithfill extrathick"), Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])(bodyPath, "body black"), 
     // Polarisation Line
     Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])('M 12 -12 L 12 12', "line medium"));
-    if (instance.color === "N/A" || instance.color === undefined) {
-        if (instance.breakdownVoltage < 51) {
+    if (instance.properties.color === "N/A" || instance.properties.color === undefined) {
+        if (instance.properties.breakdownVoltage < 51) {
             // Add the "wings" for xener
             bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])([[{ x: 12, y: -12 }, { x: 18, y: -12 },], [{ x: 12, y: 12 }, { x: 6, y: 12 }]], "line medium"));
         }
@@ -3357,8 +3338,8 @@ function drawSchematic(instance) {
         const arrowJoints1 = arrowJointsBase.sumWith({ x: -16, y: -10 }).rotate(-116.43).vectors;
         const arrowJoints2 = arrowJointsBase.sumWith({ x: -16, y: 0 }).rotate(-116.43).vectors;
         const colorCircle = Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_6__["makeCircle"])({ x: -4, y: 0 }, 4, "line thin");
-        $(colorCircle.element).css("fill", instance.color);
-        $(colorCircle.element).css("stroke", instance.color);
+        $(colorCircle.element).css("fill", instance.properties.color);
+        $(colorCircle.element).css("stroke", instance.properties.color);
         bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])(arrowJoints1, "line black thin"), //Arrow1
         Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])(arrowJoints2, "line black thin"), //Arrow2
         colorCircle //Color Indicator
@@ -3388,12 +3369,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _makeLayout__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./-makeLayout */ "./typescript/circuit/component/_diode/-makeLayout.ts");
 
 function loadLayout(raw) {
-    const name = (raw.name);
     const breakdownVoltage = (raw.breakdownVoltage);
     const saturationCurrent = (raw.saturationCurrent);
     const color = (raw.color);
     const joints = (raw.joints);
-    return Object(_makeLayout__WEBPACK_IMPORTED_MODULE_0__["default"])({ name, breakdownVoltage, saturationCurrent, color, joints });
+    return Object(_makeLayout__WEBPACK_IMPORTED_MODULE_0__["default"])({ breakdownVoltage, saturationCurrent, color, joints });
 }
 
 
@@ -3416,7 +3396,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function loadSchematic(raw) {
-    const name = (raw.name);
     const breakdownVoltage = (raw.breakdownVoltage);
     const saturationCurrent = (raw.saturationCurrent);
     const color = (raw.color || raw.colour);
@@ -3425,7 +3404,7 @@ function loadSchematic(raw) {
     const orientation = _valueCheck__WEBPACK_IMPORTED_MODULE_1__["default"].validate(orientations, "LR")(raw.orientation);
     const where = _valueCheck__WEBPACK_IMPORTED_MODULE_1__["default"].where({ x: 0, y: 0 })(raw.where);
     const joints = (raw.joints || deriveJoints(orientation, where));
-    return Object(_makeSchematic__WEBPACK_IMPORTED_MODULE_0__["default"])({ name, breakdownVoltage, saturationCurrent, color, joints });
+    return Object(_makeSchematic__WEBPACK_IMPORTED_MODULE_0__["default"])({ breakdownVoltage, saturationCurrent, color, joints });
 }
 const deriveJoints = (orientation, where) => {
     const baseJoints = ({
@@ -3466,8 +3445,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterLayout = {
-    name: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("string", "diode"),
-    disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 80, y: 0 }]),
     breakdownVoltage: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0),
     saturationCurrent: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0),
@@ -3505,8 +3482,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterSchematic = {
-    name: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("string", "diode"),
-    disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
     breakdownVoltage: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0),
     saturationCurrent: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0),
@@ -3590,13 +3565,11 @@ const INDEXCATHODE = 1;
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Schematic", function() { return Schematic; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
-/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_diode/-drawLayout.ts");
-/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_diode/-drawSchematic.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_diode/constants.ts");
-/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
-
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_diode/-drawLayout.ts");
+/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_diode/-drawSchematic.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_diode/constants.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 
 
 
@@ -3604,30 +3577,20 @@ __webpack_require__.r(__webpack_exports__);
 
 class Base {
     constructor(values) {
-        this.name = "diode";
-        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])();
-        this.disabled = false;
+        this.type = "diode";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
         this.flags = {
-            order: "fore"
+            order: "fore",
+            disabled: false
         };
-        this.joints = values.joints;
-        this.saturationCurrent = values.saturationCurrent;
-        this.breakdownVoltage = values.breakdownVoltage;
-        this.color = values.color;
-    }
-    getProperties() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
-            name: this.name,
-            breakdownVoltage: this.breakdownVoltage,
-            saturationCurrent: this.saturationCurrent,
-            color: this.color
-        });
-    }
-    getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
-            joints: this.joints,
-            disabled: this.disabled
-        });
+        this.properties = {
+            saturationCurrent: values.saturationCurrent,
+            breakdownVoltage: values.breakdownVoltage,
+            color: values.color
+        };
+        this.states = {
+            joints: values.joints
+        };
     }
     transferFunction() { return []; }
     ;
@@ -3639,12 +3602,12 @@ class Schematic extends Base {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
+        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_2__["default"])(this));
     }
     getConnectors() {
         return [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "anode", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXANODE"]], "+"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "cathode", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXCATHODE"]], "-"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "anode", "node", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXANODE"]], "+"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "cathode", "node", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXCATHODE"]], "-"),
             ]];
     }
 }
@@ -3655,12 +3618,12 @@ class Layout extends Base {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_2__["default"])(this));
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_1__["default"])(this));
     }
     getConnectors() {
         return [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "anode", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXANODE"]], "+"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "cathode", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXCATHODE"]], "-"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "anode", "pin", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXANODE"]], "+"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "cathode", "pin", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXCATHODE"]], "-"),
             ]];
     }
 }
@@ -3688,8 +3651,8 @@ __webpack_require__.r(__webpack_exports__);
 
 function drawLayout(instance) {
     const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["makeGroup"])("body");
-    const end1 = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND1"]];
-    const end2 = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND2"]];
+    const end1 = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND1"]];
+    const end2 = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND2"]];
     let centre = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(end1, end2).centre().vector;
     let rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(end1).getAngleTo(end2);
     const nCoils = 4;
@@ -3742,13 +3705,13 @@ __webpack_require__.r(__webpack_exports__);
 
 function drawSchematic(instance) {
     const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])("body");
-    const end1 = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND1"]];
-    const end2 = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND2"]];
+    const end1 = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND1"]];
+    const end2 = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND2"]];
     let centre = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(end1, end2).centre().vector;
     let rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(end1).getAngleTo(end2);
     let [start1, start2] = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])({ x: -20, y: 0 }, { x: 20, y: 0 }).rotate(rotation).sumWith(centre).vectors;
     //Text
-    let text = Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__["default"])(instance.inductance, 'H');
+    let text = Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__["default"])(instance.properties.inductance, 'H');
     bodyGroup.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_6__["makeRect"])({ x: 0, y: -2 }, { width: 40, height: 12 }, Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(2), "highlight highlightwithfill extrathick"), Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])('M-20 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0 q5 -12, 10 0', "line medium"));
     let textEl = Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_4__["makeText"])(text, { x: 0, y: -13 }, "text");
     return [
@@ -3774,10 +3737,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _makeLayout__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./-makeLayout */ "./typescript/circuit/component/_inductor/-makeLayout.ts");
 
 function loadLayout(raw) {
-    const name = (raw.name);
     const inductance = (raw.inductance);
     const joints = (raw.joints);
-    return Object(_makeLayout__WEBPACK_IMPORTED_MODULE_0__["default"])({ name, inductance, joints });
+    return Object(_makeLayout__WEBPACK_IMPORTED_MODULE_0__["default"])({ inductance, joints });
 }
 
 
@@ -3800,14 +3762,13 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function loadSchematic(raw) {
-    const name = (raw.name);
     const inductance = (raw.inductance || raw.value);
     //Joints Block
     const orientations = ["LR", "RL", "UD", "DU"];
     const orientation = _valueCheck__WEBPACK_IMPORTED_MODULE_1__["default"].validate(orientations, "LR")(raw.orientation);
     const where = _valueCheck__WEBPACK_IMPORTED_MODULE_1__["default"].where({ x: 0, y: 0 })(raw.where);
     const joints = (raw.joints || deriveJoints(orientation, where));
-    return Object(_makeSchematic__WEBPACK_IMPORTED_MODULE_0__["default"])({ name, inductance, joints, });
+    return Object(_makeSchematic__WEBPACK_IMPORTED_MODULE_0__["default"])({ inductance, joints, });
 }
 const deriveJoints = (orientation, where) => {
     const baseJoints = ({
@@ -3848,8 +3809,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterLayout = {
-    name: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("string", "inductor"),
-    disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 80, y: 0 }]),
     inductance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
 };
@@ -3885,8 +3844,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterSchematic = {
-    name: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("string", "inductor"),
-    disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
     inductance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
 };
@@ -3968,13 +3925,11 @@ const INDEXEND2 = 1;
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Schematic", function() { return Schematic; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
-/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_inductor/-drawLayout.ts");
-/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_inductor/-drawSchematic.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_inductor/constants.ts");
-/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
-
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_inductor/-drawLayout.ts");
+/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_inductor/-drawSchematic.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_inductor/constants.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 
 
 
@@ -3982,26 +3937,18 @@ __webpack_require__.r(__webpack_exports__);
 
 class Base {
     constructor(values) {
-        this.name = "inductor";
-        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])();
-        this.disabled = false;
+        this.type = "inductor";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
         this.flags = {
-            order: "fore"
+            order: "fore",
+            disabled: false
         };
-        this.joints = values.joints;
-        this.inductance = values.inductance;
-    }
-    getProperties() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
-            name: this.name,
-            inductance: this.inductance,
-        });
-    }
-    getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
-            joints: this.joints,
-            disabled: this.disabled
-        });
+        this.properties = {
+            inductance: values.inductance
+        };
+        this.states = {
+            joints: values.joints
+        };
     }
     transferFunction() { return []; }
     ;
@@ -4013,12 +3960,12 @@ class Schematic extends Base {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
+        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_2__["default"])(this));
     }
     getConnectors() {
         return [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXEND1"]]),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXEND2"]]),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "", "node", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXEND1"]]),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "", "node", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXEND2"]]),
             ]];
     }
 }
@@ -4029,12 +3976,12 @@ class Layout extends Base {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_2__["default"])(this));
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_1__["default"])(this));
     }
     getConnectors() {
         return [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXEND1"]]),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXEND2"]]),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "", "pin", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXEND1"]]),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "", "pin", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXEND2"]]),
             ]];
     }
 }
@@ -4059,11 +4006,11 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function drawLayout(instance) {
-    const centre = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCENTRE"]];
-    const rotationPoint = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXROTATION"]];
+    const centre = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCENTRE"]];
+    const rotationPoint = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXROTATION"]];
     const rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(centre).getAngleTo(rotationPoint);
     //TODO Make DIP draw in centre? So this can be tidied.
-    if (instance.isDual) {
+    if (instance.states.isDual) {
         return Object(_svg_element_groups_dip__WEBPACK_IMPORTED_MODULE_2__["makeDip"])(4, "", "TL072", "").translate(Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(-30)).rotate(rotation, Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(30)).translate(centre);
     }
     else {
@@ -4096,11 +4043,11 @@ __webpack_require__.r(__webpack_exports__);
 
 function drawSchematic(instance) {
     const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["makeGroup"])("body");
-    const inPEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXINPOS"]];
-    const inNEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXINNEG"]];
-    const outEnd = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXOUT"]];
-    const pow1End = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXPOW1"]];
-    const pow2End = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXPOW2"]];
+    const inPEnd = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXINPOS"]];
+    const inNEnd = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXINNEG"]];
+    const outEnd = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXOUT"]];
+    const pow1End = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXPOW1"]];
+    const pow2End = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXPOW2"]];
     // Corners of the body triangle
     const bodyJoints = [{ x: -25, y: -25 }, { x: 25, y: 0 }, { x: -25, y: 25 }, { x: -25, y: -25 }];
     // The drawings orientation (before transforms) is: 
@@ -4161,11 +4108,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _makeLayout__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./-makeLayout */ "./typescript/circuit/component/_opAmp/-makeLayout.ts");
 
 function loadLayout(raw) {
-    const name = (raw.name);
     const offsetVoltage = (raw.offsetVoltage);
     const isDual = (raw.isDual);
     const joints = (raw.joints);
-    return Object(_makeLayout__WEBPACK_IMPORTED_MODULE_0__["default"])({ name, offsetVoltage, isDual, joints });
+    return Object(_makeLayout__WEBPACK_IMPORTED_MODULE_0__["default"])({ offsetVoltage, isDual, joints });
 }
 
 
@@ -4190,7 +4136,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function loadSchematic(raw) {
-    const name = (raw.name);
     const offsetVoltage = (raw.offsetVoltage);
     //Joints Block
     const orientations = ["LR", "RL"];
@@ -4199,7 +4144,7 @@ function loadSchematic(raw) {
     const inputAtTop = _valueCheck__WEBPACK_IMPORTED_MODULE_1__["default"].validate(inputsAtTop, "non-inverting")(raw.whichInputAtTop);
     const where = _valueCheck__WEBPACK_IMPORTED_MODULE_1__["default"].where({ x: 0, y: 0 })(raw.where);
     const joints = (raw.joints || deriveJoints(orientation, inputAtTop, where));
-    const opAmp = Object(_makeSchematic__WEBPACK_IMPORTED_MODULE_0__["default"])({ name, offsetVoltage, joints });
+    const opAmp = Object(_makeSchematic__WEBPACK_IMPORTED_MODULE_0__["default"])({ offsetVoltage, joints });
     // Also make the power connections
     const isNumber = _valueCheck__WEBPACK_IMPORTED_MODULE_1__["default"].test("number");
     const [minOutput, maxOutput] = [raw.minOutput, raw.maxOutput];
@@ -4262,8 +4207,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterLayout = {
-    name: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("string", "opAmp"),
-    disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
     isDual: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 30, y: 30 }, { x: 40, y: 30 }]),
     offsetVoltage: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
@@ -4300,8 +4243,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterSchematic = {
-    name: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("string", "opAmp"),
-    disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: 40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: 20 }]),
     offsetVoltage: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
 };
@@ -4396,14 +4337,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Schematic", function() { return Schematic; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
 /* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
-/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_opAmp/-drawLayout.ts");
-/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_opAmp/-drawSchematic.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_opAmp/constants.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../~constants */ "./typescript/~constants.ts");
-/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
-
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_opAmp/-drawLayout.ts");
+/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_opAmp/-drawSchematic.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_opAmp/constants.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../~constants */ "./typescript/~constants.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 
 
 
@@ -4413,19 +4352,15 @@ __webpack_require__.r(__webpack_exports__);
 
 class Base {
     constructor(values) {
-        this.name = "opamp";
-        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_7__["makeGroup"])();
-        this.disabled = false;
+        this.type = "opamp";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_6__["makeGroup"])();
         this.flags = {
-            order: "fore"
+            order: "fore",
+            disabled: false
         };
-        this.offsetVoltage = values.offsetVoltage;
-    }
-    getProperties() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
-            name: this.name,
-            offsetVoltage: this.offsetVoltage
-        });
+        this.properties = {
+            offsetVoltage: values.offsetVoltage
+        };
     }
     transferFunction() { return []; }
     ;
@@ -4434,30 +4369,25 @@ class Schematic extends Base {
     constructor(values) {
         super(values);
         this.form = "schematic";
-        this.offsetVoltage = values.offsetVoltage;
-        this.joints = values.joints;
-    }
-    getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
-            joints: this.joints,
-            disabled: this.disabled
-        });
+        this.states = {
+            joints: values.joints
+        };
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_4__["default"])(this));
+        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
     }
     getConnectors() {
-        let [posPower, negPower] = (this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXPOW1"]].y < this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXPOW2"]].y)
-            ? [this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXPOW1"]], this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXPOW2"]]]
-            : [this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXPOW2"]], this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXPOW1"]]];
+        let [posPower, negPower] = (this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXPOW1"]].y < this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXPOW2"]].y)
+            ? [this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXPOW1"]], this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXPOW2"]]]
+            : [this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXPOW2"]], this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXPOW1"]]];
         return [[
                 // The ordering here is important so the colors line up between layout and schematic
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "vcc+", "node", posPower, "v+"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "out", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXOUT"]], "o"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "in-", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXINNEG"]], "i-"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "in+", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXINPOS"]], "i+"),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "vcc-", "node", negPower, "v-"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "vcc+", "node", posPower, "v+"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "out", "node", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXOUT"]], "o"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "in-", "node", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXINNEG"]], "i-"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "in+", "node", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXINPOS"]], "i+"),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "vcc-", "node", negPower, "v-"),
             ]];
     }
 }
@@ -4465,25 +4395,19 @@ class Layout extends Base {
     constructor(values) {
         super(values);
         this.form = "layout";
-        this.offsetVoltage = values.offsetVoltage;
-        this.isDual = values.isDual;
-        this.joints = values.joints;
-    }
-    getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
-            isDual: this.isDual,
-            joints: this.joints,
-            disabled: this.disabled
-        });
+        this.states = {
+            joints: values.joints,
+            isDual: values.isDual
+        };
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_2__["default"])(this));
     }
     getConnectors() {
-        const gs = _constants__WEBPACK_IMPORTED_MODULE_6__["gridSpacing"];
-        const c = this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXCENTRE"]];
-        const r = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXCENTRE"]]).getAngleTo(this.joints[_constants__WEBPACK_IMPORTED_MODULE_5__["INDEXROTATION"]]);
+        const gs = _constants__WEBPACK_IMPORTED_MODULE_5__["gridSpacing"];
+        const c = this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXCENTRE"]];
+        const r = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXCENTRE"]]).getAngleTo(this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXROTATION"]]);
         const connectorPoints = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])([
             { x: 0 * gs, y: 3 * gs },
             { x: 1 * gs, y: 3 * gs },
@@ -4494,38 +4418,38 @@ class Layout extends Base {
             { x: 1 * gs, y: 0 * gs },
             { x: 0 * gs, y: 0 * gs } //8
         ]).sumWith(Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(-30)).rotate(r).sumWith(c).vectors;
-        if (this.isDual) {
+        if (this.states.isDual) {
             // Note that the power selectors physically occupy the same space.
             return [[
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "vcc+", "pin", connectorPoints[7], "v+"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "out", "pin", connectorPoints[6], "1o"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "in-", "pin", connectorPoints[5], "1i-"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "in+", "pin", connectorPoints[4], "1i+"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "vcc-", "pin", connectorPoints[3], "v-"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "vcc+", "pin", connectorPoints[7], "v+"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "out", "pin", connectorPoints[6], "1o"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "in-", "pin", connectorPoints[5], "1i-"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "in+", "pin", connectorPoints[4], "1i+"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "vcc-", "pin", connectorPoints[3], "v-"),
                 ], [
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "vcc+", "pin", connectorPoints[7], "v+"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "out", "pin", connectorPoints[0], "2o"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "in-", "pin", connectorPoints[1], "2i-"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "in+", "pin", connectorPoints[2], "2i+"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "vcc-", "pin", connectorPoints[3], "v-"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "vcc+", "pin", connectorPoints[7], "v+"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "out", "pin", connectorPoints[0], "2o"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "in-", "pin", connectorPoints[1], "2i-"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "in+", "pin", connectorPoints[2], "2i+"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "vcc-", "pin", connectorPoints[3], "v-"),
                 ]];
         }
         else {
             return [[
                     // The ordering here is important so the colors line up between layout and schematic
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "vcc+", "pin", connectorPoints[6], "v+"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "out", "pin", connectorPoints[5], "o"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "in-", "pin", connectorPoints[1], "i-"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "in+", "pin", connectorPoints[2], "i+"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "vcc-", "pin", connectorPoints[3], "v-"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "nc", "pin", connectorPoints[7], "nc"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "offset n1", "pin", connectorPoints[4], "nc"),
-                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "offset n2", "pin", connectorPoints[0], "nc"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "vcc+", "pin", connectorPoints[6], "v+"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "out", "pin", connectorPoints[5], "o"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "in-", "pin", connectorPoints[1], "i-"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "in+", "pin", connectorPoints[2], "i+"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "vcc-", "pin", connectorPoints[3], "v-"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "nc", "pin", connectorPoints[7], "nc"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "offset n1", "pin", connectorPoints[4], "nc"),
+                    Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "offset n2", "pin", connectorPoints[0], "nc"),
                 ]];
         }
     }
     replaceWithDual() {
-        this.isDual = true;
+        this.states.isDual = true;
         this.group.clearChildren();
         this.draw();
     }
@@ -4556,11 +4480,11 @@ __webpack_require__.r(__webpack_exports__);
 
 function drawLayout(instance) {
     const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_2__["makeGroup"])("body");
-    const text = instance.voltage.toFixed(1);
+    const text = instance.properties.voltage.toFixed(1);
     bodyGroup.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["makeRect"])({ x: 0, y: -35 }, { width: 180, height: 95 }, { x: 10, y: 10 }, "body highlight"), Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["makeRect"])({ x: 0, y: -45 }, { width: 160, height: 65 }, { x: 10, y: 10 }, "screen"), Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_1__["makeText"])("8".repeat(text.length - 1), { x: 0, y: -20 }, "screentext off"), Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_1__["makeText"])(text, { x: 0, y: -20 }, "screentext on"));
     return [
-        bodyGroup.translate(instance.joints[_constants__WEBPACK_IMPORTED_MODULE_0__["INDEXCONNECTION"]]),
-        Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_3__["makeCircle"])(instance.joints[_constants__WEBPACK_IMPORTED_MODULE_0__["INDEXCONNECTION"]], 5, "hole")
+        bodyGroup.translate(instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_0__["INDEXCONNECTION"]]),
+        Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_3__["makeCircle"])(instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_0__["INDEXCONNECTION"]], 5, "hole")
     ];
 }
 
@@ -4591,17 +4515,17 @@ __webpack_require__.r(__webpack_exports__);
 
 function drawSchematic(instance) {
     const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["makeGroup"])("body");
-    if (instance.voltage < 0) {
-        bodyGroup.append(powerNegativeGraphics(instance.voltage));
+    if (instance.properties.voltage < 0) {
+        bodyGroup.append(powerNegativeGraphics(instance.properties.voltage));
     }
-    else if (instance.voltage > 0) {
-        bodyGroup.append(powerPositiveGraphics(instance.voltage));
+    else if (instance.properties.voltage > 0) {
+        bodyGroup.append(powerPositiveGraphics(instance.properties.voltage));
     }
     else {
         bodyGroup.append(powerGroundGraphics());
     }
     return [
-        bodyGroup.translate(instance.joints[_constants__WEBPACK_IMPORTED_MODULE_0__["INDEXCONNECTION"]])
+        bodyGroup.translate(instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_0__["INDEXCONNECTION"]])
     ];
 }
 function powerNegativeGraphics(voltage) {
@@ -4648,10 +4572,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _makeLayout__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./-makeLayout */ "./typescript/circuit/component/_power/-makeLayout.ts");
 
 function loadLayout(raw) {
-    const name = (raw.name);
     const voltage = (raw.voltage);
     const joints = (raw.joints);
-    return Object(_makeLayout__WEBPACK_IMPORTED_MODULE_0__["default"])({ name, voltage, joints });
+    return Object(_makeLayout__WEBPACK_IMPORTED_MODULE_0__["default"])({ voltage, joints });
 }
 
 
@@ -4674,12 +4597,11 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function loadSchematic(raw) {
-    const name = (raw.name);
     const voltage = (raw.voltage || raw.value);
     //Joints Block
     const where = _valueCheck__WEBPACK_IMPORTED_MODULE_2__["default"].where({ x: 0, y: 0 })(raw.where);
     const joints = (raw.joints || deriveJoints(voltage, where));
-    return Object(_makeSchematic__WEBPACK_IMPORTED_MODULE_0__["default"])({ name, voltage, joints, });
+    return Object(_makeSchematic__WEBPACK_IMPORTED_MODULE_0__["default"])({ voltage, joints, });
 }
 const deriveJoints = (voltage, where) => {
     const baseJoints = (voltage < 0)
@@ -4719,8 +4641,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterLayout = {
-    name: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("string", "power"),
-    disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 40 }]),
     voltage: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
 };
@@ -4763,8 +4683,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterSchematic = {
-    name: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("string", "power"),
-    disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }]),
     voltage: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
 };
@@ -4845,35 +4763,24 @@ const INDEXCONNECTION = 0;
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "PowerSchematic", function() { return PowerSchematic; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "PowerLayout", function() { return PowerLayout; });
-/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_power/-drawLayout.ts");
-/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_power/-drawSchematic.ts");
-/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
-
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_power/-drawLayout.ts");
+/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_power/-drawSchematic.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 
 
 
 
 class PowerBase {
     constructor(values) {
-        this.name = "power";
-        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
-        this.disabled = false;
-        this.voltage = values.voltage;
-        this.joints = values.joints;
-    }
-    getProperties() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
-            name: this.name,
-            voltage: this.voltage
-        });
-    }
-    getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
-            joints: this.joints,
-            disabled: this.disabled
-        });
+        this.type = "power";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["makeGroup"])();
+        this.properties = {
+            voltage: values.voltage
+        };
+        this.states = {
+            joints: values.joints,
+        };
     }
     transferFunction() { return []; }
     ;
@@ -4883,18 +4790,19 @@ class PowerSchematic extends PowerBase {
         super(...arguments);
         this.form = "schematic";
         this.flags = {
-            order: "fore"
+            order: "fore",
+            disabled: false
         };
     }
     /** Builds and draws the components connectors */
     getConnectors() {
         return [
-            [Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "node", this.joints[0])]
+            [Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "", "node", this.states.joints[0])]
         ];
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
+        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_2__["default"])(this));
     }
 }
 class PowerLayout extends PowerBase {
@@ -4902,18 +4810,19 @@ class PowerLayout extends PowerBase {
         super(...arguments);
         this.form = "layout";
         this.flags = {
-            order: "mid"
+            order: "mid",
+            disabled: false
         };
     }
     /** Builds and draws the components connectors */
     getConnectors() {
         return [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "hole", this.joints[0])
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "", "hole", this.states.joints[0])
             ]];
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_2__["default"])(this));
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_1__["default"])(this));
     }
 }
 
@@ -4944,14 +4853,14 @@ __webpack_require__.r(__webpack_exports__);
 
 function drawLayout(instance) {
     const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_2__["makeGroup"])("body");
-    const rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCENTRE"]]).getAngleTo(instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXROTATION"]]);
+    const rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCENTRE"]]).getAngleTo(instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXROTATION"]]);
     instance.tracks = Object(_makeTracks__WEBPACK_IMPORTED_MODULE_5__["default"])(instance);
     const size = {
-        width: (instance.columns + 0.5) * _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"],
-        height: (instance.rows + 0.5) * _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"]
+        width: (instance.properties.columns + 0.5) * _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"],
+        height: (instance.properties.rows + 0.5) * _constants__WEBPACK_IMPORTED_MODULE_4__["gridSpacing"]
     };
     const cornerRounding = { x: 3, y: 3 };
-    bodyGroup.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_3__["makeRect"])(Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(0), size, cornerRounding, "body highlight").translate(instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCENTRE"]]).rotate(rotation), instance.tracks.map(t => t.group));
+    bodyGroup.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_3__["makeRect"])(Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(0), size, cornerRounding, "body highlight").translate(instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXCENTRE"]]).rotate(rotation), instance.tracks.map(t => t.group));
     return bodyGroup;
 }
 
@@ -4971,12 +4880,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _makeLayout__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./-makeLayout */ "./typescript/circuit/component/_stripboard/-makeLayout.ts");
 
 function loadLayout(raw) {
-    const name = (raw.name);
     const rows = (raw.rows);
     const columns = (raw.columns);
     const trackBreaks = (raw.trackBreaks);
     const joints = (raw.joints);
-    return Object(_makeLayout__WEBPACK_IMPORTED_MODULE_0__["default"])({ name, rows, columns, trackBreaks, joints });
+    return Object(_makeLayout__WEBPACK_IMPORTED_MODULE_0__["default"])({ rows, columns, trackBreaks, joints });
 }
 
 
@@ -5012,8 +4920,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterLayout = {
-    name: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("string", "stripboard"),
-    disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
     rows: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].integer(1),
     columns: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].integer(1),
@@ -5051,20 +4957,20 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function makeTracks(parent) {
-    const rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(parent.joints[0]).getAngleTo(parent.joints[1]);
-    const start = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])({ x: parent.columns - 1, y: parent.rows - 1 })
+    const rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(parent.states.joints[0]).getAngleTo(parent.states.joints[1]);
+    const start = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])({ x: parent.properties.columns - 1, y: parent.properties.rows - 1 })
         .scaleWith(-_constants__WEBPACK_IMPORTED_MODULE_2__["gridSpacing"] / 2)
         .rotate(rotation)
-        .sumWith(parent.joints[0]);
+        .sumWith(parent.states.joints[0]);
     const step = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])({ x: _constants__WEBPACK_IMPORTED_MODULE_2__["gridSpacing"], y: 0 }).rotate(rotation);
-    const tracks = [...Array(parent.rows).keys()].map((row) => {
+    const tracks = [...Array(parent.properties.rows).keys()].map((row) => {
         // The position of the start of the row (the first hole)
         const rowStart = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])({ x: 0, y: row * _constants__WEBPACK_IMPORTED_MODULE_2__["gridSpacing"] })
             .rotate(rotation)
             .sumWith(start).vector;
         // The offset between each hole and the next in gridSpacings
-        const holeSpacings = [0, ...Array(parent.columns - 1).fill(1)];
-        const breaks = parent.trackBreaks.filter(b => b.track === row).map(b => b.hole);
+        const holeSpacings = [0, ...Array(parent.properties.columns - 1).fill(1)];
+        const breaks = parent.states.trackBreaks.filter(b => b.track === row).map(b => b.hole);
         return _track_maps__WEBPACK_IMPORTED_MODULE_0__["default"].make({
             holeSpacings: holeSpacings,
             style: "stripboard",
@@ -5138,40 +5044,28 @@ const INDEXROTATION = 1;
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "StripboardLayout", function() { return StripboardLayout; });
-/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_stripboard/-drawLayout.ts");
-/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
-
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_stripboard/-drawLayout.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 
 
 class StripboardLayout {
     constructor(values) {
-        this.name = "stripboard";
-        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_2__["makeGroup"])();
-        this.disabled = false;
+        this.type = "stripboard";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_1__["makeGroup"])();
         this.form = "layout";
         this.tracks = [];
         this.flags = {
-            order: "back"
+            order: "back",
+            disabled: false
         };
-        this.rows = values.rows;
-        this.columns = values.columns;
-        this.trackBreaks = values.trackBreaks;
-        this.joints = values.joints;
-    }
-    getProperties() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
-            name: this.name,
-            rows: this.rows,
-            columns: this.columns
-        });
-    }
-    getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
-            joints: this.joints,
-            disabled: this.disabled,
-            trackBreaks: this.trackBreaks
-        });
+        this.properties = {
+            rows: values.rows,
+            columns: values.columns
+        };
+        this.states = {
+            joints: values.joints,
+            trackBreaks: values.trackBreaks
+        };
     }
     getConnectors() {
         return this.tracks.map((track) => {
@@ -5179,7 +5073,7 @@ class StripboardLayout {
         });
     }
     draw() {
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_1__["default"])(this));
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_0__["default"])(this));
     }
     transferFunction() { return []; }
     ;
@@ -5213,11 +5107,11 @@ __webpack_require__.r(__webpack_exports__);
 const drawStripboardHole = (position) => Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_3__["makeCircle"])(position, 4, "hole");
 const drawBreadboardHole = (position) => Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_4__["makeRect"])(position, { width: 8, height: 8 }, Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(0.5), "hole");
 function drawLayout(instance) {
-    const holeFunc = (instance.style === "breadboard") ? drawBreadboardHole : drawStripboardHole;
-    const start = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXSTART"]];
-    const step = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXSTEP"]];
+    const holeFunc = (instance.properties.style === "breadboard") ? drawBreadboardHole : drawStripboardHole;
+    const start = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXSTART"]];
+    const step = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXSTEP"]];
     // Create the holes
-    const holePositions = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(step).scaleMap(Object(_utility_cumulativeSum__WEBPACK_IMPORTED_MODULE_2__["default"])(...instance.holeSpacings)).sumWith(start).vectors;
+    const holePositions = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(step).scaleMap(Object(_utility_cumulativeSum__WEBPACK_IMPORTED_MODULE_2__["default"])(...instance.properties.holeSpacings)).sumWith(start).vectors;
     const holes = holePositions.map(hp => holeFunc(hp));
     const track = drawTrack(holePositions);
     return [track, ...holes];
@@ -5277,9 +5171,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulter = {
-    name: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("string", "track"),
     style: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate(["breadboard", "stripboard"], "breadboard"),
-    disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
     holeSpacings: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate(v => Array.isArray(v) && v.every(_valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].test("number")), [0]),
     breaks: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate(v => Array.isArray(v) && v.every(_valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].test("number")), []),
@@ -5347,62 +5239,50 @@ const INDEXSTEP = 1;
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
 /* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
-/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_track/-drawLayout.ts");
-/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
-
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_track/-drawLayout.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 
 
 
 
 class Layout {
     constructor(values) {
-        this.name = "track";
-        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
-        this.disabled = false;
+        this.type = "track";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["makeGroup"])();
         this.form = "layout";
         this.flags = {
-            order: "fore"
+            order: "fore",
+            disabled: false
         };
-        this.holeSpacings = values.holeSpacings;
-        this.style = values.style;
-        this.joints = values.joints;
-        this.breaks = values.breaks;
-    }
-    getProperties() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
-            name: this.name,
-            holeSpacings: this.holeSpacings,
-            style: this.style
-        });
-    }
-    getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_1__["default"])({
-            joints: this.joints,
-            disabled: this.disabled,
-            breaks: this.breaks
-        });
+        this.properties = {
+            holeSpacings: values.holeSpacings,
+            style: values.style
+        };
+        this.states = {
+            joints: values.joints,
+            breaks: values.breaks
+        };
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_2__["default"])(this));
     }
     /** Builds and draws the components connectors */
     getConnectors() {
-        const start = this.joints[0];
-        const step = this.joints[1];
+        const start = this.states.joints[0];
+        const step = this.states.joints[1];
         let connectorSets = [[]];
         // Create the holes
         let accHs = 0;
-        this.holeSpacings.forEach((hS, idx) => {
+        this.properties.holeSpacings.forEach((hS, idx) => {
             accHs += hS;
             let holePos = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(step)
                 .scaleWith(accHs)
                 .sumWith(start)
                 .vector;
-            const connectorType = this.breaks.includes(idx) ? "brokenhole" : "hole";
-            connectorSets[0].push(Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "", connectorType, holePos));
+            const connectorType = this.states.breaks.includes(idx) ? "brokenhole" : "hole";
+            connectorSets[0].push(Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", connectorType, holePos));
         });
         return connectorSets;
     }
@@ -5446,7 +5326,7 @@ __webpack_require__.r(__webpack_exports__);
 //import * as $ from 'jquery';
 function drawLayout(instance) {
     const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_1__["makeGroup"])("body");
-    const joints = instance.joints;
+    const joints = instance.states.joints;
     let coverPath, leadPath = "";
     //The proportion of half the end joints that is cover not lead
     let coverRatio = 0.6; //BETWEEN 0 and 1
@@ -5465,7 +5345,7 @@ function drawLayout(instance) {
     // Draw lead path to end
     leadPath += getSegmentTowardsJointMid(joints[joints.length - 2], joints[joints.length - 1], 1);
     let cover = Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_0__["makePath"])(coverPath, "cover");
-    $(cover.element).css("stroke", instance.color);
+    $(cover.element).css("stroke", instance.states.color);
     //Style and add lead, cover
     //(Prepend so handles appear on top)
     bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_0__["makePath"])(leadPath, "lead"), Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_0__["makePath"])(coverPath, "leadhighlight highlight"), cover);
@@ -5519,7 +5399,7 @@ __webpack_require__.r(__webpack_exports__);
 
 function drawSchematic(instance) {
     return [
-        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_0__["makePath"])(instance.joints, "line thin")
+        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_0__["makePath"])(instance.states.joints, "line thin")
     ];
 }
 
@@ -5539,11 +5419,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _makeLayout__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./-makeLayout */ "./typescript/circuit/component/_wire/-makeLayout.ts");
 
 function loadLayout(raw) {
-    const name = (raw.name);
     const color = (raw.color || raw.colour);
     //Joints Block
     const joints = (raw.joints);
-    return Object(_makeLayout__WEBPACK_IMPORTED_MODULE_0__["default"])({ name, color, joints });
+    return Object(_makeLayout__WEBPACK_IMPORTED_MODULE_0__["default"])({ color, joints });
 }
 
 
@@ -5562,10 +5441,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _makeSchematic__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./-makeSchematic */ "./typescript/circuit/component/_wire/-makeSchematic.ts");
 
 function loadSchematic(raw) {
-    const name = (raw.name);
     //Joints Block
     const joints = (raw.joints);
-    return Object(_makeSchematic__WEBPACK_IMPORTED_MODULE_0__["default"])({ name, joints });
+    return Object(_makeSchematic__WEBPACK_IMPORTED_MODULE_0__["default"])({ joints });
 }
 
 
@@ -5601,8 +5479,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterLayout = {
-    name: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("string", "wire"),
-    disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 80, y: 0 }], l => l >= 2),
     color: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].color("#545454")
 };
@@ -5642,8 +5518,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterSchematic = {
-    name: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("string", "wire"),
-    disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 10, y: 10 }], l => l >= 2)
 };
 // TODO: Pass in options for extendable and others (options={?}) (true,true)
@@ -5708,14 +5582,12 @@ const maps = {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Schematic", function() { return Schematic; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
-/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _utility_flatten__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../utility/~flatten */ "./typescript/utility/~flatten.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_wire/-drawLayout.ts");
-/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_wire/-drawSchematic.ts");
-/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _utility_flatten__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/~flatten */ "./typescript/utility/~flatten.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_wire/-drawLayout.ts");
+/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_wire/-drawSchematic.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 ;
-
 
 
 
@@ -5723,14 +5595,9 @@ __webpack_require__.r(__webpack_exports__);
 
 class Base {
     constructor() {
-        this.name = "wire";
-        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])();
+        this.type = "wire";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
         this.disabled = false;
-    }
-    getProperties() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
-            name: this.name
-        });
     }
 }
 class Schematic extends Base {
@@ -5738,31 +5605,29 @@ class Schematic extends Base {
         super();
         this.form = "schematic";
         this.flags = {
-            order: "back"
+            order: "back",
+            disabled: false
         };
-        this.joints = values.joints;
-    }
-    getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
-            joints: this.joints,
-            disabled: this.disabled
-        });
+        this.properties = {};
+        this.states = {
+            joints: values.joints,
+        };
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_4__["default"])(this));
+        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
     }
     getConnectors() {
-        const end1 = this.joints[0];
-        const end2 = this.joints[this.joints.length - 1];
+        const end1 = this.states.joints[0];
+        const end2 = this.states.joints[this.states.joints.length - 1];
         return [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "end1", "node", end1),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "end2", "node", end2)
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "end1", "node", end1),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "end2", "node", end2)
             ]
         ];
     }
     transferFunction(from) {
-        return _utility_flatten__WEBPACK_IMPORTED_MODULE_2__["default"].flatten2d(this.getConnectors().map(connectorSet => connectorSet.filter(c => !(c.name === from.name && c.component == from.component))));
+        return _utility_flatten__WEBPACK_IMPORTED_MODULE_1__["default"].flatten2d(this.getConnectors().map(connectorSet => connectorSet.filter(c => !(c.name === from.name && c.component == from.component))));
     }
 }
 class Layout extends Base {
@@ -5770,31 +5635,28 @@ class Layout extends Base {
         super();
         this.form = "layout";
         this.flags = {
-            order: "fore"
+            order: "fore",
+            disabled: false
         };
-        this.joints = values.joints;
-        this.color = values.color;
-    }
-    getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
-            joints: this.joints,
-            color: this.color,
-            disabled: this.disabled
-        });
+        this.properties = {};
+        this.states = {
+            joints: values.joints,
+            color: values.color
+        };
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_2__["default"])(this));
     }
     getConnectors() {
         return [[
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "end1", "pin", this.joints[0]),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "end2", "pin", this.joints[this.joints.length - 1]),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "end1", "pin", this.states.joints[0]),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "end2", "pin", this.states.joints[this.states.joints.length - 1]),
             ]
         ];
     }
     transferFunction(from) {
-        return _utility_flatten__WEBPACK_IMPORTED_MODULE_2__["default"].flatten2d(this.getConnectors().map(connectorSet => connectorSet.filter(c => !(c.name === from.name && c.component == from.component))));
+        return _utility_flatten__WEBPACK_IMPORTED_MODULE_1__["default"].flatten2d(this.getConnectors().map(connectorSet => connectorSet.filter(c => !(c.name === from.name && c.component == from.component))));
     }
 }
 
@@ -5932,13 +5794,13 @@ const Draggable = (() => {
         });
         $(element).on(_events__WEBPACK_IMPORTED_MODULE_2__["default"].drag, (e, drag) => {
             if (e.target === element) {
-                component.joints = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(component.joints).sumWith(drag).vectors;
+                component.states.joints = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(component.states.joints).sumWith(drag).vectors;
                 $(element).trigger(_events__WEBPACK_IMPORTED_MODULE_2__["default"].draw);
             }
         });
         $(element).on(_events__WEBPACK_IMPORTED_MODULE_2__["default"].dragStop, (e) => {
             if (e.target === element) {
-                component.joints = component.joints.map(j => Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(j).round().vector);
+                component.states.joints = component.states.joints.map(j => Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(j).round().vector);
             }
         });
         // // TODO, I don't quite like how this is coupled together
@@ -6019,7 +5881,7 @@ const Extendable = (() => {
             .hide(0); // I.e. hide the dragging one...
     };
     const createHandles = (component) => {
-        component.joints.forEach(joint => {
+        component.states.joints.forEach(joint => {
             addHandle(component, joint);
         });
     };
@@ -6041,7 +5903,7 @@ const Reticulatable = (() => {
                 // Get index for insertion into joint array
                 const jointIdx = getJointInsertionIdx(component, position);
                 //insert joint at position
-                component.joints.splice(jointIdx, 0, position);
+                component.states.joints.splice(jointIdx, 0, position);
                 addHandle(component, position);
                 $(element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw, [e]);
             }
@@ -6054,19 +5916,19 @@ const Reticulatable = (() => {
         // Remove joint through dblclick
         $(element).on("dblclick", ".dragHandle", (e) => {
             // If only two joints remain then they can't be removed by dblclick
-            if (component.joints.length <= 2)
+            if (component.states.joints.length <= 2)
                 return;
             const point = $(e.target).data("point");
-            component.joints = component.joints.filter(Object(_utility_isNot__WEBPACK_IMPORTED_MODULE_5__["default"])(point));
+            component.states.joints = component.states.joints.filter(Object(_utility_isNot__WEBPACK_IMPORTED_MODULE_5__["default"])(point));
             e.target.remove();
             $(element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw, [e]);
         });
     };
     const removeExcessJoints = (component, point) => {
         // If only two joints remain then they can't be removed during a drag
-        if (component.joints.length <= 2)
+        if (component.states.joints.length <= 2)
             return;
-        component.joints = component.joints.filter((joint) => {
+        component.states.joints = component.states.joints.filter((joint) => {
             return (joint === point) || !Object(_vector__WEBPACK_IMPORTED_MODULE_3__["default"])(point).isCloseTo(joint);
         });
         $(component.group.element).children(".dragHandle").not(".dragging").filter((i, handle) => {
@@ -6074,7 +5936,7 @@ const Reticulatable = (() => {
         }).remove();
     };
     const getJointInsertionIdx = (component, point) => {
-        let jointAngles = component.joints.map((j) => Math.atan2(point.y - j.y, point.x - j.x) * 180 / Math.PI);
+        let jointAngles = component.states.joints.map((j) => Math.atan2(point.y - j.y, point.x - j.x) * 180 / Math.PI);
         let bestAnglePair = 180;
         let bestJointIdx = 0;
         for (let i = 1; i < jointAngles.length; i++) {
@@ -6092,7 +5954,7 @@ const Removable = (() => {
     const init = (component) => {
         const element = component.group.element;
         $(element).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].dragStop, ".dragHandle", (e) => {
-            if (component.joints.length === 2 && Object(_vector__WEBPACK_IMPORTED_MODULE_3__["default"])(component.joints[0]).isCloseTo(component.joints[1])) {
+            if (component.states.joints.length === 2 && Object(_vector__WEBPACK_IMPORTED_MODULE_3__["default"])(component.states.joints[0]).isCloseTo(component.states.joints[1])) {
                 _manifest__WEBPACK_IMPORTED_MODULE_1__["default"].removeComponent(component);
                 _history__WEBPACK_IMPORTED_MODULE_2__["default"].mergeLast();
             }
@@ -6104,6 +5966,9 @@ const addHandle = (component, point) => {
     const handle = Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_4__["makeCircle"])(point, 5, "handle dragHandle draggable highlight").element;
     $(handle).data('point', point);
     component.group.append(handle);
+    $(handle).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].dragStart, () => {
+        _history__WEBPACK_IMPORTED_MODULE_2__["default"].add(component);
+    });
     $(handle).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].drag, (e, drag) => {
         point.x += drag.x;
         point.y += drag.y;
@@ -6136,7 +6001,7 @@ const Graphical = (() => {
     const init = (component) => {
         let element = component.group.element;
         $(element).on(_events__WEBPACK_IMPORTED_MODULE_0__["default"].anyDraw, () => {
-            if (component.disabled === false) {
+            if (component.flags.disabled === false) {
                 $(component.group.element).show();
                 component.group.clearChildren(":not(.handle,.connectivityhighlight)");
                 component.draw();
@@ -6181,7 +6046,7 @@ const Junctions = (() => {
         });
     };
     const createJunctions = (component) => {
-        let otherConnectors = _utility_flatten__WEBPACK_IMPORTED_MODULE_3__["default"].flatten2d(_manifest__WEBPACK_IMPORTED_MODULE_2__["default"].schematic.map(component => _utility_flatten__WEBPACK_IMPORTED_MODULE_3__["default"].flatten2d(component.getConnectors()).filter(connector => (connector.type === "node"))));
+        let otherConnectors = _utility_flatten__WEBPACK_IMPORTED_MODULE_3__["default"].flatten2d(_manifest__WEBPACK_IMPORTED_MODULE_2__["default"].states.schematic.map(component => _utility_flatten__WEBPACK_IMPORTED_MODULE_3__["default"].flatten2d(component.getConnectors()).filter(connector => (connector.type === "node"))));
         component.getConnectors().forEach(connectorSet => connectorSet.forEach(connector => {
             let point = connector.point;
             let attachedConnectors = otherConnectors.filter(other => {
@@ -6253,7 +6118,7 @@ const Recolorable = (() => {
         recolorSegmentGroup.append(segment1, segment2);
         component.group.append(recolorHandle, recolorSegmentGroup);
         $(recolorHandle.element).on("click", () => {
-            let colorIndex = colorPalette.indexOf(component.color);
+            let colorIndex = colorPalette.indexOf(component.states.color);
             let color;
             if (colorIndex >= 0) {
                 color = colorPalette[(colorIndex + 1) % colorPalette.length];
@@ -6262,7 +6127,7 @@ const Recolorable = (() => {
                 color = colorPalette[0];
             }
             ;
-            component.color = color;
+            component.states.color = color;
             $(component.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_0__["default"].draw);
         });
     };
@@ -6271,9 +6136,9 @@ const Recolorable = (() => {
         $(component.group.element).find(".recolorSegmentGroup").remove();
     };
     const getRecolorPosition = (component) => {
-        const angle = Object(_vector__WEBPACK_IMPORTED_MODULE_2__["default"])(component.joints[0]).getAngleTo(component.joints[1]);
+        const angle = Object(_vector__WEBPACK_IMPORTED_MODULE_2__["default"])(component.states.joints[0]).getAngleTo(component.states.joints[1]);
         const offset = Object(_utility_polar_toVector__WEBPACK_IMPORTED_MODULE_1__["default"])(12, angle + 45);
-        return Object(_vector__WEBPACK_IMPORTED_MODULE_2__["default"])(component.joints[0]).sumWith(offset).vector;
+        return Object(_vector__WEBPACK_IMPORTED_MODULE_2__["default"])(component.states.joints[0]).sumWith(offset).vector;
     };
     const defaultColorPalette = [
         "#545454",
@@ -6354,7 +6219,7 @@ const ReversableBoard = (() => {
         let parent = (component.group.element.parentElement);
         if (parent)
             parent.appendChild(ghostGroup);
-        let allValidConnectors = _utility_flatten__WEBPACK_IMPORTED_MODULE_4__["default"].flatten2d(_manifest__WEBPACK_IMPORTED_MODULE_2__["default"].layout.map(el => _utility_flatten__WEBPACK_IMPORTED_MODULE_4__["default"].flatten2d(el.getConnectors().map(connectorSet => connectorSet.filter(connector => connector.type === "pin")))));
+        let allValidConnectors = _utility_flatten__WEBPACK_IMPORTED_MODULE_4__["default"].flatten2d(_manifest__WEBPACK_IMPORTED_MODULE_2__["default"].states.layout.map(el => _utility_flatten__WEBPACK_IMPORTED_MODULE_4__["default"].flatten2d(el.getConnectors().map(connectorSet => connectorSet.filter(connector => connector.type === "pin")))));
         // ...
         component.tracks.forEach((track, trackIdx) => {
             let trackGhostGroup = $(track.group.element).clone()[0];
@@ -6378,14 +6243,14 @@ const ReversableBoard = (() => {
                     if (hole.type === "hole") {
                         $(breaker.element).addClass("broken");
                         hole.type = "brokenhole";
-                        component.trackBreaks.push(holePosition);
-                        track.breaks.push(holePosition.hole);
+                        component.states.trackBreaks.push(holePosition);
+                        track.states.breaks.push(holePosition.hole);
                     }
                     else if (hole.type === "brokenhole") {
                         $(breaker.element).removeClass("broken");
                         hole.type = "hole";
-                        component.trackBreaks = component.trackBreaks.filter(trackBreak => (trackBreak.hole !== holePosition.hole || trackBreak.track !== holePosition.track));
-                        track.breaks = track.breaks.filter(b => b !== holePosition.hole);
+                        component.states.trackBreaks = component.states.trackBreaks.filter(trackBreak => (trackBreak.hole !== holePosition.hole || trackBreak.track !== holePosition.track));
+                        track.states.breaks = track.states.breaks.filter(b => b !== holePosition.hole);
                     }
                 });
             });
@@ -6435,8 +6300,8 @@ const Rotatable = (() => {
     const init = (component) => {
         $(component.group.element).dblclick(() => {
             _history__WEBPACK_IMPORTED_MODULE_2__["default"].add(component);
-            let centre = component.joints[0];
-            component.joints = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(component.joints)
+            let centre = component.states.joints[0];
+            component.states.joints = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(component.states.joints)
                 .sumWith(Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(centre).scaleWith(-1))
                 .rotate(90)
                 .sumWith(centre)
@@ -6595,7 +6460,7 @@ const WiresCreatable = (() => {
         const wire = _wire_maps__WEBPACK_IMPORTED_MODULE_3__["default"].layout.make({
             joints: [vector, vector],
         });
-        _manifest__WEBPACK_IMPORTED_MODULE_2__["default"].addComponent(_manifest__WEBPACK_IMPORTED_MODULE_2__["default"].layout, wire);
+        _manifest__WEBPACK_IMPORTED_MODULE_2__["default"].addComponent(_manifest__WEBPACK_IMPORTED_MODULE_2__["default"].states.layout, wire);
         return wire;
     };
     return { init };
@@ -6628,13 +6493,13 @@ __webpack_require__.r(__webpack_exports__);
 //import * as $ from 'jquery';
 function drawLayout(instance) {
     const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["makeGroup"])("body");
-    const end1 = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND1"]];
-    const end2 = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND2"]];
+    const end1 = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND1"]];
+    const end2 = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND2"]];
     let centre = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(end1, end2).centre().vector;
     let rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(end1).getAngleTo(end2);
     let bodyPath = "m-12.5 -6" + "h25" + "c15 -8 15 20 0 12" + "h-25" + "c-15 +8 -15 -20 0 -12" + "Z";
     const body = Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(bodyPath, "body");
-    const bands = getBands(instance.resistance).map(b => b.clipTo(body.element));
+    const bands = getBands(instance.properties.resistance).map(b => b.clipTo(body.element));
     bodyGroup.append(body, bands, Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])(bodyPath, "highlight nofill"));
     return [
         Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_2__["makePath"])([end1, end2], "lead"),
@@ -6702,13 +6567,13 @@ __webpack_require__.r(__webpack_exports__);
 
 function drawSchematic(instance) {
     const bodyGroup = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])("body");
-    const end1 = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND1"]];
-    const end2 = instance.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND2"]];
+    const end1 = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND1"]];
+    const end2 = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXEND2"]];
     let centre = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(end1, end2).centre().vector;
     let rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(end1).getAngleTo(end2);
     let [start1, start2] = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])({ x: -24, y: 0 }, { x: 24, y: 0 }).rotate(rotation).sumWith(centre).vectors;
     //Text
-    let text = Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__["default"])(instance.resistance, 'Ω');
+    let text = Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__["default"])(instance.properties.resistance, 'Ω');
     bodyGroup.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_6__["makeRect"])(Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(0), { width: 46, height: 18 }, Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(2), "highlight highlightwithfill extrathick"), Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_6__["makeRect"])(Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(0), { width: 46, height: 18 }, Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(2), "body white"));
     let textEl = Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_4__["makeText"])(text, { x: 0, y: -15 }, "text");
     return [
@@ -6734,10 +6599,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _makeLayout__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./-makeLayout */ "./typescript/circuit/component/resistor/-makeLayout.ts");
 
 function loadLayout(raw) {
-    const name = (raw.name);
     const resistance = (raw.resistance);
     const joints = (raw.joints);
-    return Object(_makeLayout__WEBPACK_IMPORTED_MODULE_0__["default"])({ name, resistance, joints });
+    return Object(_makeLayout__WEBPACK_IMPORTED_MODULE_0__["default"])({ resistance, joints });
 }
 
 
@@ -6760,14 +6624,13 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function loadSchematic(raw) {
-    const name = (raw.name);
     const resistance = (raw.resistance || raw.value);
     //Joints Block
     const orientations = ["LR", "RL", "UD", "DU"];
     const orientation = _valueCheck__WEBPACK_IMPORTED_MODULE_1__["default"].validate(orientations, "LR")(raw.orientation);
     const where = _valueCheck__WEBPACK_IMPORTED_MODULE_1__["default"].where({ x: 0, y: 0 })(raw.where);
     const joints = (raw.joints || deriveJoints(orientation, where));
-    return Object(_makeSchematic__WEBPACK_IMPORTED_MODULE_0__["default"])({ name, resistance, joints, });
+    return Object(_makeSchematic__WEBPACK_IMPORTED_MODULE_0__["default"])({ resistance, joints, });
 }
 const deriveJoints = (orientation, where) => {
     const baseJoints = ({
@@ -6808,8 +6671,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterLayout = {
-    name: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("string", "resistor"),
-    disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
     resistance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
 };
@@ -6845,8 +6706,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterSchematic = {
-    name: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("string", "resistor"),
-    disabled: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
     joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
     resistance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
 };
@@ -6928,13 +6787,11 @@ const INDEXEND2 = 1;
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Schematic", function() { return Schematic; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
-/* harmony import */ var _utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../utility/-deepCopy */ "./typescript/utility/-deepCopy.ts");
-/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
-/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/resistor/-drawLayout.ts");
-/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/resistor/-drawSchematic.ts");
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/resistor/constants.ts");
-/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
-
+/* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
+/* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/resistor/-drawLayout.ts");
+/* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/resistor/-drawSchematic.ts");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/resistor/constants.ts");
+/* harmony import */ var _svg_element_group__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../../svg/element/+group */ "./typescript/svg/element/+group.ts");
 
 
 
@@ -6942,26 +6799,18 @@ __webpack_require__.r(__webpack_exports__);
 
 class Base {
     constructor(values) {
-        this.name = "resistor";
-        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_5__["makeGroup"])();
-        this.disabled = false;
+        this.type = "resistor";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
         this.flags = {
-            order: "fore"
+            order: "fore",
+            disabled: false
         };
-        this.joints = values.joints;
-        this.resistance = values.resistance;
-    }
-    getProperties() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
-            name: this.name,
-            resistance: this.resistance
-        });
-    }
-    getState() {
-        return Object(_utility_deepCopy__WEBPACK_IMPORTED_MODULE_0__["default"])({
-            joints: this.joints,
-            disabled: this.disabled
-        });
+        this.properties = {
+            resistance: values.resistance
+        };
+        this.states = {
+            joints: values.joints
+        };
     }
     transferFunction() { return []; }
     ;
@@ -6973,12 +6822,12 @@ class Schematic extends Base {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
+        this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_2__["default"])(this));
     }
     getConnectors() {
         return [
-            [Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXEND1"]]),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "node", this.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXEND2"]]),]
+            [Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "", "node", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXEND1"]]),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "", "node", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXEND2"]]),]
         ];
     }
 }
@@ -6989,13 +6838,16 @@ class Layout extends Base {
     }
     draw() {
         //(Prepend so handles appear on top)
-        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_2__["default"])(this));
+        this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_1__["default"])(this));
     }
     getConnectors() {
         return [
-            [Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXEND1"]]),
-                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "", "pin", this.joints[_constants__WEBPACK_IMPORTED_MODULE_4__["INDEXEND2"]]),]
+            [Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "", "pin", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXEND1"]]),
+                Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "", "pin", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXEND2"]]),]
         ];
+    }
+    get [Symbol.toStringTag]() {
+        return `${this.form}-${this.type}`;
     }
 }
 
@@ -7114,7 +6966,7 @@ __webpack_require__.r(__webpack_exports__);
  */
 function getComponentConnections(component) {
     // Get all of the other components
-    const otherComponents = _manifest__WEBPACK_IMPORTED_MODULE_4__["default"][component.form].filter(Object(_utility_isNot__WEBPACK_IMPORTED_MODULE_3__["default"])(component));
+    const otherComponents = _manifest__WEBPACK_IMPORTED_MODULE_4__["default"].states[component.form].filter(Object(_utility_isNot__WEBPACK_IMPORTED_MODULE_3__["default"])(component));
     // Get all of the other connectors
     const allConnectors = _utility_flatten__WEBPACK_IMPORTED_MODULE_0__["default"].flatten3d(otherComponents.map(el => el.getConnectors()));
     // For each connector set ([])
@@ -7226,12 +7078,12 @@ function getMaker(instanceClass, defaulter, ...addins) {
         component.draw();
         /*LOGSTART*/
         if (log) {
-            console.groupCollapsed("%s: %o", component.name, component.group.element);
+            console.groupCollapsed("%s: %o", component.type, component.group.element);
             console.log(component);
             console.groupEnd();
         }
         /*LOGEND*/
-        $(component.group.element).addClass(component.name);
+        $(component.group.element).addClass(component.type);
         return component;
     };
 }
@@ -7360,39 +7212,38 @@ __webpack_require__.r(__webpack_exports__);
 //import * as $ from 'jquery';
 const manifest = (() => {
     const clear = () => {
-        manifest.layout = manifest.layout.filter(component => {
+        manifest.states.layout = manifest.states.layout.filter(component => {
             component.group.element.remove();
             return false;
         });
-        manifest.schematic = manifest.schematic.filter(component => {
+        manifest.states.schematic = manifest.states.schematic.filter(component => {
             component.group.element.remove();
             return false;
         });
         $(_active__WEBPACK_IMPORTED_MODULE_0__["default"].layout.root.element).children().remove();
         $(_active__WEBPACK_IMPORTED_MODULE_0__["default"].schematic.root.element).children().remove();
     };
-    let activeBoard;
     const constructFrom = (savedManifest) => {
         manifest.clear();
-        manifest.schematic = savedManifest.schematic;
-        manifest.layout = savedManifest.layout;
+        manifest.states.schematic = savedManifest.schematic;
+        manifest.states.layout = savedManifest.layout;
         if (!savedManifest.layout || savedManifest.layout.length === 0)
             completeManifestLayout();
-        manifest.activeBoard = manifest.layout.find(component => _mappings__WEBPACK_IMPORTED_MODULE_7__["default"].getComponentMapSafe(component).isBoard === true);
+        manifest.states.activeBoard = manifest.states.layout.find(component => _mappings__WEBPACK_IMPORTED_MODULE_7__["default"].getComponentMapSafe(component).isBoard === true);
         draw();
     };
     const addComponent = (manifestSection, ...components) => {
         let diagram;
-        if (manifestSection === manifest.schematic) {
+        if (manifestSection === manifest.states.schematic) {
             diagram = _active__WEBPACK_IMPORTED_MODULE_0__["default"].schematic;
         }
         else {
             diagram = _active__WEBPACK_IMPORTED_MODULE_0__["default"].layout;
         }
-        components.forEach(component => component.disabled = true);
+        components.forEach(component => component.flags.disabled = true);
         _history__WEBPACK_IMPORTED_MODULE_8__["default"].add(manifest, ...components);
         components.forEach(component => {
-            component.disabled = false;
+            component.flags.disabled = false;
             manifestSection.push(component);
             placeComponent(component, diagram);
         });
@@ -7402,27 +7253,27 @@ const manifest = (() => {
         $(component.group.element).trigger(_events__WEBPACK_IMPORTED_MODULE_9__["default"].place);
     };
     const draw = () => {
-        manifest.schematic.forEach(component => placeComponent(component, _active__WEBPACK_IMPORTED_MODULE_0__["default"].schematic));
-        manifest.layout.forEach(component => placeComponent(component, _active__WEBPACK_IMPORTED_MODULE_0__["default"].layout));
+        manifest.states.schematic.forEach(component => placeComponent(component, _active__WEBPACK_IMPORTED_MODULE_0__["default"].schematic));
+        manifest.states.layout.forEach(component => placeComponent(component, _active__WEBPACK_IMPORTED_MODULE_0__["default"].layout));
     };
     const removeComponent = (...components) => {
         _history__WEBPACK_IMPORTED_MODULE_8__["default"].add(manifest, ...components);
-        manifest.layout = manifest.layout.filter(el => !components.includes(el));
-        manifest.schematic = manifest.schematic.filter(el => !components.includes(el));
+        manifest.states.layout = manifest.states.layout.filter(el => !components.includes(el));
+        manifest.states.schematic = manifest.states.schematic.filter(el => !components.includes(el));
         components.forEach(component => {
             $(component.group.element).hide();
-            component.disabled = true;
+            component.flags.disabled = true;
         });
     };
     const findCorresponding = (component) => {
         if (!_mappings__WEBPACK_IMPORTED_MODULE_7__["default"].getComponentMapSafe(component).correspondsTo)
             return [];
         //Find component
-        if (manifest.layout.includes(component)) {
-            return manifest.schematic.filter(areComponentsSimilar(component));
+        if (manifest.states.layout.includes(component)) {
+            return manifest.states.schematic.filter(areComponentsSimilar(component));
         }
-        else if (manifest.schematic.includes(component)) {
-            return manifest.layout.filter(areComponentsSimilar(component));
+        else if (manifest.states.schematic.includes(component)) {
+            return manifest.states.layout.filter(areComponentsSimilar(component));
         }
         else {
             return [];
@@ -7431,8 +7282,8 @@ const manifest = (() => {
     const checkAll = () => {
         /*LOGSTART*/ console.groupCollapsed("Check Data"); /*LOGEND*/
         // Only look at components which need to be compared
-        let layComponents = manifest.layout.filter(c => _mappings__WEBPACK_IMPORTED_MODULE_7__["default"].getComponentMapSafe(c).correspondsTo);
-        let schComponents = manifest.schematic.filter(c => _mappings__WEBPACK_IMPORTED_MODULE_7__["default"].getComponentMapSafe(c).correspondsTo);
+        let layComponents = manifest.states.layout.filter(c => _mappings__WEBPACK_IMPORTED_MODULE_7__["default"].getComponentMapSafe(c).correspondsTo);
+        let schComponents = manifest.states.schematic.filter(c => _mappings__WEBPACK_IMPORTED_MODULE_7__["default"].getComponentMapSafe(c).correspondsTo);
         let schConnectorData = schComponents.map(schComponent => ({
             component: schComponent,
             connectorSets: getMinConnections(schComponent)
@@ -7457,11 +7308,11 @@ const manifest = (() => {
             let found = schConnectorMinData.filter(datum => connectorSetsHaveMatch(layConnectorSets, datum.connectorSets));
             if (componentIsUnique) {
                 schConnectorData = schConnectorData.filter(datum => !found.includes(datum));
-                /*LOGSTART*/ console.log("Layout %s '%o, matched with '%o'", layComponent.name, [layComponent], found); /*LOGEND*/
+                /*LOGSTART*/ console.log("Layout %s '%o, matched with '%o'", layComponent.type, [layComponent], found); /*LOGEND*/
             }
             else {
                 schConnectorData = schConnectorData.filter(datum => datum !== found[0]);
-                /*LOGSTART*/ console.log("Layout %s '%o, matched with '%o'", layComponent.name, [layComponent], [found[0]]); /*LOGEND*/
+                /*LOGSTART*/ console.log("Layout %s '%o, matched with '%o'", layComponent.type, [layComponent], [found[0]]); /*LOGEND*/
             }
             // Check if there is any match between connector sets
             return found.length > 0;
@@ -7476,23 +7327,28 @@ const manifest = (() => {
             incorrects: passSorted.fails
         };
     };
-    const getState = () => {
-        return {
-            schematic: [...manifest.schematic],
-            layout: [...manifest.layout],
-            activeBoard: manifest.activeBoard
-        };
-    };
-    return {
+    const states = {
         schematic: [],
         layout: [],
+        copy: () => ({
+            schematic: [...manifest.states.schematic],
+            layout: [...manifest.states.layout],
+            activeBoard: manifest.states.activeBoard,
+            copy: manifest.states.copy
+        })
+    };
+    const flags = {};
+    return {
+        // schematic: [] as Component[],
+        // layout: [] as Component[],
         addComponent: addComponent,
         constructFrom: constructFrom,
         removeComponent: removeComponent,
         findCorresponding: findCorresponding,
         checkAll: checkAll,
-        activeBoard: activeBoard,
-        getState: getState,
+        // activeBoard: activeBoard,
+        states: states,
+        flags: flags,
         clear: clear
     };
 })();
@@ -7505,14 +7361,14 @@ const arePropertiesEqual = _utility_curry__WEBPACK_IMPORTED_MODULE_3__["default"
         }));
 });
 const areComponentsSimilar = _utility_curry__WEBPACK_IMPORTED_MODULE_3__["default"].makeOptional((componentA, componentB) => {
-    return (componentA.name === componentB.name &&
-        arePropertiesEqual(componentA.getProperties(), componentB.getProperties()));
+    return (componentA.type === componentB.type &&
+        arePropertiesEqual(Object(_component__WEBPACK_IMPORTED_MODULE_1__["getProperties"])(componentA), Object(_component__WEBPACK_IMPORTED_MODULE_1__["getProperties"])(componentB)));
 });
 const createMissingLayoutElements = () => {
-    let layoutCopy = manifest.layout.slice();
-    manifest.schematic.forEach(schematicElement => {
-        let properties = schematicElement.getProperties();
-        let match = layoutCopy.find(layoutElement => arePropertiesEqual(properties, layoutElement.getProperties()));
+    let layoutCopy = manifest.states.layout.slice();
+    manifest.states.schematic.forEach(schematicElement => {
+        let properties = Object(_component__WEBPACK_IMPORTED_MODULE_1__["getProperties"])(schematicElement);
+        let match = layoutCopy.find(layoutElement => arePropertiesEqual(properties, Object(_component__WEBPACK_IMPORTED_MODULE_1__["getProperties"])(layoutElement)));
         if (match) {
             if (!_mappings__WEBPACK_IMPORTED_MODULE_7__["default"].getComponentMapSafe(match).isUnique) {
                 layoutCopy = layoutCopy.filter(Object(_utility_is__WEBPACK_IMPORTED_MODULE_5__["default"])(match));
@@ -7522,9 +7378,9 @@ const createMissingLayoutElements = () => {
             const correspondsTo = _mappings__WEBPACK_IMPORTED_MODULE_7__["default"].getComponentMapSafe(schematicElement).correspondsTo;
             if (correspondsTo !== undefined) {
                 const newComponentMaker = correspondsTo.make;
-                const newComponent = newComponentMaker(schematicElement.getProperties());
+                const newComponent = newComponentMaker(Object(_component__WEBPACK_IMPORTED_MODULE_1__["getProperties"])(schematicElement));
                 //mappings.getLayoutInstanceFromSchematic(schematicElement);
-                manifest.layout.push(newComponent);
+                manifest.states.layout.push(newComponent);
                 if (_mappings__WEBPACK_IMPORTED_MODULE_7__["default"].getComponentMapSafe(newComponent).isUnique) {
                     layoutCopy.push(newComponent);
                 }
@@ -7534,10 +7390,10 @@ const createMissingLayoutElements = () => {
 };
 const mergeSingleOpAmps = () => {
     // For dual op amps
-    let layoutOpAmps = manifest.layout.filter(layoutElement => (layoutElement["constructor"] === _component_opAmp_classes__WEBPACK_IMPORTED_MODULE_2__["Layout"]));
+    let layoutOpAmps = manifest.states.layout.filter(layoutElement => (layoutElement["constructor"] === _component_opAmp_classes__WEBPACK_IMPORTED_MODULE_2__["Layout"]));
     let opAmpGroups = [];
     layoutOpAmps.forEach((opAmp, i) => {
-        let groupIdx = opAmpGroups.findIndex(group => arePropertiesEqual(opAmp.getProperties(), group[0].getProperties()));
+        let groupIdx = opAmpGroups.findIndex(group => arePropertiesEqual(Object(_component__WEBPACK_IMPORTED_MODULE_1__["getProperties"])(opAmp), Object(_component__WEBPACK_IMPORTED_MODULE_1__["getProperties"])(group[0])));
         if (groupIdx >= 0) {
             opAmpGroups[groupIdx].push(opAmp);
         }
@@ -7763,7 +7619,7 @@ function handleFileInputEvent(event) {
                     _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].fileStatusText.innerText = "File:\r\n\"" + filename + "\"\r\nLoaded Successfully";
                     if (savedManifest) {
                         _circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].constructFrom(savedManifest);
-                        _circuit_history__WEBPACK_IMPORTED_MODULE_7__["default"].reInit(..._circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].layout);
+                        _circuit_history__WEBPACK_IMPORTED_MODULE_7__["default"].reInit(..._circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].states.layout);
                     }
                     else {
                         /*LOGSTART*/ console.error("savedManifest is undefined"); /*LOGEND*/
@@ -8072,22 +7928,26 @@ function getStringFromFileInput(fileInput) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _circuit_manifest__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../circuit/manifest */ "./typescript/circuit/manifest.ts");
 /* harmony import */ var _circuit_mappings__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../circuit/mappings */ "./typescript/circuit/mappings.ts");
+/* harmony import */ var _circuit_component__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../circuit/+component */ "./typescript/circuit/+component.ts");
+
 
 
 function createFile() {
     let componentStrings = [];
-    _circuit_manifest__WEBPACK_IMPORTED_MODULE_0__["default"].layout.concat(_circuit_manifest__WEBPACK_IMPORTED_MODULE_0__["default"].schematic).forEach(component => {
+    _circuit_manifest__WEBPACK_IMPORTED_MODULE_0__["default"].states.layout.concat(_circuit_manifest__WEBPACK_IMPORTED_MODULE_0__["default"].states.schematic).forEach(component => {
         try {
             const componentMap = _circuit_mappings__WEBPACK_IMPORTED_MODULE_1__["default"].getComponentMap(component);
             if (componentMap === undefined) {
                 /*LOGSTART*/ console.error("No component map found!", component); /*LOGEND*/
                 throw new Error("Could not save component");
             }
-            let componentObject = Object.assign({ func: _circuit_mappings__WEBPACK_IMPORTED_MODULE_1__["default"].getComponentMapSafe(component).savename }, component.getProperties(), component.getState());
             // Don't save disabled objects
-            if (componentObject.disabled === false) {
-                // Remove disabled field (no need to save it)
-                delete componentObject.disabled;
+            if (component.flags.disabled === false) {
+                let componentObject = {
+                    func: _circuit_mappings__WEBPACK_IMPORTED_MODULE_1__["default"].getComponentMapSafe(component).savename,
+                    properties: Object(_circuit_component__WEBPACK_IMPORTED_MODULE_2__["getProperties"])(component),
+                    states: Object(_circuit_component__WEBPACK_IMPORTED_MODULE_2__["getStates"])(component)
+                };
                 componentStrings.push(JSON.stringify(componentObject));
             }
         }
@@ -9040,6 +8900,8 @@ function makeTextSeq(start, gap, sequence, classes = "") {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _nodeElements__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../~nodeElements */ "./typescript/~nodeElements.ts");
 /* harmony import */ var _events__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./~events */ "./typescript/ui/~events.ts");
+/* harmony import */ var _circuit_history__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../circuit/history */ "./typescript/circuit/history.ts");
+
 
 
 //import * as $ from 'jquery';
@@ -9097,6 +8959,7 @@ var Ui;
         // Control Listeners
         $(document).keydown(e => {
             if (e.ctrlKey) {
+                console.log(_circuit_history__WEBPACK_IMPORTED_MODULE_2__["default"].getState());
                 if (e.key === "z") {
                     _events__WEBPACK_IMPORTED_MODULE_1__["default"].undo();
                 }
@@ -9230,15 +9093,15 @@ var Events;
     Events.enableSchematicEditingPress = enableSchematicEditingPress;
     // Board
     function addBoard(board) {
-        if (_circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].activeBoard !== undefined) {
-            _circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].removeComponent(_circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].activeBoard);
-            _circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].addComponent(_circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].layout, board);
+        if (_circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].states.activeBoard !== undefined) {
+            _circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].removeComponent(_circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].states.activeBoard);
+            _circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].addComponent(_circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].states.layout, board);
             _circuit_history__WEBPACK_IMPORTED_MODULE_5__["default"].mergeLast();
         }
         else {
-            _circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].addComponent(_circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].layout, board);
+            _circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].addComponent(_circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].states.layout, board);
         }
-        _circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].activeBoard = board;
+        _circuit_manifest__WEBPACK_IMPORTED_MODULE_6__["default"].states.activeBoard = board;
     }
     function makeStripBoardButtonPress() {
         let rowElement = _nodeElements__WEBPACK_IMPORTED_MODULE_0__["default"].stripboardRows;

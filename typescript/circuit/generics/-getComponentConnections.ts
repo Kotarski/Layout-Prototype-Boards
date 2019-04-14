@@ -11,7 +11,7 @@ import manifest from "../manifest";
  */
 export default function getComponentConnections(component: Component): Types.connector[][][] {
    // Get all of the other components
-   const otherComponents = manifest[component.form].filter(isNot(component));
+   const otherComponents = manifest.states[component.form].filter(isNot(component));
    // Get all of the other connectors
    const allConnectors = flatten.flatten3d(otherComponents.map(el => el.getConnectors()));
    // For each connector set ([])

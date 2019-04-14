@@ -1,5 +1,5 @@
 import Active from "../~active";
-import Component, { Types as ComponentTypes, insert } from "./+component";
+import Component, { Types as ComponentTypes, insert, getProperties } from "./+component";
 import { Layout as OpAmp } from "./component/_opAmp/~classes"
 import Curry from "../utility/~curry";
 import split from "../utility/-split";
@@ -15,11 +15,11 @@ import getComponentConnections from "./generics/-getComponentConnections";
 const manifest = (() => {
 
    const clear = () => {
-      manifest.layout = manifest.layout.filter(component => {
+      manifest.states.layout = manifest.states.layout.filter(component => {
          component.group.element.remove();
          return false;
       });
-      manifest.schematic = manifest.schematic.filter(component => {
+      manifest.states.schematic = manifest.states.schematic.filter(component => {
          component.group.element.remove();
          return false;
       });
@@ -27,33 +27,31 @@ const manifest = (() => {
       $(Active.schematic.root.element).children().remove();
    }
 
-   let activeBoard: (Component | undefined);
-
    const constructFrom = (savedManifest: { schematic: any, layout: any }) => {
       manifest.clear();
-      manifest.schematic = savedManifest.schematic;
-      manifest.layout = savedManifest.layout;
+      manifest.states.schematic = savedManifest.schematic;
+      manifest.states.layout = savedManifest.layout;
       if (!savedManifest.layout || savedManifest.layout.length === 0) completeManifestLayout();
 
-      manifest.activeBoard = manifest.layout.find(component => mappings.getComponentMapSafe(component).isBoard === true);
+      manifest.states.activeBoard = manifest.states.layout.find(component => mappings.getComponentMapSafe(component).isBoard === true);
       draw();
    }
 
    const addComponent = (manifestSection: Component[], ...components: Component[]) => {
       let diagram: Diagram;
 
-      if (manifestSection === manifest.schematic) {
+      if (manifestSection === manifest.states.schematic) {
          diagram = Active.schematic;
       } else {
          diagram = Active.layout;
       }
 
-      components.forEach(component => component.disabled = true);
+      components.forEach(component => component.flags.disabled = true);
 
       history.add(manifest, ...components);
 
       components.forEach(component => {
-         component.disabled = false;
+         component.flags.disabled = false;
          manifestSection.push(component);
          placeComponent(component, diagram);
       });
@@ -65,28 +63,28 @@ const manifest = (() => {
    }
 
    const draw = () => {
-      manifest.schematic.forEach(component => placeComponent(component, Active.schematic));
-      manifest.layout.forEach(component => placeComponent(component, Active.layout));
+      manifest.states.schematic.forEach(component => placeComponent(component, Active.schematic));
+      manifest.states.layout.forEach(component => placeComponent(component, Active.layout));
    }
 
    const removeComponent = (...components: Component[]) => {
       history.add(manifest, ...components);
-      manifest.layout = manifest.layout.filter(el => !components.includes(el));
-      manifest.schematic = manifest.schematic.filter(el => !components.includes(el));
+      manifest.states.layout = manifest.states.layout.filter(el => !components.includes(el));
+      manifest.states.schematic = manifest.states.schematic.filter(el => !components.includes(el));
 
       components.forEach(component => {
          $(component.group.element).hide();
-         component.disabled = true;
+         component.flags.disabled = true;
       });
    }
 
    const findCorresponding = (component: Component): Component[] => {
       if (!mappings.getComponentMapSafe(component).correspondsTo) return [];
       //Find component
-      if (manifest.layout.includes(component)) {
-         return manifest.schematic.filter(areComponentsSimilar(component));
-      } else if (manifest.schematic.includes(component)) {
-         return manifest.layout.filter(areComponentsSimilar(component))
+      if (manifest.states.layout.includes(component)) {
+         return manifest.states.schematic.filter(areComponentsSimilar(component));
+      } else if (manifest.states.schematic.includes(component)) {
+         return manifest.states.layout.filter(areComponentsSimilar(component))
       } else {
          return [];
       }
@@ -95,8 +93,8 @@ const manifest = (() => {
    const checkAll = () => {
          /*LOGSTART*/console.groupCollapsed("Check Data");/*LOGEND*/
       // Only look at components which need to be compared
-      let layComponents = manifest.layout.filter(c => mappings.getComponentMapSafe(c).correspondsTo);
-      let schComponents = manifest.schematic.filter(c => mappings.getComponentMapSafe(c).correspondsTo);
+      let layComponents = manifest.states.layout.filter(c => mappings.getComponentMapSafe(c).correspondsTo);
+      let schComponents = manifest.states.schematic.filter(c => mappings.getComponentMapSafe(c).correspondsTo);
 
       let schConnectorData = schComponents.map(schComponent => ({
          component: schComponent,
@@ -134,10 +132,10 @@ const manifest = (() => {
 
          if (componentIsUnique) {
             schConnectorData = schConnectorData.filter(datum => !found.includes(datum));
-               /*LOGSTART*/console.log("Layout %s '%o, matched with '%o'", layComponent.name, [layComponent], found)/*LOGEND*/
+               /*LOGSTART*/console.log("Layout %s '%o, matched with '%o'", layComponent.type, [layComponent], found)/*LOGEND*/
          } else {
             schConnectorData = schConnectorData.filter(datum => datum !== found[0]);
-               /*LOGSTART*/console.log("Layout %s '%o, matched with '%o'", layComponent.name, [layComponent], [found[0]])/*LOGEND*/
+               /*LOGSTART*/console.log("Layout %s '%o, matched with '%o'", layComponent.type, [layComponent], [found[0]])/*LOGEND*/
          }
 
 
@@ -158,24 +156,36 @@ const manifest = (() => {
       }
    };
 
-   const getState = () => {
-      return {
-         schematic: [...manifest.schematic],
-         layout: [...manifest.layout],
-         activeBoard: manifest.activeBoard
-      }
+   
+   const states: {
+      schematic: Component[],
+      layout: Component[],
+      activeBoard?: Component,
+      copy: () => typeof states
+   } = {
+      schematic: [],
+      layout: [],
+      copy: () => ({
+         schematic: [...manifest.states.schematic],
+         layout: [...manifest.states.layout],
+         activeBoard: manifest.states.activeBoard,
+         copy: manifest.states.copy
+      })
    }
 
+   const flags = {}
+
    return {
-      schematic: [] as Component[],
-      layout: [] as Component[],
+      // schematic: [] as Component[],
+      // layout: [] as Component[],
       addComponent: addComponent,
       constructFrom: constructFrom,
       removeComponent: removeComponent,
       findCorresponding: findCorresponding,
       checkAll: checkAll,
-      activeBoard: activeBoard,
-      getState: getState,
+      // activeBoard: activeBoard,
+      states: states,
+      flags: flags,
       clear: clear
    }
 })();
@@ -209,18 +219,18 @@ const arePropertiesEqual = Curry.makeOptional(
 const areComponentsSimilar = Curry.makeOptional(
    (componentA: Component, componentB: Component): boolean => {
       return (
-         componentA.name === componentB.name &&
-         arePropertiesEqual(componentA.getProperties(), componentB.getProperties())
+         componentA.type === componentB.type &&
+         arePropertiesEqual(getProperties(componentA), getProperties(componentB))
       );
    }
 );
 
 const createMissingLayoutElements = () => {
-   let layoutCopy = manifest.layout.slice();
-   manifest.schematic.forEach(schematicElement => {
-      let properties = schematicElement.getProperties();
+   let layoutCopy = manifest.states.layout.slice();
+   manifest.states.schematic.forEach(schematicElement => {
+      let properties = getProperties(schematicElement);
       let match = layoutCopy.find(layoutElement =>
-         arePropertiesEqual(properties, layoutElement.getProperties())
+         arePropertiesEqual(properties, getProperties(layoutElement))
       );
       if (match) {
          if (!mappings.getComponentMapSafe(match).isUnique) {
@@ -230,9 +240,9 @@ const createMissingLayoutElements = () => {
          const correspondsTo = mappings.getComponentMapSafe(schematicElement).correspondsTo;
          if (correspondsTo !== undefined) {
             const newComponentMaker = correspondsTo.make as ComponentTypes.loadFunction;
-            const newComponent = newComponentMaker(schematicElement.getProperties())
+            const newComponent = newComponentMaker(getProperties(schematicElement))
             //mappings.getLayoutInstanceFromSchematic(schematicElement);
-            manifest.layout.push(newComponent);
+            manifest.states.layout.push(newComponent);
             if (mappings.getComponentMapSafe(newComponent).isUnique) {
                layoutCopy.push(newComponent)
             }
@@ -244,14 +254,14 @@ const createMissingLayoutElements = () => {
 
 const mergeSingleOpAmps = () => {
    // For dual op amps
-   let layoutOpAmps = manifest.layout.filter(layoutElement => (
+   let layoutOpAmps = manifest.states.layout.filter(layoutElement => (
       layoutElement["constructor"] === OpAmp
    )) as InstanceType<typeof OpAmp>[];
 
    let opAmpGroups: InstanceType<typeof OpAmp>[][] = [];
    layoutOpAmps.forEach((opAmp, i) => {
       let groupIdx = opAmpGroups.findIndex(group =>
-         arePropertiesEqual(opAmp.getProperties(), group[0].getProperties())
+         arePropertiesEqual(getProperties(opAmp), getProperties(group[0]))
       )
       if (groupIdx >= 0) {
          opAmpGroups[groupIdx].push(opAmp);

@@ -1,5 +1,6 @@
 import { Vector } from "../../../-vector";
 import { Types } from "../../+component";
+import { ComponentForms } from "../@componentBase";
 export { Types as Base };
 export interface properties extends Types.properties {
    currentGain: number;
@@ -12,3 +13,12 @@ export interface state extends Types.state {
 
 export type values = properties & state;
 
+
+export interface bipolar<form extends ComponentForms> {
+   properties: properties,
+   states: (
+      form extends "schematic" ? state :
+      form extends "layout" ? state :
+      never
+   )
+} 

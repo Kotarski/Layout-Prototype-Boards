@@ -6,25 +6,25 @@ import vector from "../../../-vector";
 import { gridSpacing } from "../../../~constants";
 
 export default function makeTracks(parent: Stripboard): Track[] {
-   const rotation = vector(parent.joints[0]).getAngleTo(parent.joints[1]);
+   const rotation = vector(parent.states.joints[0]).getAngleTo(parent.states.joints[1]);
 
-   const start = vector({ x: parent.columns -1, y: parent.rows -1 })
+   const start = vector({ x: parent.properties.columns -1, y: parent.properties.rows -1 })
       .scaleWith(-gridSpacing / 2)
       .rotate(rotation)
-      .sumWith(parent.joints[0])
+      .sumWith(parent.states.joints[0])
 
    const step = vector({ x: gridSpacing, y: 0 }).rotate(rotation);
 
-   const tracks = [...Array(parent.rows).keys()].map((row) => {
+   const tracks = [...Array(parent.properties.rows).keys()].map((row) => {
       // The position of the start of the row (the first hole)
       const rowStart = vector({ x: 0, y: row * gridSpacing })
          .rotate(rotation)
          .sumWith(start).vector;
 
       // The offset between each hole and the next in gridSpacings
-      const holeSpacings: number[] = [0, ...Array(parent.columns - 1).fill(1)];
+      const holeSpacings: number[] = [0, ...Array(parent.properties.columns - 1).fill(1)];
 
-      const breaks = parent.trackBreaks.filter(b => b.track === row).map(b => b.hole);
+      const breaks = parent.states.trackBreaks.filter(b => b.track === row).map(b => b.hole);
 
       return TrackMap.make({
          holeSpacings: holeSpacings,

@@ -49,7 +49,7 @@ function handleFileInputEvent(event: Event) {
                      NodeElements.fileStatusText.innerText = "File:\r\n\"" + filename + "\"\r\nLoaded Successfully";
                      if (savedManifest) {
                         manifest.constructFrom(savedManifest);
-                        history.reInit(...manifest.layout);
+                        history.reInit(...manifest.states.layout);
                      } else {
                            /*LOGSTART*/console.error("savedManifest is undefined");/*LOGEND*/
                      }

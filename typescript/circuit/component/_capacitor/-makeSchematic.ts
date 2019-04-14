@@ -10,8 +10,6 @@ import Extendable from "../addins/extendable";
 import ConnectionsHighlightable from "../addins/connectionsHighlightable"
 
 const defaulterSchematic: ValueCheck.Defaulter<Types.values> = {
-   name: ValueCheck.validate("string", "capacitor"),
-   disabled: ValueCheck.validate("boolean", false),
    isPolarised: ValueCheck.validate("boolean", false),
    joints: ValueCheck.joints<[Vector, Vector]>(
       [{ x: 0, y: 0 }, { x: 40, y: 40 }]

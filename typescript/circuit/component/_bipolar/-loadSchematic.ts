@@ -3,7 +3,6 @@ import vector, { Vector } from "../../../-vector";
 import ValueCheck from "../~valueCheck"
 
 export default function loadSchematic(raw: any) {
-   const name = (raw.name);
    const currentGain = (raw.currentGain);
    const type = (raw.type);
    // Joints Block
@@ -11,7 +10,7 @@ export default function loadSchematic(raw: any) {
    const where = ValueCheck.where({ x: 0, y: 0 })(raw.where);
    const joints = (raw.joints || deriveJoints(orientation, type, where));
 
-   return makeSchematic({ name, currentGain, type, joints });
+   return makeSchematic({ currentGain, type, joints });
 }
 
 const deriveJoints = (orientation: "LR" | "RL", type: "NPN" | "PNP", where: Vector) => {

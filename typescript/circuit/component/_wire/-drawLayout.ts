@@ -8,7 +8,7 @@ import { makeGroup as makeGroup } from "../../../svg/element/+group";
 export default function drawLayout(instance: Layout) {
    const bodyGroup = makeGroup("body");
 
-   const joints = instance.joints;
+   const joints = instance.states.joints;
 
    let coverPath, leadPath: string = "";
 
@@ -35,7 +35,7 @@ export default function drawLayout(instance: Layout) {
 
    let cover = makePath(coverPath, "cover");
 
-   $(cover.element).css("stroke", instance.color);
+   $(cover.element).css("stroke", instance.states.color);
    //Style and add lead, cover
    //(Prepend so handles appear on top)
 

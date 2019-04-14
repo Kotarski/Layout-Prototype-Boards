@@ -10,16 +10,16 @@ import { makeRect as makeRect } from "../../../svg/element/+rect";
 export default function drawSchematic(instance: PowerSchematic) {
    const bodyGroup = makeGroup("body");
 
-   if (instance.voltage < 0) {
-      bodyGroup.append(powerNegativeGraphics(instance.voltage));
-   } else if (instance.voltage > 0) {
-      bodyGroup.append(powerPositiveGraphics(instance.voltage));
+   if (instance.properties.voltage < 0) {
+      bodyGroup.append(powerNegativeGraphics(instance.properties.voltage));
+   } else if (instance.properties.voltage > 0) {
+      bodyGroup.append(powerPositiveGraphics(instance.properties.voltage));
    } else {
       bodyGroup.append(powerGroundGraphics());
    }
 
    return [
-      bodyGroup.translate(instance.joints[INDEXCONNECTION])
+      bodyGroup.translate(instance.states.joints[INDEXCONNECTION])
    ];
 }
 

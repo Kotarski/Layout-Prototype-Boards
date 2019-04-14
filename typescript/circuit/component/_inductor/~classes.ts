@@ -1,46 +1,33 @@
 import Component, { Types as ComponentTypes } from "../../+component";
 import * as Types from "./types";
-import { Vector } from "../../../-vector";
-import deepCopy from "../../../utility/-deepCopy";
 import makeConnector from "../../generics/-makeConnector";
 import drawLayout from "./-drawLayout";
 import drawSchematic from "./-drawSchematic";
 import { INDEXEND1, INDEXEND2 } from "./constants";
 import { makeGroup } from "../../../svg/element/+group";
-abstract class Base implements Types.values {
-   name = "inductor" as "inductor";
+abstract class Base {
+   type = "inductor" as "inductor";
    group = makeGroup();
-   disabled = false;
-   inductance: number;
-   joints: [Vector, Vector];
-
+   properties: Types.properties;
+   states: Types.state;
    constructor(values: Types.values) {
-      this.joints = values.joints;
-      this.inductance = values.inductance;
-   }
-
-   getProperties(): Types.properties {
-      return deepCopy({
-         name: this.name,
-         inductance: this.inductance,
-      });
-   }
-
-   getState(): Types.state {
-      return deepCopy({
-         joints: this.joints,
-         disabled: this.disabled
-      });
+      this.properties = {
+         inductance: values.inductance
+      }
+      this.states = {
+         joints: values.joints
+      }
    }
 
    flags = {
-      order: "fore" as "fore"
+      order: "fore" as "fore",
+      disabled: false
    }
 
    transferFunction() { return [] };
 }
 
-export class Schematic extends Base implements Component {
+export class Schematic extends Base implements Component, Types.inductor<"schematic"> {
    form = "schematic" as "schematic"
    draw() {
       //(Prepend so handles appear on top)
@@ -48,13 +35,13 @@ export class Schematic extends Base implements Component {
    }
    getConnectors(): ComponentTypes.connector[][] {
       return [[
-         makeConnector(this, "", "node", this.joints[INDEXEND1]),
-         makeConnector(this, "", "node", this.joints[INDEXEND2]),
+         makeConnector(this, "", "node", this.states.joints[INDEXEND1]),
+         makeConnector(this, "", "node", this.states.joints[INDEXEND2]),
       ]]
    }
 }
 
-export class Layout extends Base implements Component {
+export class Layout extends Base implements Component, Types.inductor<"layout"> {
    form = "layout" as "layout"
    draw() {
       //(Prepend so handles appear on top)
@@ -62,8 +49,8 @@ export class Layout extends Base implements Component {
    }
    getConnectors(): ComponentTypes.connector[][] {
       return [[
-         makeConnector(this, "", "pin", this.joints[INDEXEND1]),
-         makeConnector(this, "", "pin", this.joints[INDEXEND2]),
+         makeConnector(this, "", "pin", this.states.joints[INDEXEND1]),
+         makeConnector(this, "", "pin", this.states.joints[INDEXEND2]),
       ]]
    }
 

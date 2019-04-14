@@ -5,7 +5,7 @@ import history from "../../history";
 //import * as $ from 'jquery';
 
 type rotatableComponent = Component & {
-   joints: [Vector, Vector, ...Vector[]]
+   states: { joints: [Vector, Vector, ...Vector[]] }
 };
 
 const Rotatable = (() => {
@@ -15,9 +15,9 @@ const Rotatable = (() => {
    const init = (component: rotatableComponent) => {
       $(component.group.element).dblclick(() => {
          history.add(component);
-         let centre = component.joints[0];
+         let centre = component.states.joints[0];
 
-         component.joints = vector(component.joints)
+         component.states.joints = vector(component.states.joints)
             .sumWith(vector(centre).scaleWith(-1))
             .rotate(90)
             .sumWith(centre)

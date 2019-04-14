@@ -12,8 +12,8 @@ export default function drawSchematic(instance: Schematic) {
    const bodyGroup = makeGroup("body");
 
 
-   const end1 = instance.joints[INDEXEND1];
-   const end2 = instance.joints[INDEXEND2];
+   const end1 = instance.states.joints[INDEXEND1];
+   const end2 = instance.states.joints[INDEXEND2];
 
    let centre = vector(end1, end2).centre().vector;
    let rotation = vector(end1).getAngleTo(end2);
@@ -23,7 +23,7 @@ export default function drawSchematic(instance: Schematic) {
    ).rotate(rotation).sumWith(centre).vectors;
 
    //Text
-   let text = getStandardForm(instance.resistance, 'Ω')
+   let text = getStandardForm(instance.properties.resistance, 'Ω')
 
    bodyGroup.append(
       makeRect(vector(0), { width: 46, height: 18 }, vector(2), "highlight highlightwithfill extrathick"),

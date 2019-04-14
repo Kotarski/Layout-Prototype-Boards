@@ -14,14 +14,14 @@ export default function drawLayout(instance: Layout) {
 
    const bodyGroup = makeGroup("body");
 
-   const cathodeEnd = instance.joints[INDEXCATHODE];
-   const anodeEnd = instance.joints[INDEXANODE];
+   const cathodeEnd = instance.states.joints[INDEXCATHODE];
+   const anodeEnd = instance.states.joints[INDEXANODE];
 
    const centre = vector(cathodeEnd, anodeEnd).centre().vector;
    const rotation = vector(cathodeEnd).getAngleTo(anodeEnd);
-   const text = getStandardForm(instance.capacitance, 'F');
+   const text = getStandardForm(instance.properties.capacitance, 'F');
 
-   if (instance.isPolarised) {
+   if (instance.properties.isPolarised) {
       // Electrolytic
       $(bodyGroup.element).addClass("electrolytic");
 

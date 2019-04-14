@@ -3,7 +3,6 @@ import ValueCheck from "../~valueCheck";
 import vector, { Vector } from "../../../-vector";
 
 export default function loadSchematic(raw: any) {
-   const name = (raw.name);
    const capacitance = (raw.capacitance || raw.value);
    //Polarisation Block
    const isPolarised = (raw.isPolarised || derivePolarisation(capacitance, raw.polarised));
@@ -14,7 +13,7 @@ export default function loadSchematic(raw: any) {
    const where = ValueCheck.where({ x: 0, y: 0 })(raw.where);
    const joints = (raw.joints || deriveJoints(orientation, where));
 
-   return makeSchematic({ name, capacitance, isPolarised, joints });
+   return makeSchematic({ capacitance, isPolarised, joints });
 }
 
 const derivePolarisation = (capacitance: number, polarisation?: "polar" | "non-polar") => {

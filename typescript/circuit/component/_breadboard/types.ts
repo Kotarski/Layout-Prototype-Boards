@@ -1,6 +1,7 @@
 import { Types } from "../../+component";
 export { Types as Base };
 import { Vector } from "../../../-vector";
+import { ComponentForms } from "../@componentBase";
 export interface properties extends Types.properties {
 
 }
@@ -11,5 +12,13 @@ export interface state extends Types.state {
 
 export type values = properties & state;
 
+
+export interface breadboard<form extends ComponentForms> {
+   properties: properties,
+   states: (
+      form extends "layout" ? state :
+      never
+   )
+} 
 
 

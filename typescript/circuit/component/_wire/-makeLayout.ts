@@ -11,8 +11,6 @@ import ConnectionsHighlightable from "../addins/connectionsHighlightable";
 import Recolorable from "../addins/recolorable";
 
 const defaulterLayout: ValueCheck.Defaulter<Types.valuesLayout> = {
-   name: ValueCheck.validate("string", "wire"),
-   disabled: ValueCheck.validate("boolean", false),
    joints: ValueCheck.joints(
       [{ x: 0, y: 0 }, { x: 80, y: 0 }], l => l >= 2
    ),

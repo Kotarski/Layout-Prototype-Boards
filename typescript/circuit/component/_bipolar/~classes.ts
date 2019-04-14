@@ -1,6 +1,4 @@
-import { Vector } from "../../../-vector";
 import Component, { Types as ComponentTypes } from "../../+component";;
-import deepCopy from "../../../utility/-deepCopy";
 import * as Types from "./types";
 import { INDEXBASE, INDEXCOLLECTOR, INDEXEMITTER } from "./constants";
 import makeConnector from "../../generics/-makeConnector";
@@ -9,47 +7,31 @@ import drawSchematic from "./-drawSchematic";
 import { makeGroup } from "../../../svg/element/+group";
 //import * as $ from 'jquery';
 
-interface name {
-   name: "bipolar"
-}
-
-abstract class BipolarBase implements Types.values, name {
-   name = "bipolar" as "bipolar";
+abstract class BipolarBase {
+   type = "bipolar" as "bipolar";
    group = makeGroup();
-   disabled = false;
-   currentGain: number;
-   type: "NPN" | "PNP"
-   joints: [Vector, Vector, Vector];
+   properties: Types.properties;
+   states: Types.state;
    constructor(values: Types.values) {
-      $(this.group.element).addClass("component " + this.name);
-      this.joints = values.joints;
-      this.type = values.type;
-      this.currentGain = values.currentGain;
-   }
-
-   getProperties(): Types.properties {
-      return deepCopy({
-         name: this.name,
-         currentGain: this.currentGain,
-         type: this.type
-      });
-   }
-
-   getState(): Types.state {
-      return deepCopy({
-         joints: this.joints,
-         disabled: this.disabled
-      });
+      $(this.group.element).addClass("component " + this.type);
+      this.properties = {
+         type: values.type,
+         currentGain: values.currentGain
+      }
+      this.states = {
+         joints: values.joints
+      }
    }
 
    flags = {
-      order: "fore" as "fore"
+      order: "fore" as "fore",
+      disabled: false
    }
 
    transferFunction() { return [] };
 }
 
-export class BipolarSchematic extends BipolarBase implements Component {
+export class BipolarSchematic extends BipolarBase implements Component, Types.bipolar<"schematic"> {
    form = "schematic" as "schematic"
    draw() {
       //(Prepend so handles appear on top)
@@ -57,14 +39,14 @@ export class BipolarSchematic extends BipolarBase implements Component {
    }
    getConnectors(): ComponentTypes.connector[][] {
       return [[
-         makeConnector(this, "emitter", "node", this.joints[INDEXEMITTER], "e"),
-         makeConnector(this, "collector", "node", this.joints[INDEXCOLLECTOR], "c"),
-         makeConnector(this, "base", "node", this.joints[INDEXBASE], "b")
+         makeConnector(this, "emitter", "node", this.states.joints[INDEXEMITTER], "e"),
+         makeConnector(this, "collector", "node", this.states.joints[INDEXCOLLECTOR], "c"),
+         makeConnector(this, "base", "node", this.states.joints[INDEXBASE], "b")
       ]];
    }
 }
 
-export class BipolarLayout extends BipolarBase implements Component {
+export class BipolarLayout extends BipolarBase implements Component, Types.bipolar<"layout"> {
    form = "layout" as "layout"
    draw() {
       //(Prepend so handles appear on top)
@@ -72,9 +54,9 @@ export class BipolarLayout extends BipolarBase implements Component {
    }
    getConnectors(): ComponentTypes.connector[][] {
       return [[
-         makeConnector(this, "emitter", "pin", this.joints[INDEXEMITTER], "e"),
-         makeConnector(this, "collector", "pin", this.joints[INDEXCOLLECTOR], "c"),
-         makeConnector(this, "base", "pin", this.joints[INDEXBASE], "b")
+         makeConnector(this, "emitter", "pin", this.states.joints[INDEXEMITTER], "e"),
+         makeConnector(this, "collector", "pin", this.states.joints[INDEXCOLLECTOR], "c"),
+         makeConnector(this, "base", "pin", this.states.joints[INDEXBASE], "b")
       ]];
    }
 }

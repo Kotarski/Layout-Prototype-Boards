@@ -10,8 +10,6 @@ import Extendable from "../addins/extendable";
 import ConnectionsHighlightable from "../addins/connectionsHighlightable";
 
 const defaulterSchematic: ValueCheck.Defaulter<Types.valuesSchematic> = {
-   name: ValueCheck.validate("string", "opAmp"),
-   disabled: ValueCheck.validate("boolean", false),
    joints: ValueCheck.joints<[Vector, Vector, Vector, Vector, Vector]>(
       [{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: 40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: 20 }]
    ),

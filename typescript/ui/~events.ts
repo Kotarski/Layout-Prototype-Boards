@@ -72,14 +72,14 @@ namespace Events {
 
    // Board
    function addBoard(board: Component) {
-      if (manifest.activeBoard !== undefined) {
-         manifest.removeComponent(manifest.activeBoard);
-         manifest.addComponent(manifest.layout, board);
+      if (manifest.states.activeBoard !== undefined) {
+         manifest.removeComponent(manifest.states.activeBoard);
+         manifest.addComponent(manifest.states.layout, board);
          history.mergeLast();
       } else {
-         manifest.addComponent(manifest.layout, board);
+         manifest.addComponent(manifest.states.layout, board);
       }
-      manifest.activeBoard = board;
+      manifest.states.activeBoard = board;
    }
    export function makeStripBoardButtonPress() {
       let rowElement = NodeElements.stripboardRows;

@@ -1,7 +1,5 @@
 import Component, { Types as ComponentTypes } from "../../+component";;
 import * as Types from "./types";
-import { Vector } from "../../../-vector";
-import deepCopy from "../../../utility/-deepCopy";
 import makeConnector from "../../generics/-makeConnector";
 import Flatten from "../../../utility/~flatten";
 import drawLayout from "./-drawLayout";
@@ -9,44 +7,35 @@ import drawSchematic from "./-drawSchematic";
 import { makeGroup } from "../../../svg/element/+group";
 
 abstract class Base implements Types.properties {
-   name = "wire" as "wire";
+   type = "wire" as "wire";
    group = makeGroup();
    disabled = false;
-   getProperties(): Types.properties {
-      return deepCopy({
-         name: this.name
-      });
-   }
 }
 
-export class Schematic extends Base implements Component, Types.valuesSchematic {
+export class Schematic extends Base implements Component, Types.wire<"schematic"> {
    form = "schematic" as "schematic"
-   joints: Vector[];
-
+   properties: Types.properties
+   states: Types.stateSchematic
    constructor(values: Types.valuesSchematic) {
       super();
-      this.joints = values.joints;
+      this.properties = {}
+      this.states = {
+         joints: values.joints,
+      }
    }
-
-   getState(): Types.stateSchematic {
-      return deepCopy({
-         joints: this.joints,
-         disabled: this.disabled
-      });
-   }
-
    draw() {
       //(Prepend so handles appear on top)
       this.group.prepend(drawSchematic(this));
    }
 
    flags = {
-      order: "back" as "back"
+      order: "back" as "back",
+      disabled: false
    }
 
    getConnectors(): ComponentTypes.node[][] {
-      const end1 = this.joints[0];
-      const end2 = this.joints[this.joints.length - 1];
+      const end1 = this.states.joints[0];
+      const end2 = this.states.joints[this.states.joints.length - 1];
 
       return [[
          makeConnector(this, "end1", "node", end1),
@@ -61,24 +50,17 @@ export class Schematic extends Base implements Component, Types.valuesSchematic 
 
 }
 
-export class Layout extends Base implements Component, Types.valuesLayout {
+export class Layout extends Base implements Component, Types.wire<"layout"> {
    form = "layout" as "layout"
-   joints: Vector[];
-   color: string;
-
+   properties: Types.properties;
+   states: Types.stateLayout;
    constructor(values: Types.valuesLayout) {
       super();
-      this.joints = values.joints;
-      this.color = values.color;
-   }
-
-
-   getState(): Types.stateLayout {
-      return deepCopy({
-         joints: this.joints,
-         color: this.color,
-         disabled: this.disabled
-      });
+      this.properties = {}
+      this.states = {
+         joints: values.joints,
+         color: values.color
+      }
    }
 
    draw() {
@@ -87,13 +69,14 @@ export class Layout extends Base implements Component, Types.valuesLayout {
    }
 
    flags = {
-      order: "fore" as "fore"
+      order: "fore" as "fore",
+      disabled: false
    }
 
    getConnectors(): ComponentTypes.connector[][] {
       return [[
-         makeConnector(this, "end1", "pin", this.joints[0]),
-         makeConnector(this, "end2", "pin", this.joints[this.joints.length - 1]),]
+         makeConnector(this, "end1", "pin", this.states.joints[0]),
+         makeConnector(this, "end2", "pin", this.states.joints[this.states.joints.length - 1]),]
       ]
    }
    

@@ -7,9 +7,7 @@ import Graphical from "../addins/graphical";
 
 
 const defaulter: ValueCheck.Defaulter<Types.values> = {
-   name: ValueCheck.validate("string", "track"),
    style: ValueCheck.validate<"breadboard" | "stripboard">(["breadboard", "stripboard"], "breadboard"),
-   disabled: ValueCheck.validate("boolean", false),
    joints: ValueCheck.joints<[Vector, Vector]>(
       [{ x: 0, y: 0 }, { x: 20, y: 0 }]
    ),

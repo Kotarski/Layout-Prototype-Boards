@@ -1,4 +1,5 @@
 import { historystate, participant, event } from "./types";
+import { getStates, getFlags } from "../+component";
 export default function addEvent(state: historystate, ...participants: participant[]): historystate {
 
    // Discard events after the current one if they exist
@@ -8,7 +9,8 @@ export default function addEvent(state: historystate, ...participants: participa
    // Create new event
    const newEvent: event = participants.map(participant => ({
       participant,
-      state: participant.getState()
+      states: getStates(participant),
+      flags: getFlags(participant)
    }));
 
    // Return new state

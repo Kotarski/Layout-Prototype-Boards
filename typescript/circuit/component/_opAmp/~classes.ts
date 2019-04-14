@@ -1,7 +1,6 @@
 import Component, { Types as ComponentTypes } from "../../+component";
 import * as Types from "./types";
-import vector, { Vector } from "../../../-vector";
-import deepCopy from "../../../utility/-deepCopy";
+import vector from "../../../-vector";
 import makeConnector from "../../generics/-makeConnector";
 import drawLayout from "./-drawLayout";
 import drawSchematic from "./-drawSchematic";
@@ -10,45 +9,32 @@ import { INDEXINPOS, INDEXINNEG, INDEXOUT, INDEXPOW1, INDEXPOW2, INDEXCENTRE, IN
 import { gridSpacing } from "../../../~constants";
 import { makeGroup } from "../../../svg/element/+group";
 
-abstract class Base implements Types.properties {
-   name = "opamp" as "opamp";
+abstract class Base {
+   type = "opamp" as "opamp";
    group = makeGroup();
-   disabled = false;
-   offsetVoltage: number;
-
+   properties: Types.properties;
    constructor(values: Types.valuesSchematic | Types.valuesLayout) {
-      this.offsetVoltage = values.offsetVoltage;
+      this.properties = {
+         offsetVoltage: values.offsetVoltage
+      }
    }
-
-   getProperties(): Types.properties {
-      return deepCopy({
-         name: this.name,
-         offsetVoltage: this.offsetVoltage
-      });
-   }
-
-   abstract getState(): Types.stateLayout | Types.stateSchematic;
 
    flags = {
-      order: "fore" as "fore"
+      order: "fore" as "fore",
+      disabled: false
    }
 
    transferFunction() { return [] };
 }
 
-export class Schematic extends Base implements Component, Types.valuesSchematic {
+export class Schematic extends Base implements Component, Types.opamp<"schematic"> {
    form = "schematic" as "schematic"
-   joints: [Vector, Vector, Vector, Vector, Vector];
+   states: Types.stateSchematic;
    constructor(values: Types.valuesSchematic) {
       super(values);
-      this.offsetVoltage = values.offsetVoltage;
-      this.joints = values.joints;
-   }
-   getState(): Types.stateSchematic {
-      return deepCopy({
-         joints: this.joints,
-         disabled: this.disabled
-      });
+      this.states = {
+         joints: values.joints
+      }
    }
    draw() {
       //(Prepend so handles appear on top)
@@ -56,16 +42,16 @@ export class Schematic extends Base implements Component, Types.valuesSchematic 
    }
    getConnectors(): ComponentTypes.connector[][] {
 
-      let [posPower, negPower] = (this.joints[INDEXPOW1].y < this.joints[INDEXPOW2].y)
-         ? [this.joints[INDEXPOW1], this.joints[INDEXPOW2]]
-         : [this.joints[INDEXPOW2], this.joints[INDEXPOW1]];
+      let [posPower, negPower] = (this.states.joints[INDEXPOW1].y < this.states.joints[INDEXPOW2].y)
+         ? [this.states.joints[INDEXPOW1], this.states.joints[INDEXPOW2]]
+         : [this.states.joints[INDEXPOW2], this.states.joints[INDEXPOW1]];
 
       return [[
          // The ordering here is important so the colors line up between layout and schematic
          makeConnector(this, "vcc+", "node", posPower, "v+"),              //7
-         makeConnector(this, "out", "node", this.joints[INDEXOUT], "o"),   //6
-         makeConnector(this, "in-", "node", this.joints[INDEXINNEG], "i-"),//2
-         makeConnector(this, "in+", "node", this.joints[INDEXINPOS], "i+"),//3
+         makeConnector(this, "out", "node", this.states.joints[INDEXOUT], "o"),   //6
+         makeConnector(this, "in-", "node", this.states.joints[INDEXINNEG], "i-"),//2
+         makeConnector(this, "in+", "node", this.states.joints[INDEXINPOS], "i+"),//3
          makeConnector(this, "vcc-", "node", negPower, "v-"),              //4
          //makeConnector(this, "nc", "node", {???}),                       //8
          //makeConnector(this, "offset n1", "node", {???}),                //5
@@ -74,22 +60,15 @@ export class Schematic extends Base implements Component, Types.valuesSchematic 
    }
 }
 
-export class Layout extends Base implements Component, Types.valuesLayout {
+export class Layout extends Base implements Component, Types.opamp<"layout"> {
    form = "layout" as "layout"
-   isDual: boolean;
-   joints: [Vector, Vector];
+   states: Types.stateLayout;
    constructor(values: Types.valuesLayout) {
       super(values);
-      this.offsetVoltage = values.offsetVoltage;
-      this.isDual = values.isDual;
-      this.joints = values.joints;
-   }
-   getState(): Types.stateLayout {
-      return deepCopy({
-         isDual: this.isDual,
-         joints: this.joints,
-         disabled: this.disabled
-      });
+      this.states = {
+         joints: values.joints,
+         isDual: values.isDual
+      }
    }
    draw() {
       //(Prepend so handles appear on top)
@@ -98,8 +77,8 @@ export class Layout extends Base implements Component, Types.valuesLayout {
    getConnectors(): ComponentTypes.connector[][] {
       const gs = gridSpacing;
 
-      const c = this.joints[INDEXCENTRE];
-      const r = vector(this.joints[INDEXCENTRE]).getAngleTo(this.joints[INDEXROTATION]);
+      const c = this.states.joints[INDEXCENTRE];
+      const r = vector(this.states.joints[INDEXCENTRE]).getAngleTo(this.states.joints[INDEXROTATION]);
 
       const connectorPoints = vector([
          { x: 0 * gs, y: 3 * gs },//1
@@ -113,7 +92,7 @@ export class Layout extends Base implements Component, Types.valuesLayout {
       ]).sumWith(vector(-30)).rotate(r).sumWith(c).vectors;
 
 
-      if (this.isDual) {
+      if (this.states.isDual) {
          // Note that the power selectors physically occupy the same space.
          return [[
             makeConnector(this, "vcc+", "pin", connectorPoints[7], "v+"),  //8
@@ -144,7 +123,7 @@ export class Layout extends Base implements Component, Types.valuesLayout {
 
    }
    replaceWithDual() {
-      this.isDual = true;
+      this.states.isDual = true;
       this.group.clearChildren();
       this.draw();
    }

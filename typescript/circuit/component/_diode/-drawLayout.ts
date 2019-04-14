@@ -11,13 +11,13 @@ import { makeRect as makeRect } from "../../../svg/element/+rect";
 export default function drawLayout(instance: Layout) {
    const bodyGroup = makeGroup("body");
 
-   const cathodeEnd = instance.joints[INDEXCATHODE];
-   const anodeEnd = instance.joints[INDEXANODE];
+   const cathodeEnd = instance.states.joints[INDEXCATHODE];
+   const anodeEnd = instance.states.joints[INDEXANODE];
 
    const centre = vector(cathodeEnd, anodeEnd).centre().vector;
    const rotation = vector(anodeEnd).getAngleTo(cathodeEnd);
 
-   if (instance.color === "N/A") {
+   if (instance.properties.color === "N/A") {
       bodyGroup.append(
          makeRect({ x: -5.5, y: 0 }, { width: 29, height: 15 }, { x: 0, y: 0 }, "body"),
          makeRect({ x: 17.5, y: 0 }, { width: 5, height: 15 }, { x: 0, y: 0 }, "body"),
@@ -40,7 +40,7 @@ export default function drawLayout(instance: Layout) {
       const edge = makePath(bodyString, "edge");
       const middle = makeCircle({ x: 0, y: 0 }, 14, "centre");
 
-      $([edge.element, middle.element]).css("fill", instance.color);
+      $([edge.element, middle.element]).css("fill", instance.properties.color);
 
 
       bodyGroup.append(

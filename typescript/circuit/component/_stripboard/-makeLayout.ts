@@ -13,8 +13,6 @@ import ReversableBoard from "../addins/reversableBoard";
 
 
 const defaulterLayout: ValueCheck.Defaulter<Types.values> = {
-   name: ValueCheck.validate("string", "stripboard"),
-   disabled: ValueCheck.validate("boolean", false),
    joints: ValueCheck.joints<[Vector, Vector]>(
       [{ x: 0, y: 0 }, { x: 20, y: 0 }]
    ),

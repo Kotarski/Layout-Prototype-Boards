@@ -8,8 +8,8 @@ import { makeGroup as makeGroup } from "../../../svg/element/+group";
 export default function drawLayout(instance: Layout) {
    const bodyGroup = makeGroup("body");
 
-   const end1 = instance.joints[INDEXEND1];
-   const end2 = instance.joints[INDEXEND2];
+   const end1 = instance.states.joints[INDEXEND1];
+   const end2 = instance.states.joints[INDEXEND2];
 
    let centre = vector(end1, end2).centre().vector;
    let rotation = vector(end1).getAngleTo(end2);

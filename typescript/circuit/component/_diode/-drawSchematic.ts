@@ -12,8 +12,8 @@ import { makeCircle as makeCircle } from "../../../svg/element/+circle";
 export default function drawSchematic(instance: Schematic) {
    const bodyGroup = makeGroup("body");
 
-   const cathodeEnd = instance.joints[INDEXCATHODE];
-   const anodeEnd = instance.joints[INDEXANODE];
+   const cathodeEnd = instance.states.joints[INDEXCATHODE];
+   const anodeEnd = instance.states.joints[INDEXANODE];
 
    const centre = vector(cathodeEnd, anodeEnd).centre().vector;
    const rotation = vector(anodeEnd).getAngleTo(cathodeEnd);
@@ -23,9 +23,9 @@ export default function drawSchematic(instance: Schematic) {
    ).rotate(rotation).sumWith(centre).vectors;
 
    //Text
-   let text = (instance.breakdownVoltage < 51)
-      ? getStandardForm(instance.breakdownVoltage, 'V')
-      : getStandardForm(instance.saturationCurrent, 'A');
+   let text = (instance.properties.breakdownVoltage < 51)
+      ? getStandardForm(instance.properties.breakdownVoltage, 'V')
+      : getStandardForm(instance.properties.saturationCurrent, 'A');
 
    const bodyPath = 'M 12 0 L -12 12 L -12 -12 L 12 0 Z';
    bodyGroup.append(
@@ -36,8 +36,8 @@ export default function drawSchematic(instance: Schematic) {
    );
 
 
-   if (instance.color === "N/A" || instance.color === undefined) {
-      if (instance.breakdownVoltage < 51) {
+   if (instance.properties.color === "N/A" || instance.properties.color === undefined) {
+      if (instance.properties.breakdownVoltage < 51) {
          // Add the "wings" for xener
          bodyGroup.append(makePath([[{ x: 12, y: -12 }, { x: 18, y: -12 },], [{ x: 12, y: 12 }, { x: 6, y: 12 }]], "line medium"));
       }
@@ -48,8 +48,8 @@ export default function drawSchematic(instance: Schematic) {
       const arrowJoints2 = arrowJointsBase.sumWith({ x: -16, y: 0 }).rotate(-116.43).vectors;
       const colorCircle = makeCircle({ x: -4, y: 0 }, 4, "line thin");
 
-      $(colorCircle.element).css("fill", instance.color);
-      $(colorCircle.element).css("stroke", instance.color);
+      $(colorCircle.element).css("fill", instance.properties.color);
+      $(colorCircle.element).css("stroke", instance.properties.color);
 
       bodyGroup.append(
          makePath(arrowJoints1, "line black thin"), //Arrow1

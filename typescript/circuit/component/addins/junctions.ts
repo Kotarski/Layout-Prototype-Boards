@@ -20,7 +20,7 @@ const Junctions = (() => {
    }
 
    const createJunctions = (component: nodeComponent) => {
-      let otherConnectors = Flatten.flatten2d(manifest.schematic.map(component =>
+      let otherConnectors = Flatten.flatten2d(manifest.states.schematic.map(component =>
          Flatten.flatten2d(component.getConnectors()).filter(connector =>
             (connector.type === "node")
          )

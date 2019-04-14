@@ -1,45 +1,26 @@
 import Component, { Types as ComponentTypes } from "../../+component";
 import * as Types from "./types";
-import vector, { Vector } from "../../../-vector";
-import deepCopy from "../../../utility/-deepCopy";
+import vector from "../../../-vector";
 import makeConnector from "../../generics/-makeConnector";
 import drawLayout from "./-drawLayout";
 import { makeGroup } from "../../../svg/element/+group";
 
-export class Layout implements Component, Types.properties, Types.state {
-   name = "track" as "track";
+export class Layout implements Component, Types.track<"layout"> {
+   type = "track" as "track";
    group = makeGroup();
-   disabled = false;
    form = "layout" as "layout"
-   holeSpacings: number[];
-   style: "breadboard" | "stripboard";
-   joints: [Vector, Vector];
-   breaks: number[];
-
+   properties: Types.properties;
+   states: Types.state;
    constructor(values: Types.properties & Types.state) {
-      this.holeSpacings = values.holeSpacings;
-      this.style = values.style;
-      this.joints = values.joints;
-      this.breaks = values.breaks;
+      this.properties = {
+         holeSpacings: values.holeSpacings,
+         style: values.style
+      }
+      this.states = {
+         joints: values.joints,
+         breaks: values.breaks
+      }
    }
-
-   getProperties(): Types.properties {
-      return deepCopy({
-         name: this.name,
-         holeSpacings: this.holeSpacings,
-         style: this.style
-      });
-   }
-
-   getState(): Types.state {
-      return deepCopy({
-         joints: this.joints,
-         disabled: this.disabled,
-         breaks: this.breaks
-      });
-   }
-
-
    draw() {
       //(Prepend so handles appear on top)
       this.group.prepend(drawLayout(this));
@@ -48,14 +29,14 @@ export class Layout implements Component, Types.properties, Types.state {
    /** Builds and draws the components connectors */
    getConnectors(): ComponentTypes.hole[][] {
 
-      const start = this.joints[0];
-      const step = this.joints[1];
+      const start = this.states.joints[0];
+      const step = this.states.joints[1];
 
 
       let connectorSets: ComponentTypes.hole[][] = [[]];
       // Create the holes
       let accHs = 0;
-      this.holeSpacings.forEach((hS, idx) => {
+      this.properties.holeSpacings.forEach((hS, idx) => {
          accHs += hS;
 
          let holePos = vector(step)
@@ -63,7 +44,7 @@ export class Layout implements Component, Types.properties, Types.state {
             .sumWith(start)
             .vector;
 
-         const connectorType = this.breaks.includes(idx) ? "brokenhole" : "hole";
+         const connectorType = this.states.breaks.includes(idx) ? "brokenhole" : "hole";
          connectorSets[0].push(
             makeConnector(this, "", connectorType, holePos)
          );
@@ -72,7 +53,8 @@ export class Layout implements Component, Types.properties, Types.state {
       return connectorSets
    }
    flags = {
-      order: "fore" as "fore"
+      order: "fore" as "fore",
+      disabled: false
    }
 
    /** ...

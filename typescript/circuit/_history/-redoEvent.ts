@@ -1,6 +1,7 @@
 import { historystate, event } from "./types";
 //TODO: Remove Events dependancy
 import Events from "../events";
+import { getStates, getFlags } from "../+component";
 export default function redoEvent(state: historystate): historystate {
    if (state.currentIdx >= state.lastIdx) return state;
 
@@ -12,12 +13,14 @@ export default function redoEvent(state: historystate): historystate {
    // Get the current state of all participants that will be reverted
    const undoEvent = currentEvent.map(development => development.participant).map(participant => ({
       participant,
-      state: participant.getState()
+      states: getStates(participant),
+      flags: getFlags(participant)
    }));
 
    // Unrevert the current participants
    currentEvent.forEach(development => {
-      Object.assign(development.participant, development.state);
+      Object.assign(development.participant.states, development.states);
+      Object.assign(development.participant.flags, development.flags);
       if (development.participant.group) {
          $(development.participant.group.element).trigger(Events.place);
       }

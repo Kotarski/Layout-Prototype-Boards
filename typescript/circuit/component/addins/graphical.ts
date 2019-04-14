@@ -6,7 +6,7 @@ const Graphical = (() => {
    const init = (component: Component) => {
       let element = component.group.element;
       $(element).on(Events.anyDraw, () => {
-         if (component.disabled === false) {
+         if (component.flags.disabled === false) {
             $(component.group.element).show();
             component.group.clearChildren(":not(.handle,.connectivityhighlight)");
             component.draw();
