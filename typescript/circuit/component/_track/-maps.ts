@@ -6,7 +6,7 @@ import loadLayout from "./-loadLayout";
 
 const maps = makeMap({
    savename: "makeLayoutTrack",
-   diagramType: "layout" as "layout",
+   diagramType: "layout" as const,
    instance: Layout,
    make: makeLayout,
    load: loadLayout

@@ -1,6 +1,7 @@
 import { Functions as ElementFunctions } from "./+element";
 import { Functions as GroupFunctions } from "./element/+group";
 import { Functions as TextFunctions } from "./element/+text";
+import { getPathFunctions } from "./element/+path";
 
 export default function svg<T extends SVGElement>(element: T) {
 
@@ -29,11 +30,16 @@ export default function svg<T extends SVGElement>(element: T) {
       rotatePosition: TextFunctions.rotatePosition(element),
    } : null;
 
-   return Object.assign({}, extension, elementExtension, groupExtension, textExtension) as (
+   let pathExtension = (element instanceof SVGPathElement) ? {
+      ...getPathFunctions(element)
+   } : null;
+
+   return Object.assign({}, extension, elementExtension, groupExtension, textExtension, pathExtension) as (
       (typeof extension) &
       (T extends SVGGraphicsElement ? NonNullable<typeof elementExtension> : {}) &
       (T extends SVGGElement | SVGSVGElement ? NonNullable<typeof groupExtension> : {}) &
-      (T extends SVGTextElement ? NonNullable<typeof textExtension> : {})
+      (T extends SVGTextElement ? NonNullable<typeof textExtension> : {}) &
+      (T extends SVGPathElement ? NonNullable<typeof pathExtension> : {})
    )
 }
 

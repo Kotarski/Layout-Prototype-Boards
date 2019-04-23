@@ -30,9 +30,9 @@ export namespace Types {
    }
 
    export type connectorTypes = "pin" | "hole" | "brokenhole" | "node";
-   export interface connector {
+   export interface connector<T extends connectorTypes = connectorTypes> {
       name: string;
-      type: connectorTypes;
+      type: T;
       point: Vector;
       component: Component;
       symbol?: string;

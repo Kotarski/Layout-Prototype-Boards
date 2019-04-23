@@ -7,13 +7,13 @@ import drawSchematic from "./-drawSchematic";
 import { makeGroup } from "../../../svg/element/+group";
 
 abstract class Base implements Types.properties {
-   type = "wire" as "wire";
+   type = "wire" as const;
    group = makeGroup();
    disabled = false;
 }
 
 export class Schematic extends Base implements Component, Types.wire<"schematic"> {
-   form = "schematic" as "schematic"
+   form = "schematic" as const
    properties: Types.properties
    states: Types.stateSchematic
    constructor(values: Types.valuesSchematic) {
@@ -29,7 +29,7 @@ export class Schematic extends Base implements Component, Types.wire<"schematic"
    }
 
    flags = {
-      order: "back" as "back",
+      order: "back" as const,
       disabled: false
    }
 
@@ -51,7 +51,7 @@ export class Schematic extends Base implements Component, Types.wire<"schematic"
 }
 
 export class Layout extends Base implements Component, Types.wire<"layout"> {
-   form = "layout" as "layout"
+   form = "layout" as const
    properties: Types.properties;
    states: Types.stateLayout;
    constructor(values: Types.valuesLayout) {
@@ -69,7 +69,7 @@ export class Layout extends Base implements Component, Types.wire<"layout"> {
    }
 
    flags = {
-      order: "fore" as "fore",
+      order: "fore" as const,
       disabled: false
    }
 

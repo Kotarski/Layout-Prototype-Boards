@@ -10,7 +10,7 @@ import { gridSpacing } from "../../../~constants";
 import { makeGroup } from "../../../svg/element/+group";
 
 abstract class Base {
-   type = "opamp" as "opamp";
+   type = "opamp" as const;
    group = makeGroup();
    properties: Types.properties;
    constructor(values: Types.valuesSchematic | Types.valuesLayout) {
@@ -20,7 +20,7 @@ abstract class Base {
    }
 
    flags = {
-      order: "fore" as "fore",
+      order: "fore" as const,
       disabled: false
    }
 
@@ -28,7 +28,7 @@ abstract class Base {
 }
 
 export class Schematic extends Base implements Component, Types.opamp<"schematic"> {
-   form = "schematic" as "schematic"
+   form = "schematic" as const
    states: Types.stateSchematic;
    constructor(values: Types.valuesSchematic) {
       super(values);
@@ -61,7 +61,7 @@ export class Schematic extends Base implements Component, Types.opamp<"schematic
 }
 
 export class Layout extends Base implements Component, Types.opamp<"layout"> {
-   form = "layout" as "layout"
+   form = "layout" as const
    states: Types.stateLayout;
    constructor(values: Types.valuesLayout) {
       super(values);

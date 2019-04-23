@@ -8,7 +8,7 @@ import { makeGroup } from "../../../svg/element/+group";
 //import * as $ from 'jquery';
 
 abstract class BipolarBase {
-   type = "bipolar" as "bipolar";
+   type = "bipolar" as const;
    group = makeGroup();
    properties: Types.properties;
    states: Types.state;
@@ -24,7 +24,7 @@ abstract class BipolarBase {
    }
 
    flags = {
-      order: "fore" as "fore",
+      order: "fore" as const,
       disabled: false
    }
 
@@ -32,7 +32,7 @@ abstract class BipolarBase {
 }
 
 export class BipolarSchematic extends BipolarBase implements Component, Types.bipolar<"schematic"> {
-   form = "schematic" as "schematic"
+   form = "schematic" as const
    draw() {
       //(Prepend so handles appear on top)
       this.group.prepend(drawSchematic(this));
@@ -47,7 +47,7 @@ export class BipolarSchematic extends BipolarBase implements Component, Types.bi
 }
 
 export class BipolarLayout extends BipolarBase implements Component, Types.bipolar<"layout"> {
-   form = "layout" as "layout"
+   form = "layout" as const
    draw() {
       //(Prepend so handles appear on top)
       this.group.prepend(drawLayout(this));

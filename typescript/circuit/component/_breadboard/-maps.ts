@@ -7,7 +7,7 @@ import loadLarge from "./-loadLarge";
 
 const smallMap = {
    savename: "makeLayoutBreadboardSmall",
-   diagramType: "layout" as "layout",
+   diagramType: "layout" as const,
    instance: Small,
    make: makeSmall,
    load: loadSmall,
@@ -16,7 +16,7 @@ const smallMap = {
 
 const largeMap = {
    savename: "makeLayoutBreadboardLarge",
-   diagramType: "layout" as "layout",
+   diagramType: "layout" as const,
    instance: Large,
    make: makeLarge,
    load: loadLarge,

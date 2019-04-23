@@ -8,7 +8,7 @@ import { makeGroup } from "../../../svg/element/+group";
 
 abstract class Base {
    group = makeGroup();
-   form = "layout" as "layout"
+   form = "layout" as const
 
    tracks: Track[] = [];
 
@@ -22,7 +22,7 @@ abstract class Base {
    }
 
    flags = {
-      order: "back" as "back",
+      order: "back" as const,
       disabled: false
    }
 
@@ -30,7 +30,7 @@ abstract class Base {
 }
 
 export class Small extends Base implements Component, Types.breadboard<"layout"> {
-   type = "breadboardsmall" as "breadboardsmall";
+   type = "breadboardsmall" as const;
    properties: Types.properties;
    states: Types.state;
    constructor(values: Types.values) {
@@ -49,7 +49,7 @@ export class Small extends Base implements Component, Types.breadboard<"layout">
 }
 
 export class Large extends Base implements Component, Types.breadboard<"layout"> {
-   type = "breadboardlarge" as "breadboardlarge";
+   type = "breadboardlarge" as const;
    properties: Types.properties;
    states: Types.state;
    constructor(values: Types.values) {

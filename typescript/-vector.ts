@@ -54,8 +54,7 @@ const multiExtension = (inVectors: Vector[]) => {
 type SingleVectorInterface = ReturnType<typeof singleExtension>;
 type MultiVectorInterface = ReturnType<typeof multiExtension>;
 
-function vectorFunction(inVectors: AnyVector): SingleVectorInterface;
-function vectorFunction(inVectors: number): SingleVectorInterface;
+function vectorFunction(inVectors: AnyVector|number): SingleVectorInterface;
 function vectorFunction(inVectors: AnyVector[]): MultiVectorInterface;
 function vectorFunction(inVectors: AnyVector, ...moreVectors: AnyVector[]): MultiVectorInterface;
 function vectorFunction<A extends AnyVector | AnyVector[] | number>(inVectors: A, ...moreVectors: AnyVector[]

@@ -27,7 +27,7 @@
       "ts-strictargs": "^1.0.2",
       "tslint": "^5.13.1",
       "tslint-no-circular-imports": "^0.6.1",
-      "typescript": "^3.3.3333",
+      "typescript": "^3.5.0-dev.20190423",
       "webpack": "^4.29.6",
       "webpack-cli": "^3.2.3"
    }

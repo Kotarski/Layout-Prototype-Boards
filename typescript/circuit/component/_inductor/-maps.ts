@@ -8,7 +8,7 @@ import loadLayout from "./-loadLayout";
 
 const schematicMap = {
    savename: "makeInductor",
-   diagramType: "schematic" as "schematic",
+   diagramType: "schematic" as const,
    instance: Schematic,
    make: makeSchematic,
    load: loadSchematic,
@@ -16,7 +16,7 @@ const schematicMap = {
 
 const layoutMap = {
    savename: "makeLayoutInductor",
-   diagramType: "layout" as "layout",
+   diagramType: "layout" as const,
    instance: Layout,
    make: makeLayout,
    load: loadLayout,

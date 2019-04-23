@@ -6,9 +6,9 @@ import drawLayout from "./-drawLayout";
 import { makeGroup } from "../../../svg/element/+group";
 
 export class Layout implements Component, Types.track<"layout"> {
-   type = "track" as "track";
+   type = "track" as const;
    group = makeGroup();
-   form = "layout" as "layout"
+   form = "layout" as const
    properties: Types.properties;
    states: Types.state;
    constructor(values: Types.properties & Types.state) {
@@ -53,7 +53,7 @@ export class Layout implements Component, Types.track<"layout"> {
       return connectorSets
    }
    flags = {
-      order: "fore" as "fore",
+      order: "fore" as const,
       disabled: false
    }
 

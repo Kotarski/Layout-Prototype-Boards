@@ -1,5 +1,4 @@
 import { makeElement as makeElement } from "../+element";
-import { makePath as makePath } from "./+path";
 import { Vector } from "../../++types";
 import svg from "../-svg";
 //import * as $ from 'jquery';
@@ -17,14 +16,14 @@ export namespace Functions {
 
    let textPathCount = 0;
    export function followPath<T extends SVGTextElement>(element: T) {
-      return (pathString: string) => {
+      return (pathObject: SVGPathElement | { element:SVGPathElement}) => {
          // Make a new path
-         let path = makePath(pathString);
-         $(path.element).hide();
+         const path = pathObject instanceof SVGPathElement ? pathObject : pathObject.element
+         $(path).hide();
 
          // Give it a generated (hopefully unique)  ID
          let pathID = "pathForText" + textPathCount;
-         path.element.setAttribute("id", pathID);
+         path.setAttribute("id", pathID);
          textPathCount += 1;
 
          // Make the text path, and link it to the path
@@ -37,12 +36,13 @@ export namespace Functions {
          textPathEl.appendChild(document.createTextNode(text));
 
          // Add the path and textpath as children
-         element.appendChild(path.element);
+         element.appendChild(path);
          element.appendChild(textPathEl);
          return svg(element);
       }
    }
 
+   /** Used to rotate the position of text without affecting the orientation */
    export function rotatePosition<T extends SVGTextElement>(element: T) {
       return (rotation: number) => {
          const position = {
@@ -70,5 +70,4 @@ export namespace Functions {
          return svg(element);
       }
    }
-
 }

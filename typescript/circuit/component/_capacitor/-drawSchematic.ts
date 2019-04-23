@@ -32,14 +32,14 @@ export default function drawSchematic(instance: Schematic) {
    );
 
    if (instance.properties.isPolarised) {
-      bodyGroup.append(makePath([
+      bodyGroup.append(makePath("","line thin").segments([
          [{ x: +15, y: -10 }, { x: +7, y: -10 }],
          [{ x: +11, y: -6 }, { x: +11, y: -14 }]
-      ], "line thin"));
+      ]));
    }
 
    return [
-      makePath([[cathodeStart, cathodeEnd], [anodeStart, anodeEnd]], "line thin"),
+      makePath("","line thin").segments([[cathodeStart, cathodeEnd], [anodeStart, anodeEnd]]),
       bodyGroup.translate(centre).rotate(rotation),
       makeText(text, { x: 0, y: -20 }, "text").translate(centre).rotatePosition(rotation)
    ];

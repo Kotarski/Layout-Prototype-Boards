@@ -5,7 +5,7 @@ import loadLayout from "./-loadLayout";
 
 const layoutMap = {
    savename: "makeLayoutStripboard",
-   diagramType: "layout" as "layout",
+   diagramType: "layout" as const,
    instance: StripboardLayout,
    make: makeLayout,
    load: loadLayout,

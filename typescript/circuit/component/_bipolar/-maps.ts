@@ -8,7 +8,7 @@ import loadLayout from "./-loadLayout";
 
 const schematicMap = {
    savename: "makeBipolar",
-   diagramType: "schematic" as "schematic",
+   diagramType: "schematic" as const,
    instance: BipolarSchematic,
    make: makeSchematic,
    load: loadSchematic,
@@ -16,7 +16,7 @@ const schematicMap = {
 
 const layoutMap = {
    savename: "makeLayoutBipolar",
-   diagramType: "layout" as "layout",
+   diagramType: "layout" as const,
    instance: BipolarLayout,
    make: makeLayout,
    load: loadLayout,

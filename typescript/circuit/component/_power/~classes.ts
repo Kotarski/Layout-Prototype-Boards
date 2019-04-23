@@ -5,7 +5,7 @@ import drawLayout from "./-drawLayout";
 import drawSchematic from "./-drawSchematic";
 import { makeGroup } from "../../../svg/element/+group";
 abstract class PowerBase {
-   type = "power" as "power";
+   type = "power" as const;
    group = makeGroup();
    properties: Types.properties;
    states: Types.state;
@@ -22,9 +22,9 @@ abstract class PowerBase {
 }
 
 export class PowerSchematic extends PowerBase implements Component, Types.power<"schematic"> {
-   form = "schematic" as "schematic"
+   form = "schematic" as const
    flags = {
-      order: "fore" as "fore",
+      order: "fore" as const,
       disabled: false
    }
 
@@ -42,9 +42,9 @@ export class PowerSchematic extends PowerBase implements Component, Types.power<
 }
 
 export class PowerLayout extends PowerBase implements Component, Types.power<"layout"> {
-   form = "layout" as "layout"
+   form = "layout" as const
    flags = {
-      order: "mid" as "mid",
+      order: "mid" as const,
       disabled: false
    }
 

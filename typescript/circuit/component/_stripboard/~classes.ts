@@ -5,9 +5,9 @@ import drawLayout from "./-drawLayout";
 import { makeGroup } from "../../../svg/element/+group";
 
 export class StripboardLayout implements Component, Types.stripboard<"layout"> {
-   type = "stripboard" as "stripboard";
+   type = "stripboard" as const;
    group = makeGroup();
-   form = "layout" as "layout"
+   form = "layout" as const
    tracks: Track[] = [];
    properties: Types.properties;
    states: Types.state;
@@ -31,7 +31,7 @@ export class StripboardLayout implements Component, Types.stripboard<"layout"> {
       this.group.prepend(drawLayout(this))
    }
    flags = {
-      order: "back" as "back",
+      order: "back" as const,
       disabled: false
    }
 

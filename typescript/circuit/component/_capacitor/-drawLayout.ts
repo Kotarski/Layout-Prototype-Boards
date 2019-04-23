@@ -19,31 +19,35 @@ export default function drawLayout(instance: Layout) {
 
    const centre = vector(cathodeEnd, anodeEnd).centre().vector;
    const rotation = vector(cathodeEnd).getAngleTo(anodeEnd);
-   const text = getStandardForm(instance.properties.capacitance, 'F');
+   const textString = getStandardForm(instance.properties.capacitance, 'F');
 
    if (instance.properties.isPolarised) {
       // Electrolytic
       $(bodyGroup.element).addClass("electrolytic");
 
-      const bodyArcEndPoint = 14 / Math.SQRT2;
-      const textArcEndPoint = 12.5 / Math.SQRT2;
-      const bodyPathString = "m14 0 A14 14 0 1 0 " + (bodyArcEndPoint) + " " + (bodyArcEndPoint);
-      const minusPathString = "m14 0 A14 14 0 0 1 " + (bodyArcEndPoint) + " " + (bodyArcEndPoint);
-      const pathForTextString = "m" + (textArcEndPoint) + " " + (textArcEndPoint) + "A12.5 12.5 0 1 1 12.5 0";
 
-      bodyGroup.append(
-         makeCircle({ x: 0, y: 0 }, 16, "highlight nofill"),
-         makePath(bodyPathString, "body").rotate(157.5),
-         makePath(minusPathString, "minus").rotate(157.5),
-         makeText(text, { x: 1, y: 0 }, "text").followPath(pathForTextString).rotate(157.5)
+      const getElectrolyticPath = (radii: number, isMinus: boolean, classes:string = "") => {
+         const [start, end] = [vector(radii / Math.SQRT2), { x: radii, y: 0 }]
+         const [arc, sweep] = isMinus ? [0,0]: [1,1]
+         return makePath("", classes).m(start).A({ radii, arc, sweep, end });
+      }
+
+      const bodyPath = getElectrolyticPath(14, false, "body");
+      const minusPath = getElectrolyticPath(14, true, "minus");
+
+      const highlight = makeCircle({ x: 0, y: 0 }, 16, "highlight nofill");
+      const text = makeText(textString, { x: 1, y: 0 }, "text").followPath(
+         getElectrolyticPath(12.5, false)
       );
+
+      bodyGroup.append(highlight, bodyPath, minusPath, text).rotate(157.5);
    } else {
       // Ceramic
       $(bodyGroup.element).addClass("ceramic");
 
       bodyGroup.append(
          makeEllipse({ x: 0, y: 0 }, { x: 16, y: 8 }, "body highlight nofill"),
-         makeText(text, { x: 0, y: 0 }, "text")
+         makeText(textString, { x: 0, y: 0 }, "text")
       );
    }
 

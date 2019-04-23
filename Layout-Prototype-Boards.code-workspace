@@ -4,5 +4,8 @@
 			"path": "."
 		}
    ],
-   "settings": {}
+   "settings": {
+      "search.usePCRE2": true,
+      "typescript.tsdk": "node_modules\\typescript\\lib"
+   }
 }

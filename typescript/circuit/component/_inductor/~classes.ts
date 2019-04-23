@@ -6,7 +6,7 @@ import drawSchematic from "./-drawSchematic";
 import { INDEXEND1, INDEXEND2 } from "./constants";
 import { makeGroup } from "../../../svg/element/+group";
 abstract class Base {
-   type = "inductor" as "inductor";
+   type = "inductor" as const;
    group = makeGroup();
    properties: Types.properties;
    states: Types.state;
@@ -20,7 +20,7 @@ abstract class Base {
    }
 
    flags = {
-      order: "fore" as "fore",
+      order: "fore" as const,
       disabled: false
    }
 
@@ -28,7 +28,7 @@ abstract class Base {
 }
 
 export class Schematic extends Base implements Component, Types.inductor<"schematic"> {
-   form = "schematic" as "schematic"
+   form = "schematic" as const
    draw() {
       //(Prepend so handles appear on top)
       this.group.prepend(drawSchematic(this));
@@ -42,7 +42,7 @@ export class Schematic extends Base implements Component, Types.inductor<"schema
 }
 
 export class Layout extends Base implements Component, Types.inductor<"layout"> {
-   form = "layout" as "layout"
+   form = "layout" as const
    draw() {
       //(Prepend so handles appear on top)
       this.group.prepend(drawLayout(this));

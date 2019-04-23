@@ -7,7 +7,7 @@ export default function makeConnector<T extends Types.connectorTypes>(
    type: T,
    position: Vector,
    symbol?: string
-): Types.connector & { type: T } {
+): Types.connector<T> {
 
    return {
       name: name,

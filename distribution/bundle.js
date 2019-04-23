@@ -2865,21 +2865,25 @@ function drawLayout(instance) {
     const anodeEnd = instance.states.joints[_constants__WEBPACK_IMPORTED_MODULE_1__["INDEXANODE"]];
     const centre = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(cathodeEnd, anodeEnd).centre().vector;
     const rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(cathodeEnd).getAngleTo(anodeEnd);
-    const text = Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__["default"])(instance.properties.capacitance, 'F');
+    const textString = Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__["default"])(instance.properties.capacitance, 'F');
     if (instance.properties.isPolarised) {
         // Electrolytic
         $(bodyGroup.element).addClass("electrolytic");
-        const bodyArcEndPoint = 14 / Math.SQRT2;
-        const textArcEndPoint = 12.5 / Math.SQRT2;
-        const bodyPathString = "m14 0 A14 14 0 1 0 " + (bodyArcEndPoint) + " " + (bodyArcEndPoint);
-        const minusPathString = "m14 0 A14 14 0 0 1 " + (bodyArcEndPoint) + " " + (bodyArcEndPoint);
-        const pathForTextString = "m" + (textArcEndPoint) + " " + (textArcEndPoint) + "A12.5 12.5 0 1 1 12.5 0";
-        bodyGroup.append(Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_6__["makeCircle"])({ x: 0, y: 0 }, 16, "highlight nofill"), Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])(bodyPathString, "body").rotate(157.5), Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])(minusPathString, "minus").rotate(157.5), Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_4__["makeText"])(text, { x: 1, y: 0 }, "text").followPath(pathForTextString).rotate(157.5));
+        const getElectrolyticPath = (radii, isMinus, classes = "") => {
+            const [start, end] = [Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(radii / Math.SQRT2), { x: radii, y: 0 }];
+            const [arc, sweep] = isMinus ? [0, 0] : [1, 1];
+            return Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])("", classes).m(start).A({ radii, arc, sweep, end });
+        };
+        const bodyPath = getElectrolyticPath(14, false, "body");
+        const minusPath = getElectrolyticPath(14, true, "minus");
+        const highlight = Object(_svg_element_circle__WEBPACK_IMPORTED_MODULE_6__["makeCircle"])({ x: 0, y: 0 }, 16, "highlight nofill");
+        const text = Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_4__["makeText"])(textString, { x: 1, y: 0 }, "text").followPath(getElectrolyticPath(12.5, false));
+        bodyGroup.append(highlight, bodyPath, minusPath, text).rotate(157.5);
     }
     else {
         // Ceramic
         $(bodyGroup.element).addClass("ceramic");
-        bodyGroup.append(Object(_svg_element_ellipse__WEBPACK_IMPORTED_MODULE_7__["makeEllipse"])({ x: 0, y: 0 }, { x: 16, y: 8 }, "body highlight nofill"), Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_4__["makeText"])(text, { x: 0, y: 0 }, "text"));
+        bodyGroup.append(Object(_svg_element_ellipse__WEBPACK_IMPORTED_MODULE_7__["makeEllipse"])({ x: 0, y: 0 }, { x: 16, y: 8 }, "body highlight nofill"), Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_4__["makeText"])(textString, { x: 0, y: 0 }, "text"));
     }
     return [
         Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])([cathodeEnd, anodeEnd], "lead"),
@@ -2927,13 +2931,13 @@ function drawSchematic(instance) {
     let text = Object(_utility_getStandardForm__WEBPACK_IMPORTED_MODULE_2__["default"])(instance.properties.capacitance, 'F');
     bodyGroup.append(Object(_svg_element_rect__WEBPACK_IMPORTED_MODULE_7__["makeRect"])(Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(0), { width: 15, height: 30 }, Object(_vector__WEBPACK_IMPORTED_MODULE_0__["default"])(2), "highlight highlightwithfill extrathick"), Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_6__["makeLine"])({ x: -4, y: -15 }, { x: -4, y: +15 }, "line thick nocap"), Object(_svg_element_line__WEBPACK_IMPORTED_MODULE_6__["makeLine"])({ x: +4, y: -15 }, { x: +4, y: +15 }, "line thick nocap"));
     if (instance.properties.isPolarised) {
-        bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])([
+        bodyGroup.append(Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])("", "line thin").segments([
             [{ x: +15, y: -10 }, { x: +7, y: -10 }],
             [{ x: +11, y: -6 }, { x: +11, y: -14 }]
-        ], "line thin"));
+        ]));
     }
     return [
-        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])([[cathodeStart, cathodeEnd], [anodeStart, anodeEnd]], "line thin"),
+        Object(_svg_element_path__WEBPACK_IMPORTED_MODULE_3__["makePath"])("", "line thin").segments([[cathodeStart, cathodeEnd], [anodeStart, anodeEnd]]),
         bodyGroup.translate(centre).rotate(rotation),
         Object(_svg_element_text__WEBPACK_IMPORTED_MODULE_4__["makeText"])(text, { x: 0, y: -20 }, "text").translate(centre).rotatePosition(rotation)
     ];
@@ -8284,6 +8288,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./+element */ "./typescript/svg/+element.ts");
 /* harmony import */ var _element_group__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./element/+group */ "./typescript/svg/element/+group.ts");
 /* harmony import */ var _element_text__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./element/+text */ "./typescript/svg/element/+text.ts");
+/* harmony import */ var _element_path__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./element/+path */ "./typescript/svg/element/+path.ts");
+
 
 
 
@@ -8309,7 +8315,8 @@ function svg(element) {
         followPath: _element_text__WEBPACK_IMPORTED_MODULE_2__["Functions"].followPath(element),
         rotatePosition: _element_text__WEBPACK_IMPORTED_MODULE_2__["Functions"].rotatePosition(element),
     } : null;
-    return Object.assign({}, extension, elementExtension, groupExtension, textExtension);
+    let pathExtension = (element instanceof SVGPathElement) ? Object.assign({}, Object(_element_path__WEBPACK_IMPORTED_MODULE_3__["getPathFunctions"])(element)) : null;
+    return Object.assign({}, extension, elementExtension, groupExtension, textExtension, pathExtension);
 }
 
 
@@ -8626,14 +8633,17 @@ function makeLine(startVector, endVector, classes = "") {
 /*!*****************************************!*\
   !*** ./typescript/svg/element/+path.ts ***!
   \*****************************************/
-/*! exports provided: makePath */
+/*! exports provided: makePath, getPathFunctions */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "makePath", function() { return makePath; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getPathFunctions", function() { return getPathFunctions; });
 /* harmony import */ var _element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../+element */ "./typescript/svg/+element.ts");
 /* harmony import */ var _svg__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../-svg */ "./typescript/svg/-svg.ts");
+/* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../-vector */ "./typescript/-vector.ts");
+
 
 
 function makePath(path, classes = "") {
@@ -8641,6 +8651,16 @@ function makePath(path, classes = "") {
     let pathString = (path instanceof Array) ? getLinePath(path) : path;
     element.setAttribute('d', pathString);
     return Object(_svg__WEBPACK_IMPORTED_MODULE_1__["default"])(element);
+}
+function getPathWrapper(element) {
+    return (wrapped) => {
+        return (...args) => {
+            const currentPath = element.getAttribute('d') || "";
+            const pathAddition = wrapped(...args);
+            element.setAttribute("d", currentPath + pathAddition);
+            return Object(_svg__WEBPACK_IMPORTED_MODULE_1__["default"])(element);
+        };
+    };
 }
 function getLinePath(jointSet) {
     if (jointSet.length > 0 && jointSet[0] instanceof Array) {
@@ -8661,6 +8681,48 @@ function getSingleLinePath(joints) {
             + joints.map(joint => "L" + joint.x + " " + joint.y).join();
     }
 }
+const getPathFunctions = (element) => ({
+    /****************************************************************************
+     * Lines
+    ****************************************************************************/
+    segments: getPathWrapper(element)(getLinePath),
+    M: getPathWrapper(element)(({ x, y }) => `M ${x},${y}`),
+    m: getPathWrapper(element)(({ x, y }) => `m ${x},${y}`),
+    L: getPathWrapper(element)(({ x, y }) => `L ${x},${y}`),
+    l: getPathWrapper(element)(({ x, y }) => `l ${x},${y}`),
+    H: getPathWrapper(element)((x) => `H ${x}`),
+    h: getPathWrapper(element)((x) => `M ${x}`),
+    V: getPathWrapper(element)((y) => `V ${y}`),
+    v: getPathWrapper(element)((y) => `v ${y}`),
+    Z: getPathWrapper(element)(() => `Z`),
+    /****************************************************************************
+     * Curves
+    ****************************************************************************/
+    C: getPathWrapper(element)(({ c1, c2, e }) => `C ${c1.x} ${c1.y} ${c2.x} ${c2.y} ${e.x} ${e.y}`),
+    c: getPathWrapper(element)(({ c1, c2, e }) => `c ${c1.x} ${c1.y} ${c2.x} ${c2.y} ${e.x} ${e.y}`),
+    Q: getPathWrapper(element)(({ c, e }) => `Q ${c.x} ${c.y} ${e.x} ${e.y}`),
+    q: getPathWrapper(element)(({ c, e }) => `q ${c.x} ${c.y} ${e.x} ${e.y}`),
+    A: getPathWrapper(element)(({ radii, rotation = 0, arc, sweep, end }) => [
+        `A `,
+        `${Object(_vector__WEBPACK_IMPORTED_MODULE_2__["default"])(radii).x}`,
+        `${Object(_vector__WEBPACK_IMPORTED_MODULE_2__["default"])(radii).y}`,
+        `${rotation}`,
+        `${arc}`,
+        `${sweep}`,
+        `${Object(_vector__WEBPACK_IMPORTED_MODULE_2__["default"])(end).x}`,
+        `${Object(_vector__WEBPACK_IMPORTED_MODULE_2__["default"])(end).y}`
+    ].join(" ")),
+    a: getPathWrapper(element)(({ radii, rotation = 0, arc, sweep, end }) => [`a`,
+        `${Object(_vector__WEBPACK_IMPORTED_MODULE_2__["default"])(radii).x}`,
+        `${Object(_vector__WEBPACK_IMPORTED_MODULE_2__["default"])(radii).y}`,
+        `${rotation}`,
+        `${arc}`,
+        `${sweep}`,
+        `${Object(_vector__WEBPACK_IMPORTED_MODULE_2__["default"])(end).x}`,
+        `${Object(_vector__WEBPACK_IMPORTED_MODULE_2__["default"])(end).y}`
+    ].join(" "))
+});
+Object(_vector__WEBPACK_IMPORTED_MODULE_2__["default"])(4);
 
 
 /***/ }),
@@ -8727,9 +8789,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "makeText", function() { return makeText; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Functions", function() { return Functions; });
 /* harmony import */ var _element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../+element */ "./typescript/svg/+element.ts");
-/* harmony import */ var _path__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./+path */ "./typescript/svg/element/+path.ts");
-/* harmony import */ var _svg__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../-svg */ "./typescript/svg/-svg.ts");
-
+/* harmony import */ var _svg__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../-svg */ "./typescript/svg/-svg.ts");
 
 
 function makeText(text, startVector, classes = "") {
@@ -8737,19 +8797,19 @@ function makeText(text, startVector, classes = "") {
     element.setAttribute('x', startVector.x.toString());
     element.setAttribute('y', startVector.y.toString());
     element.appendChild(document.createTextNode(text));
-    return Object(_svg__WEBPACK_IMPORTED_MODULE_2__["default"])(element);
+    return Object(_svg__WEBPACK_IMPORTED_MODULE_1__["default"])(element);
 }
 var Functions;
 (function (Functions) {
     let textPathCount = 0;
     function followPath(element) {
-        return (pathString) => {
+        return (pathObject) => {
             // Make a new path
-            let path = Object(_path__WEBPACK_IMPORTED_MODULE_1__["makePath"])(pathString);
-            $(path.element).hide();
+            const path = pathObject instanceof SVGPathElement ? pathObject : pathObject.element;
+            $(path).hide();
             // Give it a generated (hopefully unique)  ID
             let pathID = "pathForText" + textPathCount;
-            path.element.setAttribute("id", pathID);
+            path.setAttribute("id", pathID);
             textPathCount += 1;
             // Make the text path, and link it to the path
             let textPathEl = Object(_element__WEBPACK_IMPORTED_MODULE_0__["makeElement"])("textPath");
@@ -8759,19 +8819,20 @@ var Functions;
             $(element).text("");
             textPathEl.appendChild(document.createTextNode(text));
             // Add the path and textpath as children
-            element.appendChild(path.element);
+            element.appendChild(path);
             element.appendChild(textPathEl);
-            return Object(_svg__WEBPACK_IMPORTED_MODULE_2__["default"])(element);
+            return Object(_svg__WEBPACK_IMPORTED_MODULE_1__["default"])(element);
         };
     }
     Functions.followPath = followPath;
+    /** Used to rotate the position of text without affecting the orientation */
     function rotatePosition(element) {
         return (rotation) => {
             const position = {
                 x: Number(element.getAttribute("x")),
                 y: Number(element.getAttribute("y"))
             };
-            Object(_svg__WEBPACK_IMPORTED_MODULE_2__["default"])(element).rotate(rotation).rotate(-rotation, position);
+            Object(_svg__WEBPACK_IMPORTED_MODULE_1__["default"])(element).rotate(rotation).rotate(-rotation, position);
             if (25 < rotation && rotation < 155) {
                 $(element).css("text-anchor", "start");
             }
@@ -8790,7 +8851,7 @@ var Functions;
             else {
                 $(element).css("alignment-baseline", "middle");
             }
-            return Object(_svg__WEBPACK_IMPORTED_MODULE_2__["default"])(element);
+            return Object(_svg__WEBPACK_IMPORTED_MODULE_1__["default"])(element);
         };
     }
     Functions.rotatePosition = rotatePosition;
