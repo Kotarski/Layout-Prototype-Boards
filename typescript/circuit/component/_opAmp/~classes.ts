@@ -9,7 +9,8 @@ import { INDEXINPOS, INDEXINNEG, INDEXOUT, INDEXPOW1, INDEXPOW2, INDEXCENTRE, IN
 import { gridSpacing } from "../../../~constants";
 import { makeGroup } from "../../../svg/element/+group";
 
-abstract class Base {
+export class OpAmpSchematic implements Component, Types.opamp<"schematic"> {
+   form = "schematic" as const
    type = "opamp" as const;
    group = makeGroup();
    
@@ -20,14 +21,9 @@ abstract class Base {
    }
 
    transferFunction() { return [] };
-}
-
-export class Schematic extends Base implements Component, Types.opamp<"schematic"> {
-   form = "schematic" as const
    properties: Types.properties;
    states: Types.stateSchematic;
    constructor(properties: Types.properties, states: Types.stateSchematic) {
-      super();
       this.properties = properties;
       this.states = states;
    }
@@ -55,12 +51,18 @@ export class Schematic extends Base implements Component, Types.opamp<"schematic
    }
 }
 
-export class Layout extends Base implements Component, Types.opamp<"layout"> {
+export class OpAmpLayout implements Component, Types.opamp<"layout"> {
    form = "layout" as const
+   type = "opamp" as const;
+   group = makeGroup();
+   flags = {
+      order: "fore" as const,
+      disabled: false
+   }
+   transferFunction() { return [] };
    properties: Types.properties;
    states: Types.stateLayout;
    constructor(properties: Types.properties, states: Types.stateLayout) {
-      super();
       this.properties = properties;
       this.states = states;
    }

@@ -1,10 +1,10 @@
-import { Layout } from "./~classes";
+import { OpAmpLayout } from "./~classes";
 import vector from "../../../-vector";
 import { INDEXCENTRE, INDEXROTATION } from "./constants";
 
 import { makeDip as makeDip } from "../../../svg/element/groups/+dip";
 
-export default function drawLayout(instance: Layout) {
+export default function drawLayout(instance: OpAmpLayout) {
 
    const centre = instance.states.joints[INDEXCENTRE];
    const rotationPoint = instance.states.joints[INDEXROTATION];

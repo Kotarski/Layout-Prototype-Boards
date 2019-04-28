@@ -1,4 +1,4 @@
-import { Schematic } from "./~classes";
+import { OpAmpSchematic } from "./~classes";
 import vector, { Vector } from "../../../-vector";
 import { INDEXINPOS, INDEXINNEG, INDEXOUT, INDEXPOW1, INDEXPOW2 } from "./constants";
 
@@ -6,7 +6,7 @@ import { makePath as makePath } from "../../../svg/element/+path";
 import { makeGroup as makeGroup } from "../../../svg/element/+group";
 import { makeLine as makeLine } from "../../../svg/element/+line";
 
-export default function drawSchematic(instance: Schematic) {
+export default function drawSchematic(instance: OpAmpSchematic) {
    const bodyGroup = makeGroup("body");
 
    const inPEnd = instance.states.joints[INDEXINPOS];

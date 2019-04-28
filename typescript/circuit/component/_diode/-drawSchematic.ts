@@ -1,4 +1,4 @@
-import { Schematic } from "./~classes";
+import { DiodeSchematic } from "./~classes";
 import vector, { Vector } from "../../../-vector";
 import { INDEXANODE, INDEXCATHODE } from "./constants";
 import getStandardForm from "../../../utility/-getStandardForm";
@@ -9,7 +9,7 @@ import { makeGroup as makeGroup } from "../../../svg/element/+group";
 import { makeCircle as makeCircle } from "../../../svg/element/+circle";
 //import * as $ from 'jquery';
 
-export default function drawSchematic(instance: Schematic) {
+export default function drawSchematic(instance: DiodeSchematic) {
    const bodyGroup = makeGroup("body");
 
    const cathodeEnd = instance.states.joints[INDEXCATHODE];

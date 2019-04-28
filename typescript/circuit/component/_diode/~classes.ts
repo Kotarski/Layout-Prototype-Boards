@@ -5,7 +5,9 @@ import drawLayout from "./-drawLayout";
 import drawSchematic from "./-drawSchematic";
 import { INDEXANODE, INDEXCATHODE } from "./constants";
 import { makeGroup } from "../../../svg/element/+group";
-abstract class Base {
+
+export class DiodeSchematic implements Component, Types.diode<"schematic"> {
+   form = "schematic" as const
    type = "diode" as const;
    group = makeGroup();
    properties: Types.properties;
@@ -20,10 +22,6 @@ abstract class Base {
    }
 
    transferFunction() { return [] };
-}
-
-export class Schematic extends Base implements Component, Types.diode<"schematic"> {
-   form = "schematic" as const
    draw() {
       //(Prepend so handles appear on top)
       this.group.prepend(drawSchematic(this));
@@ -36,8 +34,22 @@ export class Schematic extends Base implements Component, Types.diode<"schematic
    }
 }
 
-export class Layout extends Base implements Component, Types.diode<"layout"> {
+export class DiodeLayout implements Component, Types.diode<"layout"> {
    form = "layout" as const
+   type = "diode" as const;
+   group = makeGroup();
+   properties: Types.properties;
+   states: Types.state;
+   constructor(properties: Types.properties, states: Types.state) {
+      this.properties = properties;
+      this.states = states;
+   }
+   flags = {
+      order: "fore" as const,
+      disabled: false
+   }
+
+   transferFunction() { return [] };
    draw() {
       //(Prepend so handles appear on top)
       this.group.prepend(drawLayout(this));

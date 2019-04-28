@@ -6,7 +6,8 @@ import drawSmall from "./-drawSmall";
 import makeTracks from "./-makeTracks";
 import { makeGroup } from "../../../svg/element/+group";
 
-abstract class Base {
+export class BreadboardSmall implements Component, Types.breadboard<"layout"> {
+   type = "breadboardsmall" as const;
    group = makeGroup();
    form = "layout" as const
 
@@ -27,10 +28,6 @@ abstract class Base {
    }
 
    transferFunction() { return [] };
-}
-
-export class Small extends Base implements Component, Types.breadboard<"layout"> {
-   type = "breadboardsmall" as const;
    properties: Types.properties;
    states: Types.state;
    constructor(properties: Types.properties, states: Types.state) {
@@ -46,8 +43,28 @@ export class Small extends Base implements Component, Types.breadboard<"layout">
    }
 }
 
-export class Large extends Base implements Component, Types.breadboard<"layout"> {
+export class BreadboardLarge implements Component, Types.breadboard<"layout"> {
    type = "breadboardlarge" as const;
+   group = makeGroup();
+   form = "layout" as const
+
+   tracks: Track[] = [];
+
+
+
+   // Handled in the tracks
+   getConnectors(): ComponentTypes.hole[][] { 
+      return this.tracks.map((track) => {
+         return track.getConnectors()[0]
+      })
+   }
+
+   flags = {
+      order: "back" as const,
+      disabled: false
+   }
+
+   transferFunction() { return [] };
    properties: Types.properties;
    states: Types.state;
    constructor(properties: Types.properties, states: Types.state) {

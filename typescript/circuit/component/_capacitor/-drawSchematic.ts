@@ -1,4 +1,4 @@
-import { Schematic } from "./~classes";
+import { CapacitorSchematic } from "./~classes";
 import vector, { Vector } from "../../../-vector";
 import { INDEXANODE, INDEXCATHODE } from "./constants";
 import getStandardForm from "../../../utility/-getStandardForm";
@@ -9,7 +9,7 @@ import { makeGroup as makeGroup } from "../../../svg/element/+group";
 import { makeLine as makeLine } from "../../../svg/element/+line";
 import { makeRect as makeRect } from "../../../svg/element/+rect";
 
-export default function drawSchematic(instance: Schematic) {
+export default function drawSchematic(instance: CapacitorSchematic) {
    const bodyGroup = makeGroup("body");
 
    const cathodeEnd = instance.states.joints[INDEXCATHODE];

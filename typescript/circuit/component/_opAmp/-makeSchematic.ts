@@ -1,6 +1,6 @@
 import ValueCheck from "../~valueCheck";
 import * as Types from "./types";
-import { Schematic } from "./~classes";
+import { OpAmpSchematic } from "./~classes";
 import getMaker from "../../generics/-getMaker";
 import { Vector } from "../../../-vector";
 import Graphical from "../addins/graphical";
@@ -22,7 +22,7 @@ const defaulterSchematic: ComponentDefaulter<Types.opamp<"schematic">> = {
 };
 
 
-const makeSchematic = getMaker<Schematic>(Schematic, defaulterSchematic,
+const makeSchematic = getMaker<OpAmpSchematic>(OpAmpSchematic, defaulterSchematic,
    Selectable,
    ConnectionsHighlightable,
    Graphical,

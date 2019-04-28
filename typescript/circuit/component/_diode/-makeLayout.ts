@@ -1,6 +1,6 @@
 import ValueCheck from "../~valueCheck";
 import * as Types from "./types";
-import { Layout } from "./~classes";
+import { DiodeLayout } from "./~classes";
 import getMaker from "../../generics/-getMaker";
 import { Vector } from "../../../-vector";
 import Graphical from "../addins/graphical";
@@ -23,7 +23,7 @@ const defaulterLayout: ComponentDefaulter<Types.diode<"layout">> = {
    }
 };
 
-const makeLayout = getMaker(Layout, defaulterLayout,
+const makeLayout = getMaker(DiodeLayout, defaulterLayout,
    Graphical,
    Selectable,
    Draggable,

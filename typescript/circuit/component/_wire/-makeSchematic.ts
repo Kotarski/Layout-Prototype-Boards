@@ -1,6 +1,6 @@
 import ValueCheck from "../~valueCheck";
 import * as Types from "./types";
-import { Schematic } from "./~classes";
+import { WireSchematic } from "./~classes";
 import getMaker from "../../generics/-getMaker";
 import Graphical from "../addins/graphical";
 import Draggable from "../addins/draggable";
@@ -19,7 +19,7 @@ const defaulterSchematic: ComponentDefaulter<Types.wire<"schematic">> = {
 };
 
 // TODO: Pass in options for extendable and others (options={?}) (true,true)
-export const makeSchematic = getMaker<Schematic>(Schematic, defaulterSchematic,
+export const makeSchematic = getMaker<WireSchematic>(WireSchematic, defaulterSchematic,
    Junctions,
    Selectable,
    Graphical,

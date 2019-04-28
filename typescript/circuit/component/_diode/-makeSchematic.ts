@@ -1,6 +1,6 @@
 import ValueCheck from "../~valueCheck";
 import * as Types from "./types";
-import { Schematic } from "./~classes";
+import { DiodeSchematic } from "./~classes";
 import getMaker from "../../generics/-getMaker";
 import { Vector } from "../../../-vector";
 import Graphical from "../addins/graphical";
@@ -24,7 +24,7 @@ const defaulterSchematic: ComponentDefaulter<Types.diode<"schematic">> = {
 };
 
 
-const makeSchematic = getMaker(Schematic, defaulterSchematic,
+const makeSchematic = getMaker(DiodeSchematic, defaulterSchematic,
    Graphical,
    Selectable,
    ConnectionsHighlightable,

@@ -1,11 +1,11 @@
-import { Layout } from "./~classes";
+import { WireLayout } from "./~classes";
 import { Vector } from "../../../-vector";
 
 import { makePath as makePath } from "../../../svg/element/+path";
 import { makeGroup as makeGroup } from "../../../svg/element/+group";
 //import * as $ from 'jquery';
 
-export default function drawLayout(instance: Layout) {
+export default function drawLayout(instance: WireLayout) {
    const bodyGroup = makeGroup("body");
 
    const joints = instance.states.joints;

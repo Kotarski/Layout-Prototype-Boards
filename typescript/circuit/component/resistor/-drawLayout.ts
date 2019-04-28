@@ -1,4 +1,4 @@
-import { Layout } from "./~classes";
+import { ResistorLayout } from "./~classes";
 import vector from "../../../-vector";
 import { INDEXEND1, INDEXEND2 } from "./constants";
 
@@ -7,7 +7,7 @@ import { makeGroup as makeGroup } from "../../../svg/element/+group";
 import { makeRect as makeRect } from "../../../svg/element/+rect";
 //import * as $ from 'jquery';
 
-export default function drawLayout(instance: Layout) {
+export default function drawLayout(instance: ResistorLayout) {
    const bodyGroup = makeGroup("body");
 
 

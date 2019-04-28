@@ -1,6 +1,6 @@
 import ValueCheck from "../~valueCheck";
 import * as Types from "./types";
-import { Schematic } from "./~classes";
+import { CapacitorSchematic } from "./~classes";
 import getMaker from "../../generics/-getMaker";
 import { Vector } from "../../../-vector";
 import Graphical from "../addins/graphical";
@@ -23,7 +23,7 @@ const defaulterSchematic: ComponentDefaulter<Types.capacitor<"schematic">> = {
 };
 
 
-const makeSchematic = getMaker(Schematic, defaulterSchematic,
+const makeSchematic = getMaker(CapacitorSchematic, defaulterSchematic,
    Selectable,
    ConnectionsHighlightable,
    Graphical,

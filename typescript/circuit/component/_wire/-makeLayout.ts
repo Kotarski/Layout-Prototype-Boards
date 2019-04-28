@@ -1,6 +1,6 @@
 import ValueCheck from "../~valueCheck";
 import * as Types from "./types";
-import { Layout } from "./~classes";
+import { WireLayout } from "./~classes";
 import getMaker from "../../generics/-getMaker";
 import Graphical from "../addins/graphical";
 import Draggable from "../addins/draggable";
@@ -23,7 +23,7 @@ const defaulterLayout: ComponentDefaulter<Types.wire<"layout">> = {
    }
 };
 
-export const makeLayout = getMaker(Layout, defaulterLayout,
+export const makeLayout = getMaker(WireLayout, defaulterLayout,
    Graphical,
    Draggable,
    Selectable,

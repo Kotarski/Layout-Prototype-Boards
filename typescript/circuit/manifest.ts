@@ -1,6 +1,6 @@
 import Active from "../~active";
 import Component, { Types as ComponentTypes, insert, getProperties } from "./+component";
-import { Layout as OpAmp } from "./component/_opAmp/~classes"
+import { OpAmpLayout as OpAmp } from "./component/_opAmp/~classes"
 import Curry from "../utility/~curry";
 import split from "../utility/-split";
 import is from "../utility/-is";

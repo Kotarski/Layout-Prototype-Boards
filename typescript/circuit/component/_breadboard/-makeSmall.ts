@@ -1,6 +1,6 @@
 import ValueCheck from "../~valueCheck";
 import * as Types from "./types";
-import { Small } from "./~classes";
+import { BreadboardSmall } from "./~classes";
 import getMaker from "../../generics/-getMaker";
 import { Vector } from "../../../-vector";
 import Graphical from "../addins/graphical";
@@ -23,7 +23,7 @@ const defaulterSmall: ComponentDefaulter<Types.breadboard<"layout">> = {
 };
 
 
-const makeSmall = getMaker<Small>(Small, defaulterSmall,
+const makeSmall = getMaker<BreadboardSmall>(BreadboardSmall, defaulterSmall,
    Graphical,
    Board,
    Selectable,

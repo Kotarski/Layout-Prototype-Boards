@@ -1,5 +1,5 @@
 import makeMap from "../../generics/-makeMap";
-import { Schematic, Layout } from "./~classes";
+import { InductorSchematic, InductorLayout } from "./~classes";
 import makeSchematic from "./-makeSchematic";
 import makeLayout from "./-makeLayout";
 import loadSchematic from "./-loadSchematic";
@@ -9,7 +9,7 @@ import loadLayout from "./-loadLayout";
 const schematicMap = {
    savename: "makeInductor",
    diagramType: "schematic" as const,
-   instance: Schematic,
+   instance: InductorSchematic,
    make: makeSchematic,
    load: loadSchematic,
 }
@@ -17,7 +17,7 @@ const schematicMap = {
 const layoutMap = {
    savename: "makeLayoutInductor",
    diagramType: "layout" as const,
-   instance: Layout,
+   instance: InductorLayout,
    make: makeLayout,
    load: loadLayout,
 }

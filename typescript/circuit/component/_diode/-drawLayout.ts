@@ -1,4 +1,4 @@
-import { Layout } from "./~classes";
+import { DiodeLayout } from "./~classes";
 import vector from "../../../-vector";
 import { INDEXANODE, INDEXCATHODE } from "./constants";
 
@@ -8,7 +8,7 @@ import { makeCircle as makeCircle } from "../../../svg/element/+circle";
 import { makeRect as makeRect } from "../../../svg/element/+rect";
 //import * as $ from 'jquery';
 
-export default function drawLayout(instance: Layout) {
+export default function drawLayout(instance: DiodeLayout) {
    const bodyGroup = makeGroup("body");
 
    const cathodeEnd = instance.states.joints[INDEXCATHODE];

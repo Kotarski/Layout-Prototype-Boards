@@ -1,4 +1,4 @@
-import { Large } from "./~classes";
+import { BreadboardLarge } from "./~classes";
 import vector from "../../../-vector";
 import { INDEXCENTRE, INDEXROTATION } from "./constants";
 
@@ -8,7 +8,7 @@ import { makeRect as makeRect } from "../../../svg/element/+rect";
 import { makeTextSeq as makeTextSequence } from "../../../svg/element/groups/+textSequence";
 import { gridSpacing } from "../../../~constants";
 
-export default function drawLarge(instance: Large) {
+export default function drawLarge(instance: BreadboardLarge) {
    const bodyGroup = makeGroup("body");
 
    const centre = instance.states.joints[INDEXCENTRE];

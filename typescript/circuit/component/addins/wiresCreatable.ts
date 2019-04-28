@@ -4,7 +4,7 @@ import Events from "../../events";
 import manifest from "../../manifest";
 import wireMaps from "../_wire/-maps";
 import { gridSpacing } from "../../../~constants";
-import { Layout as WireLayout } from "../_wire/~classes";
+import { WireLayout as WireLayout } from "../_wire/~classes";
 //import * as $ from 'jquery';
 
 type holeyComponent = Component & { getConnectors(): ComponentTypes.hole[][] };

@@ -6,8 +6,13 @@ import drawSchematic from "./-drawSchematic";
 import { INDEXEND1, INDEXEND2 } from "./constants";
 import { makeGroup } from "../../../svg/element/+group";
 
-abstract class Base {
+export class ResistorSchematic implements Component, Types.resistor<"schematic"> {
+   form = "schematic" as const;
    type = "resistor" as const;
+   flags = {
+      order: "fore" as const,
+      disabled: false
+   }
    group = makeGroup();
    properties: Types.properties;
    states: Types.state;
@@ -15,17 +20,6 @@ abstract class Base {
       this.properties = properties;
       this.states = states;
    }
-
-   flags = {
-      order: "fore" as const,
-      disabled: false
-   }
-
-   transferFunction() { return [] };
-}
-
-export class Schematic extends Base implements Component, Types.resistor<"schematic"> {
-   form = "schematic" as const
    draw() {
       //(Prepend so handles appear on top)
       this.group.prepend(drawSchematic(this));
@@ -36,10 +30,23 @@ export class Schematic extends Base implements Component, Types.resistor<"schema
          makeConnector(this, "", "node", this.states.joints[INDEXEND2]),]
       ]
    }
+   transferFunction() { return [] };
 }
 
-export class Layout extends Base implements Component, Types.resistor<"layout"> {
-   form = "layout" as const
+export class ResistorLayout implements Component, Types.resistor<"layout"> {
+   form = "layout" as const;
+   type = "resistor" as const;
+   flags = {
+      order: "fore" as const,
+      disabled: false
+   }
+   group = makeGroup();
+   properties: Types.properties;
+   states: Types.state;
+   constructor(properties: Types.properties, states: Types.state) {
+      this.properties = properties;
+      this.states = states;
+   }
    draw() {
       //(Prepend so handles appear on top)
       this.group.prepend(drawLayout(this));
@@ -50,6 +57,7 @@ export class Layout extends Base implements Component, Types.resistor<"layout"> 
          makeConnector(this, "", "pin", this.states.joints[INDEXEND2]),]
       ]
    }
+   transferFunction() { return [] };
    get [Symbol.toStringTag]() {
       return `${this.form}-${this.type}`;
    }

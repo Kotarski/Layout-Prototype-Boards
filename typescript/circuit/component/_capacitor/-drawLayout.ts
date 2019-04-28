@@ -1,4 +1,4 @@
-import { Layout } from "./~classes";
+import { CapacitorLayout } from "./~classes";
 import vector from "../../../-vector";
 import { INDEXANODE, INDEXCATHODE } from "./constants";
 import getStandardForm from "../../../utility/-getStandardForm";
@@ -10,7 +10,7 @@ import { makeCircle as makeCircle } from "../../../svg/element/+circle";
 import { makeEllipse as makeEllipse } from "../../../svg/element/+ellipse";
 //import * as $ from 'jquery';
 
-export default function drawLayout(instance: Layout) {
+export default function drawLayout(instance: CapacitorLayout) {
 
    const bodyGroup = makeGroup("body");
 

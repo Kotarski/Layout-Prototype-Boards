@@ -6,17 +6,13 @@ import drawLayout from "./-drawLayout";
 import drawSchematic from "./-drawSchematic";
 import { makeGroup } from "../../../svg/element/+group";
 
-abstract class Base implements Types.properties {
+export class WireSchematic implements Component, Types.wire<"schematic"> {
+   form = "schematic" as const
    type = "wire" as const;
    group = makeGroup();
-}
-
-export class Schematic extends Base implements Component, Types.wire<"schematic"> {
-   form = "schematic" as const
    properties: Types.properties
    states: Types.stateSchematic
    constructor(properties: Types.properties, states: Types.stateSchematic) {
-      super();
       this.properties = properties;
       this.states = states;
    }
@@ -47,12 +43,13 @@ export class Schematic extends Base implements Component, Types.wire<"schematic"
 
 }
 
-export class Layout extends Base implements Component, Types.wire<"layout"> {
+export class WireLayout implements Component, Types.wire<"layout"> {
    form = "layout" as const
+   type = "wire" as const;
+   group = makeGroup();
    properties: Types.properties;
    states: Types.stateLayout;
    constructor(properties: Types.properties, states: Types.stateLayout) {
-      super();
       this.properties = properties;
       this.states = states;
    }

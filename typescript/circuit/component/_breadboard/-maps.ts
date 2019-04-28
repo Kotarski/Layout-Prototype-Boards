@@ -1,5 +1,5 @@
 import makeMap from "../../generics/-makeMap";
-import { Large, Small } from "./~classes";
+import { BreadboardLarge, BreadboardSmall } from "./~classes";
 import makeSmall from "./-makeSmall";
 import makeLarge from "./-makeLarge";
 import loadSmall from "./-loadSmall";
@@ -8,7 +8,7 @@ import loadLarge from "./-loadLarge";
 const smallMap = {
    savename: "makeLayoutBreadboardSmall",
    diagramType: "layout" as const,
-   instance: Small,
+   instance: BreadboardSmall,
    make: makeSmall,
    load: loadSmall,
    isBoard: true
@@ -17,7 +17,7 @@ const smallMap = {
 const largeMap = {
    savename: "makeLayoutBreadboardLarge",
    diagramType: "layout" as const,
-   instance: Large,
+   instance: BreadboardLarge,
    make: makeLarge,
    load: loadLarge,
    isBoard: true

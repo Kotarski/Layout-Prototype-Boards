@@ -1,4 +1,4 @@
-import { Small, Large } from "./~classes";
+import { BreadboardSmall, BreadboardLarge } from "./~classes";
 import { TrackLayout as Track } from "../_track/~classes"
 import trackMap from "../_track/-maps";
 import vector from "../../../-vector";
@@ -6,13 +6,13 @@ import vector from "../../../-vector";
 
 import { gridSpacing } from "../../../~constants";
 
-export default function makeTracks(parent: Small, size: "small"): Track[];
-export default function makeTracks(parent: Large, size: "large"): Track[];
-export default function makeTracks(parent: Small | Large, size: "small" | "large") {
-   return (size === "small") ? makeTracksSmall(parent as Small) : makeTracksLarge(parent as Large);
+export default function makeTracks(parent: BreadboardSmall, size: "small"): Track[];
+export default function makeTracks(parent: BreadboardLarge, size: "large"): Track[];
+export default function makeTracks(parent: BreadboardSmall | BreadboardLarge, size: "small" | "large") {
+   return (size === "small") ? makeTracksSmall(parent as BreadboardSmall) : makeTracksLarge(parent as BreadboardLarge);
 }
 
-function makeTracksSmall(parent: Small): Track[] {
+function makeTracksSmall(parent: BreadboardSmall): Track[] {
    let tracks: Track[] = [];
 
    const gS = gridSpacing;
@@ -58,7 +58,7 @@ function makeTracksSmall(parent: Small): Track[] {
    return tracks;
 }
 
-function makeTracksLarge(parent: Large): Track[] {
+function makeTracksLarge(parent: BreadboardLarge): Track[] {
    let tracks: Track[] = [];
 
    let gS = gridSpacing;

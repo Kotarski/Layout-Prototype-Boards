@@ -1,5 +1,5 @@
 import makeMap from "../../generics/-makeMap";
-import { Schematic, Layout } from "./~classes";
+import { WireSchematic, WireLayout } from "./~classes";
 import makeSchematic from "./-makeSchematic";
 import makeLayout from "./-makeLayout";
 import loadSchematic from "./-loadSchematic";
@@ -9,7 +9,7 @@ import loadLayout from "./-loadLayout";
 const schematicMap = {
    savename: "makeWire",
    diagramType: "schematic" as const,
-   instance: Schematic,
+   instance: WireSchematic,
    make: makeSchematic,
    load: loadSchematic
 }
@@ -17,7 +17,7 @@ const schematicMap = {
 const layoutMap = {
    savename: "makeLayoutWire",
    diagramType: "layout" as const,
-   instance: Layout,
+   instance: WireLayout,
    make: makeLayout,
    load: loadLayout
 }

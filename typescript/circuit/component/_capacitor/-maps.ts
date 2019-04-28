@@ -1,5 +1,5 @@
 import makeMap from "../../generics/-makeMap";
-import { Schematic, Layout } from "./~classes";
+import { CapacitorSchematic, CapacitorLayout } from "./~classes";
 import makeSchematic from "./-makeSchematic";
 import makeLayout from "./-makeLayout";
 import loadSchematic from "./-loadSchematic";
@@ -9,7 +9,7 @@ import loadLayout from "./-loadLayout";
 const schematicMap = {
    savename: "makeCapacitor",
    diagramType: "schematic" as const,
-   instance: Schematic,
+   instance: CapacitorSchematic,
    make: makeSchematic,
    load: loadSchematic,
 }
@@ -17,7 +17,7 @@ const schematicMap = {
 const layoutMap = {
    savename: "makeLayoutCapacitor",
    diagramType: "layout" as const,
-   instance: Layout,
+   instance: CapacitorLayout,
    make: makeLayout,
    load: loadLayout,
 }

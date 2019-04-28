@@ -1,4 +1,4 @@
-import { Schematic } from "./~classes";
+import { InductorSchematic } from "./~classes";
 import vector, { Vector } from "../../../-vector";
 import { INDEXEND1, INDEXEND2 } from "./constants";
 import getStandardForm from "../../../utility/-getStandardForm";
@@ -8,7 +8,7 @@ import { makeText as makeText } from "../../../svg/element/+text";
 import { makeGroup as makeGroup } from "../../../svg/element/+group";
 import { makeRect as makeRect } from "../../../svg/element/+rect";
 
-export default function drawSchematic(instance: Schematic) {
+export default function drawSchematic(instance: InductorSchematic) {
    const bodyGroup = makeGroup("body");
 
    const end1 = instance.states.joints[INDEXEND1];

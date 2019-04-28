@@ -5,9 +5,9 @@ import makeConnector from "../../generics/-makeConnector";
 import drawLayout from "./-drawLayout";
 import drawSchematic from "./-drawSchematic";
 import { makeGroup } from "../../../svg/element/+group";
-//import * as $ from 'jquery';
 
-abstract class BipolarBase {
+export class BipolarSchematic implements Component, Types.bipolar<"schematic"> {
+   form = "schematic" as const
    type = "bipolar" as const;
    group = makeGroup();
    properties: Types.properties;
@@ -22,12 +22,6 @@ abstract class BipolarBase {
       order: "fore" as const,
       disabled: false
    }
-
-   transferFunction() { return [] };
-}
-
-export class BipolarSchematic extends BipolarBase implements Component, Types.bipolar<"schematic"> {
-   form = "schematic" as const
    draw() {
       //(Prepend so handles appear on top)
       this.group.prepend(drawSchematic(this));
@@ -39,10 +33,25 @@ export class BipolarSchematic extends BipolarBase implements Component, Types.bi
          makeConnector(this, "base", "node", this.states.joints[INDEXBASE], "b")
       ]];
    }
+   transferFunction() { return [] };
 }
 
-export class BipolarLayout extends BipolarBase implements Component, Types.bipolar<"layout"> {
+export class BipolarLayout implements Component, Types.bipolar<"layout"> {
    form = "layout" as const
+   type = "bipolar" as const;
+   group = makeGroup();
+   properties: Types.properties;
+   states: Types.state;
+   constructor(properties: Types.properties, states: Types.state) {
+      $(this.group.element).addClass("component " + this.type);
+      this.properties = properties;
+      this.states = states;
+   }
+
+   flags = {
+      order: "fore" as const,
+      disabled: false
+   }
    draw() {
       //(Prepend so handles appear on top)
       this.group.prepend(drawLayout(this));
@@ -54,5 +63,6 @@ export class BipolarLayout extends BipolarBase implements Component, Types.bipol
          makeConnector(this, "base", "pin", this.states.joints[INDEXBASE], "b")
       ]];
    }
+   transferFunction() { return [] };
 }
 

@@ -1,11 +1,11 @@
-import { Layout } from "./~classes";
+import { InductorLayout } from "./~classes";
 import vector from "../../../-vector";
 import { INDEXEND1, INDEXEND2 } from "./constants";
 
 import { makePath as makePath } from "../../../svg/element/+path";
 import { makeGroup as makeGroup } from "../../../svg/element/+group";
 
-export default function drawLayout(instance: Layout) {
+export default function drawLayout(instance: InductorLayout) {
    const bodyGroup = makeGroup("body");
 
    const end1 = instance.states.joints[INDEXEND1];
