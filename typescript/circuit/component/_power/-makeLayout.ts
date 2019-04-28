@@ -8,15 +8,20 @@ import Draggable from "../addins/draggable";
 import Selectable from "../addins/selectable";
 import ConnectionsHighlightable from "../addins/connectionsHighlightable";
 import WiresCreatable from "../addins/wiresCreatable";
+import { ComponentDefaulter } from "../@component";
 
-const defaulterLayout: ValueCheck.Defaulter<Types.values> = {
-   joints: ValueCheck.joints<[Vector]>(
-      [{ x: 0, y: 40 }]
-   ),
-   voltage: ValueCheck.validate("number", 0)
+const defaulterLayout: ComponentDefaulter<Types.power<"layout">> = {
+   properties: {
+      voltage: ValueCheck.validate("number", 0)
+   },
+   states: {
+      joints: ValueCheck.joints<[Vector]>(
+         [{ x: 0, y: 40 }]
+      )
+   }
 };
 
-const makeLayout = getMaker(PowerLayout, defaulterLayout,
+const makeLayout = getMaker<PowerLayout>(PowerLayout, defaulterLayout,
    Graphical,
    Draggable,
    Selectable,

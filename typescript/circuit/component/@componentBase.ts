@@ -1,54 +1,44 @@
 
 export type ComponentForms = "schematic" | "layout";
 
-type SchematicComponentTypes = (
-   "resistor" |
-   "capacitor"
-);
+export type ComponentBaseID = {
+   form: ComponentForms,
+   type: string
+}
 
-type LayoutComponentTypes = (
-   "resistor" |
-   "capacitor"
-);
-
-// type AllComponentTypes = SchematicComponentTypes | LayoutComponentTypes
-
-export type ComponentTypes<ComponentForm extends ComponentForms> = (
-   ComponentForm extends "schematic" ? SchematicComponentTypes :
-   ComponentForm extends "layout" ? LayoutComponentTypes : never
-);
-
-
-type ComponentBaseProperties = {
+export type ComponentBaseProperties = {
 
 }
 
-type ComponentBaseStates = {
+export type ComponentBaseStates = {
    
 }
 
-type ComponentBaseFlags = {
-   placement: "top" | "middle" | "bottom",
+export interface ComponentSavedData {
+   properties: ComponentBaseProperties,
+   states: ComponentBaseStates,
+}
+
+export type ComponentBaseFlags = {
+   order: "fore" | "mid" | "back",
    disabled?: boolean
 }
 
-
-export interface ComponentBaseData {
-   form: ComponentForms,
-   type: string,
-   properties: ComponentBaseProperties,
-   states: ComponentBaseStates,
+export interface ComponentBaseData extends ComponentBaseID, ComponentSavedData {
    flags: ComponentBaseFlags
-} 
-
-export type ComponentBaseSpecifier<ComponentForm extends ComponentForms, ComponentType extends ComponentTypes<ComponentForm>> = {
-   // Whether it is a schematic or a layout component
-   form: ComponentForm
-   // Which component (resistor, capacitor etc)
-   type: ComponentType,
 }
 
+export interface ComponentData extends ComponentBaseData { }
 
+export interface ComponentQuery<
+   SavedData extends ComponentSavedData,
+   BaseData extends ComponentBaseData,
+   Data extends ComponentData,
+   > {
+   SavedData: SavedData
+   BaseData: BaseData
+   Data: Data
+}
 
 
 

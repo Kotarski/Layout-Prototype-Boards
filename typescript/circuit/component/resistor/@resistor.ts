@@ -1,47 +1,58 @@
-import {  ComponentBaseData } from "../@componentBase";
+import {  ComponentQuery } from "../@componentBase";
 import { Vector } from "../../../++types";
 import { DraggableComponent } from "../addins/@draggable";
-
 
 type Properties = {
    resistance: number;
 }
 
-interface SchematicBaseData extends ComponentBaseData {
+interface ResistorSchematicID {
    form: "schematic",
-   type: "resistor",
-   properties: Properties
-   states: {
-      joints: Record<"lead0"|"lead1", Vector>
-   },
-   flags: {
-      placement: "middle"
-   },
+   type: "resistor"
 }
-export type SchematicData = DraggableComponent<SchematicBaseData>;
 
-interface LayoutBaseData extends ComponentBaseData {
+interface ResistorSchematicSavedData extends ResistorSchematicID {
+   properties: Properties,
+   states: {
+      joints: [Vector,Vector]//Record<"lead0"|"lead1", Vector>
+   }
+}
+
+interface ResistorSchematicBaseData extends ResistorSchematicSavedData {
+   flags: {
+      order: "fore"
+   }
+}
+
+type ResistorSchematicData = DraggableComponent<ResistorSchematicBaseData>;
+
+interface ResistorLayoutID {
    form: "layout",
-   type: "resistor",
+   type: "resistor"
+}
+
+interface ResistorLayoutSavedData extends ResistorLayoutID {
    properties: Properties
    states: {
-      joints: Record<"lead0"|"lead1", [Vector, ...Vector[]]>
-   },
+      joints: [Vector,Vector]//Record<"lead0"|"lead1", [Vector, ...Vector[]]>
+   }
+}
+
+interface ResistorLayoutBaseData extends ResistorLayoutSavedData {
    flags: {
-      placement: "middle"
+      order: "fore"
    },
 }
-export type LayoutData = DraggableComponent<LayoutBaseData>;
+
+type ResistorLayoutData = DraggableComponent<ResistorLayoutBaseData>;
 
 
 namespace Resistor {
-   export type Schematic = {
-      BaseData: SchematicBaseData
-      Data: SchematicData
-   }
-   export type Layout = {
-      BaseData: LayoutBaseData
-      Data: LayoutData
-   }
+   export type SchematicQuery = ComponentQuery<
+      ResistorSchematicSavedData, ResistorSchematicBaseData, ResistorSchematicData
+   >
+   export type LayoutQuery = ComponentQuery<
+      ResistorLayoutSavedData, ResistorLayoutBaseData, ResistorLayoutData
+   >
 }
 export default Resistor;

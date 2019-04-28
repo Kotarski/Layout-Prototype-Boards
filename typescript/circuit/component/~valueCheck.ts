@@ -9,8 +9,8 @@ namespace ValueCheck {
    export const validate = validateType;
    export type validater<T> = checkfunction<T>
 
-   export type Defaulter<T> = {
-      [P in keyof T]: checkfunction<T[P]>
+   export type Defaulter<T extends {}> = {
+      [K in keyof T]: checkfunction<T[K]>
    }
 
    const integerTest = (n: unknown) => test("number")(n) && Number.isInteger(n);

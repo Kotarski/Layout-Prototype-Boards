@@ -8,16 +8,21 @@ import Draggable from "../addins/draggable";
 import Selectable from "../addins/selectable";
 import Extendable from "../addins/extendable";
 import ConnectionsHighlightable from "../addins/connectionsHighlightable";
+import { ComponentDefaulter } from "../@component";
 
-const defaulterSchematic: ValueCheck.Defaulter<Types.valuesSchematic> = {
-   joints: ValueCheck.joints<[Vector, Vector, Vector, Vector, Vector]>(
-      [{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: 40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: 20 }]
-   ),
-   offsetVoltage: ValueCheck.validate("number", 0)
+const defaulterSchematic: ComponentDefaulter<Types.opamp<"schematic">> = {
+   properties: {
+      offsetVoltage: ValueCheck.validate("number", 0)
+   },
+   states: {
+      joints: ValueCheck.joints<[Vector, Vector, Vector, Vector, Vector]>(
+         [{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: 40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: 20 }]
+      ),
+   }
 };
 
 
-const makeSchematic = getMaker(Schematic, defaulterSchematic,
+const makeSchematic = getMaker<Schematic>(Schematic, defaulterSchematic,
    Selectable,
    ConnectionsHighlightable,
    Graphical,

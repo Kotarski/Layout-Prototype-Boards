@@ -12,15 +12,10 @@ abstract class BipolarBase {
    group = makeGroup();
    properties: Types.properties;
    states: Types.state;
-   constructor(values: Types.values) {
+   constructor(properties: Types.properties, states: Types.state) {
       $(this.group.element).addClass("component " + this.type);
-      this.properties = {
-         type: values.type,
-         currentGain: values.currentGain
-      }
-      this.states = {
-         joints: values.joints
-      }
+      this.properties = properties;
+      this.states = states;
    }
 
    flags = {

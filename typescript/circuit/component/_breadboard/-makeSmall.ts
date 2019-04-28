@@ -9,15 +9,21 @@ import Selectable from "../addins/selectable";
 import Board from "../addins/board";
 import WiresCreatable from "../addins/wiresCreatable";
 import Rotatable from "../addins/rotatable";
+import { ComponentDefaulter } from "../@component";
 
-const defaulterSmall: ValueCheck.Defaulter<Types.values> = {
-   joints: ValueCheck.joints<[Vector, Vector]>(
-      [{ x: 0, y: 0 }, { x: 20, y: 0 }]
-   ),
+const defaulterSmall: ComponentDefaulter<Types.breadboard<"layout">> = {
+   properties: {
+
+   },
+   states: {
+      joints: ValueCheck.joints<[Vector, Vector]>(
+         [{ x: 0, y: 0 }, { x: 20, y: 0 }]
+      ),
+   }
 };
 
 
-const makeSmall = getMaker(Small, defaulterSmall,
+const makeSmall = getMaker<Small>(Small, defaulterSmall,
    Graphical,
    Board,
    Selectable,

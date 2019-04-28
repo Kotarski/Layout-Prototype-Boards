@@ -1,4 +1,4 @@
-import { Layout } from "./~classes";
+import { TrackLayout } from "./~classes";
 import vector, { Vector } from "../../../-vector";
 import { INDEXSTART, INDEXSTEP } from "./constants";
 import cumulativeSum from "../../../utility/-cumulativeSum";
@@ -11,7 +11,7 @@ import { gridSpacing } from "../../../~constants";
 const drawStripboardHole = (position: Vector) => makeCircle(position, 4, "hole");
 const drawBreadboardHole = (position: Vector) => makeRect(position, { width: 8, height: 8 }, vector(0.5), "hole");
 
-export default function drawLayout(instance: Layout) {
+export default function drawLayout(instance: TrackLayout) {
    const holeFunc = (instance.properties.style === "breadboard") ? drawBreadboardHole : drawStripboardHole;
 
    const start = instance.states.joints[INDEXSTART];

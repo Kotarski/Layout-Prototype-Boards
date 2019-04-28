@@ -7,14 +7,19 @@ import Draggable from "../addins/draggable";
 import Selectable from "../addins/selectable";
 import Extendable from "../addins/extendable";
 import Junctions from "../addins/junctions"
+import { ComponentDefaulter } from "../@component";
 
-const defaulterSchematic: ValueCheck.Defaulter<Types.valuesSchematic> = {
-   joints: ValueCheck.joints([{ x: 0, y: 0 }, { x: 10, y: 10 }], l => l >= 2)
+const defaulterSchematic: ComponentDefaulter<Types.wire<"schematic">> = {
+   properties: {
+
+   },
+   states: {
+      joints: ValueCheck.joints([{ x: 0, y: 0 }, { x: 10, y: 10 }], l => l >= 2)
+   }
 };
 
 // TODO: Pass in options for extendable and others (options={?}) (true,true)
-export const makeSchematic = getMaker(
-   Schematic, defaulterSchematic,
+export const makeSchematic = getMaker<Schematic>(Schematic, defaulterSchematic,
    Junctions,
    Selectable,
    Graphical,

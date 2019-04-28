@@ -8,13 +8,18 @@ import Draggable from "../addins/draggable";
 import Selectable from "../addins/selectable";
 import Extendable from "../addins/extendable";
 import ConnectionsHighlightable from "../addins/connectionsHighlightable"
+import { ComponentDefaulter } from "../@component";
 
-const defaulterSchematic: ValueCheck.Defaulter<Types.values> = {
-   joints: ValueCheck.joints<[Vector, Vector, Vector]>(
-      [{ x: -50, y: 0 }, { x: +10, y: -50 }, { x: +10, y: +50 }]
-   ),
-   currentGain: ValueCheck.validate("number", 0),
-   type: ValueCheck.validate<"NPN" | "PNP">(["NPN", "PNP"], "NPN")
+const defaulterSchematic: ComponentDefaulter<Types.bipolar<"schematic">> = {
+   properties: {
+      currentGain: ValueCheck.validate("number", 0),
+      type: ValueCheck.validate<"NPN" | "PNP">(["NPN", "PNP"], "NPN")
+   },
+   states: {
+      joints: ValueCheck.joints<[Vector, Vector, Vector]>(
+         [{ x: -50, y: 0 }, { x: +10, y: -50 }, { x: +10, y: +50 }]
+      )
+   }
 };
 
 

@@ -5,21 +5,15 @@ import makeConnector from "../../generics/-makeConnector";
 import drawLayout from "./-drawLayout";
 import { makeGroup } from "../../../svg/element/+group";
 
-export class Layout implements Component, Types.track<"layout"> {
+export class TrackLayout implements Component, Types.track<"layout"> {
    type = "track" as const;
    group = makeGroup();
    form = "layout" as const
    properties: Types.properties;
    states: Types.state;
-   constructor(values: Types.properties & Types.state) {
-      this.properties = {
-         holeSpacings: values.holeSpacings,
-         style: values.style
-      }
-      this.states = {
-         joints: values.joints,
-         breaks: values.breaks
-      }
+   constructor(properties: Types.properties, states: Types.state) {
+      this.properties = properties;
+      this.states = states;
    }
    draw() {
       //(Prepend so handles appear on top)

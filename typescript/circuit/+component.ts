@@ -21,7 +21,7 @@ export namespace Types {
    export interface map {
       savename: string;
       diagramType: "layout" | "schematic";
-      instance: { new(values: any): Component };
+      instance: { new(properties: any, states: any): Component };
       make: ReturnType<typeof getMaker>;
       load: Types.loadFunction<Component | Component[]>;
       correspondsTo?: map;
@@ -52,12 +52,15 @@ import { group } from "../svg/element/+group";
 import Insert from "../utility/~insert";
 import deepCopy from "../utility/-deepCopy";
 
-export default interface Component extends Types.properties, Types.state {
+export default interface Component<
+   F extends "schematic" | "layout" = "schematic" | "layout",
+   P extends Types.properties = Types.properties, 
+   S extends Types.state = Types.state> {
    type: string;
-   form: "schematic"|"layout"
+   form: F
    group: group;
-   properties: Types.properties;
-   states: Types.state;
+   properties: P;
+   states: S;
 
    draw(): void;
 

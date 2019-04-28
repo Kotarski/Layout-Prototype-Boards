@@ -55,12 +55,12 @@ const WiresCreatable = (() => {
       })
    }
 
-   const createWireAtPoint = (vector: Vector) => {
+   const createWireAtPoint = (vector: Vector): WireLayout => {
       const wire = wireMaps.layout.make({
          joints: [vector, vector],
       });
       manifest.addComponent(manifest.states.layout, wire);
-      return wire;
+      return wire as WireLayout;
    }
 
    return { init }

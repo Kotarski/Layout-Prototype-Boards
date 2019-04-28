@@ -8,16 +8,21 @@ import Draggable from "../addins/draggable";
 import Selectable from "../addins/selectable";
 import Rotatable from "../addins/rotatable";
 import ConnectionsHighlightable from "../addins/connectionsHighlightable"
+import { ComponentDefaulter } from "../@component";
 
-const defaulterLayout: ValueCheck.Defaulter<Types.valuesLayout> = {
-   isDual: ValueCheck.validate("boolean", false),
-   joints: ValueCheck.joints<[Vector, Vector]>(
-      [{ x: 30, y: 30 }, { x: 40, y: 30 }]
-   ),
-   offsetVoltage: ValueCheck.validate("number", 0)
+const defaulterLayout: ComponentDefaulter<Types.opamp<"layout">> = {
+   properties: {
+      offsetVoltage: ValueCheck.validate("number", 0)
+   },
+   states: {
+      isDual: ValueCheck.validate("boolean", false),
+      joints: ValueCheck.joints<[Vector, Vector]>(
+         [{ x: 30, y: 30 }, { x: 40, y: 30 }]
+      )
+   }
 };
 
-const makeLayout = getMaker(Layout, defaulterLayout,
+const makeLayout = getMaker<Layout>(Layout, defaulterLayout,
    Graphical,
    Draggable,
    Rotatable,

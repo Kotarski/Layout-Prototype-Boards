@@ -1,6 +1,6 @@
 import Component, { Types as ComponentTypes } from "../../+component";
 import * as Types from "./types";
-import { Layout as Track } from "../_track/~classes";
+import { TrackLayout as Track } from "../_track/~classes";
 import drawLarge from "./-drawLarge";
 import drawSmall from "./-drawSmall";
 import makeTracks from "./-makeTracks";
@@ -33,12 +33,10 @@ export class Small extends Base implements Component, Types.breadboard<"layout">
    type = "breadboardsmall" as const;
    properties: Types.properties;
    states: Types.state;
-   constructor(values: Types.values) {
+   constructor(properties: Types.properties, states: Types.state) {
       super();
-      this.properties = {}
-      this.states = {
-         joints: values.joints
-      }
+      this.properties = properties;
+      this.states = states;
    }
 
    draw() {
@@ -52,12 +50,10 @@ export class Large extends Base implements Component, Types.breadboard<"layout">
    type = "breadboardlarge" as const;
    properties: Types.properties;
    states: Types.state;
-   constructor(values: Types.values) {
+   constructor(properties: Types.properties, states: Types.state) {
       super();
-      this.properties = {}
-      this.states = {
-         joints: values.joints
-      }
+      this.properties = properties;
+      this.states = states;
    }
 
    draw() {

@@ -8,13 +8,18 @@ import Draggable from "../addins/draggable";
 import Selectable from "../addins/selectable";
 import Extendable from "../addins/extendable";
 import ConnectionsHighlightable from "../addins/connectionsHighlightable";
+import { ComponentDefaulter } from "../@component";
 
-const defaulterLayout: ValueCheck.Defaulter<Types.values> = {
-   joints: ValueCheck.joints<[Vector, Vector, Vector]>(
-      [{ x: 0, y: 0 }, { x: 20, y: -20 }, { x: 40, y: 0 }]
-   ),
-   currentGain: ValueCheck.validate("number", 0),
-   type: ValueCheck.validate<"NPN" | "PNP">(["NPN", "PNP"], "NPN")
+const defaulterLayout: ComponentDefaulter<Types.bipolar<"layout">> = {
+   properties: {
+      currentGain: ValueCheck.validate("number", 0),
+      type: ValueCheck.validate<"NPN" | "PNP">(["NPN", "PNP"], "NPN")
+   },
+   states: {
+      joints: ValueCheck.joints<[Vector, Vector, Vector]>(
+         [{ x: 0, y: 0 }, { x: 20, y: -20 }, { x: 40, y: 0 }]
+      )
+   }
 };
 
 const makeLayout = getMaker(BipolarLayout, defaulterLayout,

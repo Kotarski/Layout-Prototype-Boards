@@ -10,15 +10,9 @@ abstract class Base {
    group = makeGroup();
    properties: Types.properties;
    states: Types.state;
-   constructor(values: Types.values) {
-      this.properties = {
-         saturationCurrent: values.saturationCurrent,
-         breakdownVoltage: values.breakdownVoltage,
-         color: values.color
-      }
-      this.states = {
-         joints: values.joints
-      }
+   constructor(properties: Types.properties, states: Types.state) {
+      this.properties = properties;
+      this.states = states;
    }
    flags = {
       order: "fore" as const,

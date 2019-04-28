@@ -9,13 +9,9 @@ abstract class PowerBase {
    group = makeGroup();
    properties: Types.properties;
    states: Types.state;
-   constructor(values: Types.values) {
-      this.properties = {
-         voltage: values.voltage
-      }
-      this.states = {
-         joints: values.joints,
-      }
+   constructor(properties: Types.properties, states: Types.state) {
+      this.properties = properties;
+      this.states = states;
    }
 
    transferFunction() { return [] };

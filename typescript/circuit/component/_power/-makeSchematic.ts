@@ -7,12 +7,17 @@ import Graphical from "../addins/graphical";
 import Draggable from "../addins/draggable";
 import Selectable from "../addins/selectable";
 import ConnectionsHighlightable from "../addins/connectionsHighlightable";
+import { ComponentDefaulter } from "../@component";
 
-const defaulterSchematic: ValueCheck.Defaulter<Types.values> = {
-   joints: ValueCheck.joints<[Vector]>(
-      [{ x: 0, y: 0 }]
-   ),
-   voltage: ValueCheck.validate("number", 0)
+const defaulterSchematic: ComponentDefaulter<Types.power<"schematic">> = {
+   properties: {
+      voltage: ValueCheck.validate("number", 0)
+   },
+   states: {
+      joints: ValueCheck.joints<[Vector]>(
+         [{ x: 0, y: 0 }]
+      )
+   }
 };
 
 

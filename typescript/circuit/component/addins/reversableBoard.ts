@@ -3,7 +3,7 @@ import vector from "../../../-vector";
 import Events from "../../events";
 import manifest from "../../manifest";
 import history from "../../history";
-import { Layout as Track } from "../_track/~classes";
+import { TrackLayout as Track } from "../_track/~classes";
 import Flatten from "../../../utility/~flatten";
 import addTransform from "../../../svg/-addTransform";
 import { makeCircle as makeCircle } from "../../../svg/element/+circle"

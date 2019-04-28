@@ -6,6 +6,8 @@ import { ComponentForms } from "../@componentBase";
 export interface properties extends Types.properties {
    holeSpacings: number[];
    style: "breadboard" | "stripboard";
+   rows: number,
+   columns: number
 }
 
 export interface state extends Types.state {
@@ -16,7 +18,7 @@ export interface state extends Types.state {
 export type values = properties & state;
 
 
-export interface track<form extends ComponentForms> {
+export interface track<form extends ComponentForms & "layout"> {
    properties: properties,
    states: (
       form extends "layout" ? state :

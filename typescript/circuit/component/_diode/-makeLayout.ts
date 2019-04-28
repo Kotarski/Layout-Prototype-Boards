@@ -8,14 +8,19 @@ import Draggable from "../addins/draggable";
 import Selectable from "../addins/selectable";
 import Extendable from "../addins/extendable";
 import ConnectionsHighlightable from "../addins/connectionsHighlightable"
+import { ComponentDefaulter } from "../@component";
 
-const defaulterLayout: ValueCheck.Defaulter<Types.values> = {
-   joints: ValueCheck.joints<[Vector, Vector]>(
-      [{ x: 0, y: 0 }, { x: 80, y: 0 }]
-   ),
-   breakdownVoltage: ValueCheck.validate("number", 0),
-   saturationCurrent: ValueCheck.validate("number", 0),
-   color: ValueCheck.color("N/A")
+const defaulterLayout: ComponentDefaulter<Types.diode<"layout">> = {
+   properties: {
+      breakdownVoltage: ValueCheck.validate("number", 0),
+      saturationCurrent: ValueCheck.validate("number", 0),
+      color: ValueCheck.color("N/A")
+   },
+   states: {
+      joints: ValueCheck.joints<[Vector, Vector]>(
+         [{ x: 0, y: 0 }, { x: 80, y: 0 }]
+      )
+   }
 };
 
 const makeLayout = getMaker(Layout, defaulterLayout,

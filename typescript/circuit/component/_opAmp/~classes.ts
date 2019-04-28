@@ -12,12 +12,7 @@ import { makeGroup } from "../../../svg/element/+group";
 abstract class Base {
    type = "opamp" as const;
    group = makeGroup();
-   properties: Types.properties;
-   constructor(values: Types.valuesSchematic | Types.valuesLayout) {
-      this.properties = {
-         offsetVoltage: values.offsetVoltage
-      }
-   }
+   
 
    flags = {
       order: "fore" as const,
@@ -29,12 +24,12 @@ abstract class Base {
 
 export class Schematic extends Base implements Component, Types.opamp<"schematic"> {
    form = "schematic" as const
+   properties: Types.properties;
    states: Types.stateSchematic;
-   constructor(values: Types.valuesSchematic) {
-      super(values);
-      this.states = {
-         joints: values.joints
-      }
+   constructor(properties: Types.properties, states: Types.stateSchematic) {
+      super();
+      this.properties = properties;
+      this.states = states;
    }
    draw() {
       //(Prepend so handles appear on top)
@@ -62,13 +57,12 @@ export class Schematic extends Base implements Component, Types.opamp<"schematic
 
 export class Layout extends Base implements Component, Types.opamp<"layout"> {
    form = "layout" as const
+   properties: Types.properties;
    states: Types.stateLayout;
-   constructor(values: Types.valuesLayout) {
-      super(values);
-      this.states = {
-         joints: values.joints,
-         isDual: values.isDual
-      }
+   constructor(properties: Types.properties, states: Types.stateLayout) {
+      super();
+      this.properties = properties;
+      this.states = states;
    }
    draw() {
       //(Prepend so handles appear on top)

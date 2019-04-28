@@ -3,10 +3,10 @@ import { Vector } from "../../../++types";
 /* The types required by the addin ********************************************/
 type PreDraggableComponent = {
    states: {
-      joints: {
-         [key: string]: Vector | [Vector, ...Vector[]]
+      joints: Vector[]//{
+         //[key: string]: Vector | [Vector, ...Vector[]]
          // Record<string, Vector | [Vector, ...Vector[]]>
-      }
+      // }
    },
    flags: {}
 }

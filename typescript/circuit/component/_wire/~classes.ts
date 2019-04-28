@@ -9,19 +9,16 @@ import { makeGroup } from "../../../svg/element/+group";
 abstract class Base implements Types.properties {
    type = "wire" as const;
    group = makeGroup();
-   disabled = false;
 }
 
 export class Schematic extends Base implements Component, Types.wire<"schematic"> {
    form = "schematic" as const
    properties: Types.properties
    states: Types.stateSchematic
-   constructor(values: Types.valuesSchematic) {
+   constructor(properties: Types.properties, states: Types.stateSchematic) {
       super();
-      this.properties = {}
-      this.states = {
-         joints: values.joints,
-      }
+      this.properties = properties;
+      this.states = states;
    }
    draw() {
       //(Prepend so handles appear on top)
@@ -54,13 +51,10 @@ export class Layout extends Base implements Component, Types.wire<"layout"> {
    form = "layout" as const
    properties: Types.properties;
    states: Types.stateLayout;
-   constructor(values: Types.valuesLayout) {
+   constructor(properties: Types.properties, states: Types.stateLayout) {
       super();
-      this.properties = {}
-      this.states = {
-         joints: values.joints,
-         color: values.color
-      }
+      this.properties = properties;
+      this.states = states;
    }
 
    draw() {

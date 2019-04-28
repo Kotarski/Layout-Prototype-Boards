@@ -8,12 +8,17 @@ import Draggable from "../addins/draggable";
 import Selectable from "../addins/selectable";
 import Extendable from "../addins/extendable";
 import ConnectionsHighlightable from "../addins/connectionsHighlightable"
+import { ComponentDefaulter } from "../@component";
 
-const defaulterLayout: ValueCheck.Defaulter<Types.values> = {
-   joints: ValueCheck.joints<[Vector, Vector]>(
-      [{ x: 0, y: 0 }, { x: 80, y: 0 }]
-   ),
-   inductance: ValueCheck.validate("number", 0)
+const defaulterLayout: ComponentDefaulter<Types.inductor<"layout">> = {
+   properties: {
+      inductance: ValueCheck.validate("number", 0)
+   },
+   states: {
+      joints: ValueCheck.joints<[Vector, Vector]>(
+         [{ x: 0, y: 0 }, { x: 80, y: 0 }]
+      )
+   }
 };
 
 const makeLayout = getMaker(Layout, defaulterLayout,

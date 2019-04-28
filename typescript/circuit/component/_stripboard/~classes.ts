@@ -1,6 +1,6 @@
 import Component, { Types as ComponentTypes } from "../../+component";
 import * as Types from "./types";
-import { Layout as Track } from "../_track/~classes";
+import { TrackLayout as Track } from "../_track/~classes";
 import drawLayout from "./-drawLayout";
 import { makeGroup } from "../../../svg/element/+group";
 
@@ -11,15 +11,9 @@ export class StripboardLayout implements Component, Types.stripboard<"layout"> {
    tracks: Track[] = [];
    properties: Types.properties;
    states: Types.state;
-   constructor(values: Types.properties & Types.state) {
-      this.properties = {
-         rows: values.rows,
-         columns: values.columns
-      }
-      this.states = {
-         joints: values.joints,
-         trackBreaks: values.trackBreaks
-      }
+   constructor(properties: Types.properties, states: Types.state) {
+      this.properties = properties
+      this.states = states
    }
    getConnectors(): ComponentTypes.hole[][] {
       return this.tracks.map((track) => {

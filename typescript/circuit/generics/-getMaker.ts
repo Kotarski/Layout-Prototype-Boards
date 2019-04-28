@@ -12,31 +12,31 @@ type Initialisers<C extends Component, T extends {}[]> = {
    [P in keyof T]: T[P] extends T[number] ? Initialiser<C, T[P]> : never;
 }
 
-export default interface getMaker<
-   C extends Component,
-   V extends C["properties"] & C["states"]
-   > {
-   (
-      instanceClass: { new(values: V): C },
-      defaulter: ValueCheck.Defaulter<V>,
-      initialiser: (component: C) => void
-   ): (
-         partialValues: DeepPartial<V>,
-         log: boolean
-      ) => C
-}
+// export default interface getMaker<
+//    C extends Component> {
+//    (
+//       instanceClass: { new(properties: C["properties"], states: C["states"]): C },
+//       defaulter: ValueCheck.Defaulter<C>,
+//       initialiser: (component: C) => void
+//    ): (
+//          partialValues: DeepPartial<C["properties"] & C["states"]>,
+//          log: boolean
+//       ) => C
+// }
 export default function getMaker<
-   C extends Component,
-   V extends C["properties"] & C["states"],
+   C extends {properties: C["properties"], states: C["states"]} & Component,
    // A extends Addin<C, O>,
-   OS extends {}[]
+   OS extends {}[] = {}[]
 >(
-   instanceClass: { new(values: V): C },
-   defaulter: ValueCheck.Defaulter<V>,
+   instanceClass: { new(properties: C["properties"], states: C["states"]): C },
+   defaulter: {
+      properties: ValueCheck.Defaulter<C["properties"]>,
+      states: ValueCheck.Defaulter<C["states"]>
+   },
    ...addins: Initialisers<C, OS>
 ) {
    return (
-      partialValues: DeepPartial<V>,
+      partialValues: DeepPartial<C["properties"] & C["states"]>,
       log = true
    ): C => {
       /*LOGSTART*/
@@ -44,14 +44,15 @@ export default function getMaker<
          console.groupCollapsed("Loading...");
       }
       /*LOGEND*/
-      const values = loadObjectWithDefaults(defaulter, partialValues, log);
+      const properties = loadObjectWithDefaults<C["properties"]>(defaulter.properties, partialValues, log);
+      const states = loadObjectWithDefaults<C["states"]>(defaulter.states, partialValues, log);
       /*LOGSTART*/
       if (log) {
          console.groupEnd();
       }
       /*LOGEND*/
 
-      const component = new instanceClass(values) as C;
+      const component = new instanceClass(properties, states) as C;
 
       addins.forEach(addin => {
          if (isArray(addin)) {

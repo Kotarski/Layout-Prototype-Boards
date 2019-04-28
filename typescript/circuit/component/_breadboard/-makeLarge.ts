@@ -8,14 +8,20 @@ import Draggable from "../addins/draggable";
 import Selectable from "../addins/selectable";
 import Board from "../addins/board";
 import WiresCreatable from "../addins/wiresCreatable"
+import { ComponentDefaulter } from "../@component";
 
-const defaulterLarge: ValueCheck.Defaulter<Types.values> = {
-   joints: ValueCheck.joints<[Vector, Vector]>(
-      [{ x: 0, y: 0 }, { x: 20, y: 0 }]
-   ),
+const defaulterLarge: ComponentDefaulter<Types.breadboard<"layout">> = {
+   properties: {
+
+   },
+   states: {
+      joints: ValueCheck.joints<[Vector, Vector]>(
+         [{ x: 0, y: 0 }, { x: 20, y: 0 }]
+      ),
+   }
 };
 
-const makeLarge = getMaker(Large, defaulterLarge,
+const makeLarge = getMaker<Large>(Large, defaulterLarge,
    Graphical,
    Board,
    Selectable,

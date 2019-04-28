@@ -1,5 +1,5 @@
 import { StripboardLayout as Stripboard } from "./~classes";
-import { Layout as Track } from "../_track/~classes";
+import { TrackLayout as Track, TrackLayout } from "../_track/~classes";
 import TrackMap from "../_track/-maps";
 import vector from "../../../-vector";
 
@@ -31,7 +31,7 @@ export default function makeTracks(parent: Stripboard): Track[] {
          style: "stripboard",
          joints: [rowStart, step],
          breaks: breaks
-      }, false);
+      }, false) as TrackLayout;
    })
 
    return tracks;

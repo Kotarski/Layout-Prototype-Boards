@@ -10,15 +10,21 @@ import Board from "../addins/board";
 import WiresCreatable from "../addins/wiresCreatable"
 import Rotatable from "../addins/rotatable";
 import ReversableBoard from "../addins/reversableBoard";
+import { ComponentDefaulter } from "../@component";
 
 
-const defaulterLayout: ValueCheck.Defaulter<Types.values> = {
-   joints: ValueCheck.joints<[Vector, Vector]>(
-      [{ x: 0, y: 0 }, { x: 20, y: 0 }]
-   ),
-   rows: ValueCheck.integer(1),
-   columns: ValueCheck.integer(1),
-   trackBreaks: validateTrackBreaks([]),
+const defaulterLayout: ComponentDefaulter<Types.stripboard<"layout">> = {
+   properties: {
+      rows: ValueCheck.integer(1),
+      columns: ValueCheck.integer(1),
+      
+   },
+   states: {
+      trackBreaks: validateTrackBreaks([]),
+      joints: ValueCheck.joints<[Vector, Vector]>(
+         [{ x: 0, y: 0 }, { x: 20, y: 0 }]
+      ),
+   }
 };
 
 function validateTrackBreaks<T extends Types.trackBreak[]>(fallback: T): ValueCheck.validater<T> {
@@ -33,7 +39,7 @@ function validateTrackBreaks<T extends Types.trackBreak[]>(fallback: T): ValueCh
    return result;
 }
 
-const makeLayout = getMaker(StripboardLayout, defaulterLayout,
+const makeLayout = getMaker<StripboardLayout>(StripboardLayout, defaulterLayout,
    Graphical,
    Board,
    ReversableBoard,

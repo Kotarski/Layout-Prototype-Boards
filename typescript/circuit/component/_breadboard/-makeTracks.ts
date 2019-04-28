@@ -1,5 +1,5 @@
 import { Small, Large } from "./~classes";
-import { Layout as Track } from "../_track/~classes"
+import { TrackLayout as Track } from "../_track/~classes"
 import trackMap from "../_track/-maps";
 import vector from "../../../-vector";
 
@@ -15,11 +15,11 @@ export default function makeTracks(parent: Small | Large, size: "small" | "large
 function makeTracksSmall(parent: Small): Track[] {
    let tracks: Track[] = [];
 
-   let gS = gridSpacing;
+   const gS = gridSpacing;
 
-   let rotation = vector(parent.states.joints[0]).getAngleTo(parent.states.joints[1]);
+   const rotation = vector(parent.states.joints[0]).getAngleTo(parent.states.joints[1]);
 
-   let powerTrackYPositions = [-9.5, -8.5, 8.5, 9.5];
+   const powerTrackYPositions = [-9.5, -8.5, 8.5, 9.5];
    for (let y of powerTrackYPositions) {
 
       const start = vector({ x: gS * -14, y: y * gS })
@@ -28,7 +28,7 @@ function makeTracksSmall(parent: Small): Track[] {
 
       const step = vector({ x: gS, y: 0 }).rotate(rotation);
 
-      let track = trackMap.make({
+      const track = trackMap.make({
          holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1],
          joints: [start, step]
       }, false);

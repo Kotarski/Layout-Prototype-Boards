@@ -1,5 +1,5 @@
 import Component from "../../+component";
-import { Layout as Track } from "../_track/~classes";
+import { TrackLayout as Track } from "../_track/~classes";
 // import Flatten from "../../../utility/~flatten";
 //import * as $ from 'jquery';
 

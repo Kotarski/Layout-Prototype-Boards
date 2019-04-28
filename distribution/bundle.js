@@ -2123,9 +2123,13 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterLayout = {
-    joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 20, y: -20 }, { x: 40, y: 0 }]),
-    currentGain: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0),
-    type: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate(["NPN", "PNP"], "NPN")
+    properties: {
+        currentGain: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0),
+        type: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate(["NPN", "PNP"], "NPN")
+    },
+    states: {
+        joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 20, y: -20 }, { x: 40, y: 0 }])
+    }
 };
 const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["BipolarLayout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeLayout);
@@ -2159,9 +2163,13 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterSchematic = {
-    joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: -50, y: 0 }, { x: +10, y: -50 }, { x: +10, y: +50 }]),
-    currentGain: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0),
-    type: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate(["NPN", "PNP"], "NPN")
+    properties: {
+        currentGain: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0),
+        type: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate(["NPN", "PNP"], "NPN")
+    },
+    states: {
+        joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: -50, y: 0 }, { x: +10, y: -50 }, { x: +10, y: +50 }])
+    }
 };
 const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["BipolarSchematic"], defaulterSchematic, _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeSchematic);
@@ -2256,7 +2264,7 @@ __webpack_require__.r(__webpack_exports__);
 
 //import * as $ from 'jquery';
 class BipolarBase {
-    constructor(values) {
+    constructor(properties, states) {
         this.type = "bipolar";
         this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
         this.flags = {
@@ -2264,13 +2272,8 @@ class BipolarBase {
             disabled: false
         };
         $(this.group.element).addClass("component " + this.type);
-        this.properties = {
-            type: values.type,
-            currentGain: values.currentGain
-        };
-        this.states = {
-            joints: values.joints
-        };
+        this.properties = properties;
+        this.states = states;
     }
     transferFunction() { return []; }
     ;
@@ -2561,7 +2564,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterLarge = {
-    joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
+    properties: {},
+    states: {
+        joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
+    }
 };
 const makeLarge = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Large"], defaulterLarge, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_board__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_wiresCreatable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeLarge);
@@ -2597,7 +2603,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterSmall = {
-    joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
+    properties: {},
+    states: {
+        joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
+    }
 };
 const makeSmall = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Small"], defaulterSmall, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_board__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_wiresCreatable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_rotatable__WEBPACK_IMPORTED_MODULE_8__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeSmall);
@@ -2626,15 +2635,15 @@ function makeTracks(parent, size) {
 }
 function makeTracksSmall(parent) {
     let tracks = [];
-    let gS = _constants__WEBPACK_IMPORTED_MODULE_2__["gridSpacing"];
-    let rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(parent.states.joints[0]).getAngleTo(parent.states.joints[1]);
-    let powerTrackYPositions = [-9.5, -8.5, 8.5, 9.5];
+    const gS = _constants__WEBPACK_IMPORTED_MODULE_2__["gridSpacing"];
+    const rotation = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])(parent.states.joints[0]).getAngleTo(parent.states.joints[1]);
+    const powerTrackYPositions = [-9.5, -8.5, 8.5, 9.5];
     for (let y of powerTrackYPositions) {
         const start = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])({ x: gS * -14, y: y * gS })
             .rotate(rotation)
             .sumWith(parent.states.joints[0]);
         const step = Object(_vector__WEBPACK_IMPORTED_MODULE_1__["default"])({ x: gS, y: 0 }).rotate(rotation);
-        let track = _track_maps__WEBPACK_IMPORTED_MODULE_0__["default"].make({
+        const track = _track_maps__WEBPACK_IMPORTED_MODULE_0__["default"].make({
             holeSpacings: [0, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1],
             joints: [start, step]
         }, false);
@@ -2799,13 +2808,11 @@ class Base {
     ;
 }
 class Small extends Base {
-    constructor(values) {
+    constructor(properties, states) {
         super();
         this.type = "breadboardsmall";
-        this.properties = {};
-        this.states = {
-            joints: values.joints
-        };
+        this.properties = properties;
+        this.states = states;
     }
     draw() {
         this.tracks = Object(_makeTracks__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "small");
@@ -2814,13 +2821,11 @@ class Small extends Base {
     }
 }
 class Large extends Base {
-    constructor(values) {
+    constructor(properties, states) {
         super();
         this.type = "breadboardlarge";
-        this.properties = {};
-        this.states = {
-            joints: values.joints
-        };
+        this.properties = properties;
+        this.states = states;
     }
     draw() {
         this.tracks = Object(_makeTracks__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "large");
@@ -3037,9 +3042,13 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterLayout = {
-    isPolarised: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
-    joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 80, y: 0 }]),
-    capacitance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
+    properties: {
+        isPolarised: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
+        capacitance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
+    },
+    states: {
+        joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 80, y: 0 }])
+    }
 };
 const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeLayout);
@@ -3073,9 +3082,13 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterSchematic = {
-    isPolarised: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
-    joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
-    capacitance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
+    properties: {
+        isPolarised: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
+        capacitance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
+    },
+    states: {
+        joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }])
+    }
 };
 const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeSchematic);
@@ -3166,20 +3179,15 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class Base {
-    constructor(values) {
+    constructor(properties, states) {
         this.type = "capacitor";
         this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
         this.flags = {
             order: "fore",
             disabled: false
         };
-        this.properties = {
-            capacitance: values.capacitance,
-            isPolarised: values.isPolarised
-        };
-        this.states = {
-            joints: values.joints,
-        };
+        this.properties = properties;
+        this.states = states;
     }
     transferFunction() { return []; }
     ;
@@ -3449,10 +3457,14 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterLayout = {
-    joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 80, y: 0 }]),
-    breakdownVoltage: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0),
-    saturationCurrent: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0),
-    color: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].color("N/A")
+    properties: {
+        breakdownVoltage: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0),
+        saturationCurrent: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0),
+        color: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].color("N/A")
+    },
+    states: {
+        joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 80, y: 0 }])
+    }
 };
 const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeLayout);
@@ -3486,10 +3498,14 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterSchematic = {
-    joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
-    breakdownVoltage: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0),
-    saturationCurrent: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0),
-    color: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].color("N/A")
+    properties: {
+        breakdownVoltage: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0),
+        saturationCurrent: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0),
+        color: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].color("N/A")
+    },
+    states: {
+        joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }])
+    }
 };
 const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeSchematic);
@@ -3580,21 +3596,15 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class Base {
-    constructor(values) {
+    constructor(properties, states) {
         this.type = "diode";
         this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
         this.flags = {
             order: "fore",
             disabled: false
         };
-        this.properties = {
-            saturationCurrent: values.saturationCurrent,
-            breakdownVoltage: values.breakdownVoltage,
-            color: values.color
-        };
-        this.states = {
-            joints: values.joints
-        };
+        this.properties = properties;
+        this.states = states;
     }
     transferFunction() { return []; }
     ;
@@ -3813,8 +3823,12 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterLayout = {
-    joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 80, y: 0 }]),
-    inductance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
+    properties: {
+        inductance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
+    },
+    states: {
+        joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 80, y: 0 }])
+    }
 };
 const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeLayout);
@@ -3848,8 +3862,12 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterSchematic = {
-    joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
-    inductance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
+    properties: {
+        inductance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
+    },
+    states: {
+        joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }])
+    }
 };
 const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeSchematic);
@@ -3940,19 +3958,15 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class Base {
-    constructor(values) {
+    constructor(properties, states) {
         this.type = "inductor";
         this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
         this.flags = {
             order: "fore",
             disabled: false
         };
-        this.properties = {
-            inductance: values.inductance
-        };
-        this.states = {
-            joints: values.joints
-        };
+        this.properties = properties;
+        this.states = states;
     }
     transferFunction() { return []; }
     ;
@@ -4211,9 +4225,13 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterLayout = {
-    isDual: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
-    joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 30, y: 30 }, { x: 40, y: 30 }]),
-    offsetVoltage: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
+    properties: {
+        offsetVoltage: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
+    },
+    states: {
+        isDual: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("boolean", false),
+        joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 30, y: 30 }, { x: 40, y: 30 }])
+    }
 };
 const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_rotatable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeLayout);
@@ -4247,8 +4265,12 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterSchematic = {
-    joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: 40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: 20 }]),
-    offsetVoltage: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
+    properties: {
+        offsetVoltage: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
+    },
+    states: {
+        joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: 40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: 20 }]),
+    }
 };
 const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeSchematic);
@@ -4355,27 +4377,23 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class Base {
-    constructor(values) {
+    constructor() {
         this.type = "opamp";
         this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_6__["makeGroup"])();
         this.flags = {
             order: "fore",
             disabled: false
         };
-        this.properties = {
-            offsetVoltage: values.offsetVoltage
-        };
     }
     transferFunction() { return []; }
     ;
 }
 class Schematic extends Base {
-    constructor(values) {
-        super(values);
+    constructor(properties, states) {
+        super();
         this.form = "schematic";
-        this.states = {
-            joints: values.joints
-        };
+        this.properties = properties;
+        this.states = states;
     }
     draw() {
         //(Prepend so handles appear on top)
@@ -4396,13 +4414,11 @@ class Schematic extends Base {
     }
 }
 class Layout extends Base {
-    constructor(values) {
-        super(values);
+    constructor(properties, states) {
+        super();
         this.form = "layout";
-        this.states = {
-            joints: values.joints,
-            isDual: values.isDual
-        };
+        this.properties = properties;
+        this.states = states;
     }
     draw() {
         //(Prepend so handles appear on top)
@@ -4645,8 +4661,12 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterLayout = {
-    joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 40 }]),
-    voltage: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
+    properties: {
+        voltage: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
+    },
+    states: {
+        joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 40 }])
+    }
 };
 const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["PowerLayout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_wiresCreatable__WEBPACK_IMPORTED_MODULE_7__["default"]);
 // TODO: Pass into connection highlight
@@ -4687,8 +4707,12 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterSchematic = {
-    joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }]),
-    voltage: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
+    properties: {
+        voltage: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
+    },
+    states: {
+        joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }])
+    }
 };
 const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["PowerSchematic"], defaulterSchematic, _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeSchematic);
@@ -4776,15 +4800,11 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class PowerBase {
-    constructor(values) {
+    constructor(properties, states) {
         this.type = "power";
         this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["makeGroup"])();
-        this.properties = {
-            voltage: values.voltage
-        };
-        this.states = {
-            joints: values.joints,
-        };
+        this.properties = properties;
+        this.states = states;
     }
     transferFunction() { return []; }
     ;
@@ -4924,10 +4944,14 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterLayout = {
-    joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
-    rows: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].integer(1),
-    columns: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].integer(1),
-    trackBreaks: validateTrackBreaks([]),
+    properties: {
+        rows: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].integer(1),
+        columns: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].integer(1),
+    },
+    states: {
+        trackBreaks: validateTrackBreaks([]),
+        joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
+    }
 };
 function validateTrackBreaks(fallback) {
     const result = (value, log = true) => {
@@ -5053,7 +5077,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class StripboardLayout {
-    constructor(values) {
+    constructor(properties, states) {
         this.type = "stripboard";
         this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_1__["makeGroup"])();
         this.form = "layout";
@@ -5062,14 +5086,8 @@ class StripboardLayout {
             order: "back",
             disabled: false
         };
-        this.properties = {
-            rows: values.rows,
-            columns: values.columns
-        };
-        this.states = {
-            joints: values.joints,
-            trackBreaks: values.trackBreaks
-        };
+        this.properties = properties;
+        this.states = states;
     }
     getConnectors() {
         return this.tracks.map((track) => {
@@ -5175,12 +5193,18 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulter = {
-    style: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate(["breadboard", "stripboard"], "breadboard"),
-    joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
-    holeSpacings: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate(v => Array.isArray(v) && v.every(_valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].test("number")), [0]),
-    breaks: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate(v => Array.isArray(v) && v.every(_valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].test("number")), []),
+    properties: {
+        style: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate(["breadboard", "stripboard"], "breadboard"),
+        holeSpacings: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate(v => Array.isArray(v) && v.every(_valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].test("number")), [0]),
+        rows: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].integer(1),
+        columns: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].integer(1)
+    },
+    states: {
+        joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
+        breaks: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate(v => Array.isArray(v) && v.every(_valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].test("number")), [])
+    }
 };
-const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulter, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"]);
+const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["TrackLayout"], defaulter, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeLayout);
 
 
@@ -5206,7 +5230,7 @@ __webpack_require__.r(__webpack_exports__);
 const maps = Object(_generics_makeMap__WEBPACK_IMPORTED_MODULE_0__["default"])({
     savename: "makeLayoutTrack",
     diagramType: "layout",
-    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["Layout"],
+    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["TrackLayout"],
     make: _makeLayout__WEBPACK_IMPORTED_MODULE_2__["default"],
     load: _loadLayout__WEBPACK_IMPORTED_MODULE_3__["default"]
 });
@@ -5236,12 +5260,12 @@ const INDEXSTEP = 1;
 /*!*********************************************************!*\
   !*** ./typescript/circuit/component/_track/~classes.ts ***!
   \*********************************************************/
-/*! exports provided: Layout */
+/*! exports provided: TrackLayout */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "TrackLayout", function() { return TrackLayout; });
 /* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
 /* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
 /* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_track/-drawLayout.ts");
@@ -5250,8 +5274,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class Layout {
-    constructor(values) {
+class TrackLayout {
+    constructor(properties, states) {
         this.type = "track";
         this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["makeGroup"])();
         this.form = "layout";
@@ -5259,14 +5283,8 @@ class Layout {
             order: "fore",
             disabled: false
         };
-        this.properties = {
-            holeSpacings: values.holeSpacings,
-            style: values.style
-        };
-        this.states = {
-            joints: values.joints,
-            breaks: values.breaks
-        };
+        this.properties = properties;
+        this.states = states;
     }
     draw() {
         //(Prepend so handles appear on top)
@@ -5483,8 +5501,11 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterLayout = {
-    joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 80, y: 0 }], l => l >= 2),
-    color: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].color("#545454")
+    properties: {},
+    states: {
+        joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 80, y: 0 }], l => l >= 2),
+        color: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].color("#545454")
+    }
 };
 const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], [_addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], { reticulatable: true, removable: true }], 
 // [Extendable_, { reticulatable: true, removable: true }],
@@ -5522,7 +5543,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterSchematic = {
-    joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 10, y: 10 }], l => l >= 2)
+    properties: {},
+    states: {
+        joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 10, y: 10 }], l => l >= 2)
+    }
 };
 // TODO: Pass in options for extendable and others (options={?}) (true,true)
 const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, _addins_junctions__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], [_addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], { reticulatable: true, removable: true }]);
@@ -5601,21 +5625,18 @@ class Base {
     constructor() {
         this.type = "wire";
         this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
-        this.disabled = false;
     }
 }
 class Schematic extends Base {
-    constructor(values) {
+    constructor(properties, states) {
         super();
         this.form = "schematic";
         this.flags = {
             order: "back",
             disabled: false
         };
-        this.properties = {};
-        this.states = {
-            joints: values.joints,
-        };
+        this.properties = properties;
+        this.states = states;
     }
     draw() {
         //(Prepend so handles appear on top)
@@ -5635,18 +5656,15 @@ class Schematic extends Base {
     }
 }
 class Layout extends Base {
-    constructor(values) {
+    constructor(properties, states) {
         super();
         this.form = "layout";
         this.flags = {
             order: "fore",
             disabled: false
         };
-        this.properties = {};
-        this.states = {
-            joints: values.joints,
-            color: values.color
-        };
+        this.properties = properties;
+        this.states = states;
     }
     draw() {
         //(Prepend so handles appear on top)
@@ -6675,8 +6693,12 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterLayout = {
-    joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
-    resistance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
+    properties: {
+        resistance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
+    },
+    states: {
+        joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
+    }
 };
 const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeLayout);
@@ -6710,8 +6732,12 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const defaulterSchematic = {
-    joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
-    resistance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
+    properties: {
+        resistance: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].validate("number", 0)
+    },
+    states: {
+        joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
+    }
 };
 const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeSchematic);
@@ -6802,19 +6828,15 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class Base {
-    constructor(values) {
+    constructor(properties, states) {
         this.type = "resistor";
         this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
         this.flags = {
             order: "fore",
             disabled: false
         };
-        this.properties = {
-            resistance: values.resistance
-        };
-        this.states = {
-            joints: values.joints
-        };
+        this.properties = properties;
+        this.states = states;
     }
     transferFunction() { return []; }
     ;
@@ -7057,6 +7079,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(util__WEBPACK_IMPORTED_MODULE_1__);
 
 
+// export default interface getMaker<
+//    C extends Component> {
+//    (
+//       instanceClass: { new(properties: C["properties"], states: C["states"]): C },
+//       defaulter: ValueCheck.Defaulter<C>,
+//       initialiser: (component: C) => void
+//    ): (
+//          partialValues: DeepPartial<C["properties"] & C["states"]>,
+//          log: boolean
+//       ) => C
+// }
 function getMaker(instanceClass, defaulter, ...addins) {
     return (partialValues, log = true) => {
         /*LOGSTART*/
@@ -7064,13 +7097,14 @@ function getMaker(instanceClass, defaulter, ...addins) {
             console.groupCollapsed("Loading...");
         }
         /*LOGEND*/
-        const values = Object(_loadObjectWithDefaults__WEBPACK_IMPORTED_MODULE_0__["default"])(defaulter, partialValues, log);
+        const properties = Object(_loadObjectWithDefaults__WEBPACK_IMPORTED_MODULE_0__["default"])(defaulter.properties, partialValues, log);
+        const states = Object(_loadObjectWithDefaults__WEBPACK_IMPORTED_MODULE_0__["default"])(defaulter.states, partialValues, log);
         /*LOGSTART*/
         if (log) {
             console.groupEnd();
         }
         /*LOGEND*/
-        const component = new instanceClass(values);
+        const component = new instanceClass(properties, states);
         addins.forEach(addin => {
             if (Object(util__WEBPACK_IMPORTED_MODULE_1__["isArray"])(addin)) {
                 addin[0].init(component, addin[1]);
@@ -7107,10 +7141,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return loadObjectWithDefaults; });
 function loadObjectWithDefaults(defaulter, partial, log = true) {
     //TS just needs to trust me here...
-    const result = Object.keys(defaulter).reduce((acc, key) => {
+    return Object.keys(defaulter).reduce((acc, key) => {
         /*LOGSTART*/ if (log) {
             console.group(key);
         } /*LOGEND*/
+        console.log(defaulter, key);
         const defaultFn = defaulter[key];
         const partialValue = (partial) ? partial[key] : undefined;
         acc[key] = defaultFn(partialValue, log);
@@ -7119,7 +7154,6 @@ function loadObjectWithDefaults(defaulter, partial, log = true) {
         } /*LOGEND*/
         return acc;
     }, {});
-    return result;
 }
 
 

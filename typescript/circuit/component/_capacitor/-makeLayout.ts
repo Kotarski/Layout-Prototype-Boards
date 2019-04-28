@@ -8,13 +8,18 @@ import Draggable from "../addins/draggable";
 import Selectable from "../addins/selectable";
 import Extendable from "../addins/extendable";
 import ConnectionsHighlightable from "../addins/connectionsHighlightable"
+import { ComponentDefaulter } from "../@component";
 
-const defaulterLayout: ValueCheck.Defaulter<Types.values> = {
-   isPolarised: ValueCheck.validate("boolean", false),
-   joints: ValueCheck.joints<[Vector, Vector]>(
-      [{ x: 0, y: 0 }, { x: 80, y: 0 }]
-   ),
-   capacitance: ValueCheck.validate("number", 0)
+const defaulterLayout: ComponentDefaulter<Types.capacitor<"layout">> = {
+   properties: {
+      isPolarised: ValueCheck.validate("boolean", false),
+      capacitance: ValueCheck.validate("number", 0)
+   },
+   states: {
+      joints: ValueCheck.joints<[Vector, Vector]>(
+         [{ x: 0, y: 0 }, { x: 80, y: 0 }]
+      )
+   }
 };
 
 const makeLayout = getMaker(Layout, defaulterLayout,
