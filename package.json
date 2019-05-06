@@ -23,6 +23,7 @@
       "happypack": "^5.0.1",
       "hard-source-webpack-plugin": "^0.13.1",
       "source-map-loader": "^0.2.4",
+      "ts-functionaltypes": "^1.0.6",
       "ts-loader": "^5.3.3",
       "ts-strictargs": "^1.0.2",
       "tslint": "^5.13.1",

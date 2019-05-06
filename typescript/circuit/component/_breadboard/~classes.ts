@@ -31,7 +31,6 @@ export class BreadboardSmall implements Component, Types.breadboard<"layout"> {
    properties: Types.properties;
    states: Types.state;
    constructor(properties: Types.properties, states: Types.state) {
-      super();
       this.properties = properties;
       this.states = states;
    }
@@ -68,7 +67,6 @@ export class BreadboardLarge implements Component, Types.breadboard<"layout"> {
    properties: Types.properties;
    states: Types.state;
    constructor(properties: Types.properties, states: Types.state) {
-      super();
       this.properties = properties;
       this.states = states;
    }

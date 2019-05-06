@@ -1,53 +1,63 @@
 import Resistor from "./resistor/@resistor";
 import Capacitor from "./_capacitor/@capacitor";
 import ValueCheck from "./~valueCheck";
+import { DeepPartial } from "../../++types";
 
-type ComponentDataTypes = "SavedData" | "BaseData" | "Data"
-
-type ComponentDataQuery<DataType extends ComponentDataTypes> = (
-   Resistor.LayoutQuery[DataType] |
-   Resistor.SchematicQuery[DataType] |
-   Capacitor.LayoutQuery[DataType] |
-   Capacitor.SchematicQuery[DataType]
+type ComponentDataQuery = (
+   Resistor.LayoutQuery |
+   Resistor.SchematicQuery |
+   Capacitor.LayoutQuery |
+   Capacitor.SchematicQuery
 )
 
-type ComponentSavedDatas = ComponentDataQuery<"SavedData">;
-type ComponentBaseDatas = ComponentDataQuery<"BaseData">;
-type ComponentDatas = ComponentDataQuery<"Data">;
+export type Forms = "schematic" | "layout"
+export type Types = ComponentDataQuery["idents"]["type"]
 
-type Forms = "schematic" | "layout"
-type Types = ComponentDataQuery<"Data">["type"]
+type Ident<Type extends Types, Form extends Forms>
+   = { idents: { form: Form, type: Type } }
 
-export type ComponentSaved<Type extends Types, Form extends Forms, Saved extends Extract<ComponentSavedDatas, {
-   form: Form,
-   type: Type
-}> = Extract<ComponentSavedDatas, {
-   form: Form,
-   type: Type
-}>> = Saved["properties"] & Saved["states"]
+export type ComponentSaved<Type extends Types, Form extends Forms>
+   = Extract<ComponentDataQuery, Ident<Type, Form>>["savedData"]
 
-export type ComponentBase<Type extends Types, Form extends Forms> = Extract<ComponentBaseDatas, {
-   form: Form,
-   type: Type
-}>
+export type ComponentBase<Type extends Types, Form extends Forms>
+   = Extract<ComponentDataQuery, Ident<Type, Form>>["baseData"]
 
-export type Component<Type extends Types, Form extends Forms> = Extract<ComponentDatas, {
-   form: Form,
-   type: Type
-}>
+export type Component<Type extends Types, Form extends Forms>
+   = Extract<ComponentDataQuery, Ident<Type, Form>>["data"]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   
 
 export type ComponentDefaulter<T extends { properties: {}, states: {}}> = {
    properties: ValueCheck.Defaulter<T["properties"]>,
    states: ValueCheck.Defaulter<T["states"]>
 }
 
+export type ComponentFactoryFactory = 
+   <Type extends Types, Form extends Forms>(raw: any) =>
+      () => void
+
 /** Get the data that is available */
 export type LoadSavedComponentData<Type extends Types, Form extends Forms> = 
-   (raw: any) => Partial<ComponentSaved<Type, Form>>
+   (raw: any) => DeepPartial<ComponentSaved<Type, Form>>
 
 /** Substitute defaults for the data that is not */
 export type MakeBaseComponent<Type extends Types, Form extends Forms> =
-   (partialData: Partial<ComponentSaved<Type, Form>>) => ComponentBase<Type, Form>
+   (partialData: DeepPartial<ComponentSaved<Type, Form>>) => ComponentBase<Type, Form>
 
 /** Add draggable etc to finalise (is there a better name?) */
 export type AddComponentAddins<Type extends Types, Form extends Forms> = 

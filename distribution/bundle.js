@@ -2262,9 +2262,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-//import * as $ from 'jquery';
-class BipolarBase {
+class BipolarSchematic {
     constructor(properties, states) {
+        this.form = "schematic";
         this.type = "bipolar";
         this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
         this.flags = {
@@ -2274,14 +2274,6 @@ class BipolarBase {
         $(this.group.element).addClass("component " + this.type);
         this.properties = properties;
         this.states = states;
-    }
-    transferFunction() { return []; }
-    ;
-}
-class BipolarSchematic extends BipolarBase {
-    constructor() {
-        super(...arguments);
-        this.form = "schematic";
     }
     draw() {
         //(Prepend so handles appear on top)
@@ -2294,11 +2286,21 @@ class BipolarSchematic extends BipolarBase {
                 Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "base", "node", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_0__["INDEXBASE"]], "b")
             ]];
     }
+    transferFunction() { return []; }
+    ;
 }
-class BipolarLayout extends BipolarBase {
-    constructor() {
-        super(...arguments);
+class BipolarLayout {
+    constructor(properties, states) {
         this.form = "layout";
+        this.type = "bipolar";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
+        this.flags = {
+            order: "fore",
+            disabled: false
+        };
+        $(this.group.element).addClass("component " + this.type);
+        this.properties = properties;
+        this.states = states;
     }
     draw() {
         //(Prepend so handles appear on top)
@@ -2311,6 +2313,8 @@ class BipolarLayout extends BipolarBase {
                 Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__["default"])(this, "base", "pin", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_0__["INDEXBASE"]], "b")
             ]];
     }
+    transferFunction() { return []; }
+    ;
 }
 
 
@@ -2569,7 +2573,7 @@ const defaulterLarge = {
         joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
     }
 };
-const makeLarge = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Large"], defaulterLarge, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_board__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_wiresCreatable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"]);
+const makeLarge = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["BreadboardLarge"], defaulterLarge, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_board__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_wiresCreatable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeLarge);
 
 
@@ -2608,7 +2612,7 @@ const defaulterSmall = {
         joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 20, y: 0 }]),
     }
 };
-const makeSmall = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Small"], defaulterSmall, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_board__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_wiresCreatable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_rotatable__WEBPACK_IMPORTED_MODULE_8__["default"]);
+const makeSmall = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["BreadboardSmall"], defaulterSmall, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_board__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_wiresCreatable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_rotatable__WEBPACK_IMPORTED_MODULE_8__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeSmall);
 
 
@@ -2730,7 +2734,7 @@ __webpack_require__.r(__webpack_exports__);
 const smallMap = {
     savename: "makeLayoutBreadboardSmall",
     diagramType: "layout",
-    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["Small"],
+    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["BreadboardSmall"],
     make: _makeSmall__WEBPACK_IMPORTED_MODULE_2__["default"],
     load: _loadSmall__WEBPACK_IMPORTED_MODULE_4__["default"],
     isBoard: true
@@ -2738,7 +2742,7 @@ const smallMap = {
 const largeMap = {
     savename: "makeLayoutBreadboardLarge",
     diagramType: "layout",
-    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["Large"],
+    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["BreadboardLarge"],
     make: _makeLarge__WEBPACK_IMPORTED_MODULE_3__["default"],
     load: _loadLarge__WEBPACK_IMPORTED_MODULE_5__["default"],
     isBoard: true
@@ -2773,13 +2777,13 @@ const INDEXROTATION = 1;
 /*!**************************************************************!*\
   !*** ./typescript/circuit/component/_breadboard/~classes.ts ***!
   \**************************************************************/
-/*! exports provided: Small, Large */
+/*! exports provided: BreadboardSmall, BreadboardLarge */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Small", function() { return Small; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Large", function() { return Large; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "BreadboardSmall", function() { return BreadboardSmall; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "BreadboardLarge", function() { return BreadboardLarge; });
 /* harmony import */ var _drawLarge__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./-drawLarge */ "./typescript/circuit/component/_breadboard/-drawLarge.ts");
 /* harmony import */ var _drawSmall__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./-drawSmall */ "./typescript/circuit/component/_breadboard/-drawSmall.ts");
 /* harmony import */ var _makeTracks__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-makeTracks */ "./typescript/circuit/component/_breadboard/-makeTracks.ts");
@@ -2788,8 +2792,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class Base {
-    constructor() {
+class BreadboardSmall {
+    constructor(properties, states) {
+        this.type = "breadboardsmall";
         this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["makeGroup"])();
         this.form = "layout";
         this.tracks = [];
@@ -2797,6 +2802,8 @@ class Base {
             order: "back",
             disabled: false
         };
+        this.properties = properties;
+        this.states = states;
     }
     // Handled in the tracks
     getConnectors() {
@@ -2806,27 +2813,33 @@ class Base {
     }
     transferFunction() { return []; }
     ;
-}
-class Small extends Base {
-    constructor(properties, states) {
-        super();
-        this.type = "breadboardsmall";
-        this.properties = properties;
-        this.states = states;
-    }
     draw() {
         this.tracks = Object(_makeTracks__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "small");
         //(Prepend so handles appear on top)
         this.group.prepend(Object(_drawSmall__WEBPACK_IMPORTED_MODULE_1__["default"])(this), this.tracks.map(t => t.group));
     }
 }
-class Large extends Base {
+class BreadboardLarge {
     constructor(properties, states) {
-        super();
         this.type = "breadboardlarge";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["makeGroup"])();
+        this.form = "layout";
+        this.tracks = [];
+        this.flags = {
+            order: "back",
+            disabled: false
+        };
         this.properties = properties;
         this.states = states;
     }
+    // Handled in the tracks
+    getConnectors() {
+        return this.tracks.map((track) => {
+            return track.getConnectors()[0];
+        });
+    }
+    transferFunction() { return []; }
+    ;
     draw() {
         this.tracks = Object(_makeTracks__WEBPACK_IMPORTED_MODULE_2__["default"])(this, "large");
         //(Prepend so handles appear on top)
@@ -3050,7 +3063,7 @@ const defaulterLayout = {
         joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 80, y: 0 }])
     }
 };
-const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"]);
+const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["CapacitorLayout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeLayout);
 
 
@@ -3090,7 +3103,7 @@ const defaulterSchematic = {
         joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }])
     }
 };
-const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]);
+const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["CapacitorSchematic"], defaulterSchematic, _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeSchematic);
 
 
@@ -3120,14 +3133,14 @@ __webpack_require__.r(__webpack_exports__);
 const schematicMap = {
     savename: "makeCapacitor",
     diagramType: "schematic",
-    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"],
+    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["CapacitorSchematic"],
     make: _makeSchematic__WEBPACK_IMPORTED_MODULE_2__["default"],
     load: _loadSchematic__WEBPACK_IMPORTED_MODULE_4__["default"],
 };
 const layoutMap = {
     savename: "makeLayoutCapacitor",
     diagramType: "layout",
-    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["Layout"],
+    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["CapacitorLayout"],
     make: _makeLayout__WEBPACK_IMPORTED_MODULE_3__["default"],
     load: _loadLayout__WEBPACK_IMPORTED_MODULE_5__["default"],
 };
@@ -3161,13 +3174,13 @@ const INDEXANODE = 1;
 /*!*************************************************************!*\
   !*** ./typescript/circuit/component/_capacitor/~classes.ts ***!
   \*************************************************************/
-/*! exports provided: Schematic, Layout */
+/*! exports provided: CapacitorSchematic, CapacitorLayout */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Schematic", function() { return Schematic; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "CapacitorSchematic", function() { return CapacitorSchematic; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "CapacitorLayout", function() { return CapacitorLayout; });
 /* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
 /* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants */ "./typescript/circuit/component/_capacitor/constants.ts");
 /* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_capacitor/-drawLayout.ts");
@@ -3178,8 +3191,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class Base {
+class CapacitorSchematic {
     constructor(properties, states) {
+        this.form = "schematic";
         this.type = "capacitor";
         this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
         this.flags = {
@@ -3191,12 +3205,6 @@ class Base {
     }
     transferFunction() { return []; }
     ;
-}
-class Schematic extends Base {
-    constructor() {
-        super(...arguments);
-        this.form = "schematic";
-    }
     draw() {
         //(Prepend so handles appear on top)
         this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
@@ -3216,11 +3224,20 @@ class Schematic extends Base {
         }
     }
 }
-class Layout extends Base {
-    constructor() {
-        super(...arguments);
+class CapacitorLayout {
+    constructor(properties, states) {
         this.form = "layout";
+        this.type = "capacitor";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
+        this.flags = {
+            order: "fore",
+            disabled: false
+        };
+        this.properties = properties;
+        this.states = states;
     }
+    transferFunction() { return []; }
+    ;
     draw() {
         //(Prepend so handles appear on top)
         this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_2__["default"])(this));
@@ -3466,7 +3483,7 @@ const defaulterLayout = {
         joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 80, y: 0 }])
     }
 };
-const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"]);
+const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["DiodeLayout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeLayout);
 
 
@@ -3507,7 +3524,7 @@ const defaulterSchematic = {
         joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }])
     }
 };
-const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]);
+const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["DiodeSchematic"], defaulterSchematic, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeSchematic);
 
 
@@ -3537,14 +3554,14 @@ __webpack_require__.r(__webpack_exports__);
 const schematicMap = {
     savename: "makeDiode",
     diagramType: "schematic",
-    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"],
+    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["DiodeSchematic"],
     make: _makeSchematic__WEBPACK_IMPORTED_MODULE_2__["default"],
     load: _loadSchematic__WEBPACK_IMPORTED_MODULE_4__["default"],
 };
 const layoutMap = {
     savename: "makeLayoutDiode",
     diagramType: "layout",
-    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["Layout"],
+    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["DiodeLayout"],
     make: _makeLayout__WEBPACK_IMPORTED_MODULE_3__["default"],
     load: _loadLayout__WEBPACK_IMPORTED_MODULE_5__["default"],
 };
@@ -3578,13 +3595,13 @@ const INDEXCATHODE = 1;
 /*!*********************************************************!*\
   !*** ./typescript/circuit/component/_diode/~classes.ts ***!
   \*********************************************************/
-/*! exports provided: Schematic, Layout */
+/*! exports provided: DiodeSchematic, DiodeLayout */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Schematic", function() { return Schematic; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DiodeSchematic", function() { return DiodeSchematic; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DiodeLayout", function() { return DiodeLayout; });
 /* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
 /* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_diode/-drawLayout.ts");
 /* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_diode/-drawSchematic.ts");
@@ -3595,8 +3612,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class Base {
+class DiodeSchematic {
     constructor(properties, states) {
+        this.form = "schematic";
         this.type = "diode";
         this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
         this.flags = {
@@ -3608,12 +3626,6 @@ class Base {
     }
     transferFunction() { return []; }
     ;
-}
-class Schematic extends Base {
-    constructor() {
-        super(...arguments);
-        this.form = "schematic";
-    }
     draw() {
         //(Prepend so handles appear on top)
         this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_2__["default"])(this));
@@ -3625,11 +3637,20 @@ class Schematic extends Base {
             ]];
     }
 }
-class Layout extends Base {
-    constructor() {
-        super(...arguments);
+class DiodeLayout {
+    constructor(properties, states) {
         this.form = "layout";
+        this.type = "diode";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
+        this.flags = {
+            order: "fore",
+            disabled: false
+        };
+        this.properties = properties;
+        this.states = states;
     }
+    transferFunction() { return []; }
+    ;
     draw() {
         //(Prepend so handles appear on top)
         this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_1__["default"])(this));
@@ -3830,7 +3851,7 @@ const defaulterLayout = {
         joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 80, y: 0 }])
     }
 };
-const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"]);
+const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["InductorLayout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeLayout);
 
 
@@ -3869,7 +3890,7 @@ const defaulterSchematic = {
         joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }])
     }
 };
-const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]);
+const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["InductorSchematic"], defaulterSchematic, _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeSchematic);
 
 
@@ -3899,14 +3920,14 @@ __webpack_require__.r(__webpack_exports__);
 const schematicMap = {
     savename: "makeInductor",
     diagramType: "schematic",
-    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"],
+    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["InductorSchematic"],
     make: _makeSchematic__WEBPACK_IMPORTED_MODULE_2__["default"],
     load: _loadSchematic__WEBPACK_IMPORTED_MODULE_4__["default"],
 };
 const layoutMap = {
     savename: "makeLayoutInductor",
     diagramType: "layout",
-    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["Layout"],
+    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["InductorLayout"],
     make: _makeLayout__WEBPACK_IMPORTED_MODULE_3__["default"],
     load: _loadLayout__WEBPACK_IMPORTED_MODULE_5__["default"],
 };
@@ -3940,13 +3961,13 @@ const INDEXEND2 = 1;
 /*!************************************************************!*\
   !*** ./typescript/circuit/component/_inductor/~classes.ts ***!
   \************************************************************/
-/*! exports provided: Schematic, Layout */
+/*! exports provided: InductorSchematic, InductorLayout */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Schematic", function() { return Schematic; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "InductorSchematic", function() { return InductorSchematic; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "InductorLayout", function() { return InductorLayout; });
 /* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
 /* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_inductor/-drawLayout.ts");
 /* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/_inductor/-drawSchematic.ts");
@@ -3957,8 +3978,9 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class Base {
+class InductorSchematic {
     constructor(properties, states) {
+        this.form = "schematic";
         this.type = "inductor";
         this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
         this.flags = {
@@ -3970,12 +3992,6 @@ class Base {
     }
     transferFunction() { return []; }
     ;
-}
-class Schematic extends Base {
-    constructor() {
-        super(...arguments);
-        this.form = "schematic";
-    }
     draw() {
         //(Prepend so handles appear on top)
         this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_2__["default"])(this));
@@ -3987,11 +4003,20 @@ class Schematic extends Base {
             ]];
     }
 }
-class Layout extends Base {
-    constructor() {
-        super(...arguments);
+class InductorLayout {
+    constructor(properties, states) {
         this.form = "layout";
+        this.type = "inductor";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
+        this.flags = {
+            order: "fore",
+            disabled: false
+        };
+        this.properties = properties;
+        this.states = states;
     }
+    transferFunction() { return []; }
+    ;
     draw() {
         //(Prepend so handles appear on top)
         this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_1__["default"])(this));
@@ -4233,7 +4258,7 @@ const defaulterLayout = {
         joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 30, y: 30 }, { x: 40, y: 30 }])
     }
 };
-const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_rotatable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"]);
+const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["OpAmpLayout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_rotatable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeLayout);
 
 
@@ -4272,7 +4297,7 @@ const defaulterSchematic = {
         joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: -30, y: -10 }, { x: -30, y: +10 }, { x: 40, y: 0 }, { x: 0, y: -20 }, { x: 0, y: 20 }]),
     }
 };
-const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]);
+const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["OpAmpSchematic"], defaulterSchematic, _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeSchematic);
 
 
@@ -4302,14 +4327,14 @@ __webpack_require__.r(__webpack_exports__);
 const schematicMap = {
     savename: "makeOpAmp",
     diagramType: "schematic",
-    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"],
+    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["OpAmpSchematic"],
     make: _makeSchematic__WEBPACK_IMPORTED_MODULE_2__["default"],
     load: _loadSchematic__WEBPACK_IMPORTED_MODULE_4__["default"],
 };
 const layoutMap = {
     savename: "makeLayoutOpAmp",
     diagramType: "layout",
-    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["Layout"],
+    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["OpAmpLayout"],
     make: _makeLayout__WEBPACK_IMPORTED_MODULE_3__["default"],
     load: _loadLayout__WEBPACK_IMPORTED_MODULE_5__["default"],
 };
@@ -4355,13 +4380,13 @@ const INDEXROTATION = 1;
 /*!*********************************************************!*\
   !*** ./typescript/circuit/component/_opAmp/~classes.ts ***!
   \*********************************************************/
-/*! exports provided: Schematic, Layout */
+/*! exports provided: OpAmpSchematic, OpAmpLayout */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Schematic", function() { return Schematic; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "OpAmpSchematic", function() { return OpAmpSchematic; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "OpAmpLayout", function() { return OpAmpLayout; });
 /* harmony import */ var _vector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../../-vector */ "./typescript/-vector.ts");
 /* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
 /* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_opAmp/-drawLayout.ts");
@@ -4376,25 +4401,20 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class Base {
-    constructor() {
+class OpAmpSchematic {
+    constructor(properties, states) {
+        this.form = "schematic";
         this.type = "opamp";
         this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_6__["makeGroup"])();
         this.flags = {
             order: "fore",
             disabled: false
         };
-    }
-    transferFunction() { return []; }
-    ;
-}
-class Schematic extends Base {
-    constructor(properties, states) {
-        super();
-        this.form = "schematic";
         this.properties = properties;
         this.states = states;
     }
+    transferFunction() { return []; }
+    ;
     draw() {
         //(Prepend so handles appear on top)
         this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_3__["default"])(this));
@@ -4413,13 +4433,20 @@ class Schematic extends Base {
             ]];
     }
 }
-class Layout extends Base {
+class OpAmpLayout {
     constructor(properties, states) {
-        super();
         this.form = "layout";
+        this.type = "opamp";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_6__["makeGroup"])();
+        this.flags = {
+            order: "fore",
+            disabled: false
+        };
         this.properties = properties;
         this.states = states;
     }
+    transferFunction() { return []; }
+    ;
     draw() {
         //(Prepend so handles appear on top)
         this.group.prepend(Object(_drawLayout__WEBPACK_IMPORTED_MODULE_2__["default"])(this));
@@ -4799,25 +4826,20 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class PowerBase {
+class PowerSchematic {
     constructor(properties, states) {
+        this.form = "schematic";
         this.type = "power";
         this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["makeGroup"])();
+        this.flags = {
+            order: "fore",
+            disabled: false
+        };
         this.properties = properties;
         this.states = states;
     }
     transferFunction() { return []; }
     ;
-}
-class PowerSchematic extends PowerBase {
-    constructor() {
-        super(...arguments);
-        this.form = "schematic";
-        this.flags = {
-            order: "fore",
-            disabled: false
-        };
-    }
     /** Builds and draws the components connectors */
     getConnectors() {
         return [
@@ -4829,15 +4851,20 @@ class PowerSchematic extends PowerBase {
         this.group.prepend(Object(_drawSchematic__WEBPACK_IMPORTED_MODULE_2__["default"])(this));
     }
 }
-class PowerLayout extends PowerBase {
-    constructor() {
-        super(...arguments);
+class PowerLayout {
+    constructor(properties, states) {
         this.form = "layout";
+        this.type = "power";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_3__["makeGroup"])();
         this.flags = {
             order: "mid",
             disabled: false
         };
+        this.properties = properties;
+        this.states = states;
     }
+    transferFunction() { return []; }
+    ;
     /** Builds and draws the components connectors */
     getConnectors() {
         return [[
@@ -5507,7 +5534,7 @@ const defaulterLayout = {
         color: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].color("#545454")
     }
 };
-const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], [_addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], { reticulatable: true, removable: true }], 
+const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["WireLayout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], [_addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], { reticulatable: true, removable: true }], 
 // [Extendable_, { reticulatable: true, removable: true }],
 [_addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], {}], _addins_recolorable__WEBPACK_IMPORTED_MODULE_8__["default"]);
 //{ canAddJoints: true, canRemoveJoints: true, canRemoveComponent: true }
@@ -5549,7 +5576,7 @@ const defaulterSchematic = {
     }
 };
 // TODO: Pass in options for extendable and others (options={?}) (true,true)
-const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, _addins_junctions__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], [_addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], { reticulatable: true, removable: true }]);
+const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["WireSchematic"], defaulterSchematic, _addins_junctions__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], [_addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], { reticulatable: true, removable: true }]);
 /* harmony default export */ __webpack_exports__["default"] = (makeSchematic);
 
 
@@ -5579,14 +5606,14 @@ __webpack_require__.r(__webpack_exports__);
 const schematicMap = {
     savename: "makeWire",
     diagramType: "schematic",
-    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"],
+    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["WireSchematic"],
     make: _makeSchematic__WEBPACK_IMPORTED_MODULE_2__["default"],
     load: _loadSchematic__WEBPACK_IMPORTED_MODULE_4__["default"]
 };
 const layoutMap = {
     savename: "makeLayoutWire",
     diagramType: "layout",
-    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["Layout"],
+    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["WireLayout"],
     make: _makeLayout__WEBPACK_IMPORTED_MODULE_3__["default"],
     load: _loadLayout__WEBPACK_IMPORTED_MODULE_5__["default"]
 };
@@ -5603,13 +5630,13 @@ const maps = {
 /*!********************************************************!*\
   !*** ./typescript/circuit/component/_wire/~classes.ts ***!
   \********************************************************/
-/*! exports provided: Schematic, Layout */
+/*! exports provided: WireSchematic, WireLayout */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Schematic", function() { return Schematic; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "WireSchematic", function() { return WireSchematic; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "WireLayout", function() { return WireLayout; });
 /* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
 /* harmony import */ var _utility_flatten__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../../utility/~flatten */ "./typescript/utility/~flatten.ts");
 /* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/_wire/-drawLayout.ts");
@@ -5621,16 +5648,11 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class Base {
-    constructor() {
+class WireSchematic {
+    constructor(properties, states) {
+        this.form = "schematic";
         this.type = "wire";
         this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
-    }
-}
-class Schematic extends Base {
-    constructor(properties, states) {
-        super();
-        this.form = "schematic";
         this.flags = {
             order: "back",
             disabled: false
@@ -5655,10 +5677,11 @@ class Schematic extends Base {
         return _utility_flatten__WEBPACK_IMPORTED_MODULE_1__["default"].flatten2d(this.getConnectors().map(connectorSet => connectorSet.filter(c => !(c.name === from.name && c.component == from.component))));
     }
 }
-class Layout extends Base {
+class WireLayout {
     constructor(properties, states) {
-        super();
         this.form = "layout";
+        this.type = "wire";
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
         this.flags = {
             order: "fore",
             disabled: false
@@ -6700,7 +6723,7 @@ const defaulterLayout = {
         joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
     }
 };
-const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Layout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"]);
+const makeLayout = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["ResistorLayout"], defaulterLayout, _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeLayout);
 
 
@@ -6739,7 +6762,7 @@ const defaulterSchematic = {
         joints: _valueCheck__WEBPACK_IMPORTED_MODULE_0__["default"].joints([{ x: 0, y: 0 }, { x: 40, y: 40 }]),
     }
 };
-const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"], defaulterSchematic, _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]);
+const makeSchematic = Object(_generics_getMaker__WEBPACK_IMPORTED_MODULE_2__["default"])(_classes__WEBPACK_IMPORTED_MODULE_1__["ResistorSchematic"], defaulterSchematic, _addins_selectable__WEBPACK_IMPORTED_MODULE_5__["default"], _addins_connectionsHighlightable__WEBPACK_IMPORTED_MODULE_7__["default"], _addins_graphical__WEBPACK_IMPORTED_MODULE_3__["default"], _addins_draggable__WEBPACK_IMPORTED_MODULE_4__["default"], _addins_extendable__WEBPACK_IMPORTED_MODULE_6__["default"]);
 /* harmony default export */ __webpack_exports__["default"] = (makeSchematic);
 
 
@@ -6769,14 +6792,14 @@ __webpack_require__.r(__webpack_exports__);
 const schematicMap = {
     savename: "makeResistor",
     diagramType: "schematic",
-    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["Schematic"],
+    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["ResistorSchematic"],
     make: _makeSchematic__WEBPACK_IMPORTED_MODULE_2__["default"],
     load: _loadSchematic__WEBPACK_IMPORTED_MODULE_4__["default"],
 };
 const layoutMap = {
     savename: "makeLayoutResistor",
     diagramType: "layout",
-    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["Layout"],
+    instance: _classes__WEBPACK_IMPORTED_MODULE_1__["ResistorLayout"],
     make: _makeLayout__WEBPACK_IMPORTED_MODULE_3__["default"],
     load: _loadLayout__WEBPACK_IMPORTED_MODULE_5__["default"],
 };
@@ -6810,13 +6833,13 @@ const INDEXEND2 = 1;
 /*!***********************************************************!*\
   !*** ./typescript/circuit/component/resistor/~classes.ts ***!
   \***********************************************************/
-/*! exports provided: Schematic, Layout */
+/*! exports provided: ResistorSchematic, ResistorLayout */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Schematic", function() { return Schematic; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layout", function() { return Layout; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ResistorSchematic", function() { return ResistorSchematic; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ResistorLayout", function() { return ResistorLayout; });
 /* harmony import */ var _generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../generics/-makeConnector */ "./typescript/circuit/generics/-makeConnector.ts");
 /* harmony import */ var _drawLayout__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./-drawLayout */ "./typescript/circuit/component/resistor/-drawLayout.ts");
 /* harmony import */ var _drawSchematic__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./-drawSchematic */ "./typescript/circuit/component/resistor/-drawSchematic.ts");
@@ -6827,24 +6850,17 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class Base {
+class ResistorSchematic {
     constructor(properties, states) {
+        this.form = "schematic";
         this.type = "resistor";
-        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
         this.flags = {
             order: "fore",
             disabled: false
         };
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
         this.properties = properties;
         this.states = states;
-    }
-    transferFunction() { return []; }
-    ;
-}
-class Schematic extends Base {
-    constructor() {
-        super(...arguments);
-        this.form = "schematic";
     }
     draw() {
         //(Prepend so handles appear on top)
@@ -6856,11 +6872,20 @@ class Schematic extends Base {
                 Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "", "node", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXEND2"]]),]
         ];
     }
+    transferFunction() { return []; }
+    ;
 }
-class Layout extends Base {
-    constructor() {
-        super(...arguments);
+class ResistorLayout {
+    constructor(properties, states) {
         this.form = "layout";
+        this.type = "resistor";
+        this.flags = {
+            order: "fore",
+            disabled: false
+        };
+        this.group = Object(_svg_element_group__WEBPACK_IMPORTED_MODULE_4__["makeGroup"])();
+        this.properties = properties;
+        this.states = states;
     }
     draw() {
         //(Prepend so handles appear on top)
@@ -6872,6 +6897,8 @@ class Layout extends Base {
                 Object(_generics_makeConnector__WEBPACK_IMPORTED_MODULE_0__["default"])(this, "", "pin", this.states.joints[_constants__WEBPACK_IMPORTED_MODULE_3__["INDEXEND2"]]),]
         ];
     }
+    transferFunction() { return []; }
+    ;
     get [Symbol.toStringTag]() {
         return `${this.form}-${this.type}`;
     }
@@ -7077,19 +7104,29 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _loadObjectWithDefaults__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./-loadObjectWithDefaults */ "./typescript/circuit/generics/-loadObjectWithDefaults.ts");
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! util */ "./node_modules/util/util.js");
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(util__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _utility_pipe__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../utility/-pipe */ "./typescript/utility/-pipe.ts");
 
 
-// export default interface getMaker<
-//    C extends Component> {
-//    (
-//       instanceClass: { new(properties: C["properties"], states: C["states"]): C },
-//       defaulter: ValueCheck.Defaulter<C>,
-//       initialiser: (component: C) => void
-//    ): (
-//          partialValues: DeepPartial<C["properties"] & C["states"]>,
-//          log: boolean
-//       ) => C
-// }
+
+const getDefaulter = (defaulter) => (partialValues) => {
+    const properties = Object(_loadObjectWithDefaults__WEBPACK_IMPORTED_MODULE_0__["default"])(defaulter.properties, partialValues);
+    const states = Object(_loadObjectWithDefaults__WEBPACK_IMPORTED_MODULE_0__["default"])(defaulter.states, partialValues);
+    return { properties, states };
+};
+const getNewComponentMaker = (instanceClass) => ({ properties, states, }) => {
+    return new instanceClass(properties, states);
+};
+const getAddinApplicator = (...addins) => (component) => {
+    addins.forEach(addin => {
+        if (Object(util__WEBPACK_IMPORTED_MODULE_1__["isArray"])(addin)) {
+            addin[0].init(component, addin[1]);
+        }
+        else {
+            addin.init(component);
+        }
+    });
+    return component;
+};
 function getMaker(instanceClass, defaulter, ...addins) {
     return (partialValues, log = true) => {
         /*LOGSTART*/
@@ -7097,22 +7134,11 @@ function getMaker(instanceClass, defaulter, ...addins) {
             console.groupCollapsed("Loading...");
         }
         /*LOGEND*/
-        const properties = Object(_loadObjectWithDefaults__WEBPACK_IMPORTED_MODULE_0__["default"])(defaulter.properties, partialValues, log);
-        const states = Object(_loadObjectWithDefaults__WEBPACK_IMPORTED_MODULE_0__["default"])(defaulter.states, partialValues, log);
+        const component = Object(_utility_pipe__WEBPACK_IMPORTED_MODULE_2__["default"])(getDefaulter(defaulter), getNewComponentMaker(instanceClass), getAddinApplicator(...addins))(partialValues);
         /*LOGSTART*/
         if (log) {
             console.groupEnd();
         }
-        /*LOGEND*/
-        const component = new instanceClass(properties, states);
-        addins.forEach(addin => {
-            if (Object(util__WEBPACK_IMPORTED_MODULE_1__["isArray"])(addin)) {
-                addin[0].init(component, addin[1]);
-            }
-            else {
-                addin.init(component);
-            }
-        });
         component.draw();
         /*LOGSTART*/
         if (log) {
@@ -7428,7 +7454,7 @@ const createMissingLayoutElements = () => {
 };
 const mergeSingleOpAmps = () => {
     // For dual op amps
-    let layoutOpAmps = manifest.states.layout.filter(layoutElement => (layoutElement["constructor"] === _component_opAmp_classes__WEBPACK_IMPORTED_MODULE_2__["Layout"]));
+    let layoutOpAmps = manifest.states.layout.filter(layoutElement => (layoutElement["constructor"] === _component_opAmp_classes__WEBPACK_IMPORTED_MODULE_2__["OpAmpLayout"]));
     let opAmpGroups = [];
     layoutOpAmps.forEach((opAmp, i) => {
         let groupIdx = opAmpGroups.findIndex(group => arePropertiesEqual(Object(_component__WEBPACK_IMPORTED_MODULE_1__["getProperties"])(opAmp), Object(_component__WEBPACK_IMPORTED_MODULE_1__["getProperties"])(group[0])));
@@ -9453,6 +9479,62 @@ function isUnaryMap(A, B, predicate) {
     const allBMatched = (B.length === 0);
     return (isPredicateMatchForAllA && allBMatched);
 }
+
+
+/***/ }),
+
+/***/ "./typescript/utility/-pipe.ts":
+/*!*************************************!*\
+  !*** ./typescript/utility/-pipe.ts ***!
+  \*************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+const pipe = (...fns) => x => fns.reduce((v, f) => f(v), x);
+/* harmony default export */ __webpack_exports__["default"] = (pipe);
+class myClass {
+    constructor(p, s) {
+        this.p = p;
+        this.s = s;
+    }
+}
+const makeClass = (construct) => ({ p, s }) => new construct(p, s);
+const useClass = (i) => 4;
+let blah = pipe(makeClass(myClass), useClass);
+// let blah:[
+//    (s: string) => 4,
+//    (n: number) => 6,
+//    (n: string) => 5,
+//    (n: number) => "hi",
+// ] = [
+//    (s: string) => 4,
+//    (n: number) => 6,
+//    (n: string) => 5,
+//    (n: number) => "hi",
+// ]
+// let blah1 = pipe(
+//    (s: string) => 4,
+//    (n: number) => "hello",
+//    (n: string) => 5,
+//    (n: number) => "hello",
+//    <T extends any>(i: T) => i,
+// )
+// let blah2 = pipe(
+//    (s: string) => 4,
+//    (n: number) => "hello",
+//    (n: number) => 5,
+//    (s: string) => 4,
+//    <T extends any>(i: T) => i,
+// )
+// let blah3 = pipe(
+//    (i: {a:0}) => ({a:0, b:0}),
+//    (i: {a:0, b:0}) => ({a:0, b:0, c:0}),
+//    (i: {a:0, b:0, c:0}) => ({a:0, b:0, c:0, d:0}),
+//    (i: { a: 0, b: 0, c: 0, d: 0 }) => ({ a: 0, b: 0, c: 0, d: 0, e: 0 }),
+//    <T extends any>(i: T) => i,
+// )
 
 
 /***/ }),
