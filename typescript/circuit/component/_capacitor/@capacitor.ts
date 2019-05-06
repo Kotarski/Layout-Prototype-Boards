@@ -1,5 +1,5 @@
 
-import { ComponentQuery } from "../@componentBase";
+import { ComponentQuery, ComponentBaseData } from "../@componentBase";
 import { DraggableComponent } from "../addins/@draggable";
 import { Vector } from "../../../++types";
 
@@ -8,49 +8,47 @@ type Properties = {
    capacitance: number;
 }
 
-interface SchematicID {
-   form: "schematic",
-   type: "capacitor"
-}
-
-interface SchematicSavedData extends SchematicID {
-   properties: Properties,
+interface CapacitorSchematicBaseData extends ComponentBaseData {
+   ident: {
+      form: "schematic",
+      type: "capacitor"
+   },
    states: {
       joints: [Vector,Vector]//Record<"lead0"|"lead1", Vector>
    }
-}
-
-interface SchematicBaseData extends SchematicSavedData {
+   properties: Properties,
    flags: {
-      order: "mid"
+      order: "fore"
    }
 }
 
-type SchematicData = DraggableComponent<SchematicBaseData>;
-
-interface LayoutID {
-   form: "layout",
-   type: "capacitor"
-}
-
-interface LayoutSavedData extends LayoutID {
-   properties: Properties
-   states: {
-      joints: [Vector,Vector]//Record<"lead0"|"lead1", [Vector, ...Vector[]]>
-   }
-}
-
-interface LayoutBaseData extends LayoutSavedData {
-   flags: {
-      order: "mid"
+interface CapacitorLayoutBaseData extends ComponentBaseData {
+   ident: {
+      form: "layout",
+      type: "capacitor"
    },
+   states: {
+      joints: [Vector,Vector]//Record<"lead0"|"lead1", Vector>
+   }
+   properties: Properties,
+   flags: {
+      order: "fore"
+   }
 }
-type LayoutData = DraggableComponent<LayoutBaseData>;
+
+
+
+type CapacitorSchematicData = DraggableComponent<CapacitorSchematicBaseData>;
+
+
+type CapacitorLayoutData = DraggableComponent<CapacitorLayoutBaseData>;
 
 namespace Capacitor {
    export type SchematicQuery = ComponentQuery<
-      SchematicSavedData, SchematicBaseData, SchematicData>
+      CapacitorSchematicBaseData, CapacitorSchematicData
+   >
    export type LayoutQuery = ComponentQuery<
-      LayoutSavedData, LayoutBaseData, LayoutData>
+      CapacitorLayoutBaseData, CapacitorLayoutData
+   >
 }
 export default Capacitor;
